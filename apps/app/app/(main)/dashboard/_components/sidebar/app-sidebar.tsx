@@ -3,13 +3,14 @@
 import Link from "next/link";
 
 import {
-  CircleHelp,
-  ClipboardList,
-  Command,
-  Database,
-  File,
   Search,
   Settings,
+  AudioWaveform,
+  Command,
+  GalleryVerticalEnd,
+  CircleHelp,
+  Database,
+  ClipboardList,
 } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 
@@ -29,6 +30,7 @@ import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
+import { WorkspaceSwitcher } from "./workspace-switcher";
 
 const _data = {
   navSecondary: [
@@ -64,6 +66,28 @@ const _data = {
       url: "#",
       icon: File,
     },
+    {
+      name: "Word Assistant",
+      url: "#",
+      icon: File,
+    },
+  ],
+  teams: [
+    {
+      name: "Acme Inc",
+      logo: GalleryVerticalEnd,
+      plan: "Enterprise",
+    },
+    {
+      name: "Acme Corp.",
+      logo: AudioWaveform,
+      plan: "Startup",
+    },
+    {
+      name: "Evil Corp.",
+      logo: Command,
+      plan: "Free",
+    },
   ],
 };
 
@@ -82,18 +106,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props} variant={variant} collapsible={collapsible}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link prefetch={false} href="/dashboard/default">
-                <Command />
-                <span className="font-semibold text-base">
-                  {APP_CONFIG.name}
-                </span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <WorkspaceSwitcher teams={_data.teams} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={sidebarItems} />
