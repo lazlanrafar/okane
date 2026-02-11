@@ -15,10 +15,10 @@ loadEnv();
 // Validate environment variables early
 validateEnv();
 
-import { healthRoutes } from "./routes/health";
-import { databaseRoutes } from "./routes/database";
-import { mcpPlugin } from "./plugins/mcp";
-import { authPlugin } from "./plugins/auth";
+import { healthRoutes } from "./modules/health";
+import { databaseRoutes } from "./modules/database";
+import { mcpPlugin } from "./modules/mcp";
+import { authPlugin } from "./modules/auth";
 
 const log = createLogger("api");
 const port = process.env.API_PORT ?? 3001;

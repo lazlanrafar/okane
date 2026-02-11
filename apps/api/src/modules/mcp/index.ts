@@ -59,21 +59,25 @@ export const mcpPlugin = new Elysia().use(
                     method: "GET",
                     path: "/api/items",
                     description: "List all items",
+                    notes: "Mock endpoint from MCP tool description",
                   },
                   {
                     method: "GET",
                     path: "/api/items/:id",
                     description: "Get item by ID",
+                    notes: "Mock endpoint from MCP tool description",
                   },
                   {
                     method: "POST",
                     path: "/api/items",
                     description: "Create a new item",
+                    notes: "Mock endpoint from MCP tool description",
                   },
                   {
                     method: "DELETE",
                     path: "/api/items/:id",
                     description: "Delete an item",
+                    notes: "Mock endpoint from MCP tool description",
                   },
                   {
                     method: "GET",
