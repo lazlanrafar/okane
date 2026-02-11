@@ -1,10 +1,11 @@
+"use client";
 "use no memo";
 
 import { useSortable } from "@dnd-kit/sortable";
 import type { ColumnDef } from "@tanstack/react-table";
 import { GripVertical } from "lucide-react";
 
-import { Button } from "@workspace/ui";
+import { Button } from "../button";
 
 function DragHandle({ id }: { id: number }) {
   const { attributes, listeners } = useSortable({

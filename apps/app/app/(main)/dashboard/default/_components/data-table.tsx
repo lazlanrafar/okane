@@ -9,30 +9,53 @@ import type { z } from "zod";
 import { Badge } from "@workspace/ui";
 import { Button } from "@workspace/ui";
 import { Label } from "@workspace/ui";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui";
 import { useDataTableInstance } from "@workspace/ui";
 
-import { DataTable as DataTableNew } from "../../../../../components/data-table/data-table";
-import { DataTablePagination } from "../../../../../components/data-table/data-table-pagination";
-import { DataTableViewOptions } from "../../../../../components/data-table/data-table-view-options";
-import { withDndColumn } from "../../../../../components/data-table/table-utils";
+import {
+  DataTable as DataTableNew,
+  DataTablePagination,
+  DataTableViewOptions,
+  withDndColumn,
+} from "@workspace/ui";
 import { dashboardColumns } from "./columns";
 import type { sectionSchema } from "./schema";
 
-export function DataTable({ data: initialData }: { data: z.infer<typeof sectionSchema>[] }) {
+export function DataTable({
+  data: initialData,
+}: {
+  data: z.infer<typeof sectionSchema>[];
+}) {
   const [data, setData] = React.useState(() => initialData);
   const columns = withDndColumn(dashboardColumns);
-  const table = useDataTableInstance({ data, columns, getRowId: (row) => row.id.toString() });
+  const table = useDataTableInstance({
+    data,
+    columns,
+    getRowId: (row) => row.id.toString(),
+  });
 
   return (
-    <Tabs defaultValue="outline" className="w-full flex-col justify-start gap-6">
+    <Tabs
+      defaultValue="outline"
+      className="w-full flex-col justify-start gap-6"
+    >
       <div className="flex items-center justify-between">
         <Label htmlFor="view-selector" className="sr-only">
           View
         </Label>
         <Select defaultValue="outline">
-          <SelectTrigger className="flex @4xl/main:hidden w-fit" size="sm" id="view-selector">
+          <SelectTrigger
+            className="flex @4xl/main:hidden w-fit"
+            size="sm"
+            id="view-selector"
+          >
             <SelectValue placeholder="Select a view" />
           </SelectTrigger>
           <SelectContent>
@@ -60,9 +83,17 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof sectionS
           </Button>
         </div>
       </div>
-      <TabsContent value="outline" className="relative flex flex-col gap-4 overflow-auto">
+      <TabsContent
+        value="outline"
+        className="relative flex flex-col gap-4 overflow-auto"
+      >
         <div className="overflow-hidden rounded-lg border">
-          <DataTableNew dndEnabled table={table} columns={columns} onReorder={setData} />
+          <DataTableNew
+            dndEnabled
+            table={table}
+            columns={columns}
+            onReorder={setData}
+          />
         </div>
         <DataTablePagination table={table} />
       </TabsContent>
