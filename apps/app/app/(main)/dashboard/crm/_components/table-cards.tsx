@@ -6,9 +6,9 @@ import { Download } from "lucide-react";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useDataTableInstance } from "@/hooks/use-data-table-instance";
+import { Button } from "@workspace/ui";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui";
+import { useDataTableInstance } from "@workspace/ui";
 
 import { recentLeadsColumns } from "./columns.crm";
 import { recentLeadsData } from "./crm.config";

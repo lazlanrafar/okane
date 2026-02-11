@@ -1,4 +1,4 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui";
 
 import { CardOverview } from "./_components/card-overview";
 import { CashFlowOverview } from "./_components/cash-flow-overview";

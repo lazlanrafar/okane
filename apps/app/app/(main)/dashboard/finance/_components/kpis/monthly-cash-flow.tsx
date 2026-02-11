@@ -2,9 +2,9 @@
 
 import { Calendar, TrendingUp } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { formatCurrency } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui";
+import { Separator } from "@workspace/ui";
+import { formatCurrency } from "@workspace/ui";
 
 export function MonthlyCashFlow() {
   return (

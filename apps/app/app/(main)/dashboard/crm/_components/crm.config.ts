@@ -1,4 +1,4 @@
-import type { ChartConfig } from "@/components/ui/chart";
+import type { ChartConfig } from "@workspace/ui";
 
 export const leadsChartData = [
   { date: "1-5", newLeads: 120, disqualified: 40 },

@@ -1,13 +1,38 @@
 "use client";
 
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ReferenceLine,
+  XAxis,
+  YAxis,
+} from "recharts";
 
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { formatCurrency } from "@/lib/utils";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui";
+import {
+  type ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@workspace/ui";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui";
+import { Separator } from "@workspace/ui";
+import { formatCurrency } from "@workspace/ui";
 
 const chartData = [
   { month: "Jan", income: 5900, expenses: -4200 },
@@ -37,12 +62,17 @@ const chartConfig = {
 
 export function CashFlowOverview() {
   const totalIncome = chartData.reduce((acc, item) => acc + item.income, 0);
-  const totalExpenses = chartData.reduce((acc, item) => acc + Math.abs(item.expenses), 0);
+  const totalExpenses = chartData.reduce(
+    (acc, item) => acc + Math.abs(item.expenses),
+    0,
+  );
   return (
     <Card>
       <CardHeader>
         <CardTitle>Cash Flow Overview</CardTitle>
-        <CardDescription>Monthly income and expenses with net cash impact.</CardDescription>
+        <CardDescription>
+          Monthly income and expenses with net cash impact.
+        </CardDescription>
         <CardAction>
           <Select defaultValue="this-year">
             <SelectTrigger className="w-37">
@@ -66,7 +96,9 @@ export function CashFlowOverview() {
             </div>
             <div>
               <p className="text-muted-foreground text-xs uppercase">Income</p>
-              <p className="font-medium tabular-nums">{formatCurrency(totalIncome, { noDecimals: true })}</p>
+              <p className="font-medium tabular-nums">
+                {formatCurrency(totalIncome, { noDecimals: true })}
+              </p>
             </div>
           </div>
           <Separator orientation="vertical" className="h-auto! self-stretch" />
@@ -75,8 +107,12 @@ export function CashFlowOverview() {
               <ArrowUpRight className="size-6 stroke-background" />
             </div>
             <div>
-              <p className="text-muted-foreground text-xs uppercase">Expenses</p>
-              <p className="font-medium tabular-nums">{formatCurrency(totalExpenses, { noDecimals: true })}</p>
+              <p className="text-muted-foreground text-xs uppercase">
+                Expenses
+              </p>
+              <p className="font-medium tabular-nums">
+                {formatCurrency(totalExpenses, { noDecimals: true })}
+              </p>
             </div>
           </div>
         </div>
@@ -89,7 +125,12 @@ export function CashFlowOverview() {
             data={chartData}
           >
             <CartesianGrid vertical={false} />
-            <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+            />
             <YAxis
               axisLine={false}
               tickLine={false}
@@ -103,8 +144,18 @@ export function CashFlowOverview() {
             />
             <ChartTooltip content={<ChartTooltipContent hideLabel />} />
             <ReferenceLine y={0} stroke="var(--border)" />
-            <Bar dataKey="income" stackId="a" fill={chartConfig.income.color} radius={[4, 4, 0, 0]} />
-            <Bar dataKey="expenses" stackId="a" fill={chartConfig.expenses.color} radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="income"
+              stackId="a"
+              fill={chartConfig.income?.color}
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar
+              dataKey="expenses"
+              stackId="a"
+              fill={chartConfig.expenses?.color}
+              radius={[4, 4, 0, 0]}
+            />
           </BarChart>
         </ChartContainer>
       </CardContent>

@@ -4,7 +4,7 @@ import type * as React from "react";
 
 import type { SimpleIcon as SimpleIconType } from "simple-icons";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@workspace/ui";
 
 type SimpleIconProps = {
   icon: SimpleIconType;

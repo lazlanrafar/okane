@@ -4,6 +4,7 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
+  transpilePackages: ["@workspace/ui"],
   async redirects() {
     return [
       {

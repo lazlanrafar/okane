@@ -5,9 +5,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Button } from "@workspace/ui";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@workspace/ui";
+import { Input } from "@workspace/ui";
 
 const FormSchema = z
   .object({

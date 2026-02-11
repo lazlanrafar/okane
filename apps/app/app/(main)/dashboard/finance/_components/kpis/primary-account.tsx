@@ -2,9 +2,9 @@
 
 import { WalletMinimal } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/utils";
+import { Button } from "@workspace/ui";
+import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui";
+import { formatCurrency } from "@workspace/ui";
 
 export function PrimaryAccount() {
   return (
