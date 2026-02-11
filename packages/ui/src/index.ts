@@ -60,3 +60,4 @@ export * from "./components/ui/data-table/data-table-pagination";
 export * from "./components/ui/data-table/data-table-view-options";
 export * from "./components/ui/data-table/table-utils";
 export * from "./components/ui/data-table/drag-column";
+export * from "./components/ui/simple-icon";
