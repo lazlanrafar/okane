@@ -81,3 +81,9 @@ export async function loginWithOAuth(provider: "google" | "github") {
     redirect(data.url);
   }
 }
+
+export async function logout() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/login");
+}

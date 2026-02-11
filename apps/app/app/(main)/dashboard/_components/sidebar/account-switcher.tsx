@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui";
 import { cn, getInitials } from "@workspace/ui";
+import { logout } from "@/app/(auth)/actions";
 
 export function AccountSwitcher({
   users,
@@ -91,7 +92,7 @@ export function AccountSwitcher({
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => logout()}>
           <LogOut />
           Log out
         </DropdownMenuItem>
