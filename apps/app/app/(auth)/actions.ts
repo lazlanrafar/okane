@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@workspace/supabase/server";
+import { createClient } from "@workspace/supabase/next-server";
 import { db, users } from "@workspace/database";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
@@ -9,7 +9,7 @@ export async function login(form_data: FormData) {
   const email = form_data.get("email") as string;
   const password = form_data.get("password") as string;
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -28,7 +28,7 @@ export async function signup(form_data: FormData) {
   const password = form_data.get("password") as string;
   const name = form_data.get("name") as string | undefined;
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -65,7 +65,7 @@ export async function signup(form_data: FormData) {
 
 export async function loginWithOAuth(provider: "google" | "github") {
   const origin = (await headers()).get("origin");
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {

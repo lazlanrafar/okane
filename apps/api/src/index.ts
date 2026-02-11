@@ -16,7 +16,6 @@ loadEnv();
 validateEnv();
 
 import { healthRoutes } from "./routes/health";
-import { exampleRoutes } from "./routes/example";
 import { databaseRoutes } from "./routes/database";
 import { mcpPlugin } from "./plugins/mcp";
 import { authPlugin } from "./plugins/auth";
@@ -40,7 +39,6 @@ const app = new Elysia()
   )
   .use(mcpPlugin)
   .use(healthRoutes)
-  .use(exampleRoutes)
   .use(databaseRoutes)
   .onError(({ error, code }) => {
     // Don't log or capture 404s — they're expected

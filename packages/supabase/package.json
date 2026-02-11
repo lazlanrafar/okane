@@ -6,7 +6,8 @@
   "types": "./index.ts",
   "exports": {
     ".": "./index.ts",
-    "./server": "./server.ts",
+    "./next-server": "./next-server.ts",
+    "./admin": "./admin.ts",
     "./client": "./client.ts",
     "./middleware": "./middleware.ts"
   },

@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { createClient } from "@workspace/supabase";
+import { createClient } from "@workspace/supabase/admin";
 
 export const authPlugin = new Elysia({ name: "auth" })
   .derive(async ({ headers }) => {
