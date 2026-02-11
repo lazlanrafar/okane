@@ -18,7 +18,8 @@
     "@workspace/supabase": "workspace:*",
     "@sentry/bun": "^10.18.0",
     "@workspace/logger": "workspace:*",
-    "@workspace/database": "workspace:*"
+    "@workspace/database": "workspace:*",
+    "@workspace/constants": "workspace:*"
   },
   "devDependencies": {
     "@workspace/typescript-config": "workspace:*",

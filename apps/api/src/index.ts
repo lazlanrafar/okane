@@ -6,6 +6,10 @@ import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 import * as Sentry from "@sentry/bun";
 import { createLogger } from "@workspace/logger";
+import { validateEnv } from "@workspace/constants";
+
+// Validate environment variables early
+validateEnv();
 
 import { healthRoutes } from "./routes/health";
 import { exampleRoutes } from "./routes/example";
