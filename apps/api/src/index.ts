@@ -1,11 +1,17 @@
+// Sentry must be imported first to instrument everything
+import "./instrument";
+
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
+import * as Sentry from "@sentry/bun";
+import { createLogger } from "@workspace/logger";
 
 import { healthRoutes } from "./routes/health";
 import { exampleRoutes } from "./routes/example";
 import { mcpPlugin } from "./plugins/mcp";
 
+const log = createLogger("api");
 const port = process.env.API_PORT ?? 3001;
 
 const app = new Elysia()
@@ -24,10 +30,16 @@ const app = new Elysia()
   .use(mcpPlugin)
   .use(healthRoutes)
   .use(exampleRoutes)
+  .onError(({ error, code }) => {
+    // Don't log or capture 404s — they're expected
+    if (code === "NOT_FOUND") return;
+    Sentry.captureException(error);
+    log.error("Unhandled error", { err: error });
+  })
   .listen(port);
 
-console.log(`🦊 Okane API running at http://localhost:${port}`);
-console.log(`📖 Swagger docs at http://localhost:${port}/swagger`);
-console.log(`🔌 MCP endpoint at http://localhost:${port}/mcp`);
+log.info(`🦊 Okane API running at http://localhost:${port}`);
+log.info(`📖 Swagger docs at http://localhost:${port}/swagger`);
+log.info(`🔌 MCP endpoint at http://localhost:${port}/mcp`);
 
 export type App = typeof app;

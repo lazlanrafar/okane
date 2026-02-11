@@ -5,7 +5,12 @@
     "SUPABASE_URL",
     "SUPABASE_ANON_KEY",
     "SUPABASE_SERVICE_ROLE_KEY",
-    "API_PORT"
+    "API_PORT",
+    "SENTRY_DSN",
+    "SENTRY_AUTH_TOKEN",
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "LOG_LEVEL",
+    "LOG_PRETTY"
   ],
   "globalPassThroughEnv": ["NODE_ENV"],
   "tasks": {
