@@ -1,9 +1,9 @@
 "use server";
 
 import { createClient } from "@workspace/supabase/next-server";
-import { db, users } from "@workspace/database";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { syncUser } from "../../modules/users/services";
 
 export async function login(form_data: FormData) {
   const email = form_data.get("email") as string;
@@ -44,17 +44,17 @@ export async function signup(form_data: FormData) {
     return { error: error.message };
   }
 
-  // Sync user to Drizzle database
+  // Sync user to Drizzle database via API
   if (data.user) {
     try {
-      await db.insert(users).values({
+      await syncUser({
         id: data.user.id, // Use Supabase Auth ID
         email: data.user.email!,
         name: name,
         oauth_provider: "email",
       });
-    } catch (db_error) {
-      console.error("Failed to sync user to database:", db_error);
+    } catch (api_error) {
+      console.error("Failed to sync user to database via API:", api_error);
       // Optional: rollback auth user creation or just log error?
       // For now, logging error. In production, consider a more robust sync or queue.
     }

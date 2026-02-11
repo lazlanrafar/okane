@@ -19,6 +19,7 @@ import { healthRoutes } from "./modules/health";
 import { databaseRoutes } from "./modules/database";
 import { mcpPlugin } from "./modules/mcp";
 import { authPlugin } from "./modules/auth";
+import { usersRoutes } from "./modules/users";
 
 const log = createLogger("api");
 const port = process.env.API_PORT ?? 3001;
@@ -40,6 +41,7 @@ const app = new Elysia()
   .use(mcpPlugin)
   .use(healthRoutes)
   .use(databaseRoutes)
+  .use(usersRoutes)
   .onError(({ error, code }) => {
     // Don't log or capture 404s — they're expected
     if (code === "NOT_FOUND") return;

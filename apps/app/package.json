@@ -63,7 +63,6 @@
     "@workspace/ui": "workspace:*",
     "@workspace/utils": "workspace:*",
     "@workspace/logger": "workspace:*",
-    "@workspace/database": "workspace:*",
     "@workspace/constants": "workspace:*",
     "babel-plugin-react-compiler": "^1.0.0",
     "globals": "^15.15.0",
