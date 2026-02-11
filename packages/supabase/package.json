@@ -1,0 +1,23 @@
+{
+  "name": "@workspace/supabase",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./server": "./server.ts",
+    "./client": "./client.ts",
+    "./middleware": "./middleware.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.8",
+    "@supabase/ssr": "^0.7.0"
+  },
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*",
+    "@types/node": "^22.16.4",
+    "next": "^16.1.6",
+    "typescript": "^5.9.3"
+  }
+}
