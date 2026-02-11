@@ -1,31 +1,4 @@
 import { z } from "zod";
-import dotenv from "dotenv";
-import path from "path";
-import fs from "fs";
-
-// Helper to find and load .env file
-function loadEnv() {
-  // If strict env vars are already present, skip loading
-  if (process.env.DATABASE_URL && process.env.SUPABASE_URL) return;
-
-  let current = process.cwd();
-  // Traverse up up to 3 levels to find .env
-  for (let i = 0; i < 3; i++) {
-    const envPath = path.join(current, ".env");
-    if (fs.existsSync(envPath)) {
-      dotenv.config({ path: envPath });
-      return;
-    }
-    current = path.dirname(current);
-  }
-}
-
-// Load env before defining schema (only if file system is available)
-try {
-  loadEnv();
-} catch (e) {
-  // Ignored in browser/edge environments where fs is not available
-}
 
 const envSchema = z.object({
   // Database
@@ -59,10 +32,6 @@ export type Env = z.infer<typeof envSchema>;
  * Use this at application startup.
  */
 export function validateEnv(): Env {
-  // If running in browser, filter out server-side only variables?
-  // But typically this package is consumed by server-side code or build scripts.
-  // For client-side, we rely on NEXT_PUBLIC_ prefix handling by framework.
-
   // Parse process.env
   const parsed = envSchema.safeParse(process.env);
 
