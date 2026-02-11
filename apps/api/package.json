@@ -17,7 +17,8 @@
     "zod": "^3.25.67",
     "@workspace/supabase": "workspace:*",
     "@sentry/bun": "^10.18.0",
-    "@workspace/logger": "workspace:*"
+    "@workspace/logger": "workspace:*",
+    "@workspace/database": "workspace:*"
   },
   "devDependencies": {
     "@workspace/typescript-config": "workspace:*",

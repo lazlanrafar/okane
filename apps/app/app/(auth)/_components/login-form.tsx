@@ -1,22 +1,35 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@workspace/ui";
 import { Checkbox } from "@workspace/ui";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@workspace/ui";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@workspace/ui";
 import { Input } from "@workspace/ui";
+import { login } from "../actions";
 
 const FormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters." }),
   remember: z.boolean().optional(),
 });
 
 export function LoginForm() {
+  const [is_pending, start_transition] = useTransition();
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -27,12 +40,17 @@ export function LoginForm() {
   });
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    toast("You submitted the following values", {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
+    start_transition(async () => {
+      const form_data = new FormData();
+      form_data.append("email", data.email);
+      form_data.append("password", data.password);
+
+      const result = await login(form_data);
+      if (result?.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Logged in successfully");
+      }
     });
   };
 
@@ -46,7 +64,14 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Email Address</FormLabel>
               <FormControl>
-                <Input id="email" type="email" placeholder="you@example.com" autoComplete="email" {...field} />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  disabled={is_pending}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -64,6 +89,7 @@ export function LoginForm() {
                   type="password"
                   placeholder="••••••••"
                   autoComplete="current-password"
+                  disabled={is_pending}
                   {...field}
                 />
               </FormControl>
@@ -82,16 +108,20 @@ export function LoginForm() {
                   checked={field.value}
                   onCheckedChange={field.onChange}
                   className="size-4"
+                  disabled={is_pending}
                 />
               </FormControl>
-              <FormLabel htmlFor="login-remember" className="ml-1 font-medium text-muted-foreground text-sm">
+              <FormLabel
+                htmlFor="login-remember"
+                className="ml-1 font-medium text-muted-foreground text-sm"
+              >
                 Remember me for 30 days
               </FormLabel>
             </FormItem>
           )}
         />
-        <Button className="w-full" type="submit">
-          Login
+        <Button className="w-full" type="submit" disabled={is_pending}>
+          {is_pending ? "Logging in..." : "Login"}
         </Button>
       </form>
     </Form>

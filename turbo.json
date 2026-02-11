@@ -10,7 +10,8 @@
     "SENTRY_AUTH_TOKEN",
     "NEXT_PUBLIC_SENTRY_DSN",
     "LOG_LEVEL",
-    "LOG_PRETTY"
+    "LOG_PRETTY",
+    "DATABASE_URL"
   ],
   "globalPassThroughEnv": ["NODE_ENV"],
   "tasks": {

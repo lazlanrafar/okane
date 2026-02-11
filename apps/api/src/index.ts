@@ -9,13 +9,16 @@ import { createLogger } from "@workspace/logger";
 
 import { healthRoutes } from "./routes/health";
 import { exampleRoutes } from "./routes/example";
+import { databaseRoutes } from "./routes/database";
 import { mcpPlugin } from "./plugins/mcp";
+import { authPlugin } from "./plugins/auth";
 
 const log = createLogger("api");
 const port = process.env.API_PORT ?? 3001;
 
 const app = new Elysia()
   .use(cors())
+  .use(authPlugin)
   .use(
     swagger({
       documentation: {
@@ -30,6 +33,7 @@ const app = new Elysia()
   .use(mcpPlugin)
   .use(healthRoutes)
   .use(exampleRoutes)
+  .use(databaseRoutes)
   .onError(({ error, code }) => {
     // Don't log or capture 404s — they're expected
     if (code === "NOT_FOUND") return;
