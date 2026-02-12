@@ -63,6 +63,7 @@
     "@types/react-dom": "^19.2.3",
     "@workspace/constants": "workspace:*",
     "@workspace/encryption": "workspace:*",
+    "@workspace/types": "workspace:*",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/logger": "workspace:*",
     "@workspace/typescript-config": "workspace:*",

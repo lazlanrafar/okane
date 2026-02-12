@@ -1,4 +1,5 @@
 import { axiosInstance } from "../../lib/axios";
+import type { User, WorkspaceWithRole } from "@workspace/types";
 
 export interface SyncUserDTO {
   id: string;
@@ -10,17 +11,16 @@ export interface SyncUserDTO {
 }
 
 export interface SyncUserResponse {
-  status: string;
   has_workspace: boolean;
-  default_workspace_id: string | null;
+  workspace_id: string | null;
 }
 
-export const sync_user = async (
+export const syncUser = async (
   user: SyncUserDTO,
 ): Promise<SyncUserResponse | null> => {
   try {
     const response = await axiosInstance.post<SyncUserResponse>(
-      "/users/sync",
+      "users/sync",
       user,
     );
     return response.data;
@@ -29,3 +29,16 @@ export const sync_user = async (
     throw error;
   }
 };
+
+export const getMe = async (
+  token: string,
+): Promise<{ user: User; workspaces: WorkspaceWithRole[] }> => {
+  const response = await axiosInstance.get("users/me", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Backward-compatible aliases (snake_case → camelCase)
+export const sync_user = syncUser;
+export const get_me = getMe;

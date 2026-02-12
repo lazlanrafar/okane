@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  User,
-  Settings,
-  Palette,
-  Bell,
-  Monitor,
-} from "lucide-react";
+import { User, Settings, Palette, Bell, Monitor } from "lucide-react";
 
 import { cn } from "@workspace/ui";
 import { buttonVariants } from "@workspace/ui";
@@ -42,12 +36,17 @@ const sidebarNavItems = [
 ];
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
-  // items prop is no longer needed but kept for backward compatibility if needed, 
+  // items prop is no longer needed but kept for backward compatibility if needed,
   // though we ignore it in favor of internal items for this specific sidebar.
-  items?: any[]; 
+  // biome-ignore lint/suspicious/noExplicitAny: Legacy prop compatibility
+  items?: any[];
 }
 
-export function SettingSidebar({ className, items, ...props }: SidebarNavProps) {
+export function SettingSidebar({
+  className,
+  items,
+  ...props
+}: SidebarNavProps) {
   const pathname = usePathname();
 
   return (

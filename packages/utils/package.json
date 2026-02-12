@@ -12,6 +12,9 @@
     "format": "biome format --write",
     "check": "biome check"
   },
+  "dependencies": {
+    "@workspace/types": "workspace:*"
+  },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",

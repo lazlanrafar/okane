@@ -1,6 +1,8 @@
 import { createClient } from "@workspace/supabase/next-server";
 import { NextResponse } from "next/server";
 import { sync_user } from "@/modules/users/services";
+import { exchangeToken } from "@/modules/workspaces/services";
+import { cookies } from "next/headers";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -19,7 +21,7 @@ export async function GET(request: Request) {
         try {
           const sync_result = await sync_user({
             id: user.id,
-            email: user.email!,
+            email: user.email ?? "",
             name: user.user_metadata?.full_name || user.user_metadata?.name,
             oauth_provider: user.app_metadata?.provider,
             profile_picture:
@@ -30,6 +32,21 @@ export async function GET(request: Request) {
           // If user has no workspace, redirect to create-workspace
           if (sync_result?.has_workspace === false) {
             return NextResponse.redirect(`${origin}/create-workspace`);
+          }
+
+          // 2. Exchange for app JWT
+          const { data: session_data } = await supabase.auth.getSession();
+          if (session_data.session?.access_token) {
+            const { token } = await exchangeToken(
+              session_data.session.access_token,
+            );
+            (await cookies()).set("okane-session", token, {
+              path: "/",
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "lax",
+              maxAge: 60 * 60 * 24 * 7, // 7 days
+            });
           }
         } catch (e) {
           console.error("Failed to sync user on login callback:", e);

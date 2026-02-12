@@ -1,8 +1,6 @@
 "use client";
 "use no memo";
 
-import * as React from "react";
-
 import {
   closestCenter,
   DndContext,
@@ -25,6 +23,7 @@ import {
   flexRender,
   type Table as TanStackTable,
 } from "@tanstack/react-table";
+import * as React from "react";
 
 import {
   Table,

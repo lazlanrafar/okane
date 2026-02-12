@@ -1,5 +1,4 @@
 "use no memo";
-import * as React from "react";
 
 import {
   type ColumnDef,
@@ -14,6 +13,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
+import * as React from "react";
 
 type UseDataTableInstanceProps<TData, TValue> = {
   data: TData[];
@@ -33,8 +33,11 @@ export function useDataTableInstance<TData, TValue>({
   getRowId,
 }: UseDataTableInstanceProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [pagination, setPagination] = React.useState({
     pageIndex: defaultPageIndex ?? 0,
@@ -52,6 +55,7 @@ export function useDataTableInstance<TData, TValue>({
       pagination,
     },
     enableRowSelection,
+    // biome-ignore lint/suspicious/noExplicitAny: Generic row handling
     getRowId: getRowId ?? ((row) => (row as any).id.toString()),
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,

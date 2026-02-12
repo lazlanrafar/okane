@@ -27,7 +27,7 @@ type UserData = {
   email: string;
   name: string | null;
   profile_picture: string | null;
-  default_workspace_id: string | null;
+  workspace_id: string | null;
 };
 
 export function AppSidebar({

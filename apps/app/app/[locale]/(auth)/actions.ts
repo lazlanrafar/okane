@@ -2,8 +2,9 @@
 
 import { createClient } from "@workspace/supabase/next-server";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { sync_user } from "../../../modules/users/services";
+import { exchangeToken } from "../../../modules/workspaces/services";
 
 export async function login(form_data: FormData) {
   const email = form_data.get("email") as string;
@@ -27,7 +28,7 @@ export async function login(form_data: FormData) {
     try {
       const result = await sync_user({
         id: user.id,
-        email: user.email!,
+        email: user.email ?? "",
         name: user.user_metadata?.full_name || user.user_metadata?.name,
         oauth_provider: "email",
         profile_picture:
@@ -37,6 +38,21 @@ export async function login(form_data: FormData) {
 
       if (result?.has_workspace === false) {
         redirect("/create-workspace");
+      }
+
+      // 3. Exchange for app JWT
+      const { data: session_data } = await supabase.auth.getSession();
+      if (session_data.session?.access_token) {
+        const { token } = await exchangeToken(
+          session_data.session.access_token,
+        );
+        (await cookies()).set("okane-session", token, {
+          path: "/",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+        });
       }
     } catch (_e) {
       console.error("Failed to sync user on login:", _e);
@@ -73,13 +89,28 @@ export async function signup(form_data: FormData) {
     try {
       const result = await sync_user({
         id: data.user.id,
-        email: data.user.email!,
+        email: data.user.email ?? "",
         name: name,
         oauth_provider: "email",
       });
 
       if (result?.has_workspace === false) {
         redirect("/create-workspace");
+      }
+
+      // 3. Exchange for app JWT
+      const { data: session_data } = await supabase.auth.getSession();
+      if (session_data.session?.access_token) {
+        const { token } = await exchangeToken(
+          session_data.session.access_token,
+        );
+        (await cookies()).set("okane-session", token, {
+          path: "/",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+        });
       }
     } catch (api_error) {
       console.error("Failed to sync user to database via API:", api_error);

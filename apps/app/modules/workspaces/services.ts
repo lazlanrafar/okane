@@ -1,48 +1,46 @@
 import { axiosInstance } from "../../lib/axios";
+import type { Workspace, WorkspaceWithRole } from "@workspace/types";
 
 export interface CreateWorkspaceDTO {
   name: string;
 }
 
-export interface Workspace {
-  id: string;
-  name: string;
-  slug: string;
-  role?: string;
-}
-
-export const create_workspace = async (
+export const createWorkspace = async (
   data: CreateWorkspaceDTO,
   token: string,
-): Promise<{ workspace: Workspace }> => {
-  const response = await axiosInstance.post("/workspaces", data, {
+): Promise<Workspace> => {
+  const response = await axiosInstance.post("workspaces", data, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
 };
 
-export const get_my_workspaces = async (
+export const getMyWorkspaces = async (
   token: string,
-): Promise<{ workspaces: Workspace[] }> => {
-  const response = await axiosInstance.get("/workspaces", {
+): Promise<WorkspaceWithRole[]> => {
+  const response = await axiosInstance.get("workspaces", {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
 };
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  name: string | null;
-  profile_picture: string | null;
-  default_workspace_id: string | null;
-}
-
-export const get_me = async (
-  token: string,
-): Promise<{ user: UserProfile; workspaces: Workspace[] }> => {
-  const response = await axiosInstance.get("/users/me", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+/**
+ * Exchange a Supabase token for an app JWT.
+ */
+export const exchangeToken = async (
+  supabase_token: string,
+): Promise<{ token: string; user_id: string; workspace_id: string | null }> => {
+  const response = await axiosInstance.post(
+    "auth/token",
+    {},
+    { headers: { Authorization: `Bearer ${supabase_token}` } },
+  );
   return response.data;
 };
+
+// Backward-compatible aliases (snake_case → camelCase)
+export const create_workspace = createWorkspace;
+export const get_my_workspaces = getMyWorkspaces;
+
+// Re-export get_me from users/services for backward compatibility
+export { get_me, getMe } from "../users/services";

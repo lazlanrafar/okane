@@ -7,11 +7,13 @@ import { createMiddlewareClient } from "@workspace/supabase/middleware";
 
 function getLocale(request: NextRequest): string | undefined {
   const negotiatorHeaders: Record<string, string> = {};
-  request.headers.forEach((value, key) => (negotiatorHeaders[key] = value));
+  request.headers.forEach((value, key) => {
+    negotiatorHeaders[key] = value;
+  });
 
-  // @ts-ignore locales are readonly
+  // @ts-expect-error locales are readonly
   const locales: string[] = i18n.locales;
-  let languages = new Negotiator({ headers: negotiatorHeaders }).languages(
+  const languages = new Negotiator({ headers: negotiatorHeaders }).languages(
     locales,
   );
 
@@ -68,9 +70,16 @@ export async function middleware(request: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
+  // Get app session from cookie
+  const okane_session = request.cookies.get("okane-session")?.value;
+
   // Protect dashboard routes
-  if (pathAfterLocale.startsWith("/dashboard") && !session) {
-    return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
+  if (pathAfterLocale.startsWith("/dashboard")) {
+    if (!session || !okane_session) {
+      return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
+    }
+
+    // Optional: Redirect if workspace_id is missing in JWT (handled by API, but we could enforce it here)
   }
 
   // Protect create-workspace (must be logged in)
@@ -79,10 +88,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect to dashboard if logged in and on login/register pages
-  // (but NOT create-workspace — that's a valid logged-in page)
   if (
     (pathAfterLocale === "/login" || pathAfterLocale === "/register") &&
-    session
+    session &&
+    okane_session
   ) {
     return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
   }

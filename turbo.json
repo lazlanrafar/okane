@@ -1,6 +1,5 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
-  // "ui": "tui",
   "globalEnv": [
     "SUPABASE_URL",
     "SUPABASE_ANON_KEY",
@@ -11,7 +10,15 @@
     "NEXT_PUBLIC_SENTRY_DSN",
     "LOG_LEVEL",
     "LOG_PRETTY",
-    "DATABASE_URL"
+    "DATABASE_URL",
+    "ENCRYPTION_KEY",
+    "JWT_SECRET",
+    "JWT_EXPIRES_IN",
+    "REDIS_URL",
+    "NEXT_PUBLIC_API_URL",
+    "NEXT_PUBLIC_APP_URL",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY"
   ],
   "globalPassThroughEnv": ["NODE_ENV"],
   "tasks": {
@@ -29,6 +36,9 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "test": {
+      "dependsOn": ["^build"]
     }
   }
 }

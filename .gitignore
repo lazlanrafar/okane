@@ -39,3 +39,4 @@ yarn-error.log*
 
 # Logs
 logs/
+packages/ui/src/globals.css
