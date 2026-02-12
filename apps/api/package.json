@@ -19,6 +19,7 @@
     "@sentry/bun": "^10.18.0",
     "@workspace/logger": "workspace:*",
     "@workspace/database": "workspace:*",
+    "@workspace/encryption": "workspace:*",
     "@workspace/constants": "workspace:*"
   },
   "devDependencies": {

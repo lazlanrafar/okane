@@ -20,12 +20,14 @@ import { databaseRoutes } from "./modules/database";
 import { mcpPlugin } from "./modules/mcp";
 import { authPlugin } from "./modules/auth";
 import { usersRoutes } from "./modules/users";
+import { encryptionPlugin } from "./modules/encryption";
 
 const log = createLogger("api");
 const port = process.env.API_PORT ?? 3001;
 
 const app = new Elysia()
   .use(cors())
+  .use(encryptionPlugin)
   .use(authPlugin)
   .use(
     swagger({
@@ -54,4 +56,5 @@ log.info(`🦊 Okane API running at http://localhost:${port}`);
 log.info(`📖 Swagger docs at http://localhost:${port}/swagger`);
 log.info(`🔌 MCP endpoint at http://localhost:${port}/mcp`);
 
+export { app };
 export type App = typeof app;
