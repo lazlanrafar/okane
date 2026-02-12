@@ -2,239 +2,100 @@
 trigger: always_on
 ---
 
-# 🚨 AI AGENT ENFORCED ARCHITECTURE RULES
+---
 
-## Multi-Tenant SaaS – Turborepo – Encrypted REST
+## trigger: always_on
 
-This document is the **single source of truth**.
+# AI AGENT ENFORCED ARCHITECTURE RULES
 
-The AI agent MUST follow this architecture strictly.
+## Multi-Workspace SaaS - Turborepo - Encrypted REST
 
-No deviation allowed.
+Single source of truth. No deviation allowed.
 
 ---
 
-# 1️⃣ System Overview
+# System Overview
 
-This project is a **Multi-Tenant SaaS Monorepo** using:
+**Stack:** Turborepo - Bun - Next.js (apps/app) - ElysiaJS (apps/api) - PostgreSQL - Shared packages
 
-- Turborepo
-- Bun
-- Next.js (apps/app)
-- ElysiaJS (apps/api)
-- PostgreSQL
-- Shared packages
-
-Strict flow:
-
-```
-apps/app (UI)
-        ↓ Encrypted REST
-apps/api (Business + Multi-Tenant Logic)
-        ↓
-Database
-```
+**Flow:** `apps/app` -> Encrypted REST -> `apps/api` -> Database
 
 ---
 
-# 2️⃣ Monorepo Structure (NO `src/` ALLOWED)
+# Monorepo Structure (NO `src/` ALLOWED)
 
 ```
-/
-├── apps/
-│   ├── app/
-│   │   ├── app/
-│   │   ├── components/
-│   │   ├── modules/
-│   │   ├── lib/
-│   │   └── middleware.ts
-│   │
-│   └── api/
-│       ├── modules/
-│       │   └── {feature}/
-│       │       ├── feature.controller.ts
-│       │       ├── feature.service.ts
-│       │       ├── feature.repository.ts
-│       │       └── feature.model.ts
-│       │
-│       ├── plugins/
-│       ├── config/
-│       └── index.ts
-│
-├── packages/
-│   ├── utils/
-│   ├── email/
-│   ├── logger/
-│   ├── database/
-│   ├── types/
-│   └── ui/
-│
-├── .env
-└── turbo.json
+apps/app/         -> app/ components/ modules/ lib/ middleware.ts
+apps/api/modules/{feature}/ -> controller - service - repository - model - __tests__/
+apps/api/         -> plugins/ config/ index.ts
+packages/         -> utils/ email/ logger/ database/ types/ ui/
+.env - .env.test - .mcp.json - turbo.json
 ```
 
-🚫 `src/` folder is NOT allowed anywhere.
+`src/` is forbidden everywhere.
 
 ---
 
-# 3️⃣ Multi-Tenant SaaS Rules (CRITICAL)
+# Multi-Workspace Rules (CRITICAL)
 
-This system is tenant-isolated.
+Every workspace-scoped table MUST have `workspace_id` + `deleted_at`.
 
-## Every tenant-scoped table MUST contain:
+**Workspace context priority:** JWT `workspace_id` -> `x-workspace-id` header -> subdomain. JWT always wins on conflict.
 
-```
-tenant_id
-```
-
-## Backend MUST enforce tenant isolation:
-
-- Tenant extracted from:
-  - subdomain
-  - header
-  - JWT
-
-- Repository queries MUST filter by `tenant_id`
-- No global queries without tenant filter
-- No cross-tenant joins
-
-Example:
+All repository queries MUST filter by `workspace_id` and `deleted_at: null`. No cross-workspace joins. No global queries.
 
 ```ts
-where: {
-  tenant_id,
-  user_id,
-}
+where: { workspace_id, deleted_at: null }
 ```
 
----
-
-## Forbidden:
-
-- Hardcoded tenant IDs
-- Super-admin bypass without role check
-- Returning data without tenant validation
+**Forbidden:** hardcoded workspace IDs - super-admin bypass without role check - returning data without workspace validation.
 
 ---
 
-# 4️⃣ apps/app Rules (Frontend)
+# User <-> Workspace Model (CRITICAL)
 
-## Responsibility
+**users table:** `workspace_id FK -> workspaces.id` (active workspace, nullable until first join)
 
-- UI only
-- REST consumer only
-- No database access
-- No business logic duplication
+**user_workspaces table:** `{ user_id, workspace_id, role: "owner"|"admin"|"member", joined_at }`
 
-Strict rule:
+- `workspaces` on user = resolved via `user_workspaces` join table. NEVER an array/JSON column.
+- `workspace_id` auto-set on first join. Updated on switch. Null or reassigned on leave.
 
-```
-apps/app CANNOT access database
-apps/app CANNOT import packages/database
-```
+**JWT MUST include:** `{ user_id, workspace_id }`
+
+**Forbidden:** array/JSON workspaces column - skipping `user_workspaces` membership check - JWT without `workspace_id` - access without a membership row.
 
 ---
 
-## Structure
+# apps/app Rules
 
-```
-components/
-modules/
-lib/
-```
+- UI only. REST consumer only. No DB access. No business logic.
+- `apps/app` CANNOT import `packages/database`.
+- Components -> `/components` only. No `_components` in routes. No API calls in client components.
+- Modules -> REST wrappers only (`auth.action.ts`, `auth.types.ts`). No DB, no business logic.
 
----
+**middleware.ts** - auth + workspace guard only:
 
-## Components
-
-- Must live inside `/components`
-- No `_components` folder inside routes
-- UI-only
-- No API calls inside client components
-- Data must come from server components or modules
-
-Example:
-
-```
-components/auth/login-form.tsx
-```
+- Verify JWT, redirect unauthed to `/login`, detect `workspace_id`, redirect no-workspace users to onboarding.
+- CANNOT: contain business logic - call DB - call apps/api directly.
 
 ---
 
-## Modules
+# apps/api Rules
 
-Modules are REST wrappers ONLY.
+Only layer allowed to: access DB - contain business logic - handle workspace validation.
 
-Example:
+**Layer flow:** `Controller -> Service -> Repository -> Database`
 
-```
-modules/auth/auth.action.ts
-modules/auth/auth.types.ts
-```
-
-Rules:
-
-- Only HTTP calls
-- No business logic
-- No DB imports
-- No Supabase queries
+- **Controller:** route definition + TypeBox input validation + call service + encrypt response. No DB, no business logic.
+- **Service:** business logic + workspace validation + plan enforcement + call repository. No HTTP logic.
+- **Repository:** only layer importing `packages/database`. Enforce `workspace_id` filter + `deleted_at: null` on all reads. No business logic. Never hard delete.
 
 ---
 
-# 5️⃣ apps/api Rules (Backend)
+# Encrypted API Response (MANDATORY)
 
-apps/api is the ONLY layer allowed to:
-
-- Access database
-- Contain business logic
-- Handle tenant validation
-
----
-
-## Layered Architecture
-
-```
-Controller → Service → Repository → Database
-```
-
----
-
-## Controller
-
-- Defines routes
-- Validates input
-- Calls service
-- Encrypts response
-- No DB logic
-
----
-
-## Service
-
-- Contains business logic
-- Handles tenant validation
-- Calls repository
-- No HTTP logic
-
----
-
-## Repository
-
-- Only layer allowed to import database
-- Must enforce tenant filter
-- No business logic
-
----
-
-# 6️⃣ 🔐 Encrypted API Response (MANDATORY)
-
-All responses must be encrypted before leaving backend.
-
-Raw JSON is NOT allowed.
-
----
-
-## Standard API Response Format (Before Encryption)
+Raw JSON responses are FORBIDDEN.
 
 ```ts
 type ApiResponse<T> = {
@@ -245,135 +106,215 @@ type ApiResponse<T> = {
   meta: {
     timestamp: number;
     request_id?: string;
+    pagination?: {
+      total: number;
+      page: number;
+      limit: number;
+      total_pages: number;
+    };
   };
 };
 ```
 
----
+**Pagination:** all list endpoints MUST return `meta.pagination`. Default limit=20, max=100. No unbounded queries.
 
-## Backend Flow
-
-```
-1. Build ApiResponse<T>
-2. Encrypt using AES
-3. Return encrypted string
-```
-
----
-
-## Frontend Flow
+**Errors:** `success: false` + machine-readable `code` from `packages/types` + correct HTTP status.
 
 ```
-1. Receive encrypted string
-2. Decrypt in axios interceptor
-3. Consume typed ApiResponse<T>
+400 validation - 401 unauthed - 403 forbidden - 404 not found
+409 conflict - 422 business logic - 429 rate limit - 500 server error
 ```
 
+NEVER return raw `Error` object, stack trace, or `200` for an error.
+
+**Flow:** Build `ApiResponse<T>` -> AES encrypt -> return string. Frontend: receive -> decrypt in axios interceptor -> consume typed response.
+
 ---
 
-# 7️⃣ packages/utils (Mandatory Structure)
+# packages/ Rules
+
+**packages/utils/** - `api-response.ts - formatting.ts - date.ts - string.ts - number.ts - pagination.ts - index.ts`
+Pure TypeScript only. No DB, no framework code.
+
+**packages/database/** - Drizzle ORM only.
 
 ```
-packages/utils/
-├── api-response.ts
-├── formatting.ts
-├── date.ts
-├── string.ts
-├── number.ts
-├── index.ts
+schema/           -> one file per table e.g. users.ts, workspaces.ts
+migrations/       -> generated migration SQL files (never edit manually)
+drizzle.config.ts -> Drizzle Kit config
+client.ts         -> db client singleton
+seed.ts           -> dev/test seeding only
+index.ts          -> re-exports client + schema + types
 ```
 
----
+- Singleton client. Migrations generated via `drizzle-kit generate`, applied via `drizzle-kit migrate`.
+- Schema changes require running `drizzle-kit generate` to produce migration files before applying.
+- Only `apps/api` repositories may import this package.
+- Every workspace-scoped table schema MUST define `workspace_id` and `deleted_at` columns.
 
-## utils Rules
-
-- No database logic
-- No framework-specific code
-- Pure TypeScript only
-- Cross-platform compatible
-
----
-
-# 8️⃣ Naming Conventions (STRICT)
-
-## Variables → snake_case
-
-## Functions → camelCase
-
-## Components → PascalCase
-
-## Files & folders → kebab-case
-
-## Props → camelCase
-
----
-
-# 9️⃣ Security Rules
-
-- No secrets in frontend except public key
-- No logging decrypted sensitive payload
-- Password must be hashed
-- JWT must include tenant_id
-- Encryption key stored in root `.env`
-
----
-
-# 🔟 Forbidden Actions (ZERO TOLERANCE)
-
-The AI agent must NEVER:
-
-- Create `src/`
-- Access DB from apps/app
-- Skip repository layer
-- Return raw DB row
-- Skip tenant validation
-- Duplicate shared logic instead of using packages
-- Mix business logic inside controller
-- Create cross-tenant query
-
----
-
-# 1️⃣1️⃣ Clean Architecture Principle
-
-Each feature must be isolated:
+**packages/types/** - shared contract for both apps.
 
 ```
-modules/{feature}/
+api.ts - workspace.ts - user.ts - error-codes.ts - index.ts
 ```
 
-No global feature dumping.
+- Types + constants only. No runtime logic. No DB imports.
+- All error codes defined here as `const ErrorCode = { WORKSPACE_NOT_FOUND, FORBIDDEN, ... }`.
+- Never duplicated across apps.
 
 ---
 
-# 1️⃣2️⃣ SaaS Scalability Standard
+# Naming Conventions
 
-System must support:
-
-- Unlimited tenants
-- Per-tenant isolation
-- Per-tenant subscription
-- Role-based access per tenant
-- Horizontal scaling
-
-Design must assume production SaaS environment.
+- Variables -> `snake_case` - Functions -> `camelCase` - Components -> `PascalCase`
+- Files/folders -> `kebab-case` - Props -> `camelCase`
+- Test files -> `{name}.test.ts` in `__tests__/` - Error codes -> `SCREAMING_SNAKE_CASE`
+- Drizzle schema files -> named after the table they define e.g. `users.ts`, `workspaces.ts`
 
 ---
 
-# ✅ Final Principle
+# Security Rules
 
-This is an:
+- No secrets in frontend except public key. No logging decrypted payloads.
+- Passwords hashed with bcrypt (min cost 12). JWT includes `user_id` + `workspace_id`.
+- Encryption key in root `.env`. Rate limiting per workspace + per IP.
+- All input validated with TypeBox before service layer.
 
-- Enterprise SaaS
-- Multi-tenant
-- Encrypted REST
-- Strict-layered
-- Monorepo architecture
+---
 
-The AI agent must always generate code aligned with:
+# Forbidden Actions (ZERO TOLERANCE)
 
-- Tenant isolation
-- Layer separation
-- Reusable packages
-- Encryption-first API
-- No src folder
-- No architectural violation
+- Create `src/` - access DB from `apps/app` - skip repository layer - return raw DB row or Error object
+- Skip workspace validation - duplicate shared logic - mix business logic in controller
+- Cross-workspace query - workspaces as array/JSON on users - skip `user_workspaces` check
+- JWT without `workspace_id` - unbounded list query - hard delete workspace-scoped records
+- Define error codes inline - return `200` for errors - skip MCP reads before writing code
+- Run destructive DB commands via MCP without user confirmation
+- Manually edit generated migration files - skip `drizzle-kit generate` before applying schema changes
+
+---
+
+# Clean Architecture
+
+Each feature isolated in `modules/{feature}/`. No global feature dumping.
+
+---
+
+# SaaS Scalability
+
+Unlimited workspaces - per-workspace isolation - per-workspace subscription - role-based access per workspace - horizontal scaling.
+
+---
+
+# Subscription & Plan Enforcement
+
+Plan gates MUST live in **service layer** only. Controllers and repositories have no plan logic.
+
+- Check plan limits before every write operation.
+- `workspace_subscriptions` table tracks active plan per workspace.
+- Plan names defined in `packages/types` only - never hardcoded.
+
+---
+
+# Audit Logging
+
+Every mutation on workspace-scoped data MUST produce an audit log.
+
+`audit_logs`: `{ id, workspace_id, user_id, action, entity, entity_id, before, after, created_at }`
+
+- Written in **service layer** after successful repo calls. Append-only - never updated or deleted.
+- `before`/`after` MUST NOT include passwords or secrets.
+- `action` format: `"{entity}.{verb}"` e.g. `"invoice.deleted"`.
+
+---
+
+# API Versioning
+
+All routes prefixed `/v1/{resource}`. Version prefix set at router level, never per-endpoint.
+
+- Breaking changes -> new version (`/v2/`). Never mutate existing versioned routes.
+- Deprecated routes stay functional for one full version cycle before removal.
+
+---
+
+# Rate Limiting
+
+Applied globally as an ElysiaJS plugin.
+
+- Authenticated: 300 req/min per workspace - Unauthenticated: 30 req/min per IP - Auth endpoints: 10 req/15min per IP.
+- Redis-backed (in-memory for dev). Returns HTTP 429 + `ErrorCode.RATE_LIMIT_EXCEEDED`.
+- Response headers required: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`.
+
+---
+
+# Environment Variables
+
+Root `.env` (shared): `ENCRYPTION_KEY - DATABASE_URL - JWT_SECRET - JWT_EXPIRES_IN - REDIS_URL`
+`apps/api` adds: `PORT - API_BASE_URL`
+`apps/app` adds: `NEXT_PUBLIC_API_URL - NEXT_PUBLIC_APP_URL` (public vars only)
+
+- Secrets in root `.env` only. `NEXT_PUBLIC_` for browser-safe vars only.
+- All required vars validated at startup via `apps/api/config/`.
+- `.env` and `.env.test` never committed. `.env.test` never contains production secrets.
+
+---
+
+# Unit Testing (Bun Test Runner)
+
+Tests co-located in `modules/{feature}/__tests__/`. Mocks in `__tests__/mocks/`.
+
+| Layer      | Type        | Cover                                     |
+| ---------- | ----------- | ----------------------------------------- |
+| Service    | Unit        | Logic, plan gates, error throwing         |
+| Repository | Integration | Queries against test DB, workspace filter |
+| Controller | Integration | Input validation, HTTP status codes       |
+| Utils      | Unit        | Pure function correctness                 |
+
+- Service tests MUST mock repository. Never hit real DB.
+- Repository tests use `.env.test` DB, reset with `drizzle-kit migrate` against a clean test DB between runs.
+- Every method: >=1 happy path test + >=1 error path test.
+- Workspace isolation MUST be asserted: `workspace_id_A` queries cannot return `workspace_id_B` data.
+- Test name format: `should {behaviour} when {condition}`.
+- Coverage: service >=80% - utils >=90%. Zero coverage on service layer is forbidden.
+
+---
+
+# MCP Rules
+
+Agent MUST use MCP to read real project context before writing any code. Guessing is forbidden.
+
+**Required MCP servers:**
+
+- `filesystem` - read/write project files. Read before every write. Read `packages/database/schema/` before any DB-related code. Check packages before creating types/utils.
+- `postgres` - verify live table/column state before writing repository queries.
+- `github` - check open branches/PRs before starting features. Branch per feature: `feature/{name}`. Never push to `main`/`dev`.
+- `shell` - run `bun test`, `bun run typecheck`, `bun run lint`, `bun run build` after every change. Run `drizzle-kit generate` + `drizzle-kit migrate` after schema changes.
+
+**Config:** `.mcp.json` at project root, committed to version control. Secrets via `.env` references only - never hardcoded.
+
+**Mandatory agent order:**
+
+```
+1. filesystem -> read existing module + packages/database/schema/ + packages/types
+2. postgres   -> confirm live table/column state
+3. github     -> check open branches/PRs
+4. write code
+5. shell      -> bun test + typecheck + lint
+6. shell      -> drizzle-kit generate + drizzle-kit migrate (if schema changed)
+7. shell      -> bun run build
+```
+
+**MCP Security:**
+
+- Filesystem scoped to project root only. No system-wide access.
+- PostgreSQL uses limited DB user - never superuser.
+- Shell MUST NOT run destructive commands (`DROP`, `rm -rf`) without explicit user confirmation.
+- GitHub token: `repo` scope only. MCP servers for dev/CI only - never production.
+
+---
+
+# Final Principle
+
+Enterprise SaaS - Multi-workspace - Encrypted REST - Strict-layered - MCP-connected - Monorepo
+
+Agent must always align with: workspace isolation - layer separation - reusable packages - encryption-first API - paginated responses - typed error codes - soft deletes - audit logs - versioned routes - rate limiting - validated env vars - tested layers - MCP-verified context - no `src/` - no architectural violation.
