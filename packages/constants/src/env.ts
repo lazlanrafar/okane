@@ -17,6 +17,21 @@ const envSchema = z.object({
   NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
   SENTRY_AUTH_TOKEN: z.string().optional(),
 
+  // Encryption
+  ENCRYPTION_KEY: z.string().length(32),
+
+  // API Client
+  API_URL: z.string().url().optional().default("http://localhost:3001"),
+  NEXT_PUBLIC_API_URL: z
+    .string()
+    .url()
+    .optional()
+    .default("http://localhost:3001"),
+
+  // Frontend Supabase (Optional but recommended)
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
+
   // Logging
   LOG_LEVEL: z
     .enum(["trace", "debug", "info", "warn", "error", "fatal"])
