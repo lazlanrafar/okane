@@ -3,7 +3,7 @@
 import { createClient } from "@workspace/supabase/next-server";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { syncUser } from "../../modules/users/services";
+import { syncUser } from "../../../modules/users/services";
 
 export async function login(form_data: FormData) {
   const email = form_data.get("email") as string;
@@ -36,7 +36,7 @@ export async function signup(form_data: FormData) {
       data: {
         name,
       },
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo: `${origin}/api/auth/callback`,
     },
   });
 
@@ -69,7 +69,7 @@ export async function loginWithOAuth(provider: "google" | "github") {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo: `${origin}/api/auth/callback`,
     },
   });
 

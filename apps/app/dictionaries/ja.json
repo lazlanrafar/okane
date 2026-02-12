@@ -1,0 +1,11 @@
+{
+  "navigation": {
+    "home": "ホーム",
+    "dashboard": "ダッシュボード",
+    "settings": "設定"
+  },
+  "home": {
+    "welcome": "Okaneへようこそ",
+    "description": "あなたの家計を管理するための最高のアプリ。"
+  }
+}

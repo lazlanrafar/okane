@@ -1,24 +1,29 @@
 import type { ReactNode } from "react";
-
 import type { Metadata } from "next";
-
 import { Toaster } from "@workspace/ui";
 import { APP_CONFIG } from "@/config/app-config";
 import { fontVars } from "@/lib/fonts/registry";
 import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 import { ThemeBootScript } from "@/scripts/theme-boot";
 import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
-
 import "@workspace/ui/globals.css";
+// import { i18n } from "@/i18n-config";
 
 export const metadata: Metadata = {
   title: APP_CONFIG.meta.title,
   description: APP_CONFIG.meta.description,
 };
 
-export default function RootLayout({
+// export async function generateStaticParams() {
+//   return i18n.locales.map((locale) => ({ lang: locale }));
+// }
+
+export default async function RootLayout({
   children,
-}: Readonly<{ children: ReactNode }>) {
+  params,
+}: Readonly<{ children: ReactNode; params: Promise<{ locale: string }> }>) {
+  const { locale } = await params;
+
   const {
     theme_mode,
     theme_preset,
@@ -28,9 +33,10 @@ export default function RootLayout({
     sidebar_collapsible,
     font,
   } = PREFERENCE_DEFAULTS;
+
   return (
     <html
-      lang="en"
+      lang={locale}
       data-theme-mode={theme_mode}
       data-theme-preset={theme_preset}
       data-content-layout={content_layout}

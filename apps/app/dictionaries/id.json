@@ -1,0 +1,11 @@
+{
+  "navigation": {
+    "home": "Beranda",
+    "dashboard": "Dasbor",
+    "settings": "Pengaturan"
+  },
+  "home": {
+    "welcome": "Selamat datang di Okane",
+    "description": "Aplikasi terbaik untuk mengelola keuangan Anda."
+  }
+}

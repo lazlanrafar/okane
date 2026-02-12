@@ -1,0 +1,11 @@
+{
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "settings": "Settings"
+  },
+  "home": {
+    "welcome": "Welcome to Okane",
+    "description": "The best app for managing your finances."
+  }
+}

@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui";
 import { cn, getInitials } from "@workspace/ui";
-import { logout } from "@/app/(auth)/actions";
+import { logout } from "@/app/[locale]/(auth)/actions";
 
 export function AccountSwitcher({
   users,
