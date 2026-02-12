@@ -73,7 +73,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
 
-  // Redirect to dashboard if logged in and on auth pages
+  // Protect create-workspace (must be logged in)
+  if (pathAfterLocale === "/create-workspace" && !session) {
+    return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
+  }
+
+  // Redirect to dashboard if logged in and on login/register pages
+  // (but NOT create-workspace — that's a valid logged-in page)
   if (
     (pathAfterLocale === "/login" || pathAfterLocale === "/register") &&
     session

@@ -5,11 +5,25 @@ export interface SyncUserDTO {
   email: string;
   name?: string;
   oauth_provider?: string;
+  profile_picture?: string;
+  providers?: unknown;
 }
 
-export const syncUser = async (user: SyncUserDTO): Promise<void> => {
+export interface SyncUserResponse {
+  status: string;
+  has_workspace: boolean;
+  default_workspace_id: string | null;
+}
+
+export const sync_user = async (
+  user: SyncUserDTO,
+): Promise<SyncUserResponse | null> => {
   try {
-    await axiosInstance.post("/users/sync", user);
+    const response = await axiosInstance.post<SyncUserResponse>(
+      "/users/sync",
+      user,
+    );
+    return response.data;
   } catch (error) {
     console.error("Error syncing user to API:", error);
     throw error;

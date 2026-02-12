@@ -3,7 +3,7 @@
 import { createClient } from "@workspace/supabase/next-server";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { syncUser } from "../../../modules/users/services";
+import { sync_user } from "../../../modules/users/services";
 
 export async function login(form_data: FormData) {
   const email = form_data.get("email") as string;
@@ -17,6 +17,30 @@ export async function login(form_data: FormData) {
 
   if (error) {
     return { error: error.message };
+  }
+
+  // Sync user and check workspace
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    try {
+      const result = await sync_user({
+        id: user.id,
+        email: user.email!,
+        name: user.user_metadata?.full_name || user.user_metadata?.name,
+        oauth_provider: "email",
+        profile_picture:
+          user.user_metadata?.avatar_url || user.user_metadata?.picture,
+        providers: user.app_metadata?.providers,
+      });
+
+      if (result?.has_workspace === false) {
+        redirect("/create-workspace");
+      }
+    } catch (_e) {
+      console.error("Failed to sync user on login:", _e);
+    }
   }
 
   redirect("/dashboard");
@@ -47,16 +71,18 @@ export async function signup(form_data: FormData) {
   // Sync user to Drizzle database via API
   if (data.user) {
     try {
-      await syncUser({
-        id: data.user.id, // Use Supabase Auth ID
+      const result = await sync_user({
+        id: data.user.id,
         email: data.user.email!,
         name: name,
         oauth_provider: "email",
       });
+
+      if (result?.has_workspace === false) {
+        redirect("/create-workspace");
+      }
     } catch (api_error) {
       console.error("Failed to sync user to database via API:", api_error);
-      // Optional: rollback auth user creation or just log error?
-      // For now, logging error. In production, consider a more robust sync or queue.
     }
   }
 

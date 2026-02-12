@@ -1,17 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
-import {
-  Search,
-  Settings,
-  AudioWaveform,
-  Command,
-  GalleryVerticalEnd,
-  CircleHelp,
-  Database,
-  ClipboardList,
-} from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 
 import {
@@ -19,12 +7,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@workspace/ui";
-import { APP_CONFIG } from "@/config/app-config";
-import { rootUser } from "@/data/users";
 import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
@@ -32,66 +15,29 @@ import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 
-const _data = {
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: CircleHelp,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: Search,
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: Database,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: ClipboardList,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: File,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: File,
-    },
-  ],
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
+type WorkspaceData = {
+  id: string;
+  name: string;
+  slug: string;
+  role?: string;
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+type UserData = {
+  id: string;
+  email: string;
+  name: string | null;
+  profile_picture: string | null;
+  default_workspace_id: string | null;
+};
+
+export function AppSidebar({
+  currentUser,
+  workspaces,
+  ...rest
+}: React.ComponentProps<typeof Sidebar> & {
+  currentUser: UserData | null;
+  workspaces: WorkspaceData[];
+}) {
   const { sidebarVariant, sidebarCollapsible, isSynced } = usePreferencesStore(
     useShallow((s) => ({
       sidebarVariant: s.sidebarVariant,
@@ -100,20 +46,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     })),
   );
 
-  const variant = isSynced ? sidebarVariant : props.variant;
-  const collapsible = isSynced ? sidebarCollapsible : props.collapsible;
+  const variant = isSynced ? sidebarVariant : rest.variant;
+  const collapsible = isSynced ? sidebarCollapsible : rest.collapsible;
 
   return (
-    <Sidebar {...props} variant={variant} collapsible={collapsible}>
+    <Sidebar {...rest} variant={variant} collapsible={collapsible}>
       <SidebarHeader>
-        <WorkspaceSwitcher teams={_data.teams} />
+        <WorkspaceSwitcher workspaces={workspaces} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={sidebarItems} />
-        {/* <NavDocuments items={data.documents} /> */}
-        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
-      <SidebarFooter>{rootUser && <NavUser user={rootUser} />}</SidebarFooter>
+      <SidebarFooter>
+        {currentUser && (
+          <NavUser
+            user={{
+              name: currentUser.name || currentUser.email,
+              email: currentUser.email,
+              avatar: currentUser.profile_picture || "",
+            }}
+          />
+        )}
+      </SidebarFooter>
     </Sidebar>
   );
 }
