@@ -7,3 +7,5 @@ export * from "./schema/articles";
 export * from "./schema/audit-logs";
 export * from "./schema/workspace-settings";
 export * from "./schema/categories";
+export * from "./schema/wallets";
+export * from "./schema/wallet-groups";

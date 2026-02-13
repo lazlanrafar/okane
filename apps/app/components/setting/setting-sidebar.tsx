@@ -52,6 +52,7 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
 }
 
 import { i18n } from "@/i18n-config";
+import { useLocalizedRoute } from "@/hooks/use-localized-route";
 
 export function SettingSidebar({
   className,
@@ -60,6 +61,7 @@ export function SettingSidebar({
 }: SidebarNavProps) {
   const pathname = usePathname();
   const { sidebar } = dictionary;
+  const { getLocalizedUrl } = useLocalizedRoute();
 
   const sidebarNavItems = [
     {
@@ -110,9 +112,8 @@ export function SettingSidebar({
         },
         {
           title: sidebar.accounts,
-          href: "/settings/accounts",
+          href: "/settings/wallets-and-banks",
           icon: Landmark,
-          comingSoon: true,
         },
         {
           title: sidebar.budget,
@@ -180,12 +181,6 @@ export function SettingSidebar({
       {...props}
     >
       {sidebarNavItems.map((item, index) => {
-        const currentLocale = i18n.locales.find(
-          (locale) =>
-            pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
-        );
-        const prefix = currentLocale ? `/${currentLocale}` : "";
-
         if ("groupLabel" in item) {
           return (
             <div key={index} className="mt-4 first:mt-0">
@@ -197,7 +192,7 @@ export function SettingSidebar({
                 {item.items?.map((subItem: any) => (
                   <Link
                     key={subItem.href}
-                    href={`${prefix}${subItem.href}`}
+                    href={getLocalizedUrl(subItem.href)}
                     className={cn(
                       buttonVariants({ variant: "ghost" }),
                       normalizedPath === subItem.href
@@ -228,7 +223,7 @@ export function SettingSidebar({
         return (
           <Link
             key={flatItem.href}
-            href={`${prefix}${flatItem.href}`}
+            href={getLocalizedUrl(flatItem.href)}
             className={cn(
               buttonVariants({ variant: "ghost" }),
               normalizedPath === flatItem.href

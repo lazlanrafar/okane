@@ -35,6 +35,9 @@ interface NavMainProps {
   readonly items: readonly NavGroup[];
 }
 
+import { useLocalizedRoute } from "@/hooks/use-localized-route";
+import { i18n } from "@/i18n-config";
+
 const IsComingSoon = () => (
   <span className="ml-auto rounded-md bg-gray-200 px-2 py-1 text-xs dark:text-gray-800">
     Soon
@@ -50,6 +53,8 @@ const NavItemExpanded = ({
   isActive: (url: string, subItems?: NavMainItem["subItems"]) => boolean;
   isSubmenuOpen: (subItems?: NavMainItem["subItems"]) => boolean;
 }) => {
+  const { getLocalizedUrl } = useLocalizedRoute();
+
   return (
     <Collapsible
       key={item.title}
@@ -79,7 +84,7 @@ const NavItemExpanded = ({
             >
               <Link
                 prefetch={false}
-                href={item.url}
+                href={getLocalizedUrl(item.url)}
                 target={item.newTab ? "_blank" : undefined}
               >
                 {item.icon && <item.icon />}
@@ -101,7 +106,7 @@ const NavItemExpanded = ({
                   >
                     <Link
                       prefetch={false}
-                      href={subItem.url}
+                      href={getLocalizedUrl(subItem.url)}
                       target={subItem.newTab ? "_blank" : undefined}
                     >
                       {subItem.icon && <subItem.icon />}
@@ -126,6 +131,8 @@ const NavItemCollapsed = ({
   item: NavMainItem;
   isActive: (url: string, subItems?: NavMainItem["subItems"]) => boolean;
 }) => {
+  const { getLocalizedUrl } = useLocalizedRoute();
+
   return (
     <SidebarMenuItem key={item.title}>
       <DropdownMenu>
@@ -156,7 +163,7 @@ const NavItemCollapsed = ({
               >
                 <Link
                   prefetch={false}
-                  href={subItem.url}
+                  href={getLocalizedUrl(subItem.url)}
                   target={subItem.newTab ? "_blank" : undefined}
                 >
                   {subItem.icon && (
@@ -174,11 +181,10 @@ const NavItemCollapsed = ({
   );
 };
 
-import { i18n } from "@/i18n-config";
-
 export function NavMain({ items }: NavMainProps) {
   const path = usePathname();
   const { state, isMobile } = useSidebar();
+  const { getLocalizedUrl } = useLocalizedRoute();
 
   // Strip locale from pathname to match sidebar items
   const activePathSegments = path.split("/").filter(Boolean);
@@ -242,7 +248,7 @@ export function NavMain({ items }: NavMainProps) {
                         >
                           <Link
                             prefetch={false}
-                            href={item.url}
+                            href={getLocalizedUrl(item.url)}
                             target={item.newTab ? "_blank" : undefined}
                           >
                             {item.icon && <item.icon />}

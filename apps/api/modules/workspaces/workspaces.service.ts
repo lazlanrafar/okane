@@ -1,9 +1,16 @@
 import { workspacesRepository } from "./workspaces.repository";
 import { usersRepository } from "../users/users.repository";
 import { auditLogsService } from "../audit-logs/audit-logs.service";
-import { INCOME_CATEGORY, EXPENSE_CATEGORY } from "@workspace/constants";
+import {
+  DEFAULT_INCOME_CATEGORIES,
+  DEFAULT_EXPENSE_CATEGORIES,
+  DEFAULT_WALLET_GROUPS,
+  DEFAULT_WALLETS,
+} from "@workspace/constants";
 import { categoriesRepository } from "../categories/categories.repository";
 import { SettingsRepository } from "../settings/repository";
+import { walletGroupsRepository } from "../wallets/groups/groups.repository";
+import { walletsRepository } from "../wallets/wallets.repository";
 
 const settingsRepository = new SettingsRepository();
 
@@ -44,12 +51,12 @@ export const workspacesService = {
 
     // 4. Populate default categories
     const defaultCategories = [
-      ...INCOME_CATEGORY.map((name) => ({
+      ...DEFAULT_INCOME_CATEGORIES.map((name) => ({
         workspaceId: workspace.id,
         name,
         type: "income" as const,
       })),
-      ...EXPENSE_CATEGORY.map((name) => ({
+      ...DEFAULT_EXPENSE_CATEGORIES.map((name) => ({
         workspaceId: workspace.id,
         name,
         type: "expense" as const,
@@ -60,7 +67,43 @@ export const workspacesService = {
     // 5. Create default workspace settings
     await settingsRepository.create(workspace.id);
 
-    // 6. Log action
+    // 6. Populate default wallet groups
+    const defaultGroups = await walletGroupsRepository.createMany(
+      DEFAULT_WALLET_GROUPS.map((name) => ({
+        workspaceId: workspace.id,
+        name,
+      })),
+    );
+
+    // 7. Populate default wallets
+    const walletsToCreate: {
+      workspaceId: string;
+      groupId: string;
+      name: string;
+      balance: number;
+      isIncludedInTotals: boolean;
+    }[] = [];
+
+    for (const groupConfig of DEFAULT_WALLETS) {
+      const group = defaultGroups.find((g) => g.name === groupConfig.group);
+      if (group) {
+        for (const walletConfig of groupConfig.wallets) {
+          walletsToCreate.push({
+            workspaceId: workspace.id,
+            groupId: group.id,
+            name: walletConfig.name,
+            balance: walletConfig.balance,
+            isIncludedInTotals: walletConfig.isIncludedInTotals,
+          });
+        }
+      }
+    }
+
+    if (walletsToCreate.length > 0) {
+      await walletsRepository.createMany(walletsToCreate);
+    }
+
+    // 8. Log action
     await auditLogsService.log({
       workspace_id: workspace.id,
       user_id,

@@ -1,4 +1,4 @@
-export const INCOME_CATEGORY = [
+export const DEFAULT_INCOME_CATEGORIES = [
   "💵 Salary",
   "💰 Allowance",
   "💵 Petty cash",
@@ -8,7 +8,7 @@ export const INCOME_CATEGORY = [
   "Other",
 ];
 
-export const EXPENSE_CATEGORY = [
+export const DEFAULT_EXPENSE_CATEGORIES = [
   "🍜 Food",
   "🧑‍🤝‍🧑 Social Life",
   "🐶 Pets",

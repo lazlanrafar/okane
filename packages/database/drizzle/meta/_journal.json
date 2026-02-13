@@ -29,6 +29,20 @@
       "when": 1770965976411,
       "tag": "0003_nice_colossus",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1770973462523,
+      "tag": "0004_foamy_ultimates",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1770974851458,
+      "tag": "0005_fearless_bug",
+      "breakpoints": true
     }
   ]
 }

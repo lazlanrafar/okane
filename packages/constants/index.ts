@@ -1,4 +1,5 @@
 export * from "./default/category";
+export * from "./default/wallet";
 
 export const WEEKLY_START_DAY_OPTIONS = [
   "Sunday",
