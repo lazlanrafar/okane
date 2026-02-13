@@ -8,10 +8,10 @@ export default async function SettingsLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: Locale }>;
+  params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(locale as Locale);
 
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col space-y-6 overflow-hidden md:h-[calc(100vh-3.5rem)]">

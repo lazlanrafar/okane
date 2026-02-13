@@ -226,6 +226,66 @@
           "description": "取引に素早くメモを追加するボタンを表示します。"
         }
       }
+    },
+    "category": {
+      "income": {
+        "title": "収入カテゴリ",
+        "description": "収入カテゴリを管理します。",
+        "add_button": "カテゴリを追加",
+        "empty": "カテゴリが見つかりません",
+        "table": {
+          "name": "名前",
+          "color": "色",
+          "actions": "アクション"
+        },
+        "form": {
+          "name": {
+            "label": "名前",
+            "placeholder": "カテゴリ名",
+            "error_required": "名前は必須です"
+          },
+          "color": {
+            "label": "色",
+            "placeholder": "色を選択"
+          },
+          "submit": "保存",
+          "cancel": "キャンセル",
+          "delete": "削除",
+          "delete_confirm": "このカテゴリを削除してもよろしいですか？",
+          "delete_success": "カテゴリが正常に削除されました",
+          "create_success": "カテゴリが正常に作成されました",
+          "update_success": "カテゴリが正常に更新されました"
+        }
+      },
+      "expense": {
+        "title": "支出カテゴリ",
+        "description": "支出カテゴリを管理します。",
+        "add_button": "カテゴリを追加",
+        "empty": "カテゴリが見つかりません",
+        "table": {
+          "name": "名前",
+          "color": "色",
+          "actions": "アクション"
+        },
+        "form": {
+          "name": {
+            "label": "名前",
+            "placeholder": "カテゴリ名",
+            "error_required": "名前は必須です"
+          },
+          "color": {
+            "label": "色",
+            "placeholder": "色を選択"
+          },
+          "submit": "保存",
+          "cancel": "キャンセル",
+          "delete": "削除",
+          "delete_confirm": "このカテゴリを削除してもよろしいですか？",
+          "delete_success": "カテゴリが正常に削除されました",
+          "create_success": "カテゴリが正常に作成されました",
+          "update_success": "カテゴリが正常に更新されました"
+        }
+      }
     }
   }
 }

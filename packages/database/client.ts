@@ -6,6 +6,7 @@ import * as workspaces from "./schema/workspaces";
 import * as user_workspaces from "./schema/user-workspaces";
 import * as articles from "./schema/articles";
 import * as audit_logs from "./schema/audit-logs";
+import * as categories from "./schema/categories";
 
 const schema = {
   ...users,
@@ -13,6 +14,7 @@ const schema = {
   ...user_workspaces,
   ...articles,
   ...audit_logs,
+  ...categories,
 };
 
 // Disable prefetch as it is not supported for "Transaction" pool mode

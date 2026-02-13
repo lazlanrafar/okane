@@ -77,8 +77,14 @@ function Button({
       )}
       {...props}
     >
-      {loading && <Loader2Icon className="animate-spin" aria-hidden="true" />}
-      {children}
+      {loading ? (
+        <>
+          <Loader2Icon className="animate-spin" aria-hidden="true" />
+          {children}
+        </>
+      ) : (
+        children
+      )}
     </Comp>
   );
 }

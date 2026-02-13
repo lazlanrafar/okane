@@ -102,13 +102,11 @@ export function SettingSidebar({
           title: sidebar.income_category,
           href: "/settings/income-category",
           icon: Wallet,
-          comingSoon: true,
         },
         {
           title: sidebar.expenses_category,
-          href: "/settings/expenses-category",
+          href: "/settings/expense-category",
           icon: TrendingDown,
-          comingSoon: true,
         },
         {
           title: sidebar.accounts,

@@ -10,6 +10,7 @@ const nextConfig = {
     "@workspace/ui",
     "@workspace/supabase",
     "@workspace/utils",
+    "@workspace/dictionaries",
   ],
   async redirects() {
     return [

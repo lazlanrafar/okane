@@ -226,6 +226,66 @@
           "description": "Tampilkan tombol untuk menambahkan catatan dengan cepat ke transaksi."
         }
       }
+    },
+    "category": {
+      "income": {
+        "title": "Kategori Pemasukan",
+        "description": "Kelola kategori pemasukan Anda.",
+        "add_button": "Tambah Kategori",
+        "empty": "Tidak ada kategori ditemukan",
+        "table": {
+          "name": "Nama",
+          "color": "Warna",
+          "actions": "Aksi"
+        },
+        "form": {
+          "name": {
+            "label": "Nama",
+            "placeholder": "Nama kategori",
+            "error_required": "Nama wajib diisi"
+          },
+          "color": {
+            "label": "Warna",
+            "placeholder": "Pilih warna"
+          },
+          "submit": "Simpan",
+          "cancel": "Batal",
+          "delete": "Hapus",
+          "delete_confirm": "Apakah Anda yakin ingin menghapus kategori ini?",
+          "delete_success": "Kategori berhasil dihapus",
+          "create_success": "Kategori berhasil dibuat",
+          "update_success": "Kategori berhasil diperbarui"
+        }
+      },
+      "expense": {
+        "title": "Kategori Pengeluaran",
+        "description": "Kelola kategori pengeluaran Anda.",
+        "add_button": "Tambah Kategori",
+        "empty": "Tidak ada kategori ditemukan",
+        "table": {
+          "name": "Nama",
+          "color": "Warna",
+          "actions": "Aksi"
+        },
+        "form": {
+          "name": {
+            "label": "Nama",
+            "placeholder": "Nama kategori",
+            "error_required": "Nama wajib diisi"
+          },
+          "color": {
+            "label": "Warna",
+            "placeholder": "Pilih warna"
+          },
+          "submit": "Simpan",
+          "cancel": "Batal",
+          "delete": "Hapus",
+          "delete_confirm": "Apakah Anda yakin ingin menghapus kategori ini?",
+          "delete_success": "Kategori berhasil dihapus",
+          "create_success": "Kategori berhasil dibuat",
+          "update_success": "Kategori berhasil diperbarui"
+        }
+      }
     }
   }
 }

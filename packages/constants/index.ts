@@ -1,3 +1,5 @@
+export * from "./default/category";
+
 export const WEEKLY_START_DAY_OPTIONS = [
   "Sunday",
   "Monday",

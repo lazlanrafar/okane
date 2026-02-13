@@ -1,6 +1,11 @@
 import { workspacesRepository } from "./workspaces.repository";
 import { usersRepository } from "../users/users.repository";
 import { auditLogsService } from "../audit-logs/audit-logs.service";
+import { INCOME_CATEGORY, EXPENSE_CATEGORY } from "@workspace/constants";
+import { categoriesRepository } from "../categories/categories.repository";
+import { SettingsRepository } from "../settings/repository";
+
+const settingsRepository = new SettingsRepository();
 
 /**
  * Workspaces service — business logic layer.
@@ -37,7 +42,25 @@ export const workspacesService = {
       await usersRepository.setWorkspaceId(user_id, workspace.id);
     }
 
-    // 4. Log action
+    // 4. Populate default categories
+    const defaultCategories = [
+      ...INCOME_CATEGORY.map((name) => ({
+        workspaceId: workspace.id,
+        name,
+        type: "income" as const,
+      })),
+      ...EXPENSE_CATEGORY.map((name) => ({
+        workspaceId: workspace.id,
+        name,
+        type: "expense" as const,
+      })),
+    ];
+    await categoriesRepository.createMany(defaultCategories);
+
+    // 5. Create default workspace settings
+    await settingsRepository.create(workspace.id);
+
+    // 6. Log action
     await auditLogsService.log({
       workspace_id: workspace.id,
       user_id,

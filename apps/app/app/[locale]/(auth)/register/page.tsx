@@ -5,7 +5,7 @@ import { Globe } from "lucide-react";
 import { APP_CONFIG } from "@/config/app-config";
 
 import { RegisterForm } from "../../../../components/auth/register-form";
-import { OAuthButton } from "../_components/social-auth/oauth-button";
+import { OAuthButton } from "@/components/auth/oauth-button";
 
 export default function RegisterV2() {
   return (
