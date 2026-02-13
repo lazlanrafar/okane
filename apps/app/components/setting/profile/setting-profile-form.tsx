@@ -25,9 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui";
-import {
-  Textarea,
-} from "@workspace/ui";
+import { Textarea } from "@workspace/ui";
 import { toast } from "sonner";
 
 const profileFormSchema = z.object({
@@ -49,7 +47,7 @@ const profileFormSchema = z.object({
     .array(
       z.object({
         value: z.string().url({ message: "Please enter a valid URL." }),
-      })
+      }),
     )
     .optional(),
 });
@@ -66,7 +64,7 @@ const defaultValues: Partial<ProfileFormValues> = {
   ],
 };
 
-export function ProfileForm() {
+export function SettingProfileForm() {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
@@ -80,11 +78,11 @@ export function ProfileForm() {
 
   function onSubmit(data: ProfileFormValues) {
     toast("You submitted the following values:", {
-        description: (
-            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-            <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-            </pre>
-        ),
+      description: (
+        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+        </pre>
+      ),
     });
   }
 

@@ -1,6 +1,6 @@
 import { Separator } from "@workspace/ui";
 
-import { SettingSidebar } from "../../../../../components/setting/setting-sidebar";
+import { SettingSidebar } from "@/components/setting/setting-sidebar";
 
 export default function SettingsLayout({
   children,
