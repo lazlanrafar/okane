@@ -1,0 +1,16 @@
+{
+  "name": "@workspace/dictionaries",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./en": "./en.json",
+    "./ja": "./ja.json",
+    "./id": "./id.json"
+  },
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*"
+  }
+}

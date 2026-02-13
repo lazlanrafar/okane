@@ -25,149 +25,146 @@ import {
 import { cn } from "@workspace/ui";
 import { buttonVariants } from "@workspace/ui";
 
-const sidebarNavItems = [
-  {
-    title: "Profile",
-    href: "/settings/profile",
-    icon: User,
-  },
-  {
-    title: "Account",
-    href: "/settings/account",
-    icon: Settings,
-    comingSoon: true,
-  },
-  {
-    title: "Appearance",
-    href: "/settings/appearance",
-    icon: Palette,
-  },
-  {
-    title: "Notifications",
-    href: "/settings/notifications",
-    icon: Bell,
-    comingSoon: true,
-  },
-  {
-    title: "Display",
-    href: "/settings/display",
-    icon: Monitor,
-    comingSoon: true,
-  },
-  {
-    groupLabel: "Transaction",
-    items: [
-      {
-        title: "Transaction Settings",
-        href: "/settings/transaction",
-        icon: FileText,
-      },
-      {
-        title: "Repeat Setting",
-        href: "/settings/repeat",
-        icon: Repeat,
-      },
-      {
-        title: "Copy-Paste Settings",
-        href: "/settings/copy-paste",
-        icon: Copy,
-        comingSoon: true,
-      },
-    ],
-  },
-  {
-    groupLabel: "Category & Accounts",
-    items: [
-      {
-        title: "Income Category Setting",
-        href: "/settings/income-category",
-        icon: Wallet,
-        comingSoon: true,
-      },
-      {
-        title: "Expenses Category Setting",
-        href: "/settings/expenses-category",
-        icon: TrendingDown,
-        comingSoon: true,
-      },
-      {
-        title: "Accounts Setting",
-        href: "/settings/accounts",
-        icon: Landmark,
-        comingSoon: true,
-      },
-      {
-        title: "Budget Setting",
-        href: "/settings/budget",
-        icon: PencilRuler,
-        comingSoon: true,
-      },
-    ],
-  },
-  {
-    groupLabel: "General Settings",
-    items: [
-      {
-        title: "Backup",
-        href: "/settings/backup",
-        icon: DatabaseBackup,
-        comingSoon: true,
-      },
-      {
-        title: "Passcode",
-        href: "/settings/passcode",
-        icon: Lock,
-        comingSoon: true,
-      },
-      {
-        title: "Main Currency Setting",
-        href: "/settings/main-currency",
-        icon: Banknote,
-        comingSoon: true,
-      },
-      {
-        title: "Sub Currency Setting",
-        href: "/settings/sub-currency",
-        icon: Banknote,
-        comingSoon: true,
-      },
-      {
-        title: "Alarm Setting",
-        href: "/settings/alarm",
-        icon: Bell,
-        comingSoon: true,
-      },
-      {
-        title: "Style",
-        href: "/settings/style",
-        icon: Palette,
-        comingSoon: true,
-      },
-      {
-        title: "Language Setting",
-        href: "/settings/language",
-        icon: Languages,
-        comingSoon: true,
-      },
-    ],
-  },
-];
-
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
-  // items prop is no longer needed but kept for backward compatibility if needed,
-  // though we ignore it in favor of internal items for this specific sidebar.
-  // biome-ignore lint/suspicious/noExplicitAny: Legacy prop compatibility
-  items?: any[];
+  dictionary: {
+    sidebar: {
+      profile: string;
+      account: string;
+      appearance: string;
+      notifications: string;
+      display: string;
+      transaction: string;
+      category_accounts: string;
+      income_category: string;
+      expenses_category: string;
+      accounts: string;
+      budget: string;
+      general: string;
+      backup: string;
+      passcode: string;
+      main_currency: string;
+      sub_currency: string;
+      alarm: string;
+      language: string;
+      soon: string;
+    };
+  };
 }
 
 import { i18n } from "@/i18n-config";
 
 export function SettingSidebar({
   className,
-  items,
+  dictionary,
   ...props
 }: SidebarNavProps) {
   const pathname = usePathname();
+  const { sidebar } = dictionary;
+
+  const sidebarNavItems = [
+    {
+      title: sidebar.profile,
+      href: "/settings/profile",
+      icon: User,
+    },
+    {
+      title: sidebar.account,
+      href: "/settings/account",
+      icon: Settings,
+      comingSoon: true,
+    },
+    {
+      title: sidebar.appearance,
+      href: "/settings/appearance",
+      icon: Palette,
+    },
+    {
+      title: sidebar.notifications,
+      href: "/settings/notifications",
+      icon: Bell,
+      comingSoon: true,
+    },
+    {
+      title: sidebar.display,
+      href: "/settings/display",
+      icon: Monitor,
+      comingSoon: true,
+    },
+    {
+      title: sidebar.transaction,
+      href: "/settings/transaction",
+      icon: FileText,
+    },
+    {
+      groupLabel: sidebar.category_accounts,
+      items: [
+        {
+          title: sidebar.income_category,
+          href: "/settings/income-category",
+          icon: Wallet,
+          comingSoon: true,
+        },
+        {
+          title: sidebar.expenses_category,
+          href: "/settings/expenses-category",
+          icon: TrendingDown,
+          comingSoon: true,
+        },
+        {
+          title: sidebar.accounts,
+          href: "/settings/accounts",
+          icon: Landmark,
+          comingSoon: true,
+        },
+        {
+          title: sidebar.budget,
+          href: "/settings/budget",
+          icon: PencilRuler,
+          comingSoon: true,
+        },
+      ],
+    },
+    {
+      groupLabel: sidebar.general,
+      items: [
+        {
+          title: sidebar.backup,
+          href: "/settings/backup",
+          icon: DatabaseBackup,
+          comingSoon: true,
+        },
+        {
+          title: sidebar.passcode,
+          href: "/settings/passcode",
+          icon: Lock,
+          comingSoon: true,
+        },
+        {
+          title: sidebar.main_currency,
+          href: "/settings/main-currency",
+          icon: Banknote,
+          comingSoon: true,
+        },
+        {
+          title: sidebar.sub_currency,
+          href: "/settings/sub-currency",
+          icon: Banknote,
+          comingSoon: true,
+        },
+        {
+          title: sidebar.alarm,
+          href: "/settings/alarm",
+          icon: Bell,
+          comingSoon: true,
+        },
+        {
+          title: sidebar.language,
+          href: "/settings/language",
+          icon: Languages,
+        },
+      ],
+    },
+  ];
 
   // Strip locale from pathname to match sidebar items
   const activePath = pathname.split("/").filter(Boolean);
@@ -185,6 +182,12 @@ export function SettingSidebar({
       {...props}
     >
       {sidebarNavItems.map((item, index) => {
+        const currentLocale = i18n.locales.find(
+          (locale) =>
+            pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
+        );
+        const prefix = currentLocale ? `/${currentLocale}` : "";
+
         if ("groupLabel" in item) {
           return (
             <div key={index} className="mt-4 first:mt-0">
@@ -196,7 +199,7 @@ export function SettingSidebar({
                 {item.items?.map((subItem: any) => (
                   <Link
                     key={subItem.href}
-                    href={subItem.href}
+                    href={`${prefix}${subItem.href}`}
                     className={cn(
                       buttonVariants({ variant: "ghost" }),
                       normalizedPath === subItem.href
@@ -210,7 +213,7 @@ export function SettingSidebar({
                     <span className="flex-1 text-left">{subItem.title}</span>
                     {subItem.comingSoon && (
                       <span className="ml-auto text-[10px] font-medium text-muted-foreground border px-1.5 py-0.5 rounded-md bg-muted/50">
-                        Soon
+                        {sidebar.soon}
                       </span>
                     )}
                   </Link>
@@ -227,7 +230,7 @@ export function SettingSidebar({
         return (
           <Link
             key={flatItem.href}
-            href={flatItem.href}
+            href={`${prefix}${flatItem.href}`}
             className={cn(
               buttonVariants({ variant: "ghost" }),
               normalizedPath === flatItem.href
@@ -241,7 +244,7 @@ export function SettingSidebar({
             <span className="flex-1 text-left">{flatItem.title}</span>
             {flatItem.comingSoon && (
               <span className="ml-auto text-[10px] font-medium text-muted-foreground border px-1.5 py-0.5 rounded-md bg-muted/50">
-                Soon
+                {sidebar.soon}
               </span>
             )}
           </Link>

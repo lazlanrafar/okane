@@ -1,18 +1,30 @@
 import React from "react";
 import { TransactionSettingsForm } from "@/components/setting/transaction/transaction-settings-form";
 import { Separator } from "@workspace/ui";
+import { getDictionary } from "@/get-dictionary";
+import { Locale } from "@/i18n-config";
 
-export default function SettingTransactionPage() {
+interface Props {
+  params: Promise<{
+    locale: Locale;
+  }>;
+}
+
+export default async function SettingTransactionPage({ params }: Props) {
+  const { locale } = await params;
+  const dictionary = await getDictionary(locale);
+  const { transaction } = dictionary.settings;
+
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium">Transaction Settings</h3>
+        <h3 className="text-lg font-medium">{transaction.title}</h3>
         <p className="text-sm text-muted-foreground">
-          Manage how your transactions are handled and displayed.
+          {transaction.description}
         </p>
       </div>
       <Separator />
-      <TransactionSettingsForm />
+      <TransactionSettingsForm dictionary={dictionary} />
     </div>
   );
 }

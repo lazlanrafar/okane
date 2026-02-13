@@ -1,0 +1,231 @@
+{
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "settings": "Settings"
+  },
+  "home": {
+    "welcome": "Welcome to Okane",
+    "description": "The best app for managing your finances."
+  },
+  "settings": {
+    "language": {
+      "title": "Language",
+      "description": "Select your preferred language",
+      "options": {
+        "en": "English",
+        "ja": "Japanese",
+        "id": "Indonesian"
+      }
+    },
+    "sidebar": {
+      "profile": "Profile",
+      "account": "Account",
+      "appearance": "Appearance",
+      "notifications": "Notifications",
+      "display": "Display",
+      "transaction": "Transaction Settings",
+      "category_accounts": "Category & Accounts",
+      "income_category": "Income Category Setting",
+      "expenses_category": "Expenses Category Setting",
+      "accounts": "Accounts Setting",
+      "budget": "Budget Setting",
+      "general": "General Settings",
+      "backup": "Backup",
+      "passcode": "Passcode",
+      "main_currency": "Main Currency Setting",
+      "sub_currency": "Sub Currency Setting",
+      "alarm": "Alarm Setting",
+      "language": "Language Setting",
+      "soon": "Soon"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Customize the look and feel of the application. Automatically switch between day and night themes.",
+      "theme": {
+        "title": "Theme Settings",
+        "description": "Customize your UI theme and colors.",
+        "preset": "Theme Preset",
+        "mode": "Theme Mode",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+      },
+      "layout": {
+        "title": "Layout Settings",
+        "description": "Adjust spacing and navigation behavior.",
+        "page_layout": "Page Layout",
+        "centered": "Centered",
+        "full_width": "Full Width",
+        "navbar_behavior": "Navbar Behavior",
+        "sticky": "Sticky",
+        "scroll": "Scroll"
+      },
+      "sidebar": {
+        "title": "Sidebar Settings",
+        "description": "Configure the sidebar style and collapse behavior.",
+        "style": "Sidebar Style",
+        "inset": "Inset",
+        "sidebar": "Sidebar",
+        "floating": "Floating",
+        "collapse_mode": "Collapse Mode",
+        "icon": "Icon",
+        "offcanvas": "OffCanvas"
+      },
+      "typography": {
+        "title": "Typography",
+        "description": "Choose the font that suits your style.",
+        "font_family": "Font Family"
+      },
+      "restore_defaults": "Restore Defaults"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "This is how others will see you on the site.",
+      "username": {
+        "label": "Username",
+        "placeholder": "shadcn",
+        "description": "This is your public display name. It can be your real name or a pseudonym. You can only change this once every 30 days.",
+        "error_min": "Username must be at least 2 characters.",
+        "error_max": "Username must not be longer than 30 characters."
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "Select a verified email to display",
+        "description": "You can manage verified email addresses in your email settings.",
+        "error_required": "Please select an email to display."
+      },
+      "bio": {
+        "label": "Bio",
+        "placeholder": "Tell us a little bit about yourself",
+        "description": "You can @mention other users and organizations to link to them."
+      },
+      "urls": {
+        "label": "URLs",
+        "description": "Add links to your website, blog, or social media profiles.",
+        "add_url": "Add URL",
+        "error_invalid": "Please enter a valid URL."
+      },
+      "update_profile": "Update profile",
+      "toast_submitted": "You submitted the following values:"
+    },
+    "transaction": {
+      "title": "Transaction Settings",
+      "description": "Manage how your transactions are handled and displayed.",
+      "date_time": {
+        "title": "Date & Time",
+        "description": "Configure how dates and times are handled in transactions.",
+        "monthly_start_date": {
+          "label": "Monthly Start Date",
+          "description": "The day of the month when your tracking period begins.",
+          "placeholder": "Select date"
+        },
+        "weekend_handling": {
+          "label": "If monthly start date is weekend,",
+          "options": {
+            "no-changes": "No changes",
+            "previous-friday": "Previous Friday",
+            "following-monday": "Following Monday"
+          }
+        },
+        "weekly_start_day": {
+          "label": "Weekly Start Day",
+          "description": "The day of the week your weekly tracking begins.",
+          "placeholder": "Select day",
+          "options": {
+            "sunday": "Sunday",
+            "monday": "Monday",
+            "tuesday": "Tuesday",
+            "wednesday": "Wednesday",
+            "thursday": "Thursday",
+            "friday": "Friday",
+            "saturday": "Saturday"
+          }
+        }
+      },
+      "general": {
+        "title": "General Preferences",
+        "description": "Customize general behavior and display options.",
+        "default_period": {
+          "label": "Default Period",
+          "description": "The default view period for your transactions.",
+          "placeholder": "Select period",
+          "options": {
+            "monthly": "Monthly",
+            "weekly": "Weekly",
+            "daily": "Daily",
+            "yearly": "Yearly"
+          }
+        },
+        "start_screen": {
+          "label": "Start Screen",
+          "description": "The initial screen shown when opening the transaction view.",
+          "placeholder": "Select start screen",
+          "options": {
+            "daily": "Daily",
+            "calendar": "Calendar",
+            "weekly": "Weekly",
+            "monthly": "Monthly",
+            "summary": "Summary"
+          }
+        },
+        "income_expense_color": {
+          "description": "By default, income is shown in 'Blue' color and expenses in 'Red' color. You can customize it to the other way around.",
+          "options": {
+            "blue-red": "Income: Blue, Expenses: Red",
+            "red-blue": "Income: Red, Expenses: Blue"
+          }
+        }
+      },
+      "input_interaction": {
+        "title": "Input & Interaction",
+        "description": "Fine-tune how you input data and interact with lists.",
+        "carry_over": {
+          "label": "Carry-over Balance",
+          "description": "Automatically carry over the remaining balance to the next period."
+        },
+        "autocomplete": {
+          "label": "Autocomplete",
+          "description": "Suggest previous entries when typing."
+        },
+        "time_input": {
+          "label": "Time Input",
+          "description": "Enable time selection for transactions.",
+          "placeholder": "Select time input",
+          "options": {
+            "none": "None",
+            "none-desc": "None, Desc.",
+            "time": "Time"
+          }
+        },
+        "swipe_action": {
+          "label": "Swipe Action",
+          "description": "Configure the action when swiping on a transaction.",
+          "placeholder": "Select swipe action",
+          "options": {
+            "change-date": "Change Date",
+            "delete": "Delete",
+            "none": "None"
+          }
+        },
+        "input_order": {
+          "label": "Input Order",
+          "description": "Choose the order of fields when adding a transaction.",
+          "placeholder": "Select input order",
+          "options": {
+            "amount": "From Amount",
+            "category": "From Category"
+          }
+        },
+        "show_description": {
+          "label": "Show Description",
+          "description": "Display transaction descriptions in the list view."
+        },
+        "quick_note_button": {
+          "label": "Quick Note Button",
+          "description": "Show a button to quickly add notes to transactions."
+        }
+      }
+    }
+  }
+}

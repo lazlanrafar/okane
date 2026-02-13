@@ -32,7 +32,98 @@ import {
 } from "@workspace/constants";
 import { toast } from "sonner";
 
-export function TransactionSettingsForm() {
+interface TransactionSettingsFormProps {
+  dictionary: {
+    settings: {
+      transaction: {
+        title: string;
+        description: string;
+        date_time: {
+          title: string;
+          description: string;
+          monthly_start_date: {
+            label: string;
+            description: string;
+            placeholder: string;
+          };
+          weekend_handling: {
+            label: string;
+            options: Record<string, string>;
+          };
+          weekly_start_day: {
+            label: string;
+            description: string;
+            placeholder: string;
+            options: Record<string, string>;
+          };
+        };
+        general: {
+          title: string;
+          description: string;
+          default_period: {
+            label: string;
+            description: string;
+            placeholder: string;
+            options: Record<string, string>;
+          };
+          start_screen: {
+            label: string;
+            description: string;
+            placeholder: string;
+            options: Record<string, string>;
+          };
+          income_expense_color: {
+            description: string;
+            options: Record<string, string>;
+          };
+        };
+        input_interaction: {
+          title: string;
+          description: string;
+          carry_over: {
+            label: string;
+            description: string;
+          };
+          autocomplete: {
+            label: string;
+            description: string;
+          };
+          time_input: {
+            label: string;
+            description: string;
+            placeholder: string;
+            options: Record<string, string>;
+          };
+          swipe_action: {
+            label: string;
+            description: string;
+            placeholder: string;
+            options: Record<string, string>;
+          };
+          input_order: {
+            label: string;
+            description: string;
+            placeholder: string;
+            options: Record<string, string>;
+          };
+          show_description: {
+            label: string;
+            description: string;
+          };
+          quick_note_button: {
+            label: string;
+            description: string;
+          };
+        };
+      };
+    };
+  };
+}
+
+export function TransactionSettingsForm({
+  dictionary,
+}: TransactionSettingsFormProps) {
+  const { transaction } = dictionary.settings;
   const queryClient = useQueryClient();
 
   const { data: settings, isLoading } = useQuery({
@@ -94,17 +185,21 @@ export function TransactionSettingsForm() {
       {/* Date & Time Settings */}
       <div className="space-y-4">
         <div>
-          <h4 className="text-base font-medium">Date & Time</h4>
+          <h4 className="text-base font-medium">
+            {transaction.date_time.title}
+          </h4>
           <p className="text-sm text-muted-foreground">
-            Configure how dates and times are handled in transactions.
+            {transaction.date_time.description}
           </p>
         </div>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-sm">Monthly Start Date</Label>
+              <Label className="text-sm">
+                {transaction.date_time.monthly_start_date.label}
+              </Label>
               <p className="text-xs text-muted-foreground">
-                The day of the month when your tracking period begins.
+                {transaction.date_time.monthly_start_date.description}
               </p>
             </div>
             <Select
@@ -114,7 +209,11 @@ export function TransactionSettingsForm() {
               }
             >
               <SelectTrigger className="w-[180px] cursor-pointer">
-                <SelectValue placeholder="Select date" />
+                <SelectValue
+                  placeholder={
+                    transaction.date_time.monthly_start_date.placeholder
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {Array.from({ length: 31 }, (_, i) => i + 1).map((date) => (
@@ -131,7 +230,7 @@ export function TransactionSettingsForm() {
           </div>
           <div className="space-y-3 pt-1">
             <Label className="text-sm text-muted-foreground font-normal">
-              If monthly start date is weekend,
+              {transaction.date_time.weekend_handling.label}
             </Label>
             <RadioGroup
               value={settings.monthlyStartDateWeekendHandling}
@@ -150,7 +249,9 @@ export function TransactionSettingsForm() {
                     htmlFor={`handling-${option.value}`}
                     className="font-normal cursor-pointer text-sm"
                   >
-                    {option.label}
+                    {transaction.date_time.weekend_handling.options[
+                      option.value
+                    ] || option.label}
                   </Label>
                 </div>
               ))}
@@ -158,9 +259,11 @@ export function TransactionSettingsForm() {
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-sm">Weekly Start Day</Label>
+              <Label className="text-sm">
+                {transaction.date_time.weekly_start_day.label}
+              </Label>
               <p className="text-xs text-muted-foreground">
-                The day of the week your weekly tracking begins.
+                {transaction.date_time.weekly_start_day.description}
               </p>
             </div>
             <Select
@@ -168,12 +271,18 @@ export function TransactionSettingsForm() {
               onValueChange={(val) => updateSetting("weeklyStartDay", val)}
             >
               <SelectTrigger className="w-[180px] cursor-pointer">
-                <SelectValue placeholder="Select day" />
+                <SelectValue
+                  placeholder={
+                    transaction.date_time.weekly_start_day.placeholder
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {WEEKLY_START_DAY_OPTIONS.map((day) => (
                   <SelectItem key={day} value={day} className="cursor-pointer">
-                    {day}
+                    {transaction.date_time.weekly_start_day.options[
+                      day.toLowerCase()
+                    ] || day}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -186,17 +295,19 @@ export function TransactionSettingsForm() {
       {/* General Preferences */}
       <div className="space-y-4">
         <div>
-          <h4 className="text-base font-medium">General Preferences</h4>
+          <h4 className="text-base font-medium">{transaction.general.title}</h4>
           <p className="text-sm text-muted-foreground">
-            Customize general behavior and display options.
+            {transaction.general.description}
           </p>
         </div>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-sm">Default Period</Label>
+              <Label className="text-sm">
+                {transaction.general.default_period.label}
+              </Label>
               <p className="text-xs text-muted-foreground">
-                The default view period for your transactions.
+                {transaction.general.default_period.description}
               </p>
             </div>
             <Select
@@ -204,7 +315,9 @@ export function TransactionSettingsForm() {
               onValueChange={(val) => updateSetting("period", val)}
             >
               <SelectTrigger className="w-[180px] cursor-pointer">
-                <SelectValue placeholder="Select period" />
+                <SelectValue
+                  placeholder={transaction.general.default_period.placeholder}
+                />
               </SelectTrigger>
               <SelectContent>
                 {PERIOD_OPTIONS.map((period) => (
@@ -213,7 +326,9 @@ export function TransactionSettingsForm() {
                     value={period}
                     className="cursor-pointer"
                   >
-                    {period}
+                    {transaction.general.default_period.options[
+                      period.toLowerCase()
+                    ] || period}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -222,9 +337,11 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-sm">Start Screen</Label>
+              <Label className="text-sm">
+                {transaction.general.start_screen.label}
+              </Label>
               <p className="text-xs text-muted-foreground">
-                The initial screen shown when opening the transaction view.
+                {transaction.general.start_screen.description}
               </p>
             </div>
             <Select
@@ -232,7 +349,9 @@ export function TransactionSettingsForm() {
               onValueChange={(val) => updateSetting("startScreen", val)}
             >
               <SelectTrigger className="w-[180px] cursor-pointer">
-                <SelectValue placeholder="Select start screen" />
+                <SelectValue
+                  placeholder={transaction.general.start_screen.placeholder}
+                />
               </SelectTrigger>
               <SelectContent>
                 {START_SCREEN_OPTIONS.map((screen) => (
@@ -241,7 +360,9 @@ export function TransactionSettingsForm() {
                     value={screen}
                     className="cursor-pointer"
                   >
-                    {screen}
+                    {transaction.general.start_screen.options[
+                      screen.toLowerCase()
+                    ] || screen}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -250,8 +371,7 @@ export function TransactionSettingsForm() {
 
           <div className="space-y-3 pt-1">
             <Label className="text-sm text-muted-foreground font-normal">
-              By default, income is shown in 'Blue' color and expenses in 'Red'
-              color. You can customize it to the other way around.
+              {transaction.general.income_expense_color.description}
             </Label>
             <RadioGroup
               value={settings.incomeExpensesColor}
@@ -269,7 +389,9 @@ export function TransactionSettingsForm() {
                       htmlFor={`color-${option.value}`}
                       className="font-normal cursor-pointer text-sm"
                     >
-                      {option.label}
+                      {transaction.general.income_expense_color.options[
+                        option.value
+                      ] || option.label}
                     </Label>
                   </div>
 
@@ -292,18 +414,21 @@ export function TransactionSettingsForm() {
       {/* Input & Interaction */}
       <div className="space-y-4">
         <div>
-          <h4 className="text-base font-medium">Input & Interaction</h4>
+          <h4 className="text-base font-medium">
+            {transaction.input_interaction.title}
+          </h4>
           <p className="text-sm text-muted-foreground">
-            Fine-tune how you input data and interact with lists.
+            {transaction.input_interaction.description}
           </p>
         </div>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-sm">Carry-over Balance</Label>
+              <Label className="text-sm">
+                {transaction.input_interaction.carry_over.label}
+              </Label>
               <p className="text-xs text-muted-foreground">
-                Automatically carry over the remaining balance to the next
-                period.
+                {transaction.input_interaction.carry_over.description}
               </p>
             </div>
             <Switch
@@ -315,9 +440,11 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-sm">Autocomplete</Label>
+              <Label className="text-sm">
+                {transaction.input_interaction.autocomplete.label}
+              </Label>
               <p className="text-xs text-muted-foreground">
-                Suggest previous entries when typing.
+                {transaction.input_interaction.autocomplete.description}
               </p>
             </div>
             <Switch
@@ -329,9 +456,11 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-sm">Time Input</Label>
+              <Label className="text-sm">
+                {transaction.input_interaction.time_input.label}
+              </Label>
               <p className="text-xs text-muted-foreground">
-                Enable time selection for transactions.
+                {transaction.input_interaction.time_input.description}
               </p>
             </div>
             <Select
@@ -339,7 +468,11 @@ export function TransactionSettingsForm() {
               onValueChange={(val) => updateSetting("timeInput", val)}
             >
               <SelectTrigger className="w-[180px] cursor-pointer">
-                <SelectValue placeholder="Select time input" />
+                <SelectValue
+                  placeholder={
+                    transaction.input_interaction.time_input.placeholder
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {TIME_INPUT_OPTIONS.map((option) => (
@@ -348,7 +481,16 @@ export function TransactionSettingsForm() {
                     value={option.value}
                     className="cursor-pointer"
                   >
-                    {option.label}
+                    {/* Map values strictly. Some have special chars like ','. I need lowercased keys in dict */}
+                    {transaction.input_interaction.time_input.options[
+                      option.value
+                        .toLowerCase()
+                        .replace(", ", "-")
+                        .replace(/\./, "")
+                    ] || option.label}
+                    {/* Wait, the values in constant are "None", "None, Desc.", "Time" */}
+                    {/* In dict I put "none", "none-desc", "time" */}
+                    {/* I should normalise the key lookup */}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -357,9 +499,11 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-sm">Swipe Action</Label>
+              <Label className="text-sm">
+                {transaction.input_interaction.swipe_action.label}
+              </Label>
               <p className="text-xs text-muted-foreground">
-                Configure the action when swiping on a transaction.
+                {transaction.input_interaction.swipe_action.description}
               </p>
             </div>
             <Select
@@ -367,7 +511,11 @@ export function TransactionSettingsForm() {
               onValueChange={(val) => updateSetting("swipeAction", val)}
             >
               <SelectTrigger className="w-[180px] cursor-pointer">
-                <SelectValue placeholder="Select swipe action" />
+                <SelectValue
+                  placeholder={
+                    transaction.input_interaction.swipe_action.placeholder
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {SWIPE_ACTION_OPTIONS.map((action) => (
@@ -376,7 +524,10 @@ export function TransactionSettingsForm() {
                     value={action}
                     className="cursor-pointer"
                   >
-                    {action}
+                    {/* Values: "Change Date", "Delete", "None" -> "change-date", "delete", "none" */}
+                    {transaction.input_interaction.swipe_action.options[
+                      action.toLowerCase().replace(" ", "-")
+                    ] || action}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -385,9 +536,11 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-sm">Input Order</Label>
+              <Label className="text-sm">
+                {transaction.input_interaction.input_order.label}
+              </Label>
               <p className="text-xs text-muted-foreground">
-                Choose the order of fields when adding a transaction.
+                {transaction.input_interaction.input_order.description}
               </p>
             </div>
             <Select
@@ -395,7 +548,11 @@ export function TransactionSettingsForm() {
               onValueChange={(val) => updateSetting("inputOrder", val)}
             >
               <SelectTrigger className="w-[180px] cursor-pointer">
-                <SelectValue placeholder="Select input order" />
+                <SelectValue
+                  placeholder={
+                    transaction.input_interaction.input_order.placeholder
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {INPUT_ORDER_OPTIONS.map((option) => (
@@ -404,7 +561,10 @@ export function TransactionSettingsForm() {
                     value={option.value}
                     className="cursor-pointer"
                   >
-                    {option.label}
+                    {/* Values: "Amount", "Category" -> "amount", "category" */}
+                    {transaction.input_interaction.input_order.options[
+                      option.value.toLowerCase()
+                    ] || option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -413,9 +573,11 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-sm">Show Description</Label>
+              <Label className="text-sm">
+                {transaction.input_interaction.show_description.label}
+              </Label>
               <p className="text-xs text-muted-foreground">
-                Display transaction descriptions in the list view.
+                {transaction.input_interaction.show_description.description}
               </p>
             </div>
             <Switch
@@ -427,9 +589,11 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-sm">Quick Note Button</Label>
+              <Label className="text-sm">
+                {transaction.input_interaction.quick_note_button.label}
+              </Label>
               <p className="text-xs text-muted-foreground">
-                Show a button to quickly add notes to transactions.
+                {transaction.input_interaction.quick_note_button.description}
               </p>
             </div>
             <Switch

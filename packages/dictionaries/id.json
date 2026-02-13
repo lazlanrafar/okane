@@ -1,0 +1,231 @@
+{
+  "navigation": {
+    "home": "Beranda",
+    "dashboard": "Dasbor",
+    "settings": "Pengaturan"
+  },
+  "home": {
+    "welcome": "Selamat datang di Okane",
+    "description": "Aplikasi terbaik untuk mengelola keuangan Anda."
+  },
+  "settings": {
+    "language": {
+      "title": "Bahasa",
+      "description": "Pilih bahasa pilihan Anda",
+      "options": {
+        "en": "Inggris",
+        "ja": "Jepang",
+        "id": "Indonesia"
+      }
+    },
+    "sidebar": {
+      "profile": "Profil",
+      "account": "Akun",
+      "appearance": "Tampilan",
+      "notifications": "Notifikasi",
+      "display": "Tampilan Layar",
+      "transaction": "Pengaturan Transaksi",
+      "category_accounts": "Kategori & Akun",
+      "income_category": "Kategori Pemasukan",
+      "expenses_category": "Kategori Pengeluaran",
+      "accounts": "Pengaturan Akun",
+      "budget": "Pengaturan Anggaran",
+      "general": "Pengaturan Umum",
+      "backup": "Cadangan",
+      "passcode": "Kode Sandi",
+      "main_currency": "Mata Uang Utama",
+      "sub_currency": "Mata Uang Sub",
+      "alarm": "Pengaturan Alarm",
+      "language": "Pengaturan Bahasa",
+      "soon": "Segera"
+    },
+    "appearance": {
+      "title": "Tampilan",
+      "description": "Sesuaikan tampilan dan nuansa aplikasi. Beralih secara otomatis antara tema siang dan malam.",
+      "theme": {
+        "title": "Pengaturan Tema",
+        "description": "Sesuaikan tema UI dan warna Anda.",
+        "preset": "Preset Tema",
+        "mode": "Mode Tema",
+        "light": "Terang",
+        "dark": "Gelap",
+        "system": "Sistem"
+      },
+      "layout": {
+        "title": "Pengaturan Tata Letak",
+        "description": "Sesuaikan spasi dan perilaku navigasi.",
+        "page_layout": "Tata Letak Halaman",
+        "centered": "Tengah",
+        "full_width": "Lebar Penuh",
+        "navbar_behavior": "Perilaku Navbar",
+        "sticky": "Sticky",
+        "scroll": "Scroll"
+      },
+      "sidebar": {
+        "title": "Pengaturan Sidebar",
+        "description": "Konfigurasikan gaya sidebar dan perilaku lipat.",
+        "style": "Gaya Sidebar",
+        "inset": "Inset",
+        "sidebar": "Sidebar",
+        "floating": "Mengambang",
+        "collapse_mode": "Mode Lipat",
+        "icon": "Ikon",
+        "offcanvas": "OffCanvas"
+      },
+      "typography": {
+        "title": "Tipografi",
+        "description": "Pilih font yang sesuai dengan gaya Anda.",
+        "font_family": "Keluarga Font"
+      },
+      "restore_defaults": "Kembalikan Default"
+    },
+    "profile": {
+      "title": "Profil",
+      "description": "Ini adalah bagaimana orang lain akan melihat Anda di situs.",
+      "username": {
+        "label": "Nama Pengguna",
+        "placeholder": "shadcn",
+        "description": "Ini adalah nama tampilan publik Anda. Bisa nama asli atau nama samaran. Anda hanya dapat mengubah ini sekali setiap 30 hari.",
+        "error_min": "Nama pengguna harus minimal 2 karakter.",
+        "error_max": "Nama pengguna tidak boleh lebih dari 30 karakter."
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "Pilih email terverifikasi untuk ditampilkan",
+        "description": "Anda dapat mengelola alamat email terverifikasi di pengaturan email Anda.",
+        "error_required": "Silakan pilih email untuk ditampilkan."
+      },
+      "bio": {
+        "label": "Bio",
+        "placeholder": "Ceritakan sedikit tentang diri Anda",
+        "description": "Anda dapat @mention pengguna dan organisasi lain untuk menautkan ke mereka."
+      },
+      "urls": {
+        "label": "URL",
+        "description": "Tambahkan tautan ke situs web, blog, atau profil media sosial Anda.",
+        "add_url": "Tambah URL",
+        "error_invalid": "Silakan masukkan URL yang valid."
+      },
+      "update_profile": "Perbarui profil",
+      "toast_submitted": "Anda mengirimkan nilai berikut:"
+    },
+    "transaction": {
+      "title": "Pengaturan Transaksi",
+      "description": "Kelola bagaimana transaksi Anda ditangani dan ditampilkan.",
+      "date_time": {
+        "title": "Tanggal & Waktu",
+        "description": "Konfigurasikan bagaimana tanggal dan waktu ditangani dalam transaksi.",
+        "monthly_start_date": {
+          "label": "Tanggal Mulai Bulanan",
+          "description": "Hari dalam sebulan saat periode pelacakan Anda dimulai.",
+          "placeholder": "Pilih tanggal"
+        },
+        "weekend_handling": {
+          "label": "Jika tanggal mulai bulanan adalah akhir pekan,",
+          "options": {
+            "no-changes": "Tidak ada perubahan",
+            "previous-friday": "Jumat Sebelumnya",
+            "following-monday": "Senin Berikutnya"
+          }
+        },
+        "weekly_start_day": {
+          "label": "Hari Mulai Mingguan",
+          "description": "Hari dalam seminggu pelacakan mingguan Anda dimulai.",
+          "placeholder": "Pilih hari",
+          "options": {
+            "sunday": "Minggu",
+            "monday": "Senin",
+            "tuesday": "Selasa",
+            "wednesday": "Rabu",
+            "thursday": "Kamis",
+            "friday": "Jumat",
+            "saturday": "Sabtu"
+          }
+        }
+      },
+      "general": {
+        "title": "Preferensi Umum",
+        "description": "Sesuaikan perilaku umum dan opsi tampilan.",
+        "default_period": {
+          "label": "Periode Default",
+          "description": "Periode tampilan default untuk transaksi Anda.",
+          "placeholder": "Pilih periode",
+          "options": {
+            "monthly": "Bulanan",
+            "weekly": "Mingguan",
+            "daily": "Harian",
+            "yearly": "Tahunan"
+          }
+        },
+        "start_screen": {
+          "label": "Layar Awal",
+          "description": "Layar awal yang ditampilkan saat membuka tampilan transaksi.",
+          "placeholder": "Pilih layar awal",
+          "options": {
+            "daily": "Harian",
+            "calendar": "Kalender",
+            "weekly": "Mingguan",
+            "monthly": "Bulanan",
+            "summary": "Ringkasan"
+          }
+        },
+        "income_expense_color": {
+          "description": "Secara default, pemasukan ditampilkan dengan warna 'Biru' dan pengeluaran dengan warna 'Merah'. Anda dapat menyesuaikannya sebaliknya.",
+          "options": {
+            "blue-red": "Pemasukan: Biru, Pengeluaran: Merah",
+            "red-blue": "Pemasukan: Merah, Pengeluaran: Biru"
+          }
+        }
+      },
+      "input_interaction": {
+        "title": "Input & Interaksi",
+        "description": "Sesuaikan cara Anda memasukkan data dan berinteraksi dengan daftar.",
+        "carry_over": {
+          "label": "Saldo Bawaan",
+          "description": "Secara otomatis membawa saldo yang tersisa ke periode berikutnya."
+        },
+        "autocomplete": {
+          "label": "Isi Otomatis",
+          "description": "Sarankan entri sebelumnya saat mengetik."
+        },
+        "time_input": {
+          "label": "Input Waktu",
+          "description": "Aktifkan pemilihan waktu untuk transaksi.",
+          "placeholder": "Pilih input waktu",
+          "options": {
+            "none": "Tidak Ada",
+            "none-desc": "Tidak Ada, Desk.",
+            "time": "Waktu"
+          }
+        },
+        "swipe_action": {
+          "label": "Tindakan Geser",
+          "description": "Konfigurasikan tindakan saat menggeser transaksi.",
+          "placeholder": "Pilih tindakan geser",
+          "options": {
+            "change-date": "Ubah Tanggal",
+            "delete": "Hapus",
+            "none": "Tidak Ada"
+          }
+        },
+        "input_order": {
+          "label": "Urutan Input",
+          "description": "Pilih urutan bidang saat menambahkan transaksi.",
+          "placeholder": "Pilih urutan input",
+          "options": {
+            "amount": "Dari Jumlah",
+            "category": "Dari Kategori"
+          }
+        },
+        "show_description": {
+          "label": "Tampilkan Deskripsi",
+          "description": "Tampilkan deskripsi transaksi dalam tampilan daftar."
+        },
+        "quick_note_button": {
+          "label": "Tombol Catatan Cepat",
+          "description": "Tampilkan tombol untuk menambahkan catatan dengan cepat ke transaksi."
+        }
+      }
+    }
+  }
+}

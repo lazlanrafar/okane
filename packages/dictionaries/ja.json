@@ -1,0 +1,231 @@
+{
+  "navigation": {
+    "home": "ホーム",
+    "dashboard": "ダッシュボード",
+    "settings": "設定"
+  },
+  "home": {
+    "welcome": "Okaneへようこそ",
+    "description": "あなたの家計を管理するための最高のアプリ。"
+  },
+  "settings": {
+    "language": {
+      "title": "言語",
+      "description": "好みの言語を選択してください",
+      "options": {
+        "en": "英語",
+        "ja": "日本語",
+        "id": "インドネシア語"
+      }
+    },
+    "sidebar": {
+      "profile": "プロフィール",
+      "account": "アカウント",
+      "appearance": "外観",
+      "notifications": "通知",
+      "display": "表示",
+      "transaction": "取引設定",
+      "category_accounts": "カテゴリとアカウント",
+      "income_category": "収入カテゴリ設定",
+      "expenses_category": "支出カテゴリ設定",
+      "accounts": "アカウント設定",
+      "budget": "予算設定",
+      "general": "一般設定",
+      "backup": "バックアップ",
+      "passcode": "パスコード",
+      "main_currency": "主要通貨設定",
+      "sub_currency": "サブ通貨設定",
+      "alarm": "アラーム設定",
+      "language": "言語設定",
+      "soon": "近日公開"
+    },
+    "appearance": {
+      "title": "外観",
+      "description": "アプリケーションの外観と操作感をカスタマイズします。デイモードとナイトモードを自動的に切り替えます。",
+      "theme": {
+        "title": "テーマ設定",
+        "description": "UIのテーマと色をカスタマイズします。",
+        "preset": "テーマプリセット",
+        "mode": "テーマモード",
+        "light": "ライト",
+        "dark": "ダーク",
+        "system": "システム"
+      },
+      "layout": {
+        "title": "レイアウト設定",
+        "description": "間隔とナビゲーションの動作を調整します。",
+        "page_layout": "ページレイアウト",
+        "centered": "中央揃え",
+        "full_width": "全幅",
+        "navbar_behavior": "ナビゲーションバーの動作",
+        "sticky": "固定",
+        "scroll": "スクロール"
+      },
+      "sidebar": {
+        "title": "サイドバー設定",
+        "description": "サイドバーのスタイルと折りたたみ動作を設定します。",
+        "style": "サイドバースタイル",
+        "inset": "インセット",
+        "sidebar": "サイドバー",
+        "floating": "フローティング",
+        "collapse_mode": "折りたたみモード",
+        "icon": "アイコン",
+        "offcanvas": "オフキャンバス"
+      },
+      "typography": {
+        "title": "タイポグラフィ",
+        "description": "スタイルに合ったフォントを選択してください。",
+        "font_family": "フォントファミリー"
+      },
+      "restore_defaults": "デフォルトに戻す"
+    },
+    "profile": {
+      "title": "プロフィール",
+      "description": "これはサイト上で他のユーザーに表示される情報です。",
+      "username": {
+        "label": "ユーザー名",
+        "placeholder": "shadcn",
+        "description": "これは公開表示名です。本名または仮名を使用できます。30日に1回のみ変更可能です。",
+        "error_min": "ユーザー名は2文字以上である必要があります。",
+        "error_max": "ユーザー名は30文字以内である必要があります。"
+      },
+      "email": {
+        "label": "メールアドレス",
+        "placeholder": "表示する確認済みメールアドレスを選択",
+        "description": "確認済みメールアドレスはメール設定で管理できます。",
+        "error_required": "表示するメールアドレスを選択してください。"
+      },
+      "bio": {
+        "label": "自己紹介",
+        "placeholder": "あなた自身について少し教えてください",
+        "description": "他のユーザーや組織を@メンションしてリンクできます。"
+      },
+      "urls": {
+        "label": "URL",
+        "description": "ウェブサイト、ブログ、ソーシャルメディアのプロフィールへのリンクを追加します。",
+        "add_url": "URLを追加",
+        "error_invalid": "有効なURLを入力してください。"
+      },
+      "update_profile": "プロフィールを更新",
+      "toast_submitted": "以下の値を送信しました："
+    },
+    "transaction": {
+      "title": "取引設定",
+      "description": "取引の処理方法と表示方法を管理します。",
+      "date_time": {
+        "title": "日付と時刻",
+        "description": "取引における日付と時刻の処理方法を設定します。",
+        "monthly_start_date": {
+          "label": "月次開始日",
+          "description": "追跡期間が開始する月の日付。",
+          "placeholder": "日付を選択"
+        },
+        "weekend_handling": {
+          "label": "月次開始日が週末の場合、",
+          "options": {
+            "no-changes": "変更なし",
+            "previous-friday": "前の金曜日",
+            "following-monday": "次の月曜日"
+          }
+        },
+        "weekly_start_day": {
+          "label": "週次開始曜日",
+          "description": "週次追跡が開始する曜日。",
+          "placeholder": "曜日を選択",
+          "options": {
+            "sunday": "日曜日",
+            "monday": "月曜日",
+            "tuesday": "火曜日",
+            "wednesday": "水曜日",
+            "thursday": "木曜日",
+            "friday": "金曜日",
+            "saturday": "土曜日"
+          }
+        }
+      },
+      "general": {
+        "title": "一般設定",
+        "description": "一般的な動作と表示オプションをカスタマイズします。",
+        "default_period": {
+          "label": "デフォルト期間",
+          "description": "取引のデフォルト表示期間。",
+          "placeholder": "期間を選択",
+          "options": {
+            "monthly": "月次",
+            "weekly": "週次",
+            "daily": "日次",
+            "yearly": "年次"
+          }
+        },
+        "start_screen": {
+          "label": "開始画面",
+          "description": "取引ビューを開いたときに最初に表示される画面。",
+          "placeholder": "開始画面を選択",
+          "options": {
+            "daily": "日次",
+            "calendar": "カレンダー",
+            "weekly": "週次",
+            "monthly": "月次",
+            "summary": "サマリー"
+          }
+        },
+        "income_expense_color": {
+          "description": "デフォルトでは、収入は「青」、支出は「赤」で表示されます。これを逆にカスタマイズできます。",
+          "options": {
+            "blue-red": "収入: 青, 支出: 赤",
+            "red-blue": "収入: 赤, 支出: 青"
+          }
+        }
+      },
+      "input_interaction": {
+        "title": "入力と操作",
+        "description": "データの入力方法とリストの操作方法を微調整します。",
+        "carry_over": {
+          "label": "残高繰り越し",
+          "description": "残りの残高を次の期間に自動的に繰り越します。"
+        },
+        "autocomplete": {
+          "label": "オートコンプリート",
+          "description": "入力時に過去のエントリを提案します。"
+        },
+        "time_input": {
+          "label": "時間入力",
+          "description": "取引の時間選択を有効にします。",
+          "placeholder": "時間入力を選択",
+          "options": {
+            "none": "なし",
+            "none-desc": "なし, 説明",
+            "time": "時間"
+          }
+        },
+        "swipe_action": {
+          "label": "スワイプアクション",
+          "description": "取引をスワイプしたときのアクションを設定します。",
+          "placeholder": "スワイプアクションを選択",
+          "options": {
+            "change-date": "日付変更",
+            "delete": "削除",
+            "none": "なし"
+          }
+        },
+        "input_order": {
+          "label": "入力順序",
+          "description": "取引を追加するときのフィールドの順序を選択します。",
+          "placeholder": "入力順序を選択",
+          "options": {
+            "amount": "金額から",
+            "category": "カテゴリから"
+          }
+        },
+        "show_description": {
+          "label": "説明を表示",
+          "description": "リストビューに取引の説明を表示します。"
+        },
+        "quick_note_button": {
+          "label": "クイックノートボタン",
+          "description": "取引に素早くメモを追加するボタンを表示します。"
+        }
+      }
+    }
+  }
+}
