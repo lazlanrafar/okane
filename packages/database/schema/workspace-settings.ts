@@ -14,6 +14,9 @@ export const workspaceSettings = pgTable("workspace_settings", {
     .references(() => workspaces.id)
     .notNull(),
   monthlyStartDate: integer("monthly_start_date").default(1).notNull(),
+  monthlyStartDateWeekendHandling: text("monthly_start_date_weekend_handling")
+    .default("no-changes")
+    .notNull(),
   weeklyStartDay: text("weekly_start_day").default("Sunday").notNull(),
   carryOver: boolean("carry_over").default(false).notNull(),
   period: text("period").default("Monthly").notNull(),

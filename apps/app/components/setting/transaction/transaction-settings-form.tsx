@@ -13,12 +13,13 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Switch,
+  Separator,
+  Label,
+  RadioGroup,
+  RadioGroupItem,
+  Skeleton,
 } from "@workspace/ui";
-import { Switch } from "@workspace/ui";
-import { Separator } from "@workspace/ui";
-import { Label } from "@workspace/ui";
-import { Skeleton } from "@workspace/ui";
-import { toast } from "sonner";
 import {
   WEEKLY_START_DAY_OPTIONS,
   PERIOD_OPTIONS,
@@ -27,7 +28,9 @@ import {
   START_SCREEN_OPTIONS,
   SWIPE_ACTION_OPTIONS,
   INPUT_ORDER_OPTIONS,
+  MONTHLY_START_DATE_WEEKEND_HANDLING_OPTIONS,
 } from "@workspace/constants";
+import { toast } from "sonner";
 
 export function TransactionSettingsForm() {
   const queryClient = useQueryClient();
@@ -79,7 +82,7 @@ export function TransactionSettingsForm() {
                 ))}
               </div>
             </div>
-            {i < 2 && <Skeleton className="h-[1px] w-full" />}
+            {i < 2 && <Skeleton className="h-px w-full" />}
           </React.Fragment>
         ))}
       </div>
@@ -91,7 +94,7 @@ export function TransactionSettingsForm() {
       {/* Date & Time Settings */}
       <div className="space-y-4">
         <div>
-          <h4 className="text-sm font-medium">Date & Time</h4>
+          <h4 className="text-base font-medium">Date & Time</h4>
           <p className="text-sm text-muted-foreground">
             Configure how dates and times are handled in transactions.
           </p>
@@ -99,7 +102,7 @@ export function TransactionSettingsForm() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Monthly Start Date</Label>
+              <Label className="text-sm">Monthly Start Date</Label>
               <p className="text-xs text-muted-foreground">
                 The day of the month when your tracking period begins.
               </p>
@@ -126,9 +129,36 @@ export function TransactionSettingsForm() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-3 pt-1">
+            <Label className="text-sm text-muted-foreground font-normal">
+              If monthly start date is weekend,
+            </Label>
+            <RadioGroup
+              value={settings.monthlyStartDateWeekendHandling}
+              onValueChange={(val) =>
+                updateSetting("monthlyStartDateWeekendHandling", val)
+              }
+              className="space-y-1"
+            >
+              {MONTHLY_START_DATE_WEEKEND_HANDLING_OPTIONS.map((option) => (
+                <div className="flex items-center space-x-2" key={option.value}>
+                  <RadioGroupItem
+                    value={option.value}
+                    id={`handling-${option.value}`}
+                  />
+                  <Label
+                    htmlFor={`handling-${option.value}`}
+                    className="font-normal cursor-pointer text-sm"
+                  >
+                    {option.label}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Weekly Start Day</Label>
+              <Label className="text-sm">Weekly Start Day</Label>
               <p className="text-xs text-muted-foreground">
                 The day of the week your weekly tracking begins.
               </p>
@@ -156,7 +186,7 @@ export function TransactionSettingsForm() {
       {/* General Preferences */}
       <div className="space-y-4">
         <div>
-          <h4 className="text-sm font-medium">General Preferences</h4>
+          <h4 className="text-base font-medium">General Preferences</h4>
           <p className="text-sm text-muted-foreground">
             Customize general behavior and display options.
           </p>
@@ -164,7 +194,7 @@ export function TransactionSettingsForm() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Default Period</Label>
+              <Label className="text-sm">Default Period</Label>
               <p className="text-xs text-muted-foreground">
                 The default view period for your transactions.
               </p>
@@ -192,7 +222,7 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Start Screen</Label>
+              <Label className="text-sm">Start Screen</Label>
               <p className="text-xs text-muted-foreground">
                 The initial screen shown when opening the transaction view.
               </p>
@@ -218,32 +248,42 @@ export function TransactionSettingsForm() {
             </Select>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Income/Expense Color</Label>
-              <p className="text-xs text-muted-foreground">
-                Choose the color scheme for income and expenses.
-              </p>
-            </div>
-            <Select
+          <div className="space-y-3 pt-1">
+            <Label className="text-sm text-muted-foreground font-normal">
+              By default, income is shown in 'Blue' color and expenses in 'Red'
+              color. You can customize it to the other way around.
+            </Label>
+            <RadioGroup
               value={settings.incomeExpensesColor}
               onValueChange={(val) => updateSetting("incomeExpensesColor", val)}
+              className="space-y-2"
             >
-              <SelectTrigger className="w-[180px] cursor-pointer">
-                <SelectValue placeholder="Select color mode" />
-              </SelectTrigger>
-              <SelectContent>
-                {INCOME_EXPENSES_COLOR_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="cursor-pointer"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {INCOME_EXPENSES_COLOR_OPTIONS.map((option) => (
+                <div key={option.value} className="flex flex-col space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem
+                      value={option.value}
+                      id={`color-${option.value}`}
+                    />
+                    <Label
+                      htmlFor={`color-${option.value}`}
+                      className="font-normal cursor-pointer text-sm"
+                    >
+                      {option.label}
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <div className="ml-6 border rounded-md p-2 w-full max-w-[100px] bg-card text-xs font-medium">
+                      <span className={option.expensesColor}>Exp.</span>
+                    </div>
+                    <div className="ml-6 border rounded-md p-2 w-full max-w-[100px] bg-card text-xs font-medium">
+                      <span className={option.incomeColor}>Inc.</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </RadioGroup>
           </div>
         </div>
       </div>
@@ -252,7 +292,7 @@ export function TransactionSettingsForm() {
       {/* Input & Interaction */}
       <div className="space-y-4">
         <div>
-          <h4 className="text-sm font-medium">Input & Interaction</h4>
+          <h4 className="text-base font-medium">Input & Interaction</h4>
           <p className="text-sm text-muted-foreground">
             Fine-tune how you input data and interact with lists.
           </p>
@@ -260,7 +300,7 @@ export function TransactionSettingsForm() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Carry-over Balance</Label>
+              <Label className="text-sm">Carry-over Balance</Label>
               <p className="text-xs text-muted-foreground">
                 Automatically carry over the remaining balance to the next
                 period.
@@ -275,7 +315,7 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Autocomplete</Label>
+              <Label className="text-sm">Autocomplete</Label>
               <p className="text-xs text-muted-foreground">
                 Suggest previous entries when typing.
               </p>
@@ -289,7 +329,7 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Time Input</Label>
+              <Label className="text-sm">Time Input</Label>
               <p className="text-xs text-muted-foreground">
                 Enable time selection for transactions.
               </p>
@@ -317,7 +357,7 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Swipe Action</Label>
+              <Label className="text-sm">Swipe Action</Label>
               <p className="text-xs text-muted-foreground">
                 Configure the action when swiping on a transaction.
               </p>
@@ -345,7 +385,7 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Input Order</Label>
+              <Label className="text-sm">Input Order</Label>
               <p className="text-xs text-muted-foreground">
                 Choose the order of fields when adding a transaction.
               </p>
@@ -373,7 +413,7 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Show Description</Label>
+              <Label className="text-sm">Show Description</Label>
               <p className="text-xs text-muted-foreground">
                 Display transaction descriptions in the list view.
               </p>
@@ -387,7 +427,7 @@ export function TransactionSettingsForm() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Quick Note Button</Label>
+              <Label className="text-sm">Quick Note Button</Label>
               <p className="text-xs text-muted-foreground">
                 Show a button to quickly add notes to transactions.
               </p>

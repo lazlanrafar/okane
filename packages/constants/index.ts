@@ -11,8 +11,18 @@ export const WEEKLY_START_DAY_OPTIONS = [
 export const PERIOD_OPTIONS = ["Monthly", "Weekly", "Daily", "Yearly"] as const;
 
 export const INCOME_EXPENSES_COLOR_OPTIONS = [
-  { label: "Exp.", value: "Exp." },
-  { label: "Inc.", value: "Inc." },
+  {
+    label: "Income: Blue, Expenses: Red",
+    value: "blue-red",
+    expensesColor: "text-red-500",
+    incomeColor: "text-blue-500",
+  },
+  {
+    label: "Income: Red, Expenses: Blue",
+    value: "red-blue",
+    expensesColor: "text-blue-500",
+    incomeColor: "text-red-500",
+  },
 ] as const;
 
 export const TIME_INPUT_OPTIONS = [
@@ -34,4 +44,10 @@ export const SWIPE_ACTION_OPTIONS = ["Change Date", "Delete", "None"] as const;
 export const INPUT_ORDER_OPTIONS = [
   { label: "From Amount", value: "Amount" },
   { label: "From Category", value: "Category" },
+] as const;
+
+export const MONTHLY_START_DATE_WEEKEND_HANDLING_OPTIONS = [
+  { label: "No changes", value: "no-changes" },
+  { label: "Previous Friday", value: "previous-friday" },
+  { label: "Following Monday", value: "following-monday" },
 ] as const;

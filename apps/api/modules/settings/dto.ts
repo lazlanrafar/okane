@@ -2,6 +2,7 @@ import { t } from "elysia";
 
 export const TransactionSettingsDto = t.Object({
   monthlyStartDate: t.Optional(t.Number()),
+  monthlyStartDateWeekendHandling: t.Optional(t.String()),
   weeklyStartDay: t.Optional(t.String()),
   carryOver: t.Optional(t.Boolean()),
   period: t.Optional(t.String()),

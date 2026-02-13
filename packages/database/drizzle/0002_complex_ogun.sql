@@ -1,0 +1,1 @@
+ALTER TABLE "workspace_settings" ADD COLUMN "monthly_start_date_weekend_handling" text DEFAULT 'no-changes' NOT NULL;
