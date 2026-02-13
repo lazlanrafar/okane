@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Building2 } from "lucide-react";
 import { createBrowserClient } from "@workspace/supabase/client";
-import { createWorkspaceAction } from "../actions";
+import { createWorkspaceAction } from "../../../../modules/auth/auth.action";
 
 export default function CreateWorkspacePage() {
   const router = useRouter();

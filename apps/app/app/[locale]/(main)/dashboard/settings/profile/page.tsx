@@ -1,5 +1,5 @@
 import { Separator } from "@workspace/ui";
-import { ProfileForm } from "./profile-form";
+import { ProfileForm } from "../../../../../../components/setting/profile/setting-profile-form";
 
 export default function SettingsProfilePage() {
   return (

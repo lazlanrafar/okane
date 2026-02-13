@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { cookies } from "next/headers";
 
-import { AppSidebar } from "@/app/[locale]/(main)/dashboard/_components/sidebar/app-sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Separator } from "@workspace/ui";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@workspace/ui";
 import {
@@ -14,10 +14,10 @@ import { getPreference } from "@/server/server-actions";
 import { createClient } from "@workspace/supabase/server";
 import { get_me } from "@/modules/workspaces/services";
 
-import { AccountSwitcher } from "./_components/sidebar/account-switcher";
-import { LayoutControls } from "./_components/sidebar/layout-controls";
-import { SearchDialog } from "./_components/sidebar/search-dialog";
-import { ThemeSwitcher } from "./_components/sidebar/theme-switcher";
+import { AccountSwitcher } from "@/components/layout/account-switcher";
+import { LayoutControls } from "@/components/layout/layout-controls";
+import { SearchDialog } from "@/components/layout/search-dialog";
+import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 
 async function get_user_and_workspaces() {
   try {

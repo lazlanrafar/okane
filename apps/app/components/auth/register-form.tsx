@@ -7,7 +7,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@workspace/ui";
-import { Checkbox } from "@workspace/ui";
 import {
   Form,
   FormControl,
@@ -17,17 +16,24 @@ import {
   FormMessage,
 } from "@workspace/ui";
 import { Input } from "@workspace/ui";
-import { login } from "../actions";
+import { signup } from "../../modules/auth/auth.action";
 
-const FormSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters." }),
-  remember: z.boolean().optional(),
-});
+const FormSchema = z
+  .object({
+    email: z.string().email({ message: "Please enter a valid email address." }),
+    password: z
+      .string()
+      .min(6, { message: "Password must be at least 6 characters." }),
+    confirmPassword: z
+      .string()
+      .min(6, { message: "Confirm Password must be at least 6 characters." }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
 
-export function LoginForm() {
+export function RegisterForm() {
   const [is_pending, start_transition] = useTransition();
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -35,7 +41,7 @@ export function LoginForm() {
     defaultValues: {
       email: "",
       password: "",
-      remember: false,
+      confirmPassword: "",
     },
   });
 
@@ -45,11 +51,13 @@ export function LoginForm() {
       form_data.append("email", data.email);
       form_data.append("password", data.password);
 
-      const result = await login(form_data);
+      const result = await signup(form_data);
       if (result?.error) {
         toast.error(result.error);
       } else {
-        toast.success("Logged in successfully");
+        toast.success("Account created successfully", {
+          description: "Please check your email to verify your account.",
+        });
       }
     });
   };
@@ -88,7 +96,7 @@ export function LoginForm() {
                   id="password"
                   type="password"
                   placeholder="••••••••"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   disabled={is_pending}
                   {...field}
                 />
@@ -99,29 +107,26 @@ export function LoginForm() {
         />
         <FormField
           control={form.control}
-          name="remember"
+          name="confirmPassword"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center">
+            <FormItem>
+              <FormLabel>Confirm Password</FormLabel>
               <FormControl>
-                <Checkbox
-                  id="login-remember"
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className="size-4"
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
                   disabled={is_pending}
+                  {...field}
                 />
               </FormControl>
-              <FormLabel
-                htmlFor="login-remember"
-                className="ml-1 font-medium text-muted-foreground text-sm"
-              >
-                Remember me for 30 days
-              </FormLabel>
+              <FormMessage />
             </FormItem>
           )}
         />
         <Button className="w-full" type="submit" disabled={is_pending}>
-          {is_pending ? "Logging in..." : "Login"}
+          {is_pending ? "Creating account..." : "Register"}
         </Button>
       </form>
     </Form>

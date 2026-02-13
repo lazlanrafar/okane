@@ -4,8 +4,8 @@ import { Globe } from "lucide-react";
 
 import { APP_CONFIG } from "@/config/app-config";
 
-import { LoginForm } from "../_components/login-form";
-import { OAuthButton } from "../_components/social-auth/oauth-button";
+import { LoginForm } from "@/components/auth/login-form";
+import { OAuthButton } from "@/components/auth/oauth-button";
 
 export default function LoginV2() {
   return (

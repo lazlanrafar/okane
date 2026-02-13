@@ -1,4 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2Icon } from "lucide-react";
 import { Slot as SlotPrimitive } from "radix-ui";
 import type * as React from "react";
 
@@ -43,21 +44,42 @@ function Button({
   variant = "default",
   size = "default",
   asChild = false,
+  loading = false,
+  children,
+  onClick,
+  onMouseDown,
+  onPointerDown,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    loading?: boolean;
   }) {
   const Comp = asChild ? SlotPrimitive.Slot : "button";
+
+  // Treat the button as interactive if any click/pointer handler is attached
+  const isInteractive = !!(onClick ?? onMouseDown ?? onPointerDown);
 
   return (
     <Comp
       data-slot="button"
       data-variant={variant}
       data-size={size}
-      className={cn(buttonVariants({ variant, size, className }))}
+      disabled={loading || props.disabled}
+      aria-busy={loading || undefined}
+      onClick={onClick}
+      onMouseDown={onMouseDown}
+      onPointerDown={onPointerDown}
+      className={cn(
+        buttonVariants({ variant, size, className }),
+        isInteractive && "cursor-pointer",
+        loading && "cursor-wait",
+      )}
       {...props}
-    />
+    >
+      {loading && <Loader2Icon className="animate-spin" aria-hidden="true" />}
+      {children}
+    </Comp>
   );
 }
 

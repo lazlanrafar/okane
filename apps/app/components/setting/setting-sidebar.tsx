@@ -33,7 +33,16 @@ const sidebarNavItems = [
     href: "/dashboard/settings/display",
     icon: Monitor,
   },
-];
+  // loop sidebarNavItems 5 times to testing UI
+].concat(
+  [...Array(20)].map((_, i) => {
+    return {
+      title: `Test ${i + 1}`,
+      href: `/dashboard/settings/test-${i + 1}`,
+      icon: User,
+    };
+  }),
+);
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   // items prop is no longer needed but kept for backward compatibility if needed,
@@ -42,12 +51,21 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items?: any[];
 }
 
+import { i18n } from "@/i18n-config";
+
 export function SettingSidebar({
   className,
   items,
   ...props
 }: SidebarNavProps) {
   const pathname = usePathname();
+
+  // Strip locale from pathname to match sidebar items
+  const activePath = pathname.split("/").filter(Boolean);
+  if (i18n.locales.some((locale) => locale === activePath[0])) {
+    activePath.shift();
+  }
+  const normalizedPath = `/${activePath.join("/")}`;
 
   return (
     <nav
@@ -63,7 +81,7 @@ export function SettingSidebar({
           href={item.href}
           className={cn(
             buttonVariants({ variant: "ghost" }),
-            pathname === item.href
+            normalizedPath === item.href
               ? "bg-muted hover:bg-muted"
               : "hover:bg-transparent hover:underline",
             "justify-start",
