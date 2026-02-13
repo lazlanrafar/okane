@@ -35,6 +35,7 @@ const sidebarNavItems = [
     title: "Account",
     href: "/settings/account",
     icon: Settings,
+    comingSoon: true,
   },
   {
     title: "Appearance",
@@ -45,11 +46,13 @@ const sidebarNavItems = [
     title: "Notifications",
     href: "/settings/notifications",
     icon: Bell,
+    comingSoon: true,
   },
   {
     title: "Display",
     href: "/settings/display",
     icon: Monitor,
+    comingSoon: true,
   },
   {
     groupLabel: "Transaction",
@@ -58,16 +61,19 @@ const sidebarNavItems = [
         title: "Transaction Settings",
         href: "/settings/transaction",
         icon: FileText,
+        comingSoon: true,
       },
       {
         title: "Repeat Setting",
         href: "/settings/repeat",
         icon: Repeat,
+        comingSoon: true,
       },
       {
         title: "Copy-Paste Settings",
         href: "/settings/copy-paste",
         icon: Copy,
+        comingSoon: true,
       },
     ],
   },
@@ -78,21 +84,25 @@ const sidebarNavItems = [
         title: "Income Category Setting",
         href: "/settings/income-category",
         icon: Wallet,
+        comingSoon: true,
       },
       {
         title: "Expenses Category Setting",
         href: "/settings/expenses-category",
         icon: TrendingDown,
+        comingSoon: true,
       },
       {
         title: "Accounts Setting",
         href: "/settings/accounts",
         icon: Landmark,
+        comingSoon: true,
       },
       {
         title: "Budget Setting",
         href: "/settings/budget",
         icon: PencilRuler,
+        comingSoon: true,
       },
     ],
   },
@@ -103,36 +113,43 @@ const sidebarNavItems = [
         title: "Backup",
         href: "/settings/backup",
         icon: DatabaseBackup,
+        comingSoon: true,
       },
       {
         title: "Passcode",
         href: "/settings/passcode",
         icon: Lock,
+        comingSoon: true,
       },
       {
         title: "Main Currency Setting",
         href: "/settings/main-currency",
         icon: Banknote,
+        comingSoon: true,
       },
       {
         title: "Sub Currency Setting",
         href: "/settings/sub-currency",
         icon: Banknote,
+        comingSoon: true,
       },
       {
         title: "Alarm Setting",
         href: "/settings/alarm",
         icon: Bell,
+        comingSoon: true,
       },
       {
         title: "Style",
         href: "/settings/style",
         icon: Palette,
+        comingSoon: true,
       },
       {
         title: "Language Setting",
         href: "/settings/language",
         icon: Languages,
+        comingSoon: true,
       },
     ],
   },
@@ -188,10 +205,16 @@ export function SettingSidebar({
                         ? "bg-muted hover:bg-muted"
                         : "hover:bg-transparent hover:underline",
                       "justify-start w-full",
+                      subItem.comingSoon && "opacity-60 pointer-events-none",
                     )}
                   >
                     {subItem.icon && <subItem.icon className="mr-2 size-4" />}
-                    {subItem.title}
+                    <span className="flex-1 text-left">{subItem.title}</span>
+                    {subItem.comingSoon && (
+                      <span className="ml-auto text-[10px] font-medium text-muted-foreground border px-1.5 py-0.5 rounded-md bg-muted/50">
+                        Soon
+                      </span>
+                    )}
                   </Link>
                 ))}
               </div>
@@ -213,10 +236,16 @@ export function SettingSidebar({
                 ? "bg-muted hover:bg-muted"
                 : "hover:bg-transparent hover:underline",
               "justify-start w-full",
+              flatItem.comingSoon && "opacity-60 pointer-events-none",
             )}
           >
             {flatItem.icon && <flatItem.icon className="mr-2 size-4" />}
-            {flatItem.title}
+            <span className="flex-1 text-left">{flatItem.title}</span>
+            {flatItem.comingSoon && (
+              <span className="ml-auto text-[10px] font-medium text-muted-foreground border px-1.5 py-0.5 rounded-md bg-muted/50">
+                Soon
+              </span>
+            )}
           </Link>
         );
       })}
