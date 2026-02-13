@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui";
 import { getInitials } from "@workspace/ui";
-import { logout } from "@/modules/auth/auth.action";
+import { logout } from "@/actions/auth.actions";
 
 export function AccountSwitcher({
   user,

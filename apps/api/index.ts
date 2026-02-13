@@ -17,6 +17,7 @@ import { healthController } from "./modules/health";
 import { usersController } from "./modules/users";
 import { workspacesController } from "./modules/workspaces";
 import { authController } from "./modules/auth";
+import { settingsController } from "./modules/settings";
 
 const log = createLogger("api");
 const port = process.env.API_PORT ?? 3001;
@@ -43,7 +44,9 @@ const app = new Elysia()
       .use(healthController)
       .use(usersController)
       .use(workspacesController)
-      .use(authController),
+      .use(workspacesController)
+      .use(authController)
+      .use(settingsController),
   )
   .onError(({ error, code }) => {
     // Don't log or capture 404s — they're expected

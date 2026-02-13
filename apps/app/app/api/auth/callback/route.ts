@@ -1,7 +1,7 @@
 import { createClient } from "@workspace/supabase/server";
 import { NextResponse } from "next/server";
-import { sync_user } from "@/modules/users/services";
-import { exchangeToken } from "@/modules/workspaces/services";
+import { sync_user } from "@/actions/user.actions";
+import { exchangeToken } from "@/actions/workspace.actions";
 import { cookies } from "next/headers";
 
 export async function GET(request: Request) {

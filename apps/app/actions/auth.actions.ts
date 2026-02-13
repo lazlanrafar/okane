@@ -3,8 +3,8 @@
 import { createClient } from "@workspace/supabase/server";
 import { redirect } from "next/navigation";
 import { headers, cookies } from "next/headers";
-import { sync_user } from "../users/services";
-import { exchangeToken, createWorkspace } from "../workspaces/services";
+import { sync_user } from "./user.actions";
+import { exchangeToken, createWorkspace } from "./workspace.actions";
 
 export async function login(form_data: FormData) {
   const email = form_data.get("email") as string;

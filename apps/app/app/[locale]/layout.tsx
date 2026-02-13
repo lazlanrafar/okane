@@ -6,6 +6,7 @@ import { fontVars } from "@/lib/fonts/registry";
 import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 import { ThemeBootScript } from "@/scripts/theme-boot";
 import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
+import { Providers } from "@/components/providers";
 import "@workspace/ui/globals.css";
 // import { i18n } from "@/i18n-config";
 
@@ -58,8 +59,10 @@ export default async function RootLayout({
           navbarStyle={navbar_style}
           font={font}
         >
-          {children}
-          <Toaster />
+          <Providers>
+            {children}
+            <Toaster />
+          </Providers>
         </PreferencesStoreProvider>
       </body>
     </html>

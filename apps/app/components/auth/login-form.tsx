@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from "@workspace/ui";
 import { Input } from "@workspace/ui";
-import { login } from "../../modules/auth/auth.action";
+import { login } from "../../actions/auth.actions";
 
 const FormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),

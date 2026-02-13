@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from "@workspace/ui";
 import { Input } from "@workspace/ui";
-import { signup } from "../../modules/auth/auth.action";
+import { signup } from "../../actions/auth.actions";
 
 const FormSchema = z
   .object({

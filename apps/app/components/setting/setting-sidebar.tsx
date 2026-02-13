@@ -61,13 +61,11 @@ const sidebarNavItems = [
         title: "Transaction Settings",
         href: "/settings/transaction",
         icon: FileText,
-        comingSoon: true,
       },
       {
         title: "Repeat Setting",
         href: "/settings/repeat",
         icon: Repeat,
-        comingSoon: true,
       },
       {
         title: "Copy-Paste Settings",

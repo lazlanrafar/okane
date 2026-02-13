@@ -12,7 +12,7 @@ import {
 import { cn } from "@workspace/ui";
 import { getPreference } from "@/server/server-actions";
 import { createClient } from "@workspace/supabase/server";
-import { get_me } from "@/modules/workspaces/services";
+import { get_me } from "@/actions/workspace.actions";
 
 import { AccountSwitcher } from "@/components/layout/account-switcher";
 import { LayoutControls } from "@/components/layout/layout-controls";

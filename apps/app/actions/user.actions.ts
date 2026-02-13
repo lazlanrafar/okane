@@ -1,4 +1,4 @@
-import { axiosInstance } from "../../lib/axios";
+import { axiosInstance } from "../lib/axios";
 import type { User, WorkspaceWithRole } from "@workspace/types";
 
 export interface SyncUserDTO {

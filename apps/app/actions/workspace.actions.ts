@@ -1,4 +1,4 @@
-import { axiosInstance } from "../../lib/axios";
+import { axiosInstance } from "../lib/axios";
 import type { Workspace, WorkspaceWithRole } from "@workspace/types";
 
 export interface CreateWorkspaceDTO {
@@ -7,19 +7,21 @@ export interface CreateWorkspaceDTO {
 
 export const createWorkspace = async (
   data: CreateWorkspaceDTO,
-  token: string,
+  token?: string,
 ): Promise<Workspace> => {
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
   const response = await axiosInstance.post("workspaces", data, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers,
   });
   return response.data;
 };
 
 export const getMyWorkspaces = async (
-  token: string,
+  token?: string,
 ): Promise<WorkspaceWithRole[]> => {
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
   const response = await axiosInstance.get("workspaces", {
-    headers: { Authorization: `Bearer ${token}` },
+    headers,
   });
   return response.data;
 };
@@ -43,4 +45,4 @@ export const create_workspace = createWorkspace;
 export const get_my_workspaces = getMyWorkspaces;
 
 // Re-export get_me from users/services for backward compatibility
-export { get_me, getMe } from "../users/services";
+export { get_me, getMe } from "./user.actions";
