@@ -17,7 +17,8 @@ export const usersController = new Elysia({ prefix: "/users" })
       try {
         const result = await usersService.syncUser(body);
         return buildSuccess(result, "User synced successfully");
-      } catch (_error) {
+      } catch (error) {
+        console.error("Error in syncUser:", error);
         set.status = 500;
         return buildError(ErrorCode.INTERNAL_ERROR, "Failed to sync user");
       }

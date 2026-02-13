@@ -6,10 +6,15 @@
   "types": "./index.ts",
   "exports": {
     ".": "./index.ts",
-    "./next-server": "./next-server.ts",
-    "./admin": "./admin.ts",
-    "./client": "./client.ts",
-    "./middleware": "./middleware.ts"
+    "./client": "./client/client.ts",
+    "./server": "./client/server.ts",
+    "./middleware": "./client/middleware.ts",
+    "./admin": "./client/admin.ts",
+    "./job": "./client/job.ts",
+    "./mutations": "./mutations/index.ts",
+    "./queries": "./queries/index.ts",
+    "./types": "./types/index.ts",
+    "./utils": "./utils/storage.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8",

@@ -20,7 +20,6 @@
     "@workspace/logger": "workspace:*",
     "@workspace/database": "workspace:*",
     "@workspace/encryption": "workspace:*",
-    "@workspace/constants": "workspace:*",
     "@workspace/types": "workspace:*",
     "@workspace/utils": "workspace:*"
   },

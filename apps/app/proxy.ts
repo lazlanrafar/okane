@@ -20,7 +20,7 @@ function getLocale(request: NextRequest): string | undefined {
   return matchLocale(languages, locales, i18n.defaultLocale);
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Ignore static assets and ignored paths
@@ -83,7 +83,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect create-workspace (must be logged in)
-  if (pathAfterLocale === "/create-workspace" && !session) {
+  // Protect create-workspace (must be logged in)
+  if (pathAfterLocale.startsWith("/create-workspace") && !session) {
     return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
 

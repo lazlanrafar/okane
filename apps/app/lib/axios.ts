@@ -18,7 +18,7 @@ axiosInstance.interceptors.request.use((config) => {
       .find((c) => c.trim().startsWith("okane-session="))
       ?.split("=")[1];
 
-    if (session_cookie) {
+    if (session_cookie && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${session_cookie}`;
     }
   }

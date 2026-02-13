@@ -26,7 +26,7 @@ export const usersRepository = {
     name?: string | null;
     oauth_provider?: string | null;
     profile_picture?: string | null;
-    providers?: string | null;
+    providers?: string[] | null;
   }) {
     await db
       .insert(users)
@@ -36,10 +36,7 @@ export const usersRepository = {
         name: data.name,
         oauth_provider: data.oauth_provider,
         profile_picture: data.profile_picture,
-        providers: data.providers
-          ? JSON.stringify(data.providers)
-          : // biome-ignore lint/suspicious/noExplicitAny: JSON type casting
-            (null as any),
+        providers: data.providers ?? null,
       })
       .onConflictDoUpdate({
         target: users.id,
@@ -47,10 +44,7 @@ export const usersRepository = {
           email: data.email,
           name: data.name,
           profile_picture: data.profile_picture,
-          providers: data.providers
-            ? JSON.stringify(data.providers)
-            : // biome-ignore lint/suspicious/noExplicitAny: JSON type casting
-              (null as any),
+          providers: data.providers ?? null,
           updated_at: new Date(),
         },
       });

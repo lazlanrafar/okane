@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Building2 } from "lucide-react";
-import { createBrowserClient } from "@workspace/supabase";
-import { create_workspace } from "@/modules/workspaces/services";
+import { createBrowserClient } from "@workspace/supabase/client";
+import { createWorkspaceAction } from "../actions";
 
 export default function CreateWorkspacePage() {
   const router = useRouter();
@@ -12,31 +12,34 @@ export default function CreateWorkspacePage() {
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState<string | null>(null);
 
-  const handle_submit = async (e: React.FormEvent) => {
+  // Redirect if not logged in (client-side backup)
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createBrowserClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        router.push("/login");
+      }
+    };
+    checkAuth();
+  }, [router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
     set_is_loading(true);
     set_error(null);
 
-    try {
-      const supabase = createBrowserClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    const result = await createWorkspaceAction(name.trim());
 
-      if (!session?.access_token) {
-        set_error("You must be logged in.");
-        set_is_loading(false);
-        return;
-      }
-
-      await create_workspace({ name: name.trim() }, session.access_token);
-      router.push("/dashboard");
-    } catch (_err) {
-      set_error("Something went wrong. Please try again.");
+    if (result?.error) {
+      set_error(result.error);
       set_is_loading(false);
     }
+    // Success will redirect automatically
   };
 
   return (
@@ -52,7 +55,7 @@ export default function CreateWorkspacePage() {
         </p>
       </div>
 
-      <form onSubmit={handle_submit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <label
             htmlFor="workspace-name"

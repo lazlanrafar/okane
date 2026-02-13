@@ -30,5 +30,3 @@ export async function createClient() {
     },
   );
 }
-
-// createAdminClient moved to @workspace/supabase/admin

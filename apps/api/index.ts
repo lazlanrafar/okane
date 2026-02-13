@@ -7,11 +7,6 @@ import { swagger } from "@elysiajs/swagger";
 import * as Sentry from "@sentry/bun";
 import { createLogger } from "@workspace/logger";
 import { validateEnv } from "./config/env";
-import { loadEnv } from "@workspace/constants/load-env";
-
-// Load env vars from root .env if needed
-loadEnv();
-
 // Validate environment variables early
 validateEnv();
 

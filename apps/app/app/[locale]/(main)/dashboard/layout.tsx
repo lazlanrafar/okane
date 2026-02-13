@@ -11,7 +11,7 @@ import {
 } from "@/lib/preferences/layout";
 import { cn } from "@workspace/ui";
 import { getPreference } from "@/server/server-actions";
-import { createClient } from "@workspace/supabase/next-server";
+import { createClient } from "@workspace/supabase/server";
 import { get_me } from "@/modules/workspaces/services";
 
 import { AccountSwitcher } from "./_components/sidebar/account-switcher";

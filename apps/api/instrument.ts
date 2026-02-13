@@ -1,3 +1,8 @@
+import { loadEnv } from "@workspace/utils/load-env";
+
+// Load environment variables as first step
+loadEnv();
+
 import * as Sentry from "@sentry/bun";
 import { createLogger } from "@workspace/logger";
 

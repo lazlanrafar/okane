@@ -3,11 +3,11 @@ import * as Sentry from "@sentry/nextjs";
 export async function register() {
   // Validate environment variables on server startup
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    const { loadEnv } = await import("@workspace/constants/load-env");
+    const { loadEnv } = await import("@workspace/utils/load-env");
     loadEnv();
   }
 
-  const { validateEnv } = await import("@workspace/constants");
+  const { validateEnv } = await import("@workspace/utils/env");
   validateEnv();
 
   if (process.env.NEXT_RUNTIME === "nodejs") {

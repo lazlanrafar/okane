@@ -1,4 +1,4 @@
-import { createClient } from "@workspace/supabase/next-server";
+import { createClient } from "@workspace/supabase/server";
 import { NextResponse } from "next/server";
 import { sync_user } from "@/modules/users/services";
 import { exchangeToken } from "@/modules/workspaces/services";

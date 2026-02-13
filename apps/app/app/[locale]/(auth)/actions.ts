@@ -1,10 +1,13 @@
 "use server";
 
-import { createClient } from "@workspace/supabase/next-server";
+import { createClient } from "@workspace/supabase/server";
 import { redirect } from "next/navigation";
 import { headers, cookies } from "next/headers";
 import { sync_user } from "../../../modules/users/services";
-import { exchangeToken } from "../../../modules/workspaces/services";
+import {
+  exchangeToken,
+  createWorkspace,
+} from "../../../modules/workspaces/services";
 
 export async function login(form_data: FormData) {
   const email = form_data.get("email") as string;
@@ -36,26 +39,33 @@ export async function login(form_data: FormData) {
         providers: user.app_metadata?.providers,
       });
 
-      if (result?.has_workspace === false) {
-        redirect("/create-workspace");
-      }
+      if (result) {
+        if (result.has_workspace === false) {
+          redirect("/create-workspace");
+        }
 
-      // 3. Exchange for app JWT
-      const { data: session_data } = await supabase.auth.getSession();
-      if (session_data.session?.access_token) {
-        const { token } = await exchangeToken(
-          session_data.session.access_token,
-        );
-        (await cookies()).set("okane-session", token, {
-          path: "/",
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: 60 * 60 * 24 * 7, // 7 days
-        });
+        // 3. Exchange for app JWT
+        const { data: session_data } = await supabase.auth.getSession();
+        if (session_data.session?.access_token) {
+          const { token } = await exchangeToken(
+            session_data.session.access_token,
+          );
+          (await cookies()).set("okane-session", token, {
+            path: "/",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+          });
+        }
+      } else {
+        console.error("Sync user returned no result during login");
       }
-    } catch (_e) {
-      console.error("Failed to sync user on login:", _e);
+    } catch (_e: any) {
+      console.error(
+        "Failed to sync user on login:",
+        _e.response?.data || _e.message,
+      );
     }
   }
 
@@ -94,26 +104,33 @@ export async function signup(form_data: FormData) {
         oauth_provider: "email",
       });
 
-      if (result?.has_workspace === false) {
-        redirect("/create-workspace");
-      }
+      if (result) {
+        if (result.has_workspace === false) {
+          redirect("/create-workspace");
+        }
 
-      // 3. Exchange for app JWT
-      const { data: session_data } = await supabase.auth.getSession();
-      if (session_data.session?.access_token) {
-        const { token } = await exchangeToken(
-          session_data.session.access_token,
-        );
-        (await cookies()).set("okane-session", token, {
-          path: "/",
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: 60 * 60 * 24 * 7, // 7 days
-        });
+        // 3. Exchange for app JWT
+        const { data: session_data } = await supabase.auth.getSession();
+        if (session_data.session?.access_token) {
+          const { token } = await exchangeToken(
+            session_data.session.access_token,
+          );
+          (await cookies()).set("okane-session", token, {
+            path: "/",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+          });
+        }
+      } else {
+        console.error("Sync user returned no result during signup");
       }
-    } catch (api_error) {
-      console.error("Failed to sync user to database via API:", api_error);
+    } catch (api_error: any) {
+      console.error(
+        "Failed to sync user on signup:",
+        api_error.response?.data || api_error.message,
+      );
     }
   }
 
@@ -143,4 +160,37 @@ export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
+}
+
+export async function createWorkspaceAction(name: string) {
+  const supabase = await createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.access_token) {
+    return { error: "Unauthorized" };
+  }
+
+  try {
+    // 1. Create workspace via API
+    await createWorkspace({ name }, session.access_token);
+
+    // 2. Exchange token for app JWT (now with workspace_id)
+    const { token } = await exchangeToken(session.access_token);
+
+    // 3. Set cookie
+    (await cookies()).set("okane-session", token, {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+  } catch (error: any) {
+    console.error("Failed to create workspace:", error);
+    return { error: error.message || "Failed to create workspace" };
+  }
+
+  redirect("/dashboard");
 }

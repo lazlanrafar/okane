@@ -15,6 +15,11 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
     "/",
     // biome-ignore lint/suspicious/noExplicitAny: Generic handler
     async ({ body, set, auth }: any) => {
+      console.log("[WorkspacesController] Create workspace request received", {
+        auth_user: auth,
+        workspace_name: body.name,
+      });
+
       if (!auth) {
         set.status = 401;
         return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
@@ -27,11 +32,12 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
         );
         set.status = 201;
         return buildSuccess(workspace, "Workspace created successfully");
-      } catch (_error) {
+      } catch (error: any) {
+        console.error("Error creating workspace:", error);
         set.status = 500;
         return buildError(
           ErrorCode.INTERNAL_ERROR,
-          "Failed to create workspace",
+          `Failed to create workspace: ${error.message}`,
         );
       }
     },

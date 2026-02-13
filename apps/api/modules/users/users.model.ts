@@ -5,9 +5,9 @@ import { t } from "elysia";
  */
 export const SyncUserBody = t.Object({
   id: t.String(),
-  email: t.String({ format: "email" }),
-  name: t.Optional(t.String()),
-  oauth_provider: t.Optional(t.String()),
-  profile_picture: t.Optional(t.String()),
-  providers: t.Optional(t.Any()),
+  email: t.String(), // Removed format: "email" to be less strict during sync from trusted source
+  name: t.Optional(t.Nullable(t.String())),
+  oauth_provider: t.Optional(t.Nullable(t.String())),
+  profile_picture: t.Optional(t.Nullable(t.String())),
+  providers: t.Optional(t.Nullable(t.Any())),
 });

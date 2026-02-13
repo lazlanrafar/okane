@@ -73,12 +73,17 @@ export const authPlugin = new Elysia({ name: "auth" })
     // Fallback: try Supabase token
     try {
       const supabase = createClient();
+
       const {
         data: { user },
         error,
       } = await supabase.auth.getUser(token);
 
-      if (error || !user) {
+      if (error) {
+        return { auth: null };
+      }
+
+      if (!user) {
         return { auth: null };
       }
 
@@ -105,17 +110,10 @@ export const authPlugin = new Elysia({ name: "auth" })
           workspace_id: workspace_id ?? "",
         },
       };
-    } catch {
+    } catch (e) {
       return { auth: null };
     }
   })
-  .macro(({ onBeforeHandle }) => ({
-    isSignIn() {
-      // biome-ignore lint/suspicious/noExplicitAny: Generic auth handler
-      onBeforeHandle(({ auth, error }: { auth: any; error: any }) => {
-        if (!auth) return error(401, "Unauthorized");
-      });
-    },
-  }));
+  .as("scoped");
 
 export { generateJwt, verifyJwt };
