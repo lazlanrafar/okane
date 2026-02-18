@@ -8,6 +8,13 @@
     "welcome": "Selamat datang di Okane",
     "description": "Aplikasi terbaik untuk mengelola keuangan Anda."
   },
+  "accounts": {
+    "title": "Akun",
+    "assets": "Aset",
+    "liabilities": "Kewajiban",
+    "total": "Total",
+    "empty": "Akun tidak ditemukan. Mulailah dengan menambahkan satu di pengaturan."
+  },
   "settings": {
     "language": {
       "title": "Bahasa",

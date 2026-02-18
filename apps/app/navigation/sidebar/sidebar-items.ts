@@ -1,22 +1,10 @@
 import {
   Banknote,
-  Calendar,
   ChartBar,
-  Fingerprint,
-  Forklift,
-  Gauge,
-  GraduationCap,
-  Kanban,
   LayoutDashboard,
-  Lock,
-  type LucideIcon,
-  Mail,
-  MessageSquare,
-  ReceiptText,
   Settings,
-  ShoppingBag,
-  SquareArrowUpRight,
-  Users,
+  IdCard,
+  LucideIcon,
 } from "lucide-react";
 
 export interface NavSubItem {
@@ -47,29 +35,44 @@ export interface NavGroup {
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
-    label: "Dashboards",
+    // label: "Overview",
     items: [
       {
-        title: "Default",
+        title: "Overview",
         url: "/dashboard/default",
         icon: LayoutDashboard,
       },
+      // {
+      //   title: "CRM",
+      //   url: "/dashboard/crm",
+      //   icon: ChartBar,
+      // },
+      // {
+      //   title: "Finance",
+      //   url: "/dashboard/finance",
+      //   icon: Banknote,
+      // },
       {
-        title: "CRM",
-        url: "/dashboard/crm",
-        icon: ChartBar,
+        title: "Transactions",
+        url: "/transactions",
+        icon: Banknote,
       },
       {
-        title: "Finance",
-        url: "/dashboard/finance",
+        title: "Invoices",
+        url: "/invoices",
         icon: Banknote,
       },
     ],
   },
   {
-    id: 2,
+    id: 3,
     label: "Others",
     items: [
+      {
+        title: "Accounts",
+        url: "/accounts",
+        icon: IdCard,
+      },
       {
         title: "Settings",
         url: "/settings",

@@ -8,6 +8,13 @@
     "welcome": "Okaneへようこそ",
     "description": "あなたの家計を管理するための最高のアプリ。"
   },
+  "accounts": {
+    "title": "アカウント",
+    "assets": "資産",
+    "liabilities": "負債",
+    "total": "合計",
+    "empty": "アカウントが見つかりません。設定から追加してください。"
+  },
   "settings": {
     "language": {
       "title": "言語",

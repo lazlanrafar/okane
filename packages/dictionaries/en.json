@@ -8,6 +8,13 @@
     "welcome": "Welcome to Okane",
     "description": "The best app for managing your finances."
   },
+  "accounts": {
+    "title": "Accounts",
+    "assets": "Assets",
+    "liabilities": "Liabilities",
+    "total": "Total",
+    "empty": "No accounts found. Start by adding one in settings."
+  },
   "settings": {
     "language": {
       "title": "Language",
