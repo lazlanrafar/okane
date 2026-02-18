@@ -10,3 +10,4 @@ export * from "./schema/categories";
 export * from "./schema/wallets";
 export * from "./schema/wallet-groups";
 export * from "./schema/workspace-sub-currencies";
+export * from "./schema/workspace-invitations";

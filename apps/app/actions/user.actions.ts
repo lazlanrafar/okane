@@ -1,5 +1,7 @@
+"use server";
+
 import { axiosInstance } from "../lib/axios";
-import type { User, WorkspaceWithRole } from "@workspace/types";
+import type { User, WorkspaceWithRole, ActionResponse } from "@workspace/types";
 
 export interface SyncUserDTO {
   id: string;
@@ -17,26 +19,34 @@ export interface SyncUserResponse {
 
 export const syncUser = async (
   user: SyncUserDTO,
-): Promise<SyncUserResponse | null> => {
+): Promise<ActionResponse<SyncUserResponse>> => {
   try {
     const response = await axiosInstance.post<SyncUserResponse>(
       "users/sync",
       user,
     );
-    return response.data;
-  } catch (error) {
-    console.error("Error syncing user to API:", error);
-    throw error;
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to sync user",
+    };
   }
 };
 
-export const getMe = async (
-  token: string,
-): Promise<{ user: User; workspaces: WorkspaceWithRole[] }> => {
-  const response = await axiosInstance.get("users/me", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
+export const getMe = async (): Promise<
+  ActionResponse<{ user: User; workspaces: WorkspaceWithRole[] }>
+> => {
+  try {
+    // Note: token is handled by axiosInstance interceptor from okane-session cookie
+    const response = await axiosInstance.get("users/me");
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to fetch user data",
+    };
+  }
 };
 
 // Backward-compatible aliases (snake_case → camelCase)

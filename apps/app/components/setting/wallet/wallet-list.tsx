@@ -177,12 +177,20 @@ export function WalletList({ dictionary }: WalletListProps) {
   // Queries
   const { data: serverGroups, isLoading: isLoadingGroups } = useQuery({
     queryKey: ["wallet-groups"],
-    queryFn: getWalletGroups,
+    queryFn: async () => {
+      const result = await getWalletGroups();
+      if (result.success) return result.data;
+      throw new Error(result.error);
+    },
   });
 
   const { data: serverWallets, isLoading: isLoadingWallets } = useQuery({
     queryKey: ["wallets"],
-    queryFn: getWallets,
+    queryFn: async () => {
+      const result = await getWallets();
+      if (result.success) return result.data;
+      throw new Error(result.error);
+    },
   });
 
   // Local state for DnD
@@ -203,30 +211,51 @@ export function WalletList({ dictionary }: WalletListProps) {
 
   // Mutations
   const deleteWalletMutation = useMutation({
-    mutationFn: deleteWallet,
+    mutationFn: async (id: string) => {
+      const result = await deleteWallet(id);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
       toast.success(dictionary.form.delete_success);
       setDeleteAlert(null);
     },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete wallet");
+    },
   });
 
   const deleteGroupMutation = useMutation({
-    mutationFn: deleteWalletGroup,
+    mutationFn: async (id: string) => {
+      const result = await deleteWalletGroup(id);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallet-groups"] });
       toast.success("Group deleted successfully"); // Use dict if available
       setDeleteAlert(null);
     },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete group");
+    },
   });
 
   const reorderWalletMutation = useMutation({
-    mutationFn: reorderWallets,
+    mutationFn: async (updates: any) => {
+      const result = await reorderWallets(updates);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    },
     onMutate: async (updates) => {
       // Optimistic handled in dragEnd, this is just server sync
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to reorder wallets");
     },
   });
 

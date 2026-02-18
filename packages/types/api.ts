@@ -25,3 +25,10 @@ export type PaginationQuery = {
   page?: number;
   limit?: number;
 };
+
+/**
+ * Standard Server Action response shape.
+ */
+export type ActionResponse<T = unknown> =
+  | { success: true; data: T; error?: never }
+  | { success: false; error: string; data?: never };

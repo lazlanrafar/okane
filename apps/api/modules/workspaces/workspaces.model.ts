@@ -8,3 +8,13 @@ export const CreateWorkspaceBody = t.Object({
   mainCurrencyCode: t.Optional(t.String()),
   mainCurrencySymbol: t.Optional(t.String()),
 });
+
+export const CreateInvitationBody = t.Object({
+  email: t.String({ format: "email" }),
+  role: t.Union([t.Literal("admin"), t.Literal("member")]),
+});
+
+export const InvitationParams = t.Object({
+  id: t.String(),
+  invitationId: t.String(),
+});

@@ -1,4 +1,4 @@
-"use client";
+"use server";
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -61,7 +61,11 @@ export function WalletForm({ wallet, onClose, dictionary }: WalletFormProps) {
   // Fetch groups for selection
   const { data: groups } = useQuery({
     queryKey: ["wallet-groups"],
-    queryFn: getWalletGroups,
+    queryFn: async () => {
+      const result = await getWalletGroups();
+      if (result.success) return result.data;
+      throw new Error(result.error);
+    },
   });
 
   const createMutation = useMutation({
@@ -72,7 +76,9 @@ export function WalletForm({ wallet, onClose, dictionary }: WalletFormProps) {
         isIncludedInTotals: data.isIncludedInTotals,
         groupId: data.groupId === "none" ? null : data.groupId,
       };
-      return createWallet(payload);
+      const result = await createWallet(payload);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
@@ -93,7 +99,9 @@ export function WalletForm({ wallet, onClose, dictionary }: WalletFormProps) {
         isIncludedInTotals: data.isIncludedInTotals,
         groupId: data.groupId === "none" ? null : data.groupId,
       };
-      return updateWallet(wallet.id, payload);
+      const result = await updateWallet(wallet.id, payload);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallets"] });

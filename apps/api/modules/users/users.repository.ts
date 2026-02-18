@@ -20,6 +20,15 @@ export const usersRepository = {
     return user ?? null;
   },
 
+  async findByEmail(email: string) {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+    return user ?? null;
+  },
+
   async upsert(data: {
     id: string;
     email: string;

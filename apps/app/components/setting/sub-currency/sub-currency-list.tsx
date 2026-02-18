@@ -34,8 +34,12 @@ export function SubCurrencyList({
     if (!settings?.mainCurrencyCode) return;
     setIsLoadingRates(true);
     try {
-      const rates = await getExchangeRates(settings.mainCurrencyCode);
-      setRates(rates || {});
+      const result = await getExchangeRates(settings.mainCurrencyCode);
+      if (result.success) {
+        setRates(result.data || {});
+      } else {
+        console.error("Failed to fetch rates:", result.error);
+      }
     } catch (error) {
       console.error("Failed to fetch rates", error);
     } finally {
@@ -49,24 +53,24 @@ export function SubCurrencyList({
 
   const handleAdd = (c: { code: string }) => {
     startTransition(async () => {
-      try {
-        const subCurrency = await addSubCurrency({ currencyCode: c.code });
-        setSubCurrencies((prev) => [...prev, subCurrency]);
+      const result = await addSubCurrency({ currencyCode: c.code });
+      if (result.success) {
+        setSubCurrencies((prev) => [...prev, result.data]);
         toast.success(`${c.code} added to sub-currencies`);
-      } catch (error: any) {
-        toast.error(error.message || "Failed to add currency");
+      } else {
+        toast.error(result.error);
       }
     });
   };
 
   const handleRemove = (id: string, code: string) => {
     startTransition(async () => {
-      try {
-        await removeSubCurrency(id);
+      const result = await removeSubCurrency(id);
+      if (result.success) {
         setSubCurrencies((prev) => prev.filter((item) => item.id !== id));
         toast.success(`${code} removed`);
-      } catch (error) {
-        toast.error("Failed to remove currency");
+      } else {
+        toast.error(result.error);
       }
     });
   };

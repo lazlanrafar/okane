@@ -1,6 +1,7 @@
 "use server";
 
 import { axiosInstance as api } from "@/lib/axios";
+import type { ActionResponse } from "@workspace/types";
 
 export interface WalletGroup {
   id: string;
@@ -20,32 +21,73 @@ export interface UpdateWalletGroupData {
   sortOrder?: number;
 }
 
-export const getWalletGroups = async (): Promise<WalletGroup[]> => {
-  const res = await api.get("/wallet-groups");
-  return res.data;
+export const getWalletGroups = async (): Promise<
+  ActionResponse<WalletGroup[]>
+> => {
+  try {
+    const res = await api.get("/wallet-groups");
+    return { success: true, data: res.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to fetch wallet groups",
+    };
+  }
 };
 
-export const createWalletGroup = async (data: CreateWalletGroupData) => {
-  const res = await api.post("/wallet-groups", data);
-  return res.data;
+export const createWalletGroup = async (
+  data: CreateWalletGroupData,
+): Promise<ActionResponse<WalletGroup>> => {
+  try {
+    const res = await api.post("/wallet-groups", data);
+    return { success: true, data: res.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to create wallet group",
+    };
+  }
 };
 
 export const updateWalletGroup = async (
   id: string,
   data: UpdateWalletGroupData,
-) => {
-  const res = await api.put(`/wallet-groups/${id}`, data);
-  return res.data;
+): Promise<ActionResponse<WalletGroup>> => {
+  try {
+    const res = await api.put(`/wallet-groups/${id}`, data);
+    return { success: true, data: res.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to update wallet group",
+    };
+  }
 };
 
 export const reorderWalletGroups = async (
   updates: { id: string; sortOrder: number }[],
-) => {
-  const res = await api.put("/wallet-groups/reorder", { updates });
-  return res.data;
+): Promise<ActionResponse<void>> => {
+  try {
+    const res = await api.put("/wallet-groups/reorder", { updates });
+    return { success: true, data: res.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to reorder wallet groups",
+    };
+  }
 };
 
-export const deleteWalletGroup = async (id: string) => {
-  const res = await api.delete(`/wallet-groups/${id}`);
-  return res.data;
+export const deleteWalletGroup = async (
+  id: string,
+): Promise<ActionResponse<void>> => {
+  try {
+    const res = await api.delete(`/wallet-groups/${id}`);
+    return { success: true, data: res.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to delete wallet group",
+    };
+  }
 };

@@ -5,6 +5,8 @@ import { siGithub, siGoogle } from "simple-icons";
 import { SimpleIcon } from "@workspace/ui";
 import { Button } from "@workspace/ui";
 import { cn } from "@workspace/ui";
+import { ActionResponse } from "@workspace/types";
+import { toast } from "sonner";
 import { loginWithOAuth } from "@/actions/auth.actions";
 
 interface OAuthButtonProps extends React.ComponentProps<typeof Button> {
@@ -26,7 +28,12 @@ export function OAuthButton({
     <Button
       variant="secondary"
       className={cn(className)}
-      onClick={() => loginWithOAuth(provider)}
+      onClick={async () => {
+        const result = await loginWithOAuth(provider);
+        if (result && !result.success) {
+          toast.error(result.error);
+        }
+      }}
       {...props}
     >
       <SimpleIcon icon={icon} className="size-4" />

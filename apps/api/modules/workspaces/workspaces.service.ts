@@ -11,6 +11,7 @@ import { categoriesRepository } from "../categories/categories.repository";
 import { SettingsRepository } from "../settings/repository";
 import { walletGroupsRepository } from "../wallets/groups/groups.repository";
 import { walletsRepository } from "../wallets/wallets.repository";
+import { sendInvitationEmail } from "@workspace/email";
 
 const settingsRepository = new SettingsRepository();
 
@@ -139,5 +140,167 @@ export const workspacesService = {
    */
   async listWorkspaces(user_id: string) {
     return workspacesRepository.getMemberWorkspaces(user_id);
+  },
+
+  async getMembers(workspace_id: string) {
+    return workspacesRepository.getMembers(workspace_id);
+  },
+
+  /**
+   * Invite a user to the workspace.
+   */
+  async inviteMember(
+    actor_id: string,
+    workspace_id: string,
+    email: string,
+    role: "admin" | "member",
+  ) {
+    // 1. Check if actor has permission (owner/admin)
+    const actorMembership = await workspacesRepository.getMembership(
+      actor_id,
+      workspace_id,
+    );
+    if (
+      !actorMembership ||
+      (actorMembership.role !== "owner" && actorMembership.role !== "admin")
+    ) {
+      throw new Error("Unauthorized to invite members");
+    }
+
+    // 2. Check if user is already a member
+    const existingUser = await usersRepository.findByEmail(email);
+    if (existingUser) {
+      const existingMembership = await workspacesRepository.getMembership(
+        existingUser.id,
+        workspace_id,
+      );
+      if (existingMembership) {
+        throw new Error("User is already a member of this workspace");
+      }
+    }
+
+    // 3. Check for pending invitation - delete if exists to allow re-invite
+    const pendingInvite = await workspacesRepository.findPendingInvitation(
+      workspace_id,
+      email,
+    );
+    if (pendingInvite) {
+      await workspacesRepository.deleteInvitation(pendingInvite.id);
+    }
+
+    // 4. Create token and invitation
+    const token = crypto.randomUUID();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiration
+
+    const invitation = await workspacesRepository.createInvitation({
+      workspaceId: workspace_id,
+      email,
+      role,
+      token,
+      expiresAt,
+    });
+
+    if (!invitation) throw new Error("Failed to create invitation");
+
+    // 5. Send email
+    const workspace = await workspacesRepository.findById(workspace_id);
+    if (workspace) {
+      const inviteLink = `${process.env.APP_URL}/accept-invite?token=${token}`;
+      await sendInvitationEmail(email, workspace.name, inviteLink);
+    }
+
+    // 6. Log action
+    await auditLogsService.log({
+      workspace_id,
+      user_id: actor_id,
+      action: "workspace.invitation_created",
+      entity: "invitation",
+      entity_id: invitation.id,
+      after: { email, role },
+    });
+
+    return invitation;
+  },
+
+  async getInvitations(workspace_id: string) {
+    return workspacesRepository.getWorkspaceInvitations(workspace_id);
+  },
+
+  async cancelInvitation(
+    actor_id: string,
+    workspace_id: string,
+    invitation_id: string,
+  ) {
+    // Check permission
+    const actorMembership = await workspacesRepository.getMembership(
+      actor_id,
+      workspace_id,
+    );
+    if (
+      !actorMembership ||
+      (actorMembership.role !== "owner" && actorMembership.role !== "admin")
+    ) {
+      throw new Error("Unauthorized to cancel invitations");
+    }
+
+    await workspacesRepository.deleteInvitation(invitation_id);
+
+    await auditLogsService.log({
+      workspace_id,
+      user_id: actor_id,
+      action: "workspace.invitation_cancelled",
+      entity: "invitation",
+      entity_id: invitation_id,
+    });
+  },
+
+  async acceptInvitation(email: string, user_id: string) {
+    // 1. Find pending invitation
+    // We need to iterate through all workspaces or find by email globally.
+    // But findPendingInvitation requires workspaceId.
+    // Actually, we want to find *any* pending invitation for this email.
+    // So we need a repository method findPendingInvitationsByEmail(email).
+
+    // For now, let's assume we check for a specific workspace if provided, or we need to implement findPendingInvitationsByEmail.
+    // Let's rely on the repository to search by email.
+    const invitations =
+      await workspacesRepository.findPendingInvitationsByEmail(email);
+
+    if (invitations.length === 0) return null;
+
+    // Accept the first one (or handle multiple? For now, first one).
+    const invitation = invitations[0];
+    if (!invitation) return null;
+
+    // 2. Add member
+    await workspacesRepository.addMember({
+      workspace_id: invitation.workspaceId,
+      user_id,
+      role: invitation.role,
+    });
+
+    // 3. Update invitation status
+    await workspacesRepository.updateInvitationStatus(
+      invitation.id,
+      "accepted",
+    );
+
+    // 4. Set as active workspace if user has none
+    const currentWorkspace = await usersRepository.getWorkspaceId(user_id);
+    if (!currentWorkspace) {
+      await usersRepository.setWorkspaceId(user_id, invitation.workspaceId);
+    }
+
+    // 5. Log action
+    await auditLogsService.log({
+      workspace_id: invitation.workspaceId,
+      user_id,
+      action: "workspace.invitation_accepted",
+      entity: "invitation",
+      entity_id: invitation.id,
+    });
+
+    return invitation.workspaceId;
   },
 };

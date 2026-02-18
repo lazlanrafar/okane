@@ -1,6 +1,7 @@
 "use server";
 
 import { axiosInstance as api } from "@/lib/axios";
+import type { ActionResponse } from "@workspace/types";
 
 export interface Wallet {
   id: string;
@@ -29,29 +30,71 @@ export interface UpdateWalletData {
   sortOrder?: number;
 }
 
-export const getWallets = async (): Promise<Wallet[]> => {
-  const res = await api.get("/wallets");
-  return res.data;
+export const getWallets = async (): Promise<ActionResponse<Wallet[]>> => {
+  try {
+    const res = await api.get("/wallets");
+    return { success: true, data: res.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to fetch wallets",
+    };
+  }
 };
 
-export const createWallet = async (data: CreateWalletData) => {
-  const res = await api.post("/wallets", data);
-  return res.data;
+export const createWallet = async (
+  data: CreateWalletData,
+): Promise<ActionResponse<Wallet>> => {
+  try {
+    const res = await api.post("/wallets", data);
+    return { success: true, data: res.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to create wallet",
+    };
+  }
 };
 
-export const updateWallet = async (id: string, data: UpdateWalletData) => {
-  const res = await api.put(`/wallets/${id}`, data);
-  return res.data;
+export const updateWallet = async (
+  id: string,
+  data: UpdateWalletData,
+): Promise<ActionResponse<Wallet>> => {
+  try {
+    const res = await api.put(`/wallets/${id}`, data);
+    return { success: true, data: res.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to update wallet",
+    };
+  }
 };
 
 export const reorderWallets = async (
   updates: { id: string; sortOrder: number; groupId?: string | null }[],
-) => {
-  const res = await api.put("/wallets/reorder", { updates });
-  return res.data;
+): Promise<ActionResponse<void>> => {
+  try {
+    const res = await api.put("/wallets/reorder", { updates });
+    return { success: true, data: res.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to reorder wallets",
+    };
+  }
 };
 
-export const deleteWallet = async (id: string) => {
-  const res = await api.delete(`/wallets/${id}`);
-  return res.data;
+export const deleteWallet = async (
+  id: string,
+): Promise<ActionResponse<void>> => {
+  try {
+    const res = await api.delete(`/wallets/${id}`);
+    return { success: true, data: res.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to delete wallet",
+    };
+  }
 };

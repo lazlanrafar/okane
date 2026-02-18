@@ -20,6 +20,7 @@ import {
   AppWindow,
   Languages,
   Lock,
+  Users,
 } from "lucide-react";
 
 import { cn } from "@workspace/ui";
@@ -67,6 +68,11 @@ export function SettingSidebar({
       title: sidebar.profile,
       href: "/settings/profile",
       icon: User,
+    },
+    {
+      title: "Members",
+      href: "/settings/members",
+      icon: Users,
     },
     {
       title: sidebar.account,

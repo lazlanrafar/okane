@@ -51,7 +51,9 @@ export function WalletGroupForm({
 
   const createMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
-      return createWalletGroup({ name: data.name });
+      const result = await createWalletGroup({ name: data.name });
+      if (!result.success) throw new Error(result.error);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallet-groups"] });
@@ -69,7 +71,9 @@ export function WalletGroupForm({
   const updateMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       if (!group) throw new Error("No group to update");
-      return updateWalletGroup(group.id, { name: data.name });
+      const result = await updateWalletGroup(group.id, { name: data.name });
+      if (!result.success) throw new Error(result.error);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallet-groups"] });

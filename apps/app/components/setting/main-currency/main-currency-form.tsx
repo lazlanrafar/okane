@@ -36,15 +36,15 @@ export function MainCurrencyForm({
     setData((prev) => ({ ...prev, ...updates }));
 
     startTransition(async () => {
-      try {
-        await updateTransactionSettings({
-          ...data,
-          ...updates,
-        });
+      const result = await updateTransactionSettings({
+        ...data,
+        ...updates,
+      });
+      if (result.success) {
         toast.success("Main currency settings updated");
-      } catch (error) {
-        toast.error("Failed to update settings");
-        // Revert on error (could be improved with previous state tracking)
+      } else {
+        toast.error(result.error);
+        // Revert on error
         setData(settings);
       }
     });

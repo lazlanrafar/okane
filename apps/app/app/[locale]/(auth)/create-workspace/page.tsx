@@ -41,7 +41,9 @@ export default function CreateWorkspacePage() {
       mainCurrencySymbol: currency.symbol,
     });
 
-    if (result?.error) {
+    if (result.success) {
+      // Success will redirect automatically via createWorkspaceAction
+    } else {
       set_error(result.error);
       set_is_loading(false);
     }

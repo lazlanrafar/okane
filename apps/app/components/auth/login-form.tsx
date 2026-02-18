@@ -46,10 +46,10 @@ export function LoginForm() {
       form_data.append("password", data.password);
 
       const result = await login(form_data);
-      if (result?.error) {
-        toast.error(result.error);
-      } else {
+      if (result.success) {
         toast.success("Logged in successfully");
+      } else {
+        toast.error(result.error);
       }
     });
   };

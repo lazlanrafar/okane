@@ -1,8 +1,8 @@
 import { createClient } from "@workspace/supabase/server";
 import { NextResponse } from "next/server";
 import { sync_user } from "@/actions/user.actions";
-import { exchangeToken } from "@/actions/workspace.actions";
 import { cookies } from "next/headers";
+import { exchangeSupabaseToken } from "@/actions/auth.actions";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -19,7 +19,7 @@ export async function GET(request: Request) {
 
       if (user) {
         try {
-          const sync_result = await sync_user({
+          const syncResult = await sync_user({
             id: user.id,
             email: user.email ?? "",
             name: user.user_metadata?.full_name || user.user_metadata?.name,
@@ -30,23 +30,29 @@ export async function GET(request: Request) {
           });
 
           // If user has no workspace, redirect to create-workspace
-          if (sync_result?.has_workspace === false) {
+          if (syncResult.success && syncResult.data?.has_workspace === false) {
             return NextResponse.redirect(`${origin}/create-workspace`);
           }
 
           // 2. Exchange for app JWT
           const { data: session_data } = await supabase.auth.getSession();
           if (session_data.session?.access_token) {
-            const { token } = await exchangeToken(
+            const exchangeResult = await exchangeSupabaseToken(
               session_data.session.access_token,
             );
-            (await cookies()).set("okane-session", token, {
-              path: "/",
-              httpOnly: true,
-              secure: process.env.NODE_ENV === "production",
-              sameSite: "lax",
-              maxAge: 60 * 60 * 24 * 7, // 7 days
-            });
+            if (exchangeResult.success && exchangeResult.data) {
+              (await cookies()).set(
+                "okane-session",
+                exchangeResult.data.token,
+                {
+                  path: "/",
+                  httpOnly: true,
+                  secure: process.env.NODE_ENV === "production",
+                  sameSite: "lax",
+                  maxAge: 60 * 60 * 24 * 7, // 7 days
+                },
+              );
+            }
           }
         } catch (e) {
           console.error("Failed to sync user on login callback:", e);

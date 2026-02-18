@@ -2,7 +2,11 @@ import { Elysia } from "elysia";
 import { ErrorCode } from "@workspace/types";
 import { buildSuccess, buildError } from "@workspace/utils";
 import { workspacesService } from "./workspaces.service";
-import { CreateWorkspaceBody } from "./workspaces.model";
+import {
+  CreateWorkspaceBody,
+  CreateInvitationBody,
+  InvitationParams,
+} from "./workspaces.model";
 import { authPlugin } from "../../plugins/auth";
 
 /**
@@ -76,6 +80,111 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
         summary: "List Workspaces",
         description:
           "Lists all workspaces the authenticated user is a member of.",
+        tags: ["Workspaces"],
+      },
+    },
+  )
+  .get(
+    "/:id/members",
+    async ({ set, auth, params }: any) => {
+      if (!auth) {
+        set.status = 401;
+        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+      }
+      try {
+        const members = await workspacesService.getMembers(params.id);
+        return buildSuccess(members, "Members retrieved");
+      } catch (error: any) {
+        set.status = 500;
+        return buildError(ErrorCode.INTERNAL_ERROR, error.message);
+      }
+    },
+    {
+      detail: {
+        summary: "List Members",
+        tags: ["Workspaces"],
+      },
+    },
+  )
+  .post(
+    "/:id/invitations",
+    async ({ body, set, auth, params }: any) => {
+      if (!auth) {
+        set.status = 401;
+        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+      }
+
+      try {
+        const invitation = await workspacesService.inviteMember(
+          auth.user_id,
+          params.id,
+          body.email,
+          body.role,
+        );
+        return buildSuccess(invitation, "Invitation sent successfully");
+      } catch (error: any) {
+        console.log(error);
+
+        set.status = 400;
+        return buildError(ErrorCode.VALIDATION_ERROR, error.message);
+      }
+    },
+    {
+      body: CreateInvitationBody,
+      detail: {
+        summary: "Invite Member",
+        tags: ["Workspaces"],
+      },
+    },
+  )
+  .get(
+    "/:id/invitations",
+    async ({ set, auth, params }: any) => {
+      if (!auth) {
+        set.status = 401;
+        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+      }
+
+      try {
+        // ideally check if user is member of workspace first
+        const invitations = await workspacesService.getInvitations(params.id);
+        return buildSuccess(invitations, "Invitations retrieved");
+      } catch (error: any) {
+        set.status = 500;
+        return buildError(ErrorCode.INTERNAL_ERROR, error.message);
+      }
+    },
+    {
+      detail: {
+        summary: "List Invitations",
+        tags: ["Workspaces"],
+      },
+    },
+  )
+  .delete(
+    "/:id/invitations/:invitationId",
+    async ({ set, auth, params }: any) => {
+      if (!auth) {
+        set.status = 401;
+        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+      }
+
+      try {
+        await workspacesService.cancelInvitation(
+          auth.user_id,
+          params.id,
+          params.invitationId,
+        );
+        return buildSuccess(null, "Invitation cancelled");
+      } catch (error: any) {
+        set.status = 400;
+        return buildError(ErrorCode.VALIDATION_ERROR, error.message);
+      }
+    },
+    {
+      params: InvitationParams,
+      detail: {
+        summary: "Cancel Invitation",
         tags: ["Workspaces"],
       },
     },

@@ -4,9 +4,13 @@ import { createClient } from "@workspace/supabase/server";
 import { redirect } from "next/navigation";
 import { headers, cookies } from "next/headers";
 import { sync_user } from "./user.actions";
-import { exchangeToken, createWorkspace } from "./workspace.actions";
+import { createWorkspace } from "./workspace.actions";
+import { axiosInstance } from "@/lib/axios";
+import type { ActionResponse } from "@workspace/types";
 
-export async function login(form_data: FormData) {
+export async function login(
+  form_data: FormData,
+): Promise<ActionResponse<void>> {
   const email = form_data.get("email") as string;
   const password = form_data.get("password") as string;
 
@@ -17,16 +21,17 @@ export async function login(form_data: FormData) {
   });
 
   if (error) {
-    return { error: error.message };
+    return { success: false, error: error.message };
   }
 
   // Sync user and check workspace
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   if (user) {
     try {
-      const result = await sync_user({
+      const syncResult = await sync_user({
         id: user.id,
         email: user.email ?? "",
         name: user.user_metadata?.full_name || user.user_metadata?.name,
@@ -36,40 +41,41 @@ export async function login(form_data: FormData) {
         providers: user.app_metadata?.providers,
       });
 
-      if (result) {
-        if (result.has_workspace === false) {
+      if (syncResult.success && syncResult.data) {
+        if (syncResult.data.has_workspace === false) {
           redirect("/create-workspace");
         }
 
         // 3. Exchange for app JWT
         const { data: session_data } = await supabase.auth.getSession();
         if (session_data.session?.access_token) {
-          const { token } = await exchangeToken(
+          const exchangeResult = await exchangeSupabaseToken(
             session_data.session.access_token,
           );
-          (await cookies()).set("okane-session", token, {
-            path: "/",
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 7, // 7 days
-          });
+
+          if (exchangeResult.success && exchangeResult.data) {
+            (await cookies()).set("okane-session", exchangeResult.data.token, {
+              path: "/",
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "lax",
+              maxAge: 60 * 60 * 24 * 7, // 7 days
+            });
+          }
         }
-      } else {
-        console.error("Sync user returned no result during login");
       }
-    } catch (_e: any) {
-      console.error(
-        "Failed to sync user on login:",
-        _e.response?.data || _e.message,
-      );
+    } catch (e: any) {
+      if (e.消化 === "NEXT_REDIRECT") throw e;
+      console.error("Sync error:", e);
     }
   }
 
   redirect("/dashboard");
 }
 
-export async function signup(form_data: FormData) {
+export async function signup(
+  form_data: FormData,
+): Promise<ActionResponse<void>> {
   const origin = (await headers()).get("origin");
   const email = form_data.get("email") as string;
   const password = form_data.get("password") as string;
@@ -88,53 +94,54 @@ export async function signup(form_data: FormData) {
   });
 
   if (error) {
-    return { error: error.message };
+    return { success: false, error: error.message };
   }
 
   // Sync user to Drizzle database via API
   if (data.user) {
     try {
-      const result = await sync_user({
+      const syncResult = await sync_user({
         id: data.user.id,
         email: data.user.email ?? "",
         name: name,
         oauth_provider: "email",
       });
 
-      if (result) {
-        if (result.has_workspace === false) {
+      if (syncResult.success && syncResult.data) {
+        if (syncResult.data.has_workspace === false) {
           redirect("/create-workspace");
         }
 
         // 3. Exchange for app JWT
         const { data: session_data } = await supabase.auth.getSession();
         if (session_data.session?.access_token) {
-          const { token } = await exchangeToken(
+          const exchangeResult = await exchangeSupabaseToken(
             session_data.session.access_token,
           );
-          (await cookies()).set("okane-session", token, {
-            path: "/",
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 7, // 7 days
-          });
+
+          if (exchangeResult.success && exchangeResult.data) {
+            (await cookies()).set("okane-session", exchangeResult.data.token, {
+              path: "/",
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "lax",
+              maxAge: 60 * 60 * 24 * 7, // 7 days
+            });
+          }
         }
-      } else {
-        console.error("Sync user returned no result during signup");
       }
-    } catch (api_error: any) {
-      console.error(
-        "Failed to sync user on signup:",
-        api_error.response?.data || api_error.message,
-      );
+    } catch (e: any) {
+      if (e.digest === "NEXT_REDIRECT") throw e;
+      console.error("Sync error:", e);
     }
   }
 
   redirect("/dashboard");
 }
 
-export async function loginWithOAuth(provider: "google" | "github") {
+export async function loginWithOAuth(
+  provider: "google" | "github",
+): Promise<ActionResponse<void>> {
   const origin = (await headers()).get("origin");
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -145,17 +152,20 @@ export async function loginWithOAuth(provider: "google" | "github") {
   });
 
   if (error) {
-    return { error: error.message };
+    return { success: false, error: error.message };
   }
 
   if (data.url) {
     redirect(data.url);
   }
+
+  return { success: true, data: undefined };
 }
 
 export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  (await cookies()).delete("okane-session");
   redirect("/login");
 }
 
@@ -163,25 +173,34 @@ export async function createWorkspaceAction(data: {
   name: string;
   mainCurrencyCode?: string;
   mainCurrencySymbol?: string;
-}) {
+}): Promise<ActionResponse<void>> {
   const supabase = await createClient();
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
   if (!session?.access_token) {
-    return { error: "Unauthorized" };
+    return { success: false, error: "Unauthorized" };
   }
 
   try {
     // 1. Create workspace via API
-    await createWorkspace(data, session.access_token);
+    const wsResult = await createWorkspace(data);
+    if (!wsResult.success) {
+      return { success: false, error: wsResult.error };
+    }
 
     // 2. Exchange token for app JWT (now with workspace_id)
-    const { token } = await exchangeToken(session.access_token);
+    const exchangeResult = await exchangeSupabaseToken(session.access_token);
+    if (!exchangeResult.success || !exchangeResult.data) {
+      return {
+        success: false,
+        error: exchangeResult.error || "Failed to establish session",
+      };
+    }
 
     // 3. Set cookie
-    (await cookies()).set("okane-session", token, {
+    (await cookies()).set("okane-session", exchangeResult.data.token, {
       path: "/",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -189,9 +208,37 @@ export async function createWorkspaceAction(data: {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
   } catch (error: any) {
+    if (error.digest === "NEXT_REDIRECT") throw error;
     console.error("Failed to create workspace:", error);
-    return { error: error.message || "Failed to create workspace" };
+    return {
+      success: false,
+      error: error.message || "Failed to create workspace",
+    };
   }
 
   redirect("/dashboard");
+}
+
+export async function exchangeSupabaseToken(
+  supabase_token: string,
+): Promise<
+  ActionResponse<{
+    token: string;
+    user_id: string;
+    workspace_id: string | null;
+  }>
+> {
+  try {
+    const response = await axiosInstance.post(
+      "auth/token",
+      {},
+      { headers: { Authorization: `Bearer ${supabase_token}` } },
+    );
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to exchange token",
+    };
+  }
 }

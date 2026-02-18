@@ -50,6 +50,13 @@
       "when": 1771049266224,
       "tag": "0006_loud_jetstream",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1771379785691,
+      "tag": "0007_first_infant_terrible",
+      "breakpoints": true
     }
   ]
 }

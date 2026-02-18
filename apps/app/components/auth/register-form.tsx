@@ -52,12 +52,12 @@ export function RegisterForm() {
       form_data.append("password", data.password);
 
       const result = await signup(form_data);
-      if (result?.error) {
-        toast.error(result.error);
-      } else {
+      if (result.success) {
         toast.success("Account created successfully", {
           description: "Please check your email to verify your account.",
         });
+      } else {
+        toast.error(result.error);
       }
     });
   };

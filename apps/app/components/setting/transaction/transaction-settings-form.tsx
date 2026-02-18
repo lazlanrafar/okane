@@ -129,14 +129,17 @@ export function TransactionSettingsForm({
   const { data: settings, isLoading } = useQuery({
     queryKey: ["settings", "transaction"],
     queryFn: async () => {
-      const data = await getTransactionSettings();
-      return data as TransactionSettings;
+      const result = await getTransactionSettings();
+      if (result.success) return result.data;
+      throw new Error(result.error);
     },
   });
 
   const mutation = useMutation({
     mutationFn: async (vars: Partial<TransactionSettings>) => {
-      return updateTransactionSettings(vars);
+      const result = await updateTransactionSettings(vars);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings", "transaction"] });

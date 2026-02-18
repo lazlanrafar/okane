@@ -13,6 +13,7 @@ validateEnv();
 import { authPlugin } from "./plugins/auth";
 import { encryptionPlugin } from "./plugins/encryption";
 import { rateLimitPlugin } from "./plugins/rate-limit";
+import { loggerPlugin } from "./plugins/logger";
 import { healthController } from "./modules/health";
 import { usersController } from "./modules/users";
 import { workspacesController } from "./modules/workspaces";
@@ -26,6 +27,7 @@ const port = process.env.API_PORT ?? 3001;
 
 const app = new Elysia()
   .use(cors())
+  .use(loggerPlugin)
   .use(encryptionPlugin)
   .use(authPlugin)
   .use(rateLimitPlugin)
@@ -54,10 +56,8 @@ const app = new Elysia()
       .use(walletsController),
   )
   .onError(({ error, code }) => {
-    // Don't log or capture 404s — they're expected
     if (code === "NOT_FOUND") return;
     Sentry.captureException(error);
-    log.error("Unhandled error", { err: error });
   })
   .listen(port);
 

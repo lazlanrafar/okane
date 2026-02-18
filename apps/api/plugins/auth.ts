@@ -10,15 +10,16 @@ const JWT_SECRET_KEY = () => new TextEncoder().encode(process.env.JWT_SECRET!);
  * Generate an app JWT with { user_id, workspace_id }.
  */
 export type AuthContext = {
-  auth: { user_id: string; workspace_id: string } | null;
+  auth: { user_id: string; workspace_id: string; email: string } | null;
 };
 
 async function generateJwt(
   user_id: string,
   workspace_id: string,
+  email: string,
 ): Promise<string> {
   const expires_in = process.env.JWT_EXPIRES_IN ?? "7d";
-  const jwt = await new jose.SignJWT({ user_id, workspace_id })
+  const jwt = await new jose.SignJWT({ user_id, workspace_id, email })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(expires_in)
@@ -32,14 +33,15 @@ async function generateJwt(
  */
 async function verifyJwt(
   token: string,
-): Promise<{ user_id: string; workspace_id: string } | null> {
+): Promise<{ user_id: string; workspace_id: string; email?: string } | null> {
   try {
     const { payload } = await jose.jwtVerify(token, JWT_SECRET_KEY());
     const user_id = payload.user_id as string;
     const workspace_id = payload.workspace_id as string;
+    const email = payload.email as string;
 
-    if (!user_id || !workspace_id) return null;
-    return { user_id, workspace_id };
+    if (!user_id) return null; // workspace_id can be empty string
+    return { user_id, workspace_id, email };
   } catch {
     return null;
   }
@@ -108,6 +110,7 @@ export const authPlugin = new Elysia({ name: "auth" })
         auth: {
           user_id: user.id,
           workspace_id: workspace_id ?? "",
+          email: user.email!,
         },
       };
     } catch (e) {

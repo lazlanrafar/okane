@@ -12,28 +12,19 @@ import {
 import { cn } from "@workspace/ui";
 import { getPreference } from "@/server/server-actions";
 import { createClient } from "@workspace/supabase/server";
-import { get_me } from "@/actions/workspace.actions";
 
 import { AccountSwitcher } from "@/components/layout/account-switcher";
 import { LayoutControls } from "@/components/layout/layout-controls";
 import { SearchDialog } from "@/components/layout/search-dialog";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
+import { getMe } from "@/actions/user.actions";
 
 async function get_user_and_workspaces() {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session?.access_token) {
-      return null;
-    }
-
-    return await get_me(session.access_token);
-  } catch {
-    return null;
+  const result = await getMe();
+  if (result.success) {
+    return result.data;
   }
+  return null;
 }
 
 export default async function Layout({

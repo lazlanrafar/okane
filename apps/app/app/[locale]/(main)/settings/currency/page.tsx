@@ -17,8 +17,18 @@ interface CurrencyPageProps {
 export default async function CurrencyPage({ params }: CurrencyPageProps) {
   const { locale } = await params;
   const dictionary = await getDictionary(locale as Locale);
-  const settings = await getTransactionSettings();
-  const subCurrencies = await getSubCurrencies();
+  const settingsResult = await getTransactionSettings();
+  const subCurrenciesResult = await getSubCurrencies();
+
+  const settings = settingsResult.success ? settingsResult.data : null;
+  const subCurrencies = subCurrenciesResult.success
+    ? subCurrenciesResult.data
+    : [];
+
+  if (!settings) {
+    // Should handle this better, but for now just return empty or error
+    return <div>Failed to load settings</div>;
+  }
 
   return (
     <div className="space-y-6">

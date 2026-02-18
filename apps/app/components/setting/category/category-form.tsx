@@ -209,8 +209,11 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
   const { data: categories, isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
-      if (type === "income") return getIncomeCategories();
-      return getExpenseCategories();
+      const result = await (type === "income"
+        ? getIncomeCategories()
+        : getExpenseCategories());
+      if (result.success) return result.data;
+      throw new Error(result.error);
     },
   });
 
@@ -254,10 +257,12 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
   // Mutations
   const createMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
-      return createCategory({
+      const result = await createCategory({
         name: data.name,
         type,
       });
+      if (!result.success) throw new Error(result.error);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
@@ -273,9 +278,11 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
   const updateMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       if (!activeCategory) throw new Error("No active category");
-      return updateCategory(activeCategory.id, {
+      const result = await updateCategory(activeCategory.id, {
         name: data.name,
       });
+      if (!result.success) throw new Error(result.error);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
@@ -291,7 +298,9 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return deleteCategory(id);
+      const result = await deleteCategory(id);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
@@ -306,7 +315,9 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
 
   const reorderMutation = useMutation({
     mutationFn: async (updates: { id: string; sortOrder: number }[]) => {
-      return reorderCategories(updates);
+      const result = await reorderCategories(updates);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
     },
     onMutate: async (updates) => {
       await queryClient.cancelQueries({ queryKey });
