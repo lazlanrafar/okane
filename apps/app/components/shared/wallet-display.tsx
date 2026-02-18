@@ -16,6 +16,7 @@ interface WalletItemProps {
   onDelete?: (wallet: Wallet) => void;
   dragAttributes?: any;
   dragListeners?: any;
+  cellsOnly?: boolean;
 }
 
 export function WalletItem({
@@ -25,14 +26,10 @@ export function WalletItem({
   onDelete,
   dragAttributes,
   dragListeners,
+  cellsOnly = false,
 }: WalletItemProps) {
-  return (
-    <TableRow
-      className={cn(
-        "group transition-colors",
-        mode === "view" && "hover:bg-transparent border-none py-2",
-      )}
-    >
+  const cells = (
+    <>
       <TableCell className={cn("font-medium", mode === "view" && "py-3")}>
         <div className="flex items-center gap-2">
           {mode === "manage" && (
@@ -86,6 +83,19 @@ export function WalletItem({
           </div>
         </TableCell>
       )}
+    </>
+  );
+
+  if (cellsOnly) return cells;
+
+  return (
+    <TableRow
+      className={cn(
+        "group transition-colors",
+        mode === "view" && "hover:bg-transparent border-none py-2",
+      )}
+    >
+      {cells}
     </TableRow>
   );
 }

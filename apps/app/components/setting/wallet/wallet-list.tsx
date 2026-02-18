@@ -91,16 +91,21 @@ function SortableWalletRow({
   } as React.CSSProperties;
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      className="group transition-colors border-b"
+    >
       <WalletItem
         wallet={wallet}
         mode="manage"
+        cellsOnly={true}
         onEdit={onEdit}
         onDelete={onDelete}
         dragAttributes={attributes}
         dragListeners={listeners}
       />
-    </div>
+    </TableRow>
   );
 }
 

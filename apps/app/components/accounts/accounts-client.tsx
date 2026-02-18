@@ -32,11 +32,74 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  TableRow,
 } from "@workspace/ui";
 import { Plus, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { WalletForm } from "@/components/setting/wallet/wallet-form";
 import { WalletGroupForm } from "@/components/setting/wallet/wallet-group-form";
+import { reorderWallets } from "@/actions/wallet.actions";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+function SortableWalletRow({
+  wallet,
+  onEdit,
+  onDelete,
+}: {
+  wallet: Wallet;
+  onEdit: (wallet: Wallet) => void;
+  onDelete: (wallet: Wallet) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: wallet.id, data: { type: "wallet", wallet } });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 0,
+    opacity: isDragging ? 0.5 : 1,
+  } as React.CSSProperties;
+
+  return (
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      className="group transition-colors border-b"
+    >
+      <WalletItem
+        wallet={wallet}
+        mode="manage"
+        cellsOnly={true}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        dragAttributes={attributes}
+        dragListeners={listeners}
+      />
+    </TableRow>
+  );
+}
 
 interface AccountsClientProps {
   dictionary: any;
@@ -57,7 +120,7 @@ export function AccountsClient({
     id: string;
   } | null>(null);
 
-  const { data: wallets, isLoading: isLoadingWallets } = useQuery({
+  const { data: serverWallets, isLoading: isLoadingWallets } = useQuery({
     queryKey: ["wallets"],
     queryFn: async () => {
       const result = await getWallets();
@@ -65,6 +128,12 @@ export function AccountsClient({
       throw new Error(result.error);
     },
   });
+
+  const [wallets, setWallets] = React.useState<Wallet[]>([]);
+
+  React.useEffect(() => {
+    if (serverWallets) setWallets(serverWallets);
+  }, [serverWallets]);
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery({
     queryKey: ["wallet-groups"],
@@ -88,6 +157,50 @@ export function AccountsClient({
     },
     onError: (error: any) => toast.error(error.message),
   });
+
+  const reorderMutation = useMutation({
+    mutationFn: async (updates: any) => {
+      const result = await reorderWallets(updates);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message);
+      // Revert if needed, but usually local state handles it
+      queryClient.refetchQueries({ queryKey: ["wallets"] });
+    },
+  });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    setWallets((items) => {
+      const oldIndex = items.findIndex((item) => item.id === active.id);
+      const newIndex = items.findIndex((item) => item.id === over.id);
+      const newItems = arrayMove(items, oldIndex, newIndex);
+
+      // Extract new sort orders
+      const updates = newItems.map((item, index) => ({
+        id: item.id,
+        sortOrder: index,
+        groupId: item.groupId,
+      }));
+
+      reorderMutation.mutate(updates);
+      return newItems;
+    });
+  };
 
   const assets = React.useMemo(
     () =>
@@ -182,80 +295,94 @@ export function AccountsClient({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
-        {groups?.map((group) => {
-          const groupWallets = walletsByGroup.get(group.id) || [];
-          if (groupWallets.length === 0) return null;
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex-1 overflow-auto">
+          {groups?.map((group) => {
+            const groupWallets = walletsByGroup.get(group.id) || [];
+            if (groupWallets.length === 0) return null;
 
-          return (
-            <div key={group.id} className="last:pb-20">
-              <WalletGroupHeader
-                groupName={group.name}
-                count={groupWallets.length}
-                mode="manage"
-                onEdit={() => {}} // Could add edit group here too
-                onDelete={() => {}}
-              />
-              <Table>
-                <TableBody>
-                  {groupWallets.map((wallet) => (
-                    <WalletItem
-                      key={wallet.id}
-                      wallet={wallet}
-                      mode="manage"
-                      onEdit={(w) => {
-                        setEditingWallet(w);
-                        setIsWalletDialogOpen(true);
-                      }}
-                      onDelete={(w) =>
-                        setDeleteAlert({ type: "wallet", id: w.id })
-                      }
-                    />
-                  ))}
-                </TableBody>
-              </Table>
+            return (
+              <div key={group.id} className="last:pb-20">
+                <WalletGroupHeader
+                  groupName={group.name}
+                  count={groupWallets.length}
+                  mode="manage"
+                  onEdit={() => {}} // Could add edit group here too
+                  onDelete={() => {}}
+                />
+                <Table>
+                  <SortableContext
+                    items={groupWallets}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <TableBody>
+                      {groupWallets.map((wallet) => (
+                        <SortableWalletRow
+                          key={wallet.id}
+                          wallet={wallet}
+                          onEdit={(w) => {
+                            setEditingWallet(w);
+                            setIsWalletDialogOpen(true);
+                          }}
+                          onDelete={(w) =>
+                            setDeleteAlert({ type: "wallet", id: w.id })
+                          }
+                        />
+                      ))}
+                    </TableBody>
+                  </SortableContext>
+                </Table>
+              </div>
+            );
+          })}
+
+          {(() => {
+            const ungrouped = walletsByGroup.get("ungrouped") || [];
+            if (ungrouped.length === 0) return null;
+            return (
+              <div className="last:pb-20">
+                <WalletGroupHeader
+                  groupName="Ungrouped"
+                  count={ungrouped.length}
+                  mode="manage"
+                />
+                <Table>
+                  <SortableContext
+                    items={ungrouped}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <TableBody>
+                      {ungrouped.map((wallet) => (
+                        <SortableWalletRow
+                          key={wallet.id}
+                          wallet={wallet}
+                          onEdit={(w) => {
+                            setEditingWallet(w);
+                            setIsWalletDialogOpen(true);
+                          }}
+                          onDelete={(w) =>
+                            setDeleteAlert({ type: "wallet", id: w.id })
+                          }
+                        />
+                      ))}
+                    </TableBody>
+                  </SortableContext>
+                </Table>
+              </div>
+            );
+          })()}
+
+          {(!wallets || wallets.length === 0) && (
+            <div className="flex flex-col items-center justify-center p-12 text-center">
+              <p className="text-muted-foreground">{dictionary.empty}</p>
             </div>
-          );
-        })}
-
-        {(() => {
-          const ungrouped = walletsByGroup.get("ungrouped") || [];
-          if (ungrouped.length === 0) return null;
-          return (
-            <div className="last:pb-20">
-              <WalletGroupHeader
-                groupName="Ungrouped"
-                count={ungrouped.length}
-                mode="manage"
-              />
-              <Table>
-                <TableBody>
-                  {ungrouped.map((wallet) => (
-                    <WalletItem
-                      key={wallet.id}
-                      wallet={wallet}
-                      mode="manage"
-                      onEdit={(w) => {
-                        setEditingWallet(w);
-                        setIsWalletDialogOpen(true);
-                      }}
-                      onDelete={(w) =>
-                        setDeleteAlert({ type: "wallet", id: w.id })
-                      }
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          );
-        })()}
-
-        {(!wallets || wallets.length === 0) && (
-          <div className="flex flex-col items-center justify-center p-12 text-center">
-            <p className="text-muted-foreground">{dictionary.empty}</p>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </DndContext>
 
       <Dialog open={isWalletDialogOpen} onOpenChange={setIsWalletDialogOpen}>
         <DialogContent className="max-w-lg">
