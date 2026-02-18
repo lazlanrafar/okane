@@ -93,4 +93,77 @@ export const usersController = new Elysia({ prefix: "/users" })
         tags: ["Users"],
       },
     },
+  )
+  .patch(
+    "/me",
+    async ({ body, set, auth }: any) => {
+      if (!auth) {
+        set.status = 401;
+        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+      }
+
+      try {
+        await usersService.updateProfile(auth.user_id, body);
+        return buildSuccess(null, "Profile updated successfully");
+      } catch (error: any) {
+        set.status = 400;
+        return buildError(ErrorCode.VALIDATION_ERROR, error.message);
+      }
+    },
+    {
+      detail: {
+        summary: "Update Profile",
+        description: "Updates the authenticated user's profile information.",
+        tags: ["Users"],
+      },
+    },
+  )
+  .get(
+    "/me/providers",
+    async ({ set, auth }: any) => {
+      if (!auth) {
+        set.status = 401;
+        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+      }
+
+      try {
+        const data = await usersService.getProviders(auth.user_id);
+        return buildSuccess(data, "Providers retrieved successfully");
+      } catch (error: any) {
+        set.status = 500;
+        return buildError(ErrorCode.INTERNAL_ERROR, error.message);
+      }
+    },
+    {
+      detail: {
+        summary: "Get Linked Providers",
+        description: "Returns the list of linked authentication providers.",
+        tags: ["Users"],
+      },
+    },
+  )
+  .delete(
+    "/me/providers/:provider",
+    async ({ params: { provider }, set, auth }: any) => {
+      if (!auth) {
+        set.status = 401;
+        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+      }
+
+      try {
+        await usersService.disconnectProvider(auth.user_id, provider);
+        return buildSuccess(null, `Provider ${provider} disconnected`);
+      } catch (error: any) {
+        set.status = 400;
+        return buildError(ErrorCode.VALIDATION_ERROR, error.message);
+      }
+    },
+    {
+      detail: {
+        summary: "Disconnect Provider",
+        description:
+          "Unlinks an authentication provider from the user account.",
+        tags: ["Users"],
+      },
+    },
   );

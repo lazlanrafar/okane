@@ -59,6 +59,13 @@ export const usersRepository = {
       });
   },
 
+  async update(user_id: string, data: Partial<typeof users.$inferInsert>) {
+    await db
+      .update(users)
+      .set({ ...data, updated_at: new Date() })
+      .where(eq(users.id, user_id));
+  },
+
   async getWorkspaceId(user_id: string) {
     const [user] = await db
       .select({ workspace_id: users.workspace_id })

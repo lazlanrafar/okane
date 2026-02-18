@@ -78,7 +78,6 @@ export function SettingSidebar({
       title: sidebar.account,
       href: "/settings/account",
       icon: Settings,
-      comingSoon: true,
     },
     {
       title: sidebar.appearance,

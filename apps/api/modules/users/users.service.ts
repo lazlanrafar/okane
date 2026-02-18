@@ -1,5 +1,6 @@
 import { usersRepository } from "./users.repository";
 import { auditLogsService } from "../audit-logs/audit-logs.service";
+import { createClient } from "@workspace/supabase/server";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -120,5 +121,72 @@ export const usersService = {
       entity: "user",
       entity_id: user_id,
     });
+  },
+
+  /**
+   * Update user profile.
+   */
+  async updateProfile(user_id: string, data: { name?: string; bio?: string }) {
+    await usersRepository.update(user_id, data);
+  },
+
+  /**
+   * Get linked providers.
+   */
+  async getProviders(user_id: string) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.admin.getUserById(user_id);
+
+    if (error || !user) {
+      throw new Error(error?.message || "User not found in Supabase");
+    }
+
+    return {
+      providers: user.app_metadata.providers || [],
+      identities: user.identities || [],
+    };
+  },
+
+  /**
+   * Disconnect a provider.
+   */
+  async disconnectProvider(user_id: string, provider: string) {
+    const supabase = await createClient();
+
+    // 1. Get user to find identity ID for this provider
+    const {
+      data: { user },
+      error: getError,
+    } = await supabase.auth.admin.getUserById(user_id);
+
+    if (getError || !user) {
+      throw new Error(getError?.message || "User not found");
+    }
+
+    const identity = user.identities?.find((i: any) => i.provider === provider);
+    if (!identity) {
+      throw new Error(`Provider ${provider} not linked`);
+    }
+
+    // 2. Unlink identity
+    // Supabase admin SDK might not have "unlink" directly in all versions.
+    // However, if we are on a version that supports it:
+    if ("unlinkIdentity" in supabase.auth.admin) {
+      // @ts-ignore
+      const { error: unlinkErr } = await supabase.auth.admin.unlinkIdentity(
+        identity.id,
+      );
+      if (unlinkErr) throw unlinkErr;
+    } else {
+      throw new Error("Unlink identity not supported by this SDK version");
+    }
+
+    // 3. Update internal providers list
+    const updatedProviders =
+      user.app_metadata.providers?.filter((p: string) => p !== provider) || [];
+    await usersRepository.update(user_id, { providers: updatedProviders });
   },
 };

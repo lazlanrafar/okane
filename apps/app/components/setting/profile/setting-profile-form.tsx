@@ -1,10 +1,9 @@
 "use client";
 
+import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import Link from "next/link";
-import { useFieldArray } from "react-hook-form";
 
 import { cn } from "@workspace/ui";
 import { Button } from "@workspace/ui";
@@ -18,15 +17,11 @@ import {
   FormMessage,
 } from "@workspace/ui";
 import { Input } from "@workspace/ui";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui";
 import { Textarea } from "@workspace/ui";
 import { toast } from "sonner";
+import { getMe, updateProfileAction } from "@/actions/user.actions";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
 interface SettingProfileFormProps {
   dictionary: {
@@ -52,12 +47,6 @@ interface SettingProfileFormProps {
           placeholder: string;
           description: string;
         };
-        urls: {
-          label: string;
-          description: string;
-          add_url: string;
-          error_invalid: string;
-        };
         update_profile: string;
         toast_submitted: string;
       };
@@ -65,17 +54,18 @@ interface SettingProfileFormProps {
   };
 }
 
-const defaultValues = {
-  username: "shadcn",
-  bio: "I own a computer.",
-  urls: [
-    { value: "https://shadcn.com" },
-    { value: "http://twitter.com/shadcn" },
-  ],
-};
-
 export function SettingProfileForm({ dictionary }: SettingProfileFormProps) {
   const { profile } = dictionary.settings;
+
+  // 1. Fetch real user data
+  const { data: meData, isLoading: isMeLoading } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => {
+      const result = await getMe();
+      if (result.success) return result.data;
+      throw new Error(result.error);
+    },
+  });
 
   const profileFormSchema = z.object({
     username: z
@@ -91,37 +81,59 @@ export function SettingProfileForm({ dictionary }: SettingProfileFormProps) {
         required_error: profile.email.error_required,
       })
       .email(),
-    bio: z.string().max(160).min(4),
-    urls: z
-      .array(
-        z.object({
-          value: z.string().url({ message: profile.urls.error_invalid }),
-        }),
-      )
-      .optional(),
+    bio: z.string().max(160).optional(),
   });
 
   type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
+    defaultValues: {
+      username: "",
+      email: "",
+      bio: "",
+    },
     mode: "onChange",
   });
 
-  const { fields, append } = useFieldArray({
-    name: "urls",
-    control: form.control,
+  // 2. Sync form values when data is loaded
+  React.useEffect(() => {
+    if (meData?.user) {
+      form.reset({
+        username: meData.user.name || "",
+        email: meData.user.email,
+        bio: "",
+      });
+    }
+  }, [meData, form]);
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: ProfileFormValues) => {
+      const result = await updateProfileAction({
+        name: data.username,
+        bio: data.bio,
+      });
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    },
+    onSuccess: () => {
+      toast.success("Profile updated successfully");
+    },
+    onError: (error) => {
+      toast.error(`Error: ${(error as Error).message}`);
+    },
   });
 
   function onSubmit(data: ProfileFormValues) {
-    toast(profile.toast_submitted, {
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
+    updateMutation.mutate(data);
+  }
+
+  if (isMeLoading) {
+    return (
+      <div className="flex h-[200px] items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
   return (
@@ -147,30 +159,10 @@ export function SettingProfileForm({ dictionary }: SettingProfileFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>{profile.email.label}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder={profile.email.placeholder} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="m@example.com">m@example.com</SelectItem>
-                  <SelectItem value="m@google.com">m@google.com</SelectItem>
-                  <SelectItem value="m@support.com">m@support.com</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                {/* Note: Breaking up the link inside description is tricky with just strings. 
-                    For now, I'll strip the HTML or assume the translation includes the full text 
-                    The current translation says: "You can manage verified email addresses in your email settings."
-                    I'll render it as text, or if I want the link, I'd need rich text support.
-                    For simplicity/robustness, I'll just render the string and maybe append the link or keep the link part separate if needed.
-                    However, the original had a Link component in the middle. 
-                    I'll just leave the link static for now or include it if the translation allows interpolation (which simple JSON doesn't).
-                    I will use the translated description.
-                */}
-                {profile.email.description}
-              </FormDescription>
+              <FormControl>
+                <Input disabled {...field} />
+              </FormControl>
+              <FormDescription>{profile.email.description}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -193,39 +185,12 @@ export function SettingProfileForm({ dictionary }: SettingProfileFormProps) {
             </FormItem>
           )}
         />
-        <div>
-          {fields.map((field, index) => (
-            <FormField
-              control={form.control}
-              key={field.id}
-              name={`urls.${index}.value`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={cn(index !== 0 && "sr-only")}>
-                    {profile.urls.label}
-                  </FormLabel>
-                  <FormDescription className={cn(index !== 0 && "sr-only")}>
-                    {profile.urls.description}
-                  </FormDescription>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="mt-2"
-            onClick={() => append({ value: "" })}
-          >
-            {profile.urls.add_url}
-          </Button>
-        </div>
-        <Button type="submit">{profile.update_profile}</Button>
+        <Button type="submit" disabled={updateMutation.isPending}>
+          {updateMutation.isPending && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {profile.update_profile}
+        </Button>
       </form>
     </Form>
   );

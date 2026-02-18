@@ -108,6 +108,18 @@
       "update_profile": "Perbarui profil",
       "toast_submitted": "Anda mengirimkan nilai berikut:"
     },
+    "account": {
+      "title": "Akun",
+      "description": "Kelola pengaturan akun Anda dan atur bahasa serta zona waktu pilihan Anda.",
+      "providers": {
+        "title": "Akun Terhubung",
+        "description": "Akun yang saat ini tertaut ke akun Okane Anda.",
+        "disconnect": "Putuskan",
+        "disconnect_confirm": "Apakah Anda yakin ingin memutuskan akun ini?",
+        "disconnect_success": "Akun berhasil diputuskan",
+        "primary_label": "Utama"
+      }
+    },
     "transaction": {
       "title": "Pengaturan Transaksi",
       "description": "Kelola bagaimana transaksi Anda ditangani dan ditampilkan.",

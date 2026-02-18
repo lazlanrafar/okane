@@ -108,6 +108,18 @@
       "update_profile": "プロフィールを更新",
       "toast_submitted": "以下の値を送信しました："
     },
+    "account": {
+      "title": "アカウント",
+      "description": "アカウント設定を管理し、好みの言語やタイムゾーンを設定します。",
+      "providers": {
+        "title": "連携済みのアカウント",
+        "description": "現在Okaneアカウントにリンクされているアカウントです。",
+        "disconnect": "解除する",
+        "disconnect_confirm": "このアカウントの連携を解除してもよろしいですか？",
+        "disconnect_success": "アカウントの連携を解除しました",
+        "primary_label": "プライマリ"
+      }
+    },
     "transaction": {
       "title": "取引設定",
       "description": "取引の処理方法と表示方法を管理します。",

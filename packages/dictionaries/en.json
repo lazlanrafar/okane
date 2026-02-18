@@ -108,6 +108,18 @@
       "update_profile": "Update profile",
       "toast_submitted": "You submitted the following values:"
     },
+    "account": {
+      "title": "Account",
+      "description": "Manage your account settings and set your preferred language and timezone.",
+      "providers": {
+        "title": "Connected Accounts",
+        "description": "The accounts currently linked to your Okane account.",
+        "disconnect": "Disconnect",
+        "disconnect_confirm": "Are you sure you want to disconnect this account?",
+        "disconnect_success": "Account disconnected successfully",
+        "primary_label": "Primary"
+      }
+    },
     "transaction": {
       "title": "Transaction Settings",
       "description": "Manage how your transactions are handled and displayed.",

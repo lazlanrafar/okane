@@ -93,3 +93,48 @@ export const switchWorkspaceAction = async (
     };
   }
 };
+
+export const updateProfileAction = async (data: {
+  name: string;
+  bio?: string;
+}): Promise<ActionResponse<void>> => {
+  try {
+    await axiosInstance.patch("users/me", data);
+    revalidatePath("/[locale]/settings/profile", "page");
+    return { success: true, data: undefined };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to update profile",
+    };
+  }
+};
+
+export const getProvidersAction = async (): Promise<
+  ActionResponse<{ providers: string[]; identities: any[] }>
+> => {
+  try {
+    const response = await axiosInstance.get("users/me/providers");
+    return { success: true, data: response.data.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to get providers",
+    };
+  }
+};
+
+export const disconnectProviderAction = async (
+  provider: string,
+): Promise<ActionResponse<void>> => {
+  try {
+    await axiosInstance.delete(`users/me/providers/${provider}`);
+    revalidatePath("/[locale]/settings/account", "page");
+    return { success: true, data: undefined };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to disconnect provider",
+    };
+  }
+};
