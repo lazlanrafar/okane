@@ -5,6 +5,9 @@ import {
   Settings,
   IdCard,
   LucideIcon,
+  Box,
+  Grid3x3,
+  DotSquare,
 } from "lucide-react";
 
 export interface NavSubItem {
@@ -62,17 +65,27 @@ export const sidebarItems: NavGroup[] = [
         url: "/invoices",
         icon: Banknote,
       },
+      {
+        title: "Accounts",
+        url: "/accounts",
+        icon: IdCard,
+      },
+      {
+        title: "Vault",
+        url: "/vault",
+        icon: Box,
+      },
+      {
+        title: "Apps",
+        url: "/apps",
+        icon: DotSquare,
+      },
     ],
   },
   {
     id: 3,
     label: "Others",
     items: [
-      {
-        title: "Accounts",
-        url: "/accounts",
-        icon: IdCard,
-      },
       {
         title: "Settings",
         url: "/settings",

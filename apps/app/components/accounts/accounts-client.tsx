@@ -13,6 +13,7 @@ import {
   Wallet,
   WalletGroup,
 } from "@/components/shared/wallet-display";
+import { useCurrency } from "@/hooks/use-currency";
 import {
   Skeleton,
   Table,
@@ -111,6 +112,7 @@ export function AccountsClient({
   walletsDictionary,
 }: AccountsClientProps) {
   const queryClient = useQueryClient();
+  const { formatAmount } = useCurrency();
 
   // Dialog States
   const [isWalletDialogOpen, setIsWalletDialogOpen] = React.useState(false);
@@ -234,10 +236,7 @@ export function AccountsClient({
   }, [wallets, groups]);
 
   const formatCurrency = (amount: number) => {
-    return amount
-      .toLocaleString("id-ID", { style: "currency", currency: "IDR" })
-      .replace("Rp", "")
-      .trim();
+    return formatAmount(amount);
   };
 
   if (isLoadingWallets || isLoadingGroups) {

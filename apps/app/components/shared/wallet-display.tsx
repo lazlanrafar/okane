@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableRow, Button } from "@workspace/ui";
 import { GripVertical, Pencil, Trash2 } from "lucide-react";
 import type { Wallet } from "@/actions/wallet.actions";
 import type { WalletGroup } from "@/actions/wallet-group.actions";
+import { useCurrency } from "@/hooks/use-currency";
 
 export type { Wallet, WalletGroup };
 
@@ -28,6 +29,8 @@ export function WalletItem({
   dragListeners,
   cellsOnly = false,
 }: WalletItemProps) {
+  const { formatAmount } = useCurrency();
+
   const cells = (
     <>
       <TableCell className={cn("font-medium", mode === "view" && "py-3")}>
@@ -56,9 +59,7 @@ export function WalletItem({
             wallet.balance < 0 && "text-destructive",
           )}
         >
-          {wallet.balance
-            .toLocaleString("id-ID", { style: "currency", currency: "IDR" })
-            .replace("Rp", "Rp ")}
+          {formatAmount(wallet.balance)}
         </span>
       </TableCell>
       {mode === "manage" && (

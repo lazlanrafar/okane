@@ -1,11 +1,14 @@
 import { SettingsRepository } from "./repository";
 import type { TransactionSettingsDto } from "./dto";
+import { encrypt } from "@workspace/encryption";
 
 export class SettingsService {
   private repository: SettingsRepository;
+  private encryptionSecret: string;
 
   constructor() {
     this.repository = new SettingsRepository();
+    this.encryptionSecret = process.env.ENCRYPTION_KEY || "";
   }
 
   async getTransactionSettings(workspaceId: string) {
@@ -16,7 +19,12 @@ export class SettingsService {
       return this.repository.create(workspaceId);
     }
 
-    return settings;
+    // Sanitize sensitive fields
+    return {
+      ...settings,
+      r2AccessKeyId: settings.r2AccessKeyId ? "********" : null,
+      r2SecretAccessKey: settings.r2SecretAccessKey ? "********" : null,
+    };
   }
 
   async updateTransactionSettings(
@@ -29,6 +37,29 @@ export class SettingsService {
       await this.repository.create(workspaceId);
     }
 
-    return this.repository.update(workspaceId, data);
+    const updateData = { ...data };
+
+    if (updateData.r2AccessKeyId && updateData.r2AccessKeyId !== "********") {
+      updateData.r2AccessKeyId = encrypt(
+        updateData.r2AccessKeyId,
+        this.encryptionSecret,
+      );
+    } else {
+      delete updateData.r2AccessKeyId;
+    }
+
+    if (
+      updateData.r2SecretAccessKey &&
+      updateData.r2SecretAccessKey !== "********"
+    ) {
+      updateData.r2SecretAccessKey = encrypt(
+        updateData.r2SecretAccessKey,
+        this.encryptionSecret,
+      );
+    } else {
+      delete updateData.r2SecretAccessKey;
+    }
+
+    return this.repository.update(workspaceId, updateData);
   }
 }

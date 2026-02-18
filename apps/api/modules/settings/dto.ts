@@ -18,6 +18,10 @@ export const TransactionSettingsDto = t.Object({
   mainCurrencySymbol: t.Optional(t.String()),
   mainCurrencySymbolPosition: t.Optional(t.String()),
   mainCurrencyDecimalPlaces: t.Optional(t.Number()),
+  r2Endpoint: t.Optional(t.Nullable(t.String())),
+  r2AccessKeyId: t.Optional(t.Nullable(t.String())),
+  r2SecretAccessKey: t.Optional(t.Nullable(t.String())),
+  r2BucketName: t.Optional(t.Nullable(t.String())),
 });
 
 export type TransactionSettingsDto = typeof TransactionSettingsDto.static;

@@ -21,6 +21,7 @@ import { authController } from "./modules/auth";
 import { settingsController } from "./modules/settings";
 import { categoriesController } from "./modules/categories";
 import { walletsController } from "./modules/wallets/wallets.controller";
+import { vaultController } from "./modules/vault/vault.controller";
 
 const log = createLogger("api");
 const port = process.env.API_PORT ?? 3001;
@@ -48,12 +49,11 @@ const app = new Elysia()
       .use(healthController)
       .use(usersController)
       .use(workspacesController)
-      .use(workspacesController)
       .use(authController)
       .use(settingsController)
-      .use(settingsController)
       .use(categoriesController)
-      .use(walletsController),
+      .use(walletsController)
+      .use(vaultController),
   )
   .onError(({ error, code }) => {
     if (code === "NOT_FOUND") return;

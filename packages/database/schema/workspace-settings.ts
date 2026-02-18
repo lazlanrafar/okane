@@ -36,6 +36,10 @@ export const workspaceSettings = pgTable("workspace_settings", {
   mainCurrencyDecimalPlaces: integer("main_currency_decimal_places")
     .default(2)
     .notNull(),
+  r2Endpoint: text("r2_endpoint"),
+  r2AccessKeyId: text("r2_access_key_id"),
+  r2SecretAccessKey: text("r2_secret_access_key"),
+  r2BucketName: text("r2_bucket_name"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   deletedAt: timestamp("deleted_at"),

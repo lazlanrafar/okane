@@ -21,6 +21,10 @@ export interface TransactionSettings {
   mainCurrencySymbol: string;
   mainCurrencySymbolPosition: "Front" | "Back";
   mainCurrencyDecimalPlaces: number;
+  r2Endpoint?: string | null;
+  r2AccessKeyId?: string | null;
+  r2SecretAccessKey?: string | null;
+  r2BucketName?: string | null;
 }
 
 export interface SubCurrency {
