@@ -188,4 +188,33 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
         tags: ["Workspaces"],
       },
     },
+  )
+  .post(
+    "/invitations/accept",
+    async ({ body, set, auth }: any) => {
+      if (!auth) {
+        set.status = 401;
+        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+      }
+
+      try {
+        const workspaceId = await workspacesService.acceptInvitationByToken(
+          body.token,
+          auth.user_id,
+        );
+        return buildSuccess(
+          { workspaceId },
+          "Invitation accepted successfully",
+        );
+      } catch (error: any) {
+        set.status = 400;
+        return buildError(ErrorCode.VALIDATION_ERROR, error.message);
+      }
+    },
+    {
+      detail: {
+        summary: "Accept Invitation",
+        tags: ["Workspaces"],
+      },
+    },
   );

@@ -303,4 +303,58 @@ export const workspacesService = {
 
     return invitation.workspaceId;
   },
+
+  async acceptInvitationByToken(token: string, user_id: string) {
+    // 1. Find pending invitation by token
+    const invitation = await workspacesRepository.findInvitationByToken(token);
+
+    if (!invitation || invitation.status !== "pending") {
+      throw new Error("Invalid or expired invitation");
+    }
+
+    // 2. Check expiry
+    if (new Date() > new Date(invitation.expiresAt)) {
+      await workspacesRepository.updateInvitationStatus(
+        invitation.id,
+        "expired",
+      );
+      throw new Error("Invitation has expired");
+    }
+
+    // 3. Add member if not already a member
+    const existingMembership = await workspacesRepository.getMembership(
+      user_id,
+      invitation.workspaceId,
+    );
+    if (!existingMembership) {
+      await workspacesRepository.addMember({
+        workspace_id: invitation.workspaceId,
+        user_id,
+        role: invitation.role,
+      });
+    }
+
+    // 4. Update invitation status
+    await workspacesRepository.updateInvitationStatus(
+      invitation.id,
+      "accepted",
+    );
+
+    // 5. Set as active workspace if user has none
+    const currentWorkspace = await usersRepository.getWorkspaceId(user_id);
+    if (!currentWorkspace) {
+      await usersRepository.setWorkspaceId(user_id, invitation.workspaceId);
+    }
+
+    // 6. Log action
+    await auditLogsService.log({
+      workspace_id: invitation.workspaceId,
+      user_id,
+      action: "workspace.invitation_accepted",
+      entity: "invitation",
+      entity_id: invitation.id,
+    });
+
+    return invitation.workspaceId;
+  },
 };

@@ -16,6 +16,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@workspace/ui";
+import { switchWorkspaceAction } from "@/actions/user.actions";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 type WorkspaceData = {
   id: string;
@@ -26,13 +29,50 @@ type WorkspaceData = {
 
 export function WorkspaceSwitcher({
   workspaces,
+  activeWorkspaceId,
 }: {
   workspaces: WorkspaceData[];
+  activeWorkspaceId?: string | null;
 }) {
   const { isMobile } = useSidebar();
   const [activeWorkspace, setActiveWorkspace] = React.useState(
-    workspaces?.[0] ?? null,
+    workspaces.find((w) => w.id === activeWorkspaceId) ??
+      workspaces?.[0] ??
+      null,
   );
+
+  const [isSwitching, setIsSwitching] = React.useState(false);
+
+  // Sync state if activeWorkspaceId changes (e.g. from parent)
+  React.useEffect(() => {
+    if (activeWorkspaceId) {
+      const found = workspaces.find((w) => w.id === activeWorkspaceId);
+      if (found) {
+        setActiveWorkspace(found);
+      }
+    }
+  }, [activeWorkspaceId, workspaces]);
+
+  const handleSwitch = async (workspace: WorkspaceData) => {
+    if (workspace.id === activeWorkspace?.id) return;
+
+    setIsSwitching(true);
+    try {
+      const result = await switchWorkspaceAction(workspace.id);
+      if (result.success) {
+        setActiveWorkspace(workspace);
+        toast.success(`Switched to ${workspace.name}`);
+        // Refresh to ensure all data is refetched with new workspace context
+        window.location.reload();
+      } else {
+        toast.error(result.error || "Failed to switch workspace");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsSwitching(false);
+    }
+  };
 
   if (!activeWorkspace) {
     return null;
@@ -48,7 +88,11 @@ export function WorkspaceSwitcher({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-semibold text-sm">
-                {activeWorkspace.name.charAt(0).toUpperCase()}
+                {isSwitching ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  activeWorkspace.name.charAt(0).toUpperCase()
+                )}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
@@ -73,8 +117,9 @@ export function WorkspaceSwitcher({
             {workspaces.map((workspace, index) => (
               <DropdownMenuItem
                 key={workspace.id}
-                onClick={() => setActiveWorkspace(workspace)}
+                onClick={() => handleSwitch(workspace)}
                 className="gap-2 p-2"
+                disabled={isSwitching}
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border font-semibold text-xs">
                   {workspace.name.charAt(0).toUpperCase()}

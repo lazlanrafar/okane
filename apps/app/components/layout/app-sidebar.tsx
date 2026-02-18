@@ -52,7 +52,10 @@ export function AppSidebar({
   return (
     <Sidebar {...rest} variant={variant} collapsible={collapsible}>
       <SidebarHeader>
-        <WorkspaceSwitcher workspaces={workspaces} />
+        <WorkspaceSwitcher
+          workspaces={workspaces}
+          activeWorkspaceId={currentUser?.workspace_id}
+        />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={sidebarItems} />

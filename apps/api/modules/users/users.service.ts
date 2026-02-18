@@ -97,4 +97,28 @@ export const usersService = {
       workspaces,
     };
   },
+  /**
+   * Update the user's active workspace.
+   */
+  async updateActiveWorkspace(user_id: string, workspace_id: string) {
+    // 1. Verify membership
+    const memberships = await usersRepository.getMemberships(user_id);
+    const isMember = memberships.some((m) => m.workspace_id === workspace_id);
+
+    if (!isMember) {
+      throw new Error("User is not a member of this workspace");
+    }
+
+    // 2. Update active workspace
+    await usersRepository.setWorkspaceId(user_id, workspace_id);
+
+    // 3. Log action
+    await auditLogsService.log({
+      workspace_id,
+      user_id,
+      action: "user.workspace_switched",
+      entity: "user",
+      entity_id: user_id,
+    });
+  },
 };

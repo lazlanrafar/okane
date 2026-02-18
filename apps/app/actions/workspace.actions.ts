@@ -112,3 +112,20 @@ export const cancelInvitation = async (
     };
   }
 };
+
+export const acceptInvitationAction = async (
+  token: string,
+): Promise<ActionResponse<{ workspaceId: string }>> => {
+  try {
+    const response = await axiosInstance.post<{ workspaceId: string }>(
+      "workspaces/invitations/accept",
+      { token },
+    );
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to accept invitation",
+    };
+  }
+};

@@ -66,4 +66,31 @@ export const usersController = new Elysia({ prefix: "/users" })
         tags: ["Users"],
       },
     },
+  )
+  .patch(
+    "/me/workspace",
+    async ({ body, set, auth }: any) => {
+      if (!auth) {
+        set.status = 401;
+        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+      }
+
+      try {
+        await usersService.updateActiveWorkspace(
+          auth.user_id,
+          body.workspace_id,
+        );
+        return buildSuccess(null, "Workspace switched successfully");
+      } catch (error: any) {
+        set.status = 400;
+        return buildError(ErrorCode.VALIDATION_ERROR, error.message);
+      }
+    },
+    {
+      detail: {
+        summary: "Switch Active Workspace",
+        description: "Updates the authenticated user's active workspace ID.",
+        tags: ["Users"],
+      },
+    },
   );
