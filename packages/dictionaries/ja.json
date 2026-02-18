@@ -33,8 +33,7 @@
       "general": "一般設定",
       "backup": "バックアップ",
       "passcode": "パスコード",
-      "main_currency": "主要通貨設定",
-      "sub_currency": "サブ通貨設定",
+      "currency": "通貨設定",
       "alarm": "アラーム設定",
       "language": "言語設定",
       "soon": "近日公開"

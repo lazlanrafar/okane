@@ -1,16 +1,22 @@
 import { Elysia, t } from "elysia";
 import { SettingsService } from "./service";
 import { TransactionSettingsDto } from "./dto";
+import { subCurrenciesController } from "./sub-currencies/controller";
+import { ratesController } from "./rates.controller";
 import { isAuthenticated } from "../auth/utils";
 import { buildSuccess } from "@workspace/utils";
 
 export const settingsController = new Elysia({ prefix: "/settings" })
   .use(isAuthenticated)
-  .decorate("service", new SettingsService())
+  .use(subCurrenciesController)
+  .use(ratesController)
+  .decorate("settingsService", new SettingsService())
   .get(
     "/transaction",
-    async ({ service, user }) => {
-      const settings = await service.getTransactionSettings(user.workspace_id);
+    async ({ settingsService, user }) => {
+      const settings = await settingsService.getTransactionSettings(
+        user.workspace_id,
+      );
       return buildSuccess(
         settings,
         "Transaction settings retrieved successfully",
@@ -25,8 +31,8 @@ export const settingsController = new Elysia({ prefix: "/settings" })
   )
   .patch(
     "/transaction",
-    async ({ service, user, body }) => {
-      const settings = await service.updateTransactionSettings(
+    async ({ settingsService, user, body }) => {
+      const settings = await settingsService.updateTransactionSettings(
         user.workspace_id,
         body,
       );

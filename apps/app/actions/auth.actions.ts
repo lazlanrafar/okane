@@ -159,7 +159,11 @@ export async function logout() {
   redirect("/login");
 }
 
-export async function createWorkspaceAction(name: string) {
+export async function createWorkspaceAction(data: {
+  name: string;
+  mainCurrencyCode?: string;
+  mainCurrencySymbol?: string;
+}) {
   const supabase = await createClient();
   const {
     data: { session },
@@ -171,7 +175,7 @@ export async function createWorkspaceAction(name: string) {
 
   try {
     // 1. Create workspace via API
-    await createWorkspace({ name }, session.access_token);
+    await createWorkspace(data, session.access_token);
 
     // 2. Exchange token for app JWT (now with workspace_id)
     const { token } = await exchangeToken(session.access_token);

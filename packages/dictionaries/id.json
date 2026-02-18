@@ -33,8 +33,7 @@
       "general": "Pengaturan Umum",
       "backup": "Cadangan",
       "passcode": "Kode Sandi",
-      "main_currency": "Mata Uang Utama",
-      "sub_currency": "Mata Uang Sub",
+      "currency": "Pengaturan Mata Uang",
       "alarm": "Pengaturan Alarm",
       "language": "Pengaturan Bahasa",
       "soon": "Segera"

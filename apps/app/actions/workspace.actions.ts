@@ -3,6 +3,8 @@ import type { Workspace, WorkspaceWithRole } from "@workspace/types";
 
 export interface CreateWorkspaceDTO {
   name: string;
+  mainCurrencyCode?: string;
+  mainCurrencySymbol?: string;
 }
 
 export const createWorkspace = async (

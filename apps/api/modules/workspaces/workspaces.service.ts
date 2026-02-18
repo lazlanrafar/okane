@@ -23,7 +23,15 @@ export const workspacesService = {
   /**
    * Create a new workspace and assign creator as owner.
    */
-  async createWorkspace(user_id: string, name: string) {
+  async createWorkspace(
+    user_id: string,
+    data: {
+      name: string;
+      mainCurrencyCode?: string;
+      mainCurrencySymbol?: string;
+    },
+  ) {
+    const { name, mainCurrencyCode, mainCurrencySymbol } = data;
     // Generate slug
     const base_slug =
       name.toLowerCase().replace(/[^a-z0-9]/g, "-") || "workspace";
@@ -65,7 +73,10 @@ export const workspacesService = {
     await categoriesRepository.createMany(defaultCategories);
 
     // 5. Create default workspace settings
-    await settingsRepository.create(workspace.id);
+    await settingsRepository.create(workspace.id, {
+      mainCurrencyCode,
+      mainCurrencySymbol,
+    } as any);
 
     // 6. Populate default wallet groups
     const defaultGroups = await walletGroupsRepository.createMany(

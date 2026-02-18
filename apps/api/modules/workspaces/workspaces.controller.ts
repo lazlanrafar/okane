@@ -28,7 +28,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
       try {
         const workspace = await workspacesService.createWorkspace(
           auth.user_id,
-          body.name,
+          body,
         );
         set.status = 201;
         return buildSuccess(workspace, "Workspace created successfully");

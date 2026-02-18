@@ -1,5 +1,8 @@
 export * from "./default/category";
 export * from "./default/wallet";
+import countriesJson from "./countries.json";
+
+export const COUNTRIES = countriesJson;
 
 export const WEEKLY_START_DAY_OPTIONS = [
   "Sunday",

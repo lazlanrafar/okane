@@ -28,6 +28,14 @@ export const workspaceSettings = pgTable("workspace_settings", {
   showDescription: boolean("show_description").default(false).notNull(),
   inputOrder: text("input_order").default("Amount").notNull(),
   noteButton: boolean("note_button").default(false).notNull(),
+  mainCurrencyCode: text("main_currency_code").default("USD").notNull(),
+  mainCurrencySymbol: text("main_currency_symbol").default("$").notNull(),
+  mainCurrencySymbolPosition: text("main_currency_symbol_position")
+    .default("Front")
+    .notNull(),
+  mainCurrencyDecimalPlaces: integer("main_currency_decimal_places")
+    .default(2)
+    .notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   deletedAt: timestamp("deleted_at"),

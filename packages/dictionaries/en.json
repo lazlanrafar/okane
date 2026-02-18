@@ -33,8 +33,7 @@
       "general": "General Settings",
       "backup": "Backup",
       "passcode": "Passcode",
-      "main_currency": "Main Currency Setting",
-      "sub_currency": "Sub Currency Setting",
+      "currency": "Currency Setting",
       "alarm": "Alarm Setting",
       "language": "Language Setting",
       "soon": "Soon"

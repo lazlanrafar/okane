@@ -17,4 +17,15 @@ export interface TransactionSettings {
   showDescription: boolean;
   inputOrder: string;
   noteButton: boolean;
+  mainCurrencyCode: string;
+  mainCurrencySymbol: string;
+  mainCurrencySymbolPosition: "Front" | "Back";
+  mainCurrencyDecimalPlaces: number;
+}
+
+export interface SubCurrency {
+  id: string;
+  workspaceId: string;
+  currencyCode: string;
+  createdAt: string;
 }

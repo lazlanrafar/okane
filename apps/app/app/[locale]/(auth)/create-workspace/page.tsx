@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Building2 } from "lucide-react";
+import { Building2, Globe } from "lucide-react";
 import { createBrowserClient } from "@workspace/supabase/client";
 import { createWorkspaceAction } from "../../../../actions/auth.actions";
+import { CurrencySelector } from "@/components/setting/currency-selector";
 
 export default function CreateWorkspacePage() {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [currency, setCurrency] = useState({ code: "USD", symbol: "$" });
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState<string | null>(null);
 
@@ -33,7 +35,11 @@ export default function CreateWorkspacePage() {
     set_is_loading(true);
     set_error(null);
 
-    const result = await createWorkspaceAction(name.trim());
+    const result = await createWorkspaceAction({
+      name: name.trim(),
+      mainCurrencyCode: currency.code,
+      mainCurrencySymbol: currency.symbol,
+    });
 
     if (result?.error) {
       set_error(result.error);
@@ -55,7 +61,7 @@ export default function CreateWorkspacePage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <label
             htmlFor="workspace-name"
@@ -75,6 +81,20 @@ export default function CreateWorkspacePage() {
             autoFocus
             disabled={is_loading}
           />
+        </div>
+
+        <div className="space-y-2 flex flex-col">
+          <span className="font-medium text-sm leading-none">
+            Default Currency
+          </span>
+          <CurrencySelector
+            value={`${currency.code} (${currency.symbol})`}
+            onSelect={(c) => setCurrency({ code: c.code, symbol: c.symbol })}
+          />
+          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <Globe className="size-3" />
+            Can be changed later in settings
+          </p>
         </div>
 
         {error && (

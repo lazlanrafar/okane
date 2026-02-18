@@ -43,6 +43,13 @@
       "when": 1770974851458,
       "tag": "0005_fearless_bug",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1771049266224,
+      "tag": "0006_loud_jetstream",
+      "breakpoints": true
     }
   ]
 }

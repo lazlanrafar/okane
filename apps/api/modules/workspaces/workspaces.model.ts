@@ -5,4 +5,6 @@ import { t } from "elysia";
  */
 export const CreateWorkspaceBody = t.Object({
   name: t.String({ minLength: 1 }),
+  mainCurrencyCode: t.Optional(t.String()),
+  mainCurrencySymbol: t.Optional(t.String()),
 });

@@ -14,6 +14,10 @@ export const TransactionSettingsDto = t.Object({
   showDescription: t.Optional(t.Boolean()),
   inputOrder: t.Optional(t.String()),
   noteButton: t.Optional(t.Boolean()),
+  mainCurrencyCode: t.Optional(t.String()),
+  mainCurrencySymbol: t.Optional(t.String()),
+  mainCurrencySymbolPosition: t.Optional(t.String()),
+  mainCurrencyDecimalPlaces: t.Optional(t.Number()),
 });
 
 export type TransactionSettingsDto = typeof TransactionSettingsDto.static;

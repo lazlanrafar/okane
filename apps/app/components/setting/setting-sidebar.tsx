@@ -42,8 +42,7 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
       general: string;
       backup: string;
       passcode: string;
-      main_currency: string;
-      sub_currency: string;
+      currency: string;
       alarm: string;
       language: string;
       soon: string;
@@ -139,16 +138,9 @@ export function SettingSidebar({
           comingSoon: true,
         },
         {
-          title: sidebar.main_currency,
-          href: "/settings/main-currency",
+          title: sidebar.currency,
+          href: "/settings/currency",
           icon: Banknote,
-          comingSoon: true,
-        },
-        {
-          title: sidebar.sub_currency,
-          href: "/settings/sub-currency",
-          icon: Banknote,
-          comingSoon: true,
         },
         {
           title: sidebar.alarm,
