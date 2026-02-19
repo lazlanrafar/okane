@@ -1,13 +1,15 @@
 import {
   Banknote,
-  ChartBar,
   LayoutDashboard,
   Settings,
   IdCard,
   LucideIcon,
   Box,
-  Grid3x3,
   DotSquare,
+  Users,
+  Clock,
+  Inbox,
+  FileText,
 } from "lucide-react";
 
 export interface NavSubItem {
@@ -38,23 +40,13 @@ export interface NavGroup {
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
-    // label: "Overview",
+    // label: "Core",
     items: [
       {
         title: "Overview",
         url: "/dashboard/default",
         icon: LayoutDashboard,
       },
-      // {
-      //   title: "CRM",
-      //   url: "/dashboard/crm",
-      //   icon: ChartBar,
-      // },
-      // {
-      //   title: "Finance",
-      //   url: "/dashboard/finance",
-      //   icon: Banknote,
-      // },
       {
         title: "Transactions",
         url: "/transactions",
@@ -62,14 +54,41 @@ export const sidebarItems: NavGroup[] = [
       },
       {
         title: "Invoices",
-        url: "/invoices",
-        icon: Banknote,
+        url: "/coming-soon",
+        icon: FileText,
       },
       {
         title: "Accounts",
         url: "/accounts",
         icon: IdCard,
       },
+    ],
+  },
+  {
+    id: 2,
+    label: "Management",
+    items: [
+      {
+        title: "Customers",
+        url: "/coming-soon",
+        icon: Users,
+      },
+      {
+        title: "Tracker",
+        url: "/coming-soon",
+        icon: Clock,
+      },
+      {
+        title: "Inbox",
+        url: "/coming-soon",
+        icon: Inbox,
+      },
+    ],
+  },
+  {
+    id: 3,
+    label: "Storage",
+    items: [
       {
         title: "Vault",
         url: "/vault",
@@ -83,7 +102,7 @@ export const sidebarItems: NavGroup[] = [
     ],
   },
   {
-    id: 3,
+    id: 4,
     label: "Others",
     items: [
       {
