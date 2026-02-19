@@ -2,15 +2,7 @@
 
 import { axiosInstance as api } from "@/lib/axios";
 import type { ActionResponse } from "@workspace/types";
-
-export interface Category {
-  id: string;
-  name: string;
-  type: "income" | "expense";
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Category } from "@workspace/types";
 
 export interface CreateCategoryData {
   name: string;
@@ -21,34 +13,30 @@ export interface UpdateCategoryData {
   name?: string;
 }
 
-export const getIncomeCategories = async (): Promise<
-  ActionResponse<Category[]>
-> => {
+export const getCategories = async (
+  type?: "income" | "expense",
+): Promise<ActionResponse<Category[]>> => {
   try {
-    const res = await api.get("/categories?type=income");
+    const res = await api.get("/categories", { params: { type } });
     return { success: true, data: res.data || [] };
   } catch (error: any) {
     return {
       success: false,
-      error:
-        error.response?.data?.message || "Failed to fetch income categories",
+      error: error.response?.data?.message || "Failed to fetch categories",
     };
   }
+};
+
+export const getIncomeCategories = async (): Promise<
+  ActionResponse<Category[]>
+> => {
+  return getCategories("income");
 };
 
 export const getExpenseCategories = async (): Promise<
   ActionResponse<Category[]>
 > => {
-  try {
-    const res = await api.get("/categories?type=expense");
-    return { success: true, data: res.data || [] };
-  } catch (error: any) {
-    return {
-      success: false,
-      error:
-        error.response?.data?.message || "Failed to fetch expense categories",
-    };
-  }
+  return getCategories("expense");
 };
 
 export const createCategory = async (

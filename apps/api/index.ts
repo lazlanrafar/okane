@@ -22,6 +22,7 @@ import { settingsController } from "./modules/settings";
 import { categoriesController } from "./modules/categories";
 import { walletsController } from "./modules/wallets/wallets.controller";
 import { vaultController } from "./modules/vault/vault.controller";
+import { transactions } from "./modules/transactions/transactions.controller";
 
 const log = createLogger("api");
 const port = process.env.API_PORT ?? 3001;
@@ -53,7 +54,8 @@ const app = new Elysia()
       .use(settingsController)
       .use(categoriesController)
       .use(walletsController)
-      .use(vaultController),
+      .use(vaultController)
+      .use(transactions),
   )
   .onError(({ error, code }) => {
     if (code === "NOT_FOUND") return;
