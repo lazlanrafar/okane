@@ -1,6 +1,28 @@
-import { db, eq, and, desc, isNull, vaultFiles } from "@workspace/database";
+import {
+  db,
+  eq,
+  and,
+  desc,
+  isNull,
+  vaultFiles,
+  count,
+  sql,
+} from "@workspace/database";
 
 export const vaultRepository = {
+  async count(workspaceId: string) {
+    const [result] = await db
+      .select({ value: count() })
+      .from(vaultFiles)
+      .where(
+        and(
+          eq(vaultFiles.workspaceId, workspaceId),
+          isNull(vaultFiles.deletedAt),
+        ),
+      );
+    return result?.value ?? 0;
+  },
+
   async create(data: {
     workspaceId: string;
     name: string;
@@ -30,7 +52,7 @@ export const vaultRepository = {
     return file ?? null;
   },
 
-  async findMany(workspaceId: string) {
+  async findMany(workspaceId: string, limit: number = 20, offset: number = 0) {
     return db
       .select()
       .from(vaultFiles)
@@ -40,7 +62,9 @@ export const vaultRepository = {
           isNull(vaultFiles.deletedAt),
         ),
       )
-      .orderBy(desc(vaultFiles.createdAt));
+      .orderBy(desc(vaultFiles.createdAt))
+      .limit(limit)
+      .offset(offset);
   },
 
   async findById(id: string, workspaceId: string) {
@@ -55,6 +79,17 @@ export const vaultRepository = {
         ),
       )
       .limit(1);
+    return file ?? null;
+  },
+
+  async updateTags(id: string, workspaceId: string, tags: string[]) {
+    const [file] = await db
+      .update(vaultFiles)
+      .set({ tags, updatedAt: new Date() })
+      .where(
+        and(eq(vaultFiles.id, id), eq(vaultFiles.workspaceId, workspaceId)),
+      )
+      .returning();
     return file ?? null;
   },
 };

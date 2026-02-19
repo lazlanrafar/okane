@@ -2,6 +2,8 @@ import { vaultRepository } from "./vault.repository";
 import { BucketClient } from "@workspace/bucket";
 import { db, workspaceSettings, eq, and, isNull } from "@workspace/database";
 import { decrypt } from "@workspace/encryption";
+import { buildPagination, parsePaginationQuery } from "@workspace/utils";
+import type { PaginationQuery } from "@workspace/types";
 
 export class VaultService {
   private async getBucketClient(workspaceId: string) {
@@ -78,17 +80,28 @@ export class VaultService {
     });
   }
 
-  async listFiles(workspaceId: string) {
-    const files = await vaultRepository.findMany(workspaceId);
+  async listFiles(workspaceId: string, query: PaginationQuery) {
+    const { limit, offset, page } = parsePaginationQuery(query);
+
+    const [files, total] = await Promise.all([
+      vaultRepository.findMany(workspaceId, limit, offset),
+      vaultRepository.count(workspaceId),
+    ]);
+
     const bucket = await this.getBucketClient(workspaceId);
 
     // Provide signed URLs for each file
-    return Promise.all(
+    const filesWithUrls = await Promise.all(
       files.map(async (file) => ({
         ...file,
         url: await bucket.getSignedUrl(file.key),
       })),
     );
+
+    return {
+      files: filesWithUrls,
+      pagination: buildPagination(total, page, limit),
+    };
   }
 
   async deleteFile(workspaceId: string, fileId: string) {
@@ -107,6 +120,10 @@ export class VaultService {
 
     const bucket = await this.getBucketClient(workspaceId);
     return bucket.getSignedUrl(file.key);
+  }
+
+  async updateTags(workspaceId: string, fileId: string, tags: string[]) {
+    return vaultRepository.updateTags(fileId, workspaceId, tags);
   }
 }
 

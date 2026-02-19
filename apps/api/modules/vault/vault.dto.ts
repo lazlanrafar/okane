@@ -13,8 +13,18 @@ export const vaultFileResponse = t.Object({
   key: t.String(),
   size: t.Number(),
   type: t.String(),
+  tags: t.Array(t.String()),
   metadata: t.Nullable(t.String()),
   url: t.Optional(t.String()),
   createdAt: t.String(),
   updatedAt: t.String(),
+});
+
+export const updateTagsBody = t.Object({
+  tags: t.Array(t.String()),
+});
+
+export const getVaultFilesQuery = t.Object({
+  page: t.Optional(t.Numeric()),
+  limit: t.Optional(t.Numeric()),
 });

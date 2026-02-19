@@ -1,4 +1,11 @@
-import { pgTable, text, timestamp, uuid, bigint } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  bigint,
+  jsonb,
+} from "drizzle-orm/pg-core";
 import { workspaces } from "./workspaces";
 
 export const vaultFiles = pgTable("vault_files", {
@@ -10,6 +17,7 @@ export const vaultFiles = pgTable("vault_files", {
   key: text("key").notNull(),
   size: bigint("size", { mode: "number" }).notNull(),
   type: text("type").notNull(),
+  tags: jsonb("tags").$type<string[]>().default([]).notNull(),
   metadata: text("metadata"), // JSON string
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

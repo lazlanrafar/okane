@@ -1,9 +1,17 @@
 import { Elysia, t } from "elysia";
 import { vaultService } from "./vault.service";
 import { authPlugin } from "../../plugins/auth";
-import { buildSuccess, buildError } from "@workspace/utils";
+import {
+  buildPaginatedSuccess,
+  buildSuccess,
+  buildError,
+} from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
-import { uploadFileBody } from "./vault.dto";
+import {
+  uploadFileBody,
+  updateTagsBody,
+  getVaultFilesQuery,
+} from "./vault.dto";
 
 export const vaultController = new Elysia({ prefix: "/vault" })
   .use(authPlugin)
@@ -16,10 +24,19 @@ export const vaultController = new Elysia({ prefix: "/vault" })
       return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
     }
   })
-  .get("/", async ({ workspaceId }) => {
-    const data = await vaultService.listFiles(workspaceId!);
-    return buildSuccess(data, "Files retrieved");
-  })
+  .get(
+    "/",
+    async ({ workspaceId, query }) => {
+      const { files, pagination } = await vaultService.listFiles(
+        workspaceId!,
+        query,
+      );
+      return buildPaginatedSuccess(files, pagination, "Files retrieved");
+    },
+    {
+      query: getVaultFilesQuery,
+    },
+  )
   .post(
     "/upload",
     async ({ workspaceId, body: { file }, set }) => {
@@ -51,4 +68,14 @@ export const vaultController = new Elysia({ prefix: "/vault" })
   .get("/:id/download", async ({ workspaceId, params: { id } }) => {
     const url = await vaultService.getDownloadUrl(workspaceId!, id);
     return buildSuccess({ url }, "Download URL generated");
-  });
+  })
+  .patch(
+    "/:id/tags",
+    async ({ workspaceId, params: { id }, body: { tags } }) => {
+      const data = await vaultService.updateTags(workspaceId!, id, tags);
+      return buildSuccess(data, "Tags updated successfully");
+    },
+    {
+      body: updateTagsBody,
+    },
+  );

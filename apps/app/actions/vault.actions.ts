@@ -1,7 +1,7 @@
 "use server";
 
 import { axiosInstance as api } from "@/lib/axios";
-import type { ActionResponse } from "@workspace/types";
+import type { ActionResponse, PaginationMeta } from "@workspace/types";
 
 export interface VaultFile {
   id: string;
@@ -10,16 +10,33 @@ export interface VaultFile {
   key: string;
   size: number;
   type: string;
+  tags: string[];
   metadata: string | null;
   url: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export const getVaultFiles = async (): Promise<ActionResponse<VaultFile[]>> => {
+export type PaginatedVaultFiles = {
+  files: VaultFile[];
+  pagination: PaginationMeta;
+};
+
+export const getVaultFiles = async (
+  page: number = 1,
+  limit: number = 20,
+): Promise<ActionResponse<PaginatedVaultFiles>> => {
   try {
-    const res = await api.get("/vault");
-    return { success: true, data: res.data };
+    const res = await api.get("/vault", {
+      params: { page, limit },
+    });
+    return {
+      success: true,
+      data: {
+        files: res.data,
+        pagination: (res as any)._api_response.meta.pagination,
+      },
+    };
   } catch (error: any) {
     return {
       success: false,
@@ -68,6 +85,21 @@ export const getVaultDownloadUrl = async (
     return {
       success: false,
       error: error.response?.data?.message || "Failed to generate download URL",
+    };
+  }
+};
+
+export const updateVaultFileTags = async (
+  id: string,
+  tags: string[],
+): Promise<ActionResponse<VaultFile>> => {
+  try {
+    const res = await api.patch(`/vault/${id}/tags`, { tags });
+    return { success: true, data: res.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to update tags",
     };
   }
 };
