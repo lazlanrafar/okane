@@ -10,6 +10,8 @@ import {
   inArray,
 } from "@workspace/database";
 
+export type WalletsRepository = typeof walletsRepository;
+
 export const walletsRepository = {
   async create(data: {
     workspaceId: string;
@@ -173,5 +175,17 @@ export const walletsRepository = {
       .where(
         and(inArray(wallets.id, ids), eq(wallets.workspaceId, workspaceId)),
       );
+  },
+
+  async updateBalance(id: string, workspaceId: string, amount: number) {
+    const [wallet] = await db
+      .update(wallets)
+      .set({
+        balance: sql`${wallets.balance} + ${amount}`,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(and(eq(wallets.id, id), eq(wallets.workspaceId, workspaceId)))
+      .returning();
+    return wallet ?? null;
   },
 };

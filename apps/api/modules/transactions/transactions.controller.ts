@@ -1,6 +1,7 @@
 import { Elysia, t } from "elysia";
 import { TransactionsService } from "./transactions.service";
 import { TransactionsRepository } from "./transactions.repository";
+import { walletsRepository } from "../wallets/wallets.repository";
 import {
   CreateTransactionBody,
   GetTransactionsQuery,
@@ -15,7 +16,7 @@ export const transactions = new Elysia({ prefix: "/transactions" })
   .use(authPlugin)
   .decorate(
     "transactionsService",
-    new TransactionsService(new TransactionsRepository()),
+    new TransactionsService(new TransactionsRepository(), walletsRepository),
   )
   .get(
     "/",

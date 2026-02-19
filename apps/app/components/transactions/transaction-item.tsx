@@ -1,5 +1,4 @@
 import { Transaction } from "@workspace/types";
-import { formatCurrency } from "@workspace/utils";
 import {
   ArrowRightLeft,
   ArrowUpRight,
@@ -27,7 +26,13 @@ const getCategoryIcon = (categoryName?: string | null) => {
   return Wallet;
 };
 
+import { useCurrency } from "@/hooks/use-currency";
+
+// ... (other imports)
+
 export function TransactionItem({ transaction }: TransactionItemProps) {
+  const { formatAmount } = useCurrency(); // Use the hook
+
   const isExpense = transaction.type === "expense";
   const isIncome = transaction.type === "income";
   const isTransfer = transaction.type === "transfer";
@@ -85,7 +90,7 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
           )}
         >
           {isExpense ? "-" : "+"}
-          {formatCurrency(Number(transaction.amount))}
+          {formatAmount(Number(transaction.amount))}
         </div>
         <div className="text-xs text-muted-foreground">
           {format(new Date(transaction.date), "MMM d, yyyy")}

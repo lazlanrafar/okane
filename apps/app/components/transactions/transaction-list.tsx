@@ -1,7 +1,6 @@
 import { Transaction } from "@workspace/types";
 import { TransactionItem } from "./transaction-item";
 import { format, parseISO, isToday, isYesterday } from "date-fns";
-import { formatCurrency } from "@workspace/utils";
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -15,7 +14,11 @@ interface GroupedTransactions {
   };
 }
 
+import { useCurrency } from "@/hooks/use-currency";
+
 export function TransactionList({ transactions }: TransactionListProps) {
+  const { formatAmount } = useCurrency(); // Use the hook
+
   if (!transactions.length) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
@@ -82,12 +85,12 @@ export function TransactionList({ transactions }: TransactionListProps) {
               <div className="flex gap-4 text-xs">
                 {totalIncome > 0 && (
                   <span className="text-blue-600">
-                    {formatCurrency(totalIncome)}
+                    {formatAmount(totalIncome)}
                   </span>
                 )}
                 {totalExpense > 0 && (
                   <span className="text-red-600">
-                    {formatCurrency(totalExpense)}
+                    {formatAmount(totalExpense)}
                   </span>
                 )}
               </div>

@@ -6,10 +6,15 @@ import type {
   UpdateTransactionBody,
 } from "./transactions.model";
 import type { Static } from "elysia";
+import {
+  walletsRepository,
+  type WalletsRepository,
+} from "../wallets/wallets.repository";
 
 export class TransactionsService {
   constructor(
     private readonly transactionsRepository: TransactionsRepository,
+    private readonly walletsRepository: WalletsRepository,
   ) {}
 
   async create(
@@ -21,11 +26,42 @@ export class TransactionsService {
     const amount =
       typeof body.amount === "number" ? body.amount.toString() : body.amount;
 
-    return this.transactionsRepository.create({
+    // Create transaction first
+    const transaction = await this.transactionsRepository.create({
       ...body,
       workspaceId,
       amount,
     });
+
+    const val = Number(amount);
+
+    // Update wallet balance
+    if (body.type === "expense") {
+      await this.walletsRepository.updateBalance(
+        body.walletId,
+        workspaceId,
+        -val,
+      );
+    } else if (body.type === "income") {
+      await this.walletsRepository.updateBalance(
+        body.walletId,
+        workspaceId,
+        val,
+      );
+    } else if (body.type === "transfer" && body.toWalletId) {
+      await this.walletsRepository.updateBalance(
+        body.walletId,
+        workspaceId,
+        -val,
+      );
+      await this.walletsRepository.updateBalance(
+        body.toWalletId,
+        workspaceId,
+        val,
+      );
+    }
+
+    return transaction;
   }
 
   async list(
@@ -66,6 +102,33 @@ export class TransactionsService {
       Object.entries(data).filter(([_, v]) => v !== undefined),
     );
 
+    // Revert old balance effect
+    const oldVal = Number(transaction.amount);
+    if (transaction.type === "expense") {
+      await this.walletsRepository.updateBalance(
+        transaction.walletId,
+        workspaceId,
+        oldVal,
+      );
+    } else if (transaction.type === "income") {
+      await this.walletsRepository.updateBalance(
+        transaction.walletId,
+        workspaceId,
+        -oldVal,
+      );
+    } else if (transaction.type === "transfer" && transaction.toWalletId) {
+      await this.walletsRepository.updateBalance(
+        transaction.walletId,
+        workspaceId,
+        oldVal,
+      );
+      await this.walletsRepository.updateBalance(
+        transaction.toWalletId,
+        workspaceId,
+        -oldVal,
+      );
+    }
+
     const updated = await this.transactionsRepository.update(
       workspaceId,
       id,
@@ -75,6 +138,35 @@ export class TransactionsService {
     if (!updated) {
       throw new Error(ErrorCode.NOT_FOUND);
     }
+
+    // Apply new balance effect
+    const newVal = Number(updated.amount);
+
+    if (updated.type === "expense") {
+      await this.walletsRepository.updateBalance(
+        updated.walletId,
+        workspaceId,
+        -newVal,
+      );
+    } else if (updated.type === "income") {
+      await this.walletsRepository.updateBalance(
+        updated.walletId,
+        workspaceId,
+        newVal,
+      );
+    } else if (updated.type === "transfer" && updated.toWalletId) {
+      await this.walletsRepository.updateBalance(
+        updated.walletId,
+        workspaceId,
+        -newVal,
+      );
+      await this.walletsRepository.updateBalance(
+        updated.toWalletId,
+        workspaceId,
+        newVal,
+      );
+    }
+
     return updated;
   }
 
@@ -88,5 +180,33 @@ export class TransactionsService {
     }
 
     await this.transactionsRepository.delete(workspaceId, id);
+
+    // Revert balance change
+    const val = Number(transaction.amount);
+
+    if (transaction.type === "expense") {
+      await this.walletsRepository.updateBalance(
+        transaction.walletId,
+        workspaceId,
+        val,
+      );
+    } else if (transaction.type === "income") {
+      await this.walletsRepository.updateBalance(
+        transaction.walletId,
+        workspaceId,
+        -val,
+      );
+    } else if (transaction.type === "transfer" && transaction.toWalletId) {
+      await this.walletsRepository.updateBalance(
+        transaction.walletId,
+        workspaceId,
+        val,
+      );
+      await this.walletsRepository.updateBalance(
+        transaction.toWalletId,
+        workspaceId,
+        -val,
+      );
+    }
   }
 }
