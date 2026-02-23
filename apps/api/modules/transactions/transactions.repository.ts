@@ -4,16 +4,17 @@ import {
   and,
   desc,
   eq,
-  gt,
   gte,
-  lt,
   lte,
   sql,
   aliasedTable,
+  isNull,
 } from "drizzle-orm";
 
-export class TransactionsRepository {
-  async create(data: typeof transactions.$inferInsert): Promise<Transaction> {
+export abstract class TransactionsRepository {
+  static async create(
+    data: typeof transactions.$inferInsert,
+  ): Promise<Transaction> {
     const [transaction] = await db
       .insert(transactions)
       .values(data)
@@ -33,7 +34,7 @@ export class TransactionsRepository {
     } as unknown as Transaction;
   }
 
-  async findById(
+  static async findById(
     workspaceId: string,
     id: string,
   ): Promise<Transaction | undefined> {
@@ -55,7 +56,7 @@ export class TransactionsRepository {
         and(
           eq(transactions.workspaceId, workspaceId),
           eq(transactions.id, id),
-          sql`${transactions.deletedAt} IS NULL`,
+          isNull(transactions.deletedAt),
         ),
       );
 
@@ -73,7 +74,7 @@ export class TransactionsRepository {
     } as unknown as Transaction;
   }
 
-  async list(
+  static async list(
     workspaceId: string,
     params: {
       page: number;
@@ -90,7 +91,7 @@ export class TransactionsRepository {
 
     const filters = [
       eq(transactions.workspaceId, workspaceId),
-      sql`${transactions.deletedAt} IS NULL`,
+      isNull(transactions.deletedAt),
     ];
 
     if (params.type) {
@@ -147,19 +148,19 @@ export class TransactionsRepository {
     };
   }
 
-  async update(
+  static async update(
     workspaceId: string,
     id: string,
     data: Partial<typeof transactions.$inferInsert>,
   ): Promise<Transaction | undefined> {
     const [transaction] = await db
       .update(transactions)
-      .set({ ...data, updatedAt: sql`now()` })
+      .set({ ...data, updatedAt: new Date().toISOString() })
       .where(
         and(
           eq(transactions.workspaceId, workspaceId),
           eq(transactions.id, id),
-          sql`${transactions.deletedAt} IS NULL`,
+          isNull(transactions.deletedAt),
         ),
       )
       .returning();
@@ -172,18 +173,18 @@ export class TransactionsRepository {
     return undefined;
   }
 
-  async delete(
+  static async delete(
     workspaceId: string,
     id: string,
   ): Promise<Transaction | undefined> {
     const [transaction] = await db
       .update(transactions)
-      .set({ deletedAt: sql`now()` })
+      .set({ deletedAt: new Date().toISOString() })
       .where(
         and(
           eq(transactions.workspaceId, workspaceId),
           eq(transactions.id, id),
-          sql`${transactions.deletedAt} IS NULL`,
+          isNull(transactions.deletedAt),
         ),
       )
       .returning();

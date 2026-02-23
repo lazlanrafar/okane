@@ -85,7 +85,7 @@ export function VaultClient() {
   const [tagInput, setTagInput] = React.useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [page, setPage] = React.useState(1);
-  const limit = 20;
+  const limit = 15;
 
   const { data, isLoading } = useQuery({
     queryKey: ["vault-files", page],
@@ -98,6 +98,8 @@ export function VaultClient() {
 
   const files = data?.files || [];
   const pagination = data?.pagination;
+
+  console.log("vaults data", pagination);
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {

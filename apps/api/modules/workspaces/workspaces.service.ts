@@ -7,13 +7,11 @@ import {
   DEFAULT_WALLET_GROUPS,
   DEFAULT_WALLETS,
 } from "@workspace/constants";
-import { categoriesRepository } from "../categories/categories.repository";
-import { SettingsRepository } from "../settings/repository";
+import { sendInvitationEmail } from "@workspace/email";
+import { CategoriesRepository } from "../categories/categories.repository";
+import { SettingsRepository } from "../settings/settings.repository";
 import { walletGroupsRepository } from "../wallets/groups/groups.repository";
 import { walletsRepository } from "../wallets/wallets.repository";
-import { sendInvitationEmail } from "@workspace/email";
-
-const settingsRepository = new SettingsRepository();
 
 /**
  * Workspaces service — business logic layer.
@@ -71,10 +69,10 @@ export const workspacesService = {
         type: "expense" as const,
       })),
     ];
-    await categoriesRepository.createMany(defaultCategories);
+    await CategoriesRepository.createMany(defaultCategories);
 
     // 5. Create default workspace settings
-    await settingsRepository.create(workspace.id, {
+    await SettingsRepository.create(workspace.id, {
       mainCurrencyCode,
       mainCurrencySymbol,
     } as any);

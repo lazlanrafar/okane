@@ -1,45 +1,119 @@
-import { categoriesRepository } from "./categories.repository";
+import { CategoriesRepository } from "./categories.repository";
+import { auditLogsService } from "../audit-logs/audit-logs.service";
+import { buildSuccess, buildError } from "@workspace/utils";
+import { status } from "elysia";
+import { ErrorCode } from "@workspace/types";
+import type {
+  CreateCategoryInput,
+  UpdateCategoryInput,
+  ReorderCategoriesInput,
+} from "./categories.model";
 
-export const categoriesService = {
-  async createCategory(
+export abstract class CategoriesService {
+  static async createCategory(
     workspaceId: string,
-    data: { name: string; type: "income" | "expense" },
+    userId: string,
+    data: CreateCategoryInput,
   ) {
-    return categoriesRepository.create({
+    const category = await CategoriesRepository.create({
       workspaceId,
       name: data.name,
       type: data.type,
     });
-  },
 
-  async updateCategory(
+    if (!category) {
+      throw status(
+        500,
+        buildError(ErrorCode.INTERNAL_ERROR, "Failed to create category"),
+      );
+    }
+
+    await auditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "category.created",
+      entity: "category",
+      entity_id: category.id,
+      after: category,
+    });
+
+    return buildSuccess(category, "Category created successfully", "CREATED");
+  }
+
+  static async updateCategory(
     workspaceId: string,
+    userId: string,
     id: string,
-    data: { name?: string },
+    data: UpdateCategoryInput,
   ) {
-    const category = await categoriesRepository.findById(workspaceId, id);
+    const category = await CategoriesRepository.findById(workspaceId, id);
     if (!category) {
-      throw new Error("Category not found");
+      throw status(404, buildError(ErrorCode.NOT_FOUND, "Category not found"));
     }
-    return categoriesRepository.update(id, workspaceId, data);
-  },
 
-  async reorderCategories(
+    const updated = await CategoriesRepository.update(id, workspaceId, data);
+
+    if (!updated) {
+      throw status(
+        500,
+        buildError(ErrorCode.INTERNAL_ERROR, "Failed to update category"),
+      );
+    }
+
+    await auditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "category.updated",
+      entity: "category",
+      entity_id: id,
+      before: category,
+      after: updated,
+    });
+
+    return buildSuccess(updated, "Category updated successfully");
+  }
+
+  static async reorderCategories(
     workspaceId: string,
-    updates: { id: string; sortOrder: number }[],
+    userId: string,
+    data: ReorderCategoriesInput,
   ) {
-    return categoriesRepository.reorder(workspaceId, updates);
-  },
+    await CategoriesRepository.reorder(workspaceId, data.updates);
 
-  async deleteCategory(workspaceId: string, id: string) {
-    const category = await categoriesRepository.findById(workspaceId, id);
+    await auditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "categories.reordered",
+      entity: "category",
+      entity_id: "bulk",
+      after: data.updates,
+    });
+
+    return buildSuccess(null, "Categories reordered successfully");
+  }
+
+  static async deleteCategory(workspaceId: string, userId: string, id: string) {
+    const category = await CategoriesRepository.findById(workspaceId, id);
     if (!category) {
-      throw new Error("Category not found");
+      throw status(404, buildError(ErrorCode.NOT_FOUND, "Category not found"));
     }
-    return categoriesRepository.delete(id, workspaceId);
-  },
 
-  async getCategories(workspaceId: string, type?: "income" | "expense") {
-    return categoriesRepository.findMany(workspaceId, type);
-  },
-};
+    await CategoriesRepository.delete(id, workspaceId);
+
+    await auditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "category.deleted",
+      entity: "category",
+      entity_id: id,
+      before: category,
+    });
+
+    return buildSuccess(null, "Category deleted successfully");
+  }
+
+  static async getCategories(workspaceId: string, type?: "income" | "expense") {
+    const categories = await CategoriesRepository.findMany(workspaceId, type);
+    return buildSuccess(categories, "Categories retrieved successfully");
+  }
+}

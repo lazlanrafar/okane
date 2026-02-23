@@ -345,31 +345,6 @@ HTTP status mapping:
 
 ---
 
-# API Versioning
-
-All routes prefixed `/v1/{resource}`. Version set at mount level in `apps/api/index.ts`:
-
-```ts
-import "./instrument"; // Sentry FIRST
-import { Elysia } from "elysia";
-import { walletsController } from "./modules/wallets/wallets.controller";
-
-new Elysia()
-  .use(loggerPlugin) // global — no types
-  .use(rateLimitPlugin) // global — no types
-  .use(
-    new Elysia({ prefix: "/v1" })
-      .use(walletsController)
-      .use(transactionsController),
-    // ... all feature controllers
-  )
-  .listen(env.PORT);
-```
-
-Breaking changes → `/v2/`. Never mutate existing versioned routes.
-
----
-
 # Auth Module Special Case
 
 Auth module may skip full service/repository for stateless operations (token signing, bcrypt). Rules:

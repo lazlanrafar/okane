@@ -1,33 +1,29 @@
 import { TransactionsRepository } from "./transactions.repository";
-import { ErrorCode, type Transaction } from "@workspace/types";
+import { ErrorCode } from "@workspace/types";
 import type {
-  CreateTransactionBody,
-  GetTransactionsQuery,
-  UpdateTransactionBody,
+  CreateTransactionInput,
+  GetTransactionsQueryInput,
+  UpdateTransactionInput,
 } from "./transactions.model";
-import type { Static } from "elysia";
+import { walletsRepository } from "../wallets/wallets.repository";
+import { auditLogsService } from "../audit-logs/audit-logs.service";
 import {
-  walletsRepository,
-  type WalletsRepository,
-} from "../wallets/wallets.repository";
+  buildPaginatedSuccess,
+  buildSuccess,
+  buildError,
+} from "@workspace/utils";
+import { status } from "elysia";
 
-export class TransactionsService {
-  constructor(
-    private readonly transactionsRepository: TransactionsRepository,
-    private readonly walletsRepository: WalletsRepository,
-  ) {}
-
-  async create(
+export abstract class TransactionsService {
+  static async create(
     workspaceId: string,
-    body: Static<typeof CreateTransactionBody>,
-  ): Promise<Transaction> {
-    // TODO: Verify wallet ownership and sufficiency if we were enforcing balance checks
-    // For now, fast CRUD
+    userId: string,
+    body: CreateTransactionInput,
+  ) {
     const amount =
       typeof body.amount === "number" ? body.amount.toString() : body.amount;
 
-    // Create transaction first
-    const transaction = await this.transactionsRepository.create({
+    const transaction = await TransactionsRepository.create({
       ...body,
       workspaceId,
       amount,
@@ -35,178 +31,205 @@ export class TransactionsService {
 
     const val = Number(amount);
 
-    // Update wallet balance
     if (body.type === "expense") {
-      await this.walletsRepository.updateBalance(
-        body.walletId,
-        workspaceId,
-        -val,
-      );
+      await walletsRepository.updateBalance(body.walletId, workspaceId, -val);
     } else if (body.type === "income") {
-      await this.walletsRepository.updateBalance(
-        body.walletId,
-        workspaceId,
-        val,
-      );
+      await walletsRepository.updateBalance(body.walletId, workspaceId, val);
     } else if (body.type === "transfer" && body.toWalletId) {
-      await this.walletsRepository.updateBalance(
-        body.walletId,
-        workspaceId,
-        -val,
-      );
-      await this.walletsRepository.updateBalance(
-        body.toWalletId,
-        workspaceId,
-        val,
-      );
+      await walletsRepository.updateBalance(body.walletId, workspaceId, -val);
+      await walletsRepository.updateBalance(body.toWalletId, workspaceId, val);
     }
 
-    return transaction;
+    await auditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "transaction.created",
+      entity: "transaction",
+      entity_id: transaction.id,
+      after: transaction,
+    });
+
+    return buildSuccess(
+      transaction,
+      "Transaction created successfully",
+      "CREATED",
+    );
   }
 
-  async list(
-    workspaceId: string,
-    query: Static<typeof GetTransactionsQuery>,
-  ): Promise<{ data: Transaction[]; total: number }> {
-    const page = query.page || 1;
-    const limit = query.limit || 20;
+  static async list(workspaceId: string, query: GetTransactionsQueryInput) {
+    const page = query.page ? Number(query.page) : 1;
+    const limit = query.limit ? Number(query.limit) : 20;
 
-    return this.transactionsRepository.list(workspaceId, {
+    const { data, total } = await TransactionsRepository.list(workspaceId, {
       ...query,
       page,
       limit,
     });
+
+    const total_pages = Math.ceil(total / limit);
+
+    return buildPaginatedSuccess(
+      data,
+      {
+        total,
+        page,
+        limit,
+        total_pages,
+      },
+      "Transactions retrieved successfully",
+    );
   }
 
-  async update(
+  static async update(
     workspaceId: string,
+    userId: string,
     id: string,
-    body: Static<typeof UpdateTransactionBody>,
-  ): Promise<Transaction> {
-    const transaction = await this.transactionsRepository.findById(
-      workspaceId,
-      id,
-    );
+    body: UpdateTransactionInput,
+  ) {
+    const transaction = await TransactionsRepository.findById(workspaceId, id);
     if (!transaction) {
-      throw new Error(ErrorCode.NOT_FOUND);
+      throw status(
+        404,
+        buildError(ErrorCode.NOT_FOUND, "Transaction not found"),
+      );
     }
 
     const amount =
       typeof body.amount === "number" ? body.amount.toString() : body.amount;
 
-    const data = { ...body };
-    if (amount) data.amount = Number(amount);
+    const rawData: any = { ...body };
+    if (amount !== undefined) rawData.amount = amount;
 
-    // Filter out undefined
     const updateData = Object.fromEntries(
-      Object.entries(data).filter(([_, v]) => v !== undefined),
+      Object.entries(rawData).filter(([_, v]) => v !== undefined),
     );
 
-    // Revert old balance effect
     const oldVal = Number(transaction.amount);
     if (transaction.type === "expense") {
-      await this.walletsRepository.updateBalance(
+      await walletsRepository.updateBalance(
         transaction.walletId,
         workspaceId,
         oldVal,
       );
     } else if (transaction.type === "income") {
-      await this.walletsRepository.updateBalance(
+      await walletsRepository.updateBalance(
         transaction.walletId,
         workspaceId,
         -oldVal,
       );
     } else if (transaction.type === "transfer" && transaction.toWalletId) {
-      await this.walletsRepository.updateBalance(
+      await walletsRepository.updateBalance(
         transaction.walletId,
         workspaceId,
         oldVal,
       );
-      await this.walletsRepository.updateBalance(
+      await walletsRepository.updateBalance(
         transaction.toWalletId,
         workspaceId,
         -oldVal,
       );
     }
 
-    const updated = await this.transactionsRepository.update(
+    const updated = await TransactionsRepository.update(
       workspaceId,
       id,
       updateData as any,
     );
 
     if (!updated) {
-      throw new Error(ErrorCode.NOT_FOUND);
+      throw status(
+        404,
+        buildError(ErrorCode.NOT_FOUND, "Transaction not found"),
+      );
     }
 
-    // Apply new balance effect
     const newVal = Number(updated.amount);
 
     if (updated.type === "expense") {
-      await this.walletsRepository.updateBalance(
+      await walletsRepository.updateBalance(
         updated.walletId,
         workspaceId,
         -newVal,
       );
     } else if (updated.type === "income") {
-      await this.walletsRepository.updateBalance(
+      await walletsRepository.updateBalance(
         updated.walletId,
         workspaceId,
         newVal,
       );
     } else if (updated.type === "transfer" && updated.toWalletId) {
-      await this.walletsRepository.updateBalance(
+      await walletsRepository.updateBalance(
         updated.walletId,
         workspaceId,
         -newVal,
       );
-      await this.walletsRepository.updateBalance(
+      await walletsRepository.updateBalance(
         updated.toWalletId,
         workspaceId,
         newVal,
       );
     }
 
-    return updated;
+    await auditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "transaction.updated",
+      entity: "transaction",
+      entity_id: updated.id,
+      before: transaction,
+      after: updated,
+    });
+
+    return buildSuccess(updated, "Transaction updated successfully");
   }
 
-  async delete(workspaceId: string, id: string): Promise<void> {
-    const transaction = await this.transactionsRepository.findById(
-      workspaceId,
-      id,
-    );
+  static async delete(workspaceId: string, userId: string, id: string) {
+    const transaction = await TransactionsRepository.findById(workspaceId, id);
     if (!transaction) {
-      throw new Error(ErrorCode.NOT_FOUND);
+      throw status(
+        404,
+        buildError(ErrorCode.NOT_FOUND, "Transaction not found"),
+      );
     }
 
-    await this.transactionsRepository.delete(workspaceId, id);
+    await TransactionsRepository.delete(workspaceId, id);
 
-    // Revert balance change
     const val = Number(transaction.amount);
 
     if (transaction.type === "expense") {
-      await this.walletsRepository.updateBalance(
+      await walletsRepository.updateBalance(
         transaction.walletId,
         workspaceId,
         val,
       );
     } else if (transaction.type === "income") {
-      await this.walletsRepository.updateBalance(
+      await walletsRepository.updateBalance(
         transaction.walletId,
         workspaceId,
         -val,
       );
     } else if (transaction.type === "transfer" && transaction.toWalletId) {
-      await this.walletsRepository.updateBalance(
+      await walletsRepository.updateBalance(
         transaction.walletId,
         workspaceId,
         val,
       );
-      await this.walletsRepository.updateBalance(
+      await walletsRepository.updateBalance(
         transaction.toWalletId,
         workspaceId,
         -val,
       );
     }
+
+    await auditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "transaction.deleted",
+      entity: "transaction",
+      entity_id: id,
+      before: transaction,
+    });
+
+    return buildSuccess(null, "Transaction deleted successfully");
   }
 }

@@ -15,11 +15,12 @@ import { encryptionPlugin } from "./plugins/encryption";
 import { rateLimitPlugin } from "./plugins/rate-limit";
 import { loggerPlugin } from "./plugins/logger";
 import { healthController } from "./modules/health";
-import { usersController } from "./modules/users";
-import { workspacesController } from "./modules/workspaces";
-import { authController } from "./modules/auth";
-import { settingsController } from "./modules/settings";
-import { categoriesController } from "./modules/categories";
+import { settingsController } from "./modules/settings/settings.controller";
+
+import { usersController } from "./modules/users/users.controller";
+import { workspacesController } from "./modules/workspaces/workspaces.controller";
+import { authController } from "./modules/auth/auth.controller";
+import { categoriesController } from "./modules/categories/categories.controller";
 import { walletsController } from "./modules/wallets/wallets.controller";
 import { vaultController } from "./modules/vault/vault.controller";
 import { transactions } from "./modules/transactions/transactions.controller";

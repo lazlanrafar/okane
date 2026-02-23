@@ -1,41 +1,31 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "../../plugins/auth";
-import { buildSuccess, buildError } from "@workspace/utils";
+import { encryptionPlugin } from "../../plugins/encryption";
 import { ErrorCode } from "@workspace/types";
-import { categoriesService } from "./categories.service";
-import {
-  CreateCategoryBody,
-  UpdateCategoryBody,
-  GetCategoriesQuery,
-  ReorderCategoriesBody,
-} from "./categories.model";
+import { CategoriesService } from "./categories.service";
+import { CategoryModel } from "./categories.model";
+import { buildError } from "@workspace/utils";
+import { status } from "elysia";
 
-export const categoriesController = new Elysia({ prefix: "/categories" })
+export const categoriesController = new Elysia({
+  prefix: "/categories",
+  name: "categories.controller",
+})
   .use(authPlugin)
+  .use(encryptionPlugin)
   .get(
     "/",
-    async ({ query, auth, set }: any) => {
-      if (!auth) {
-        set.status = 401;
-        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+    async ({ query, auth }) => {
+      if (!auth?.workspace_id) {
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
-
-      try {
-        const categories = await categoriesService.getCategories(
-          auth.workspace_id,
-          query.type as "income" | "expense" | undefined,
-        );
-        return buildSuccess(categories, "Categories retrieved");
-      } catch (error: any) {
-        set.status = 500;
-        return buildError(
-          ErrorCode.INTERNAL_ERROR,
-          `Failed to retrieve categories: ${error.message}`,
-        );
-      }
+      return CategoriesService.getCategories(
+        auth.workspace_id,
+        query.type as "income" | "expense" | undefined,
+      );
     },
     {
-      query: GetCategoriesQuery,
+      query: CategoryModel.listQuery,
       detail: {
         summary: "List Categories",
         tags: ["Categories"],
@@ -44,30 +34,18 @@ export const categoriesController = new Elysia({ prefix: "/categories" })
   )
   .post(
     "/",
-    async ({ body, auth, set }: any) => {
-      if (!auth) {
-        set.status = 401;
-        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+    async ({ body, auth }) => {
+      if (!auth?.workspace_id) {
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
-
-      try {
-        const category = await categoriesService.createCategory(
-          auth.workspace_id,
-          body,
-        );
-        set.status = 201;
-        return buildSuccess(category, "Category created successfully");
-      } catch (error: any) {
-        console.error("Create Category Error:", error);
-        set.status = 500;
-        return buildError(
-          ErrorCode.INTERNAL_ERROR,
-          `Failed to create category: ${error.message}`,
-        );
-      }
+      return CategoriesService.createCategory(
+        auth.workspace_id,
+        auth.user_id,
+        body,
+      );
     },
     {
-      body: CreateCategoryBody,
+      body: CategoryModel.create,
       detail: {
         summary: "Create Category",
         tags: ["Categories"],
@@ -76,33 +54,19 @@ export const categoriesController = new Elysia({ prefix: "/categories" })
   )
   .patch(
     "/:id",
-    async ({ params, body, auth, set }: any) => {
-      if (!auth) {
-        set.status = 401;
-        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+    async ({ params, body, auth }) => {
+      if (!auth?.workspace_id) {
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
-
-      try {
-        const category = await categoriesService.updateCategory(
-          auth.workspace_id,
-          params.id,
-          body,
-        );
-        return buildSuccess(category, "Category updated successfully");
-      } catch (error: any) {
-        if (error.message === "Category not found") {
-          set.status = 404;
-          return buildError(ErrorCode.NOT_FOUND, "Category not found");
-        }
-        set.status = 500;
-        return buildError(
-          ErrorCode.INTERNAL_ERROR,
-          `Failed to update category: ${error.message}`,
-        );
-      }
+      return CategoriesService.updateCategory(
+        auth.workspace_id,
+        auth.user_id,
+        params.id,
+        body,
+      );
     },
     {
-      body: UpdateCategoryBody,
+      body: CategoryModel.update,
       params: t.Object({
         id: t.String(),
       }),
@@ -114,29 +78,18 @@ export const categoriesController = new Elysia({ prefix: "/categories" })
   )
   .put(
     "/reorder",
-    async ({ body, auth, set }: any) => {
-      if (!auth) {
-        set.status = 401;
-        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+    async ({ body, auth }) => {
+      if (!auth?.workspace_id) {
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
-
-      try {
-        await categoriesService.reorderCategories(
-          auth.workspace_id,
-          body.updates,
-        );
-        return buildSuccess(null, "Categories reordered successfully");
-      } catch (error: any) {
-        console.error("Reorder Categories Error:", error);
-        set.status = 500;
-        return buildError(
-          ErrorCode.INTERNAL_ERROR,
-          `Failed to reorder categories: ${error.message}`,
-        );
-      }
+      return CategoriesService.reorderCategories(
+        auth.workspace_id,
+        auth.user_id,
+        body,
+      );
     },
     {
-      body: ReorderCategoriesBody,
+      body: CategoryModel.reorder,
       detail: {
         summary: "Reorder Categories",
         tags: ["Categories"],
@@ -145,26 +98,15 @@ export const categoriesController = new Elysia({ prefix: "/categories" })
   )
   .delete(
     "/:id",
-    async ({ params, auth, set }: any) => {
-      if (!auth) {
-        set.status = 401;
-        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+    async ({ params, auth }) => {
+      if (!auth?.workspace_id) {
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
-
-      try {
-        await categoriesService.deleteCategory(auth.workspace_id, params.id);
-        return buildSuccess(null, "Category deleted successfully");
-      } catch (error: any) {
-        if (error.message === "Category not found") {
-          set.status = 404;
-          return buildError(ErrorCode.NOT_FOUND, "Category not found");
-        }
-        set.status = 500;
-        return buildError(
-          ErrorCode.INTERNAL_ERROR,
-          `Failed to delete category: ${error.message}`,
-        );
-      }
+      return CategoriesService.deleteCategory(
+        auth.workspace_id,
+        auth.user_id,
+        params.id,
+      );
     },
     {
       params: t.Object({

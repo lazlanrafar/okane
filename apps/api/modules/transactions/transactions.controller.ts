@@ -1,50 +1,29 @@
 import { Elysia, t } from "elysia";
 import { TransactionsService } from "./transactions.service";
-import { TransactionsRepository } from "./transactions.repository";
-import { walletsRepository } from "../wallets/wallets.repository";
-import {
-  CreateTransactionBody,
-  GetTransactionsQuery,
-  UpdateTransactionBody,
-} from "./transactions.model";
+import { TransactionModel } from "./transactions.model";
 import { ErrorCode } from "@workspace/types";
 import { authPlugin } from "../../plugins/auth";
-import { buildPaginatedSuccess, buildSuccess } from "@workspace/utils";
+import { encryptionPlugin } from "../../plugins/encryption";
+import { status } from "elysia";
+import { buildError } from "@workspace/utils";
 
 // Factory function to create the transactions module
-export const transactions = new Elysia({ prefix: "/transactions" })
+export const transactions = new Elysia({
+  prefix: "/transactions",
+  name: "transactions.controller",
+})
   .use(authPlugin)
-  .decorate(
-    "transactionsService",
-    new TransactionsService(new TransactionsRepository(), walletsRepository),
-  )
+  .use(encryptionPlugin)
   .get(
     "/",
-    async ({ transactionsService, query, auth }: any) => {
+    async ({ auth, query }) => {
       if (!auth?.workspace_id) {
-        throw new Error(ErrorCode.UNAUTHORIZED);
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
-      const { data, total } = await transactionsService.list(
-        auth.workspace_id,
-        query,
-      );
-      const page = Number(query.page) || 1;
-      const limit = Number(query.limit) || 20;
-      const total_pages = Math.ceil(total / limit);
-
-      return buildPaginatedSuccess(
-        data,
-        {
-          total,
-          page,
-          limit,
-          total_pages,
-        },
-        "Transactions retrieved successfully",
-      );
+      return TransactionsService.list(auth.workspace_id, query);
     },
     {
-      query: GetTransactionsQuery,
+      query: TransactionModel.listQuery,
       detail: {
         summary: "List transactions",
         tags: ["Transactions"],
@@ -53,18 +32,14 @@ export const transactions = new Elysia({ prefix: "/transactions" })
   )
   .post(
     "/",
-    async ({ transactionsService, body, auth }: any) => {
+    async ({ auth, body }) => {
       if (!auth?.workspace_id) {
-        throw new Error(ErrorCode.UNAUTHORIZED);
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
-      const transaction = await transactionsService.create(
-        auth.workspace_id,
-        body,
-      );
-      return buildSuccess(transaction, "Transaction created successfully");
+      return TransactionsService.create(auth.workspace_id, auth.user_id, body);
     },
     {
-      body: CreateTransactionBody,
+      body: TransactionModel.create,
       detail: {
         summary: "Create transaction",
         tags: ["Transactions"],
@@ -73,19 +48,19 @@ export const transactions = new Elysia({ prefix: "/transactions" })
   )
   .put(
     "/:id",
-    async ({ transactionsService, params: { id }, body, auth }: any) => {
+    async ({ auth, params: { id }, body }) => {
       if (!auth?.workspace_id) {
-        throw new Error(ErrorCode.UNAUTHORIZED);
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
-      const transaction = await transactionsService.update(
+      return TransactionsService.update(
         auth.workspace_id,
+        auth.user_id,
         id,
         body,
       );
-      return buildSuccess(transaction, "Transaction updated successfully");
     },
     {
-      body: UpdateTransactionBody,
+      body: TransactionModel.update,
       params: t.Object({ id: t.String() }),
       detail: {
         summary: "Update transaction",
@@ -95,12 +70,11 @@ export const transactions = new Elysia({ prefix: "/transactions" })
   )
   .delete(
     "/:id",
-    async ({ transactionsService, params: { id }, auth }: any) => {
+    async ({ auth, params: { id } }) => {
       if (!auth?.workspace_id) {
-        throw new Error(ErrorCode.UNAUTHORIZED);
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
-      await transactionsService.delete(auth.workspace_id, id);
-      return buildSuccess(null, "Transaction deleted successfully");
+      return TransactionsService.delete(auth.workspace_id, auth.user_id, id);
     },
     {
       params: t.Object({ id: t.String() }),
