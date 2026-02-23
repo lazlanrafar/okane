@@ -1,7 +1,9 @@
 import { getTransactions } from "@/actions/transaction.actions";
+import { getWallets } from "@/actions/wallet.actions";
+import { getCategories } from "@/actions/category.actions";
 import { TransactionView } from "@/components/transactions/transaction-view";
 import { Suspense } from "react";
-import { Transaction } from "@workspace/types";
+import { Transaction, Wallet, Category } from "@workspace/types";
 
 export const dynamic = "force-dynamic";
 
@@ -10,19 +12,34 @@ const PAGE_LIMIT = 20;
 export default async function TransactionPage() {
   let initialTransactions: Transaction[] = [];
   let initialTotal = 0;
+  let initialWallets: Wallet[] = [];
+  let initialCategories: Category[] = [];
 
   try {
-    const response = await getTransactions({ page: 1, limit: PAGE_LIMIT });
-    if (response?.success && response?.data) {
-      initialTransactions = response.data;
-      initialTotal = response.meta?.pagination?.total ?? 0;
+    const [transactionsRes, walletsRes, categoriesRes] = await Promise.all([
+      getTransactions({ page: 1, limit: PAGE_LIMIT }),
+      getWallets(),
+      getCategories(),
+    ]);
+
+    if (transactionsRes?.success && transactionsRes?.data) {
+      initialTransactions = transactionsRes.data;
+      initialTotal = transactionsRes.meta?.pagination?.total ?? 0;
+    }
+
+    if (walletsRes?.success && walletsRes?.data) {
+      initialWallets = walletsRes.data;
+    }
+
+    if (categoriesRes?.success && categoriesRes?.data) {
+      initialCategories = categoriesRes.data;
     }
   } catch (error) {
-    console.error("Failed to fetch transactions:", error);
+    console.error("Failed to fetch initial data for transactions page:", error);
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col">
       <div className="flex-1 min-h-0">
         <Suspense
           fallback={
@@ -34,6 +51,8 @@ export default async function TransactionPage() {
           <TransactionView
             initialTransactions={initialTransactions}
             initialTotal={initialTotal}
+            initialWallets={initialWallets}
+            initialCategories={initialCategories}
           />
         </Suspense>
       </div>

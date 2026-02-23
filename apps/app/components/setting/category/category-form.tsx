@@ -64,8 +64,8 @@ import {
   updateCategory,
   deleteCategory,
   reorderCategories,
-  Category,
 } from "@/actions/category.actions";
+import type { Category } from "@workspace/types";
 
 interface CategoryFormProps {
   type: "income" | "expense";

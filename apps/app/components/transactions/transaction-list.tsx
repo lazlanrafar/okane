@@ -7,6 +7,8 @@ import { useCurrency } from "@/hooks/use-currency";
 import { Button } from "@workspace/ui";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { cn } from "@workspace/ui";
+
 interface TransactionListProps {
   transactions: Transaction[];
   onRowClick: (transaction: Transaction) => void;
@@ -30,7 +32,7 @@ export function TransactionList({
   totalPages,
   onPageChange,
 }: TransactionListProps) {
-  const { formatAmount } = useCurrency();
+  const { formatAmount, isIncomeBlue } = useCurrency();
 
   if (!transactions.length) {
     return (
@@ -67,7 +69,7 @@ export function TransactionList({
   return (
     <div className="w-full flex flex-col min-h-full">
       {/* DataTable Header Row */}
-      <div className="grid grid-cols-[2fr_1fr_1fr_1fr] px-6 py-2 border-b bg-muted/30 text-xs font-medium text-muted-foreground uppercase tracking-wide sticky top-0 z-10">
+      <div className="grid grid-cols-[2fr_1fr_1fr_1fr] px-6 h-10 items-center border-b bg-background text-xs font-semibold text-muted-foreground uppercase tracking-wide sticky top-0 z-20">
         <span>Description</span>
         <span>Category / Wallet</span>
         <span>Type</span>
@@ -92,7 +94,7 @@ export function TransactionList({
           return (
             <div key={dateStr}>
               {/* Date Group Header */}
-              <div className="grid grid-cols-[2fr_1fr_1fr_1fr] items-center px-6 py-2 bg-muted/20 border-b border-t text-xs sticky top-9 z-10">
+              <div className="grid grid-cols-[2fr_1fr_1fr_1fr] items-center px-6 h-10 bg-muted/80 backdrop-blur-sm border-b border-t text-xs sticky top-10 z-10">
                 <span className="font-semibold text-foreground">
                   {dayLabel}
                 </span>
@@ -100,12 +102,26 @@ export function TransactionList({
                 <span />
                 <div className="flex gap-3 justify-end">
                   {totalIncome > 0 && (
-                    <span className="font-medium text-green-600 dark:text-green-400">
+                    <span
+                      className={cn(
+                        "font-medium",
+                        isIncomeBlue
+                          ? "text-blue-600 dark:text-blue-400"
+                          : "text-green-600 dark:text-green-400",
+                      )}
+                    >
                       +{formatAmount(totalIncome)}
                     </span>
                   )}
                   {totalExpense > 0 && (
-                    <span className="font-medium text-red-600 dark:text-red-400">
+                    <span
+                      className={cn(
+                        "font-medium",
+                        isIncomeBlue
+                          ? "text-red-600 dark:text-red-400"
+                          : "text-red-600 dark:text-red-400", // Standard is also Red, but to be clear, settings usually swap red/blue
+                      )}
+                    >
                       -{formatAmount(totalExpense)}
                     </span>
                   )}
@@ -127,7 +143,7 @@ export function TransactionList({
 
       {/* Pagination Footer */}
       {totalPages > 1 && (
-        <div className="sticky bottom-0 flex items-center justify-between px-6 py-3 border-t bg-background/95 backdrop-blur-sm shrink-0">
+        <div className="sticky bottom-0 z-20 flex items-center justify-between px-6 py-3 border-t bg-background/95 backdrop-blur-sm shrink-0">
           <span className="text-sm text-muted-foreground">
             Page <span className="font-medium text-foreground">{page}</span> of{" "}
             <span className="font-medium text-foreground">{totalPages}</span>

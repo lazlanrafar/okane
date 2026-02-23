@@ -21,9 +21,12 @@ export function useCurrency() {
     [settings],
   );
 
+  const isIncomeBlue = settings?.incomeExpensesColor === "blue-red";
+
   return {
     formatAmount,
     settings,
     isLoading,
+    isIncomeBlue,
   };
 }

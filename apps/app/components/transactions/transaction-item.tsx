@@ -20,7 +20,7 @@ export function TransactionItem({
   transaction,
   onClick,
 }: TransactionItemProps) {
-  const { formatAmount } = useCurrency();
+  const { formatAmount, isIncomeBlue } = useCurrency();
 
   const isExpense = transaction.type === "expense";
   const isIncome = transaction.type === "income";
@@ -33,7 +33,7 @@ export function TransactionItem({
       : ArrowUpRight;
 
   const label =
-    transaction.description ||
+    transaction.name ||
     (isTransfer
       ? `Transfer → ${transaction.toWallet?.name ?? "Unknown"}`
       : (transaction.category?.name ?? "Uncategorized"));
@@ -55,18 +55,24 @@ export function TransactionItem({
         <div
           className={cn(
             "shrink-0 p-1.5 rounded-full",
-            isExpense && "bg-red-100 text-red-600 dark:bg-red-900/20",
-            isIncome && "bg-green-100 text-green-600 dark:bg-green-900/20",
-            isTransfer && "bg-blue-100 text-blue-600 dark:bg-blue-900/20",
+            isExpense &&
+              (isIncomeBlue
+                ? "bg-red-100 text-red-600 dark:bg-red-900/20"
+                : "bg-red-100 text-red-600 dark:bg-red-900/20"),
+            isIncome &&
+              (isIncomeBlue
+                ? "bg-blue-100 text-blue-600 dark:bg-blue-900/20"
+                : "bg-green-100 text-green-600 dark:bg-green-900/20"),
+            isTransfer && "bg-slate-100 text-slate-600 dark:bg-slate-900/20",
           )}
         >
           <Icon className="w-4 h-4" />
         </div>
         <div className="min-w-0">
           <p className="text-sm font-medium truncate">{label}</p>
-          {transaction.note && (
+          {transaction.description && (
             <p className="text-xs text-muted-foreground truncate">
-              {transaction.note}
+              {transaction.description.replace(/<[^>]*>?/gm, "")}
             </p>
           )}
         </div>
@@ -84,11 +90,15 @@ export function TransactionItem({
           className={cn(
             "text-xs capitalize font-normal",
             isExpense &&
-              "border-red-200 text-red-600 dark:border-red-800 dark:text-red-400",
+              (isIncomeBlue
+                ? "border-red-200 text-red-600 dark:border-red-800 dark:text-red-400"
+                : "border-red-200 text-red-600 dark:border-red-800 dark:text-red-400"),
             isIncome &&
-              "border-green-200 text-green-600 dark:border-green-800 dark:text-green-400",
+              (isIncomeBlue
+                ? "border-blue-200 text-blue-600 dark:border-blue-800 dark:text-blue-400"
+                : "border-green-200 text-green-600 dark:border-green-800 dark:text-green-400"),
             isTransfer &&
-              "border-blue-200 text-blue-600 dark:border-blue-800 dark:text-blue-400",
+              "border-slate-200 text-slate-600 dark:border-slate-800 dark:text-slate-400",
           )}
         >
           {transaction.type}
@@ -99,9 +109,15 @@ export function TransactionItem({
       <div
         className={cn(
           "text-sm font-semibold text-right",
-          isExpense && "text-red-600 dark:text-red-400",
-          isIncome && "text-green-600 dark:text-green-400",
-          isTransfer && "text-blue-600 dark:text-blue-400",
+          isExpense &&
+            (isIncomeBlue
+              ? "text-red-600 dark:text-red-400"
+              : "text-red-600 dark:text-red-400"),
+          isIncome &&
+            (isIncomeBlue
+              ? "text-blue-600 dark:text-blue-400"
+              : "text-green-600 dark:text-green-400"),
+          isTransfer && "text-slate-600 dark:text-slate-400",
         )}
       >
         {isExpense ? "−" : "+"}

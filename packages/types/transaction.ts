@@ -7,8 +7,8 @@ export interface Transaction {
   amount: string; // Decimal is string in JS
   date: string;
   type: string; // 'income' | 'expense' | 'transfer'
+  name?: string | null;
   description?: string | null;
-  note?: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;

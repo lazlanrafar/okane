@@ -1,25 +1,38 @@
 "use client";
 
-import { Transaction } from "@workspace/types";
+import { Transaction, Wallet, Category } from "@workspace/types";
 import { TransactionList } from "./transaction-list";
 import { TransactionForm } from "./transaction-form";
 import { Button } from "@workspace/ui";
-import { Plus, Loader2, Upload } from "lucide-react";
+import { Plus, Loader2, Upload, X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@workspace/ui";
 import { useState, useEffect, useCallback } from "react";
 import { getTransactions } from "@/actions/transaction.actions";
 import { ImportModal } from "./import-modal";
+import { DateRangePicker } from "@workspace/ui";
+import { DateRange } from "react-day-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui";
 
 const PAGE_LIMIT = 20;
 
 interface TransactionViewProps {
   initialTransactions: Transaction[];
   initialTotal?: number;
+  initialWallets?: Wallet[];
+  initialCategories?: Category[];
 }
 
 export function TransactionView({
   initialTransactions,
   initialTotal = 0,
+  initialWallets = [],
+  initialCategories = [],
 }: TransactionViewProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -35,34 +48,96 @@ export function TransactionView({
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchPage = useCallback(async (p: number) => {
-    setIsLoading(true);
-    try {
-      const res = await getTransactions({ page: p, limit: PAGE_LIMIT });
-      if (res.success && res.data) {
-        setTransactions(res.data);
-        const total = res.meta?.pagination?.total ?? 0;
-        setTotalPages(Math.max(1, Math.ceil(total / PAGE_LIMIT)));
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  // Filters State
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [walletFilter, setWalletFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
-  // Refetch whenever page changes (skip initial — SSR data already loaded)
+  const [isInitialMount, setIsInitialMount] = useState(true);
+
+  const fetchPage = useCallback(
+    async (
+      p: number,
+      filters: {
+        dateRange?: DateRange;
+        type: string;
+        walletId: string;
+        categoryId: string;
+      },
+    ) => {
+      setIsLoading(true);
+      try {
+        const params: any = { page: p, limit: PAGE_LIMIT };
+        if (filters.type !== "all") params.type = filters.type;
+        if (filters.walletId !== "all") params.walletId = filters.walletId;
+        if (filters.categoryId !== "all")
+          params.categoryId = filters.categoryId;
+        if (filters.dateRange?.from)
+          params.startDate = filters.dateRange.from.toISOString();
+        if (filters.dateRange?.to)
+          params.endDate = filters.dateRange.to.toISOString();
+
+        const res = await getTransactions(params);
+        if (res.success && res.data) {
+          setTransactions(res.data);
+          const total = res.meta?.pagination?.total ?? 0;
+          setTotalPages(Math.max(1, Math.ceil(total / PAGE_LIMIT)));
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  // Refetch whenever page or filters change (skip initial — SSR data already loaded)
   useEffect(() => {
-    fetchPage(page);
-  }, [page, fetchPage]);
+    if (isInitialMount) {
+      setIsInitialMount(false);
+      return;
+    }
+    fetchPage(page, {
+      dateRange,
+      type: typeFilter,
+      walletId: walletFilter,
+      categoryId: categoryFilter,
+    });
+  }, [page, dateRange, typeFilter, walletFilter, categoryFilter, fetchPage]);
+
+  // Handle filter changes (reset page to 1)
+  const handleFilterChange = (setter: any, value: any) => {
+    setter(value);
+    setPage(1);
+  };
+
+  const handleResetFilters = () => {
+    setDateRange(undefined);
+    setTypeFilter("all");
+    setWalletFilter("all");
+    setCategoryFilter("all");
+    setPage(1);
+  };
 
   const handleAddSuccess = () => {
     setAddOpen(false);
-    fetchPage(page);
+    fetchPage(page, {
+      dateRange,
+      type: typeFilter,
+      walletId: walletFilter,
+      categoryId: categoryFilter,
+    });
   };
 
   const handleEditSuccess = () => {
     setEditOpen(false);
     setSelectedTransaction(null);
-    fetchPage(page);
+    fetchPage(page, {
+      dateRange,
+      type: typeFilter,
+      walletId: walletFilter,
+      categoryId: categoryFilter,
+    });
   };
 
   const handleRowClick = (transaction: Transaction) => {
@@ -73,24 +148,109 @@ export function TransactionView({
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between py-4 border-b shrink-0">
-        <h1 className="text-xl font-semibold">Transactions</h1>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setImportOpen(true)}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 pb-6 shrink-0">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Transactions</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage your income and expenses across all wallets.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto flex-1"
+            onClick={() => setImportOpen(true)}
+          >
             <Upload className="w-4 h-4 mr-2" />
-            Import
+            Import CSV
           </Button>
-          <Button onClick={() => setAddOpen(true)}>
+          <Button
+            className="w-full sm:w-auto flex-1"
+            onClick={() => setAddOpen(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
-            Add Transaction
+            New Transaction
           </Button>
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3 mb-5">
+        <DateRangePicker
+          range={dateRange!}
+          onSelect={(range) => handleFilterChange(setDateRange, range)}
+          placeholder="Select Date Range"
+          className="w-[280px]"
+        />
+
+        <Select
+          value={typeFilter}
+          onValueChange={(val) => handleFilterChange(setTypeFilter, val)}
+        >
+          <SelectTrigger className="w-[140px] bg-background">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="income">Income</SelectItem>
+            <SelectItem value="expense">Expense</SelectItem>
+            <SelectItem value="transfer">Transfer</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={walletFilter}
+          onValueChange={(val) => handleFilterChange(setWalletFilter, val)}
+        >
+          <SelectTrigger className="w-[180px] bg-background">
+            <SelectValue placeholder="Wallet" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Wallets</SelectItem>
+            {initialWallets.map((w) => (
+              <SelectItem key={w.id} value={w.id}>
+                {w.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={categoryFilter}
+          onValueChange={(val) => handleFilterChange(setCategoryFilter, val)}
+        >
+          <SelectTrigger className="w-[180px] bg-background">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {initialCategories.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {(dateRange ||
+          typeFilter !== "all" ||
+          walletFilter !== "all" ||
+          categoryFilter !== "all") && (
+          <Button
+            variant="ghost"
+            onClick={handleResetFilters}
+            className="px-3 text-muted-foreground hover:text-foreground"
+          >
+            <X className="w-4 h-4 mr-2" />
+            Clear Filters
+          </Button>
+        )}
+      </div>
+
       {/* Table area */}
-      <div className="flex-1 overflow-auto relative">
+      <div className="flex-1 overflow-auto relative bg-background rounded-xl border">
         {isLoading && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-sm">
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/50 backdrop-blur-sm rounded-xl">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
         )}
@@ -166,7 +326,13 @@ export function TransactionView({
         onOpenChange={setImportOpen}
         onSuccess={() => {
           setImportOpen(false);
-          fetchPage(1);
+          setPage(1);
+          fetchPage(1, {
+            dateRange,
+            type: typeFilter,
+            walletId: walletFilter,
+            categoryId: categoryFilter,
+          });
         }}
       />
     </div>

@@ -62,3 +62,5 @@ export * from "./hooks/use-data-table-instance";
 export * from "./hooks/use-mobile";
 export * from "./lib/utils";
 export * from "./components/ui/editor";
+export * from "./components/ui/icons";
+export * from "./components/ui/date-range-picker";
