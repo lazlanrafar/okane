@@ -46,7 +46,7 @@ import { getCategories } from "@/actions/category.actions";
 import { useCurrency } from "@/hooks/use-currency";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Editor } from "@workspace/ui";
-import { VaultPickerModal } from "./vault-picker-modal";
+import { VaultPickerModal } from "../shared/vault-picker-modal";
 
 const transactionSchema = z.object({
   amount: z.coerce.number().positive("Amount must be positive"),
