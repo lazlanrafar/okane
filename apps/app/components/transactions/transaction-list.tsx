@@ -143,7 +143,7 @@ export function TransactionList({
 
       {/* Pagination Footer */}
       {totalPages > 1 && (
-        <div className="sticky bottom-0 z-20 flex items-center justify-between px-6 py-3 border-t bg-background/95 backdrop-blur-sm shrink-0">
+        <div className="sticky bottom-0 z-30 flex items-center justify-between px-6 py-3 border-t bg-background shrink-0">
           <span className="text-sm text-muted-foreground">
             Page <span className="font-medium text-foreground">{page}</span> of{" "}
             <span className="font-medium text-foreground">{totalPages}</span>

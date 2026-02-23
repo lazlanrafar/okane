@@ -71,7 +71,7 @@ export default async function Layout({
               <SearchDialog />
             </div>
             <div className="flex items-center gap-2">
-              <LayoutControls />
+              {/* <LayoutControls /> */}
               <ThemeSwitcher />
               {current_user && (
                 <AccountSwitcher
