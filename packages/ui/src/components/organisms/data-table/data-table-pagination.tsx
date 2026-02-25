@@ -8,15 +8,15 @@ import {
   ChevronsRight,
 } from "lucide-react";
 
-import { Button } from "../button";
-import { Label } from "../label";
+import { Button } from "../../atoms";
+import { Label } from "../../atoms";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../select";
+} from "../../molecules";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;

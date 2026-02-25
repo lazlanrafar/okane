@@ -4,7 +4,7 @@
 import type { Table } from "@tanstack/react-table";
 import { Settings2 } from "lucide-react";
 
-import { Button } from "../button";
+import { Button } from "../../atoms";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,

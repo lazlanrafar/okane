@@ -5,7 +5,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import type { ColumnDef } from "@tanstack/react-table";
 import { GripVertical } from "lucide-react";
 
-import { Button } from "../button";
+import { Button } from "../../atoms";
 
 function DragHandle({ id }: { id: number }) {
   const { attributes, listeners } = useSortable({

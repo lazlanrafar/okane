@@ -8,10 +8,10 @@ import {
   MdOutlineDelete,
   MdOutlineLinkOff,
 } from "react-icons/md";
-import { Button } from "../../../button";
-import { Popover, PopoverContent, PopoverTrigger } from "../../../popover";
-import { formatUrlWithProtocol } from "../../utils";
 import { BubbleMenuButton } from "./bubble-menu-button";
+import { Button } from "../../../../atoms";
+import { Popover, PopoverContent, PopoverTrigger } from "../../../../molecules";
+import { formatUrlWithProtocol } from "../../utils";
 
 interface LinkItemProps {
   editor: Editor;

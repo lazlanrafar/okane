@@ -11,11 +11,11 @@ import {
   endOfYear,
   subDays,
 } from "date-fns";
-import { Button } from "./button";
-import { Calendar } from "./calendar";
+import { Button } from "../atoms/button";
+import { Calendar } from "../organisms/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { cn } from "../../lib/utils";
-import { Icons } from "./icons";
+import { Icons } from "../atoms/icons";
 
 type Props = {
   range?: DateRange;
