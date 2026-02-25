@@ -6,7 +6,9 @@ import {
   getRevenueMetrics,
   getExpenseMetrics,
   getBurnRateMetrics,
+  getCategoryBreakdown,
 } from "@/actions/metrics.actions";
+import { getTransactionSettings } from "@/actions/setting.actions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui";
 import { Grid2X2, LineChart } from "lucide-react";
 
@@ -18,13 +20,21 @@ function getGreeting() {
 }
 
 export default async function OverviewPage() {
-  const [meResult, revenueResult, expenseResult, burnRateResult] =
-    await Promise.all([
-      getMe(),
-      getRevenueMetrics(),
-      getExpenseMetrics(),
-      getBurnRateMetrics(),
-    ]);
+  const [
+    meResult,
+    revenueResult,
+    expenseResult,
+    burnRateResult,
+    settingsResult,
+    categoryResult,
+  ] = await Promise.all([
+    getMe(),
+    getRevenueMetrics(),
+    getExpenseMetrics(),
+    getBurnRateMetrics(),
+    getTransactionSettings(),
+    getCategoryBreakdown("expense"),
+  ]);
 
   const user = meResult.success ? meResult.data?.user : null;
   const displayName = user?.name
@@ -34,6 +44,8 @@ export default async function OverviewPage() {
   const revenueData = revenueResult.success ? revenueResult.data! : [];
   const expenseData = expenseResult.success ? expenseResult.data! : [];
   const burnRateData = burnRateResult.success ? burnRateResult.data! : [];
+  const categoryData = categoryResult.success ? categoryResult.data! : [];
+  const settings = settingsResult.success ? settingsResult.data! : null;
 
   return (
     <div className="flex flex-col min-h-full pb-24 relative">
@@ -54,11 +66,17 @@ export default async function OverviewPage() {
       >
         <div className="flex justify-end mb-4">
           <TabsList className="grid w-[200px] grid-cols-2">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+            <TabsTrigger
+              value="overview"
+              className="flex items-center gap-2 cursor-pointer"
+            >
               <Grid2X2 className="w-4 h-4" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="metrics" className="flex items-center gap-2">
+            <TabsTrigger
+              value="metrics"
+              className="flex items-center gap-2 cursor-pointer"
+            >
               <LineChart className="w-4 h-4" />
               Metrics
             </TabsTrigger>
@@ -73,6 +91,8 @@ export default async function OverviewPage() {
             revenueData={revenueData}
             expenseData={expenseData}
             burnRateData={burnRateData}
+            categoryData={categoryData}
+            settings={settings}
           />
         </TabsContent>
       </Tabs>

@@ -82,4 +82,23 @@ export abstract class MetricsService {
 
     return buildSuccess(formatted);
   }
+
+  static async getCategoryBreakdown(
+    workspaceId: string,
+    type: "income" | "expense" = "expense",
+  ) {
+    const rawData = await MetricsRepository.getCategoryBreakdown(
+      workspaceId,
+      type,
+    );
+
+    // Transform sql results to easier format
+    const formatted = rawData.map((row) => ({
+      categoryId: row.categoryId,
+      name: row.categoryName,
+      value: Number(row.total || 0),
+    }));
+
+    return buildSuccess(formatted, "Category breakdown retrieved");
+  }
 }

@@ -2,18 +2,21 @@
 
 import { useState, useRef, useEffect, useTransition } from "react";
 import { sendChatMessage, type ChatMessage } from "@/actions/ai.actions";
-import { cn, useSidebar } from "@workspace/ui";
+import {
+  cn,
+  useSidebar,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@workspace/ui";
+import { useAiChatStore } from "@/stores/ai-chat-store";
 import {
   History,
   ArrowLeft,
   Plus,
   ArrowUp,
   Sparkles,
-  Wallet,
-  TrendingUp,
-  Receipt,
-  LineChart,
-  PieChart,
   Globe,
   Zap,
   Search,
@@ -25,35 +28,6 @@ export type ChatSession = {
   messages: ChatMessage[];
   updatedAt: Date;
 };
-
-const SUGGESTION_CHIPS = [
-  {
-    icon: <Wallet className="w-3.5 h-3.5" />,
-    label: "Wallet balances",
-    message: "What are my current wallet balances?",
-  },
-  {
-    icon: <LineChart className="w-3.5 h-3.5" />,
-    label: "Spending analysis",
-    message: "Give me a spending analysis for the last 30 days.",
-  },
-  {
-    icon: <Receipt className="w-3.5 h-3.5" />,
-    label: "Latest transactions",
-    message: "Show me my latest transactions.",
-  },
-  {
-    icon: <TrendingUp className="w-3.5 h-3.5" />,
-    label: "Monthly summary",
-    message:
-      "Give me a summary of my income vs expenses over the last 3 months.",
-  },
-  {
-    icon: <PieChart className="w-3.5 h-3.5" />,
-    label: "Top expenses",
-    message: "What categories am I spending the most on?",
-  },
-];
 
 function TypingIndicator() {
   return (
@@ -107,16 +81,20 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 export function AiChat() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [activePopover, setActivePopover] = useState<
+    "none" | "history" | "suggestions"
+  >("none");
   const [isLoaded, setIsLoaded] = useState(false);
 
   const { state, isMobile } = useSidebar();
+  const setSendMessageFn = useAiChatStore((state) => state.setSendMessageFn);
 
   const [input, setInput] = useState("");
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const activeSession = sessions.find((s) => s.id === currentSessionId);
   const messages = activeSession ? activeSession.messages : [];
@@ -146,6 +124,28 @@ export function AiChat() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        chatContainerRef.current &&
+        !chatContainerRef.current.contains(event.target as Node)
+      ) {
+        setActivePopover("none");
+      }
+    };
+
+    if (activePopover !== "none") {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [activePopover]);
+
+  // Define sendMessage here so it's available for the ref and effects
   const sendMessage = (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
@@ -181,7 +181,7 @@ export function AiChat() {
 
     setInput("");
     setIsLoading(true);
-    setIsHistoryOpen(false);
+    setActivePopover("none");
 
     startTransition(async () => {
       try {
@@ -248,6 +248,17 @@ export function AiChat() {
       }
     });
   };
+
+  const sendMessageRef = useRef(sendMessage);
+  useEffect(() => {
+    sendMessageRef.current = sendMessage;
+  }, [sendMessage]);
+
+  useEffect(() => {
+    setSendMessageFn((msg) => {
+      sendMessageRef.current(msg);
+    });
+  }, [setSendMessageFn]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -318,150 +329,205 @@ export function AiChat() {
       )}
 
       {/* Floating Input Container */}
-      <div
-        className="fixed bottom-10 z-50 flex flex-col items-center w-full max-[768px]:px-4 md:w-full md:max-w-3xl transition-all duration-200 ease-linear"
-        style={{
-          left: `calc(50% + ${sidebarOffset / 2}px)`,
-          transform: "translateX(-50%)",
-        }}
-      >
-        {/* Chat History Popover */}
-        {isHistoryOpen && (
-          <div className="absolute bottom-full left-0 mb-4 w-full bg-background border border-border/80 shadow-lg p-0 max-h-[400px] overflow-hidden flex flex-col z-50 rounded-xl animate-in slide-in-from-bottom-2">
-            <div className="sticky top-0 bg-muted/40 p-2 backdrop-blur-md border-b border-border/50">
-              <div className="flex items-center bg-background border border-border/50 rounded-md px-3 py-2 shadow-sm">
-                <Search className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search history"
-                  className="bg-transparent border-none outline-none text-sm w-full placeholder:text-muted-foreground"
-                />
+      <TooltipProvider delayDuration={300}>
+        <div
+          ref={chatContainerRef}
+          className="fixed bottom-10 z-50 flex flex-col items-center w-full max-[768px]:px-4 md:w-full md:max-w-3xl transition-all duration-200 ease-linear"
+          style={{
+            left: `calc(50% + ${sidebarOffset / 2}px)`,
+            transform: "translateX(-50%)",
+          }}
+        >
+          {/* Chat History Popover */}
+          {activePopover === "history" && (
+            <div className="absolute bottom-full left-0 mb-4 w-full bg-background border border-border/80 shadow p-0 max-h-[400px] overflow-hidden flex flex-col z-50 animate-in slide-in-from-bottom-2">
+              <div className="sticky top-0 p-2 backdrop-blur-md border-b border-border/50">
+                <div className="flex items-center bg-background border border-border/50 rounded-md px-3 py-2">
+                  <Search className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Search history"
+                    className="bg-transparent border-none outline-none text-sm w-full placeholder:text-muted-foreground"
+                  />
+                </div>
+              </div>
+              <div className="p-2 flex flex-col overflow-y-auto">
+                {sessions.length === 0 ? (
+                  <div className="text-sm text-muted-foreground px-4 py-8 text-center">
+                    No recent chats
+                  </div>
+                ) : (
+                  sessions.map((session) => (
+                    <button
+                      key={session.id}
+                      onClick={() => {
+                        setCurrentSessionId(session.id);
+                        setActivePopover("none");
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-3 text-sm rounded-lg hover:bg-muted transition-colors text-left cursor-pointer"
+                    >
+                      <span className="truncate pr-4 font-medium text-foreground">
+                        {session.title}
+                      </span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {new Date(session.updatedAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
-            <div className="p-2 flex flex-col overflow-y-auto">
-              {sessions.length === 0 ? (
-                <div className="text-sm text-muted-foreground px-4 py-8 text-center">
-                  No recent chats
-                </div>
-              ) : (
-                sessions.map((session) => (
+          )}
+
+          {/* Suggested Prompts Popover */}
+          {activePopover === "suggestions" && (
+            <div className="absolute bottom-full left-0 mb-4 w-full bg-background border border-border/80 shadow p-0 max-h-[400px] overflow-hidden flex flex-col z-50 animate-in slide-in-from-bottom-2">
+              <div className="p-2 flex flex-col overflow-y-auto">
+                {[
+                  "Show balance sheet",
+                  "Show growth rate analysis",
+                  "Analyze revenue growth trends",
+                  "Show invoice payment analysis",
+                  "Analyze customer payment patterns",
+                  "Show tax summary",
+                  "Show tax breakdown by category",
+                  "Show business health score",
+                  "Analyze business health metrics",
+                  "Show revenue forecast",
+                ].map((promptText, idx) => (
                   <button
-                    key={session.id}
-                    onClick={() => {
-                      setCurrentSessionId(session.id);
-                      setIsHistoryOpen(false);
-                    }}
-                    className="w-full flex items-center justify-between px-3 py-3 text-sm rounded-lg hover:bg-muted transition-colors text-left"
+                    key={idx}
+                    onClick={() => sendMessage(promptText)}
+                    className="w-full text-left px-3 py-3 text-sm rounded-lg hover:bg-muted transition-colors cursor-pointer text-muted-foreground hover:text-foreground"
                   >
-                    <span className="truncate pr-4 font-medium text-foreground">
-                      {session.title}
-                    </span>
-                    <span className="shrink-0 text-xs text-muted-foreground">
-                      {new Date(session.updatedAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
+                    {promptText}
                   </button>
-                ))
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Auto-sizing Input Bar */}
+          <div className="w-full bg-[#F7F7F7] dark:bg-[#131313] shadow-sm border border-border/50 flex flex-col overflow-hidden transition-all">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                e.target.style.height = "auto";
+                e.target.style.height =
+                  Math.min(e.target.scrollHeight, 200) + "px";
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask anything"
+              disabled={isLoading}
+              rows={1}
+              className={cn(
+                "w-full resize-none bg-transparent outline-none p-4 placeholder:text-muted-foreground text-sm",
+                "disabled:cursor-not-allowed",
               )}
-            </div>
-          </div>
-        )}
+              style={{ minHeight: "60px", maxHeight: "200px" }}
+            />
 
-        {/* Suggestion Chips (only show when no messages) */}
-        {!hasMessages && (
-          <div className="w-full flex flex-wrap justify-center gap-2 mb-4">
-            {SUGGESTION_CHIPS.map((chip) => (
-              <button
-                key={chip.label}
-                onClick={() => sendMessage(chip.message)}
-                disabled={isLoading}
-                className={cn(
-                  "rounded-full border border-border/50 bg-background/80 backdrop-blur px-3 py-1.5 text-xs font-medium shadow-sm transition-all",
-                  "hover:border-primary/30 hover:bg-muted hover:text-foreground",
-                  "disabled:cursor-not-allowed disabled:opacity-50",
-                  "flex items-center gap-1.5 text-muted-foreground",
-                )}
-              >
-                {chip.icon}
-                {chip.label}
-              </button>
-            ))}
-          </div>
-        )}
+            <div className="flex items-center justify-between px-3 pb-3">
+              <div className="flex items-center gap-1.5">
+                {/* <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      className="p-2 text-muted-foreground cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors"
+                      aria-label="Add attachment"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Add attachment</TooltipContent>
+                </Tooltip> */}
 
-        {/* Auto-sizing Input Bar */}
-        <div className="w-full rounded-2xl bg-[#F7F7F7] dark:bg-[#131313] shadow-sm border border-border/50 flex flex-col overflow-hidden transition-all">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value);
-              e.target.style.height = "auto";
-              e.target.style.height =
-                Math.min(e.target.scrollHeight, 200) + "px";
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask anything"
-            disabled={isLoading}
-            rows={1}
-            className={cn(
-              "w-full resize-none bg-transparent outline-none p-4 placeholder:text-muted-foreground text-sm",
-              "disabled:cursor-not-allowed",
-            )}
-            style={{ minHeight: "60px", maxHeight: "200px" }}
-          />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() =>
+                        setActivePopover(
+                          activePopover === "suggestions"
+                            ? "none"
+                            : "suggestions",
+                        )
+                      }
+                      className={cn(
+                        "p-2 text-muted-foreground cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors",
+                        activePopover === "suggestions" &&
+                          "bg-black/5 dark:bg-white/5 text-foreground",
+                      )}
+                      aria-label="Suggested actions"
+                    >
+                      <Zap className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Suggested actions</TooltipContent>
+                </Tooltip>
 
-          <div className="flex items-center justify-between px-3 pb-3">
-            <div className="flex items-center gap-1.5">
-              <button
-                className="p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors"
-                title="Add attachment"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-              <button
-                className="p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors"
-                title="Suggested actions"
-              >
-                <Zap className="w-4 h-4" />
-              </button>
-              <button
-                className="p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors"
-                title="Web search"
-              >
-                <Globe className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-                className={cn(
-                  "p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors",
-                  isHistoryOpen && "bg-black/5 dark:bg-white/5 text-foreground",
-                )}
-                title="Chat History"
-              >
-                <History className="w-4 h-4" />
-              </button>
-            </div>
+                {/* <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      className="p-2 text-muted-foreground cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors"
+                      aria-label="Web search"
+                    >
+                      <Globe className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Web search</TooltipContent>
+                </Tooltip> */}
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => sendMessage(input)}
-                disabled={isLoading || !input.trim()}
-                className={cn(
-                  "w-8 h-8 flex items-center justify-center rounded transition-all",
-                  input.trim() && !isLoading
-                    ? "bg-[#1A1A1A] text-white hover:bg-black dark:bg-white dark:text-black dark:hover:bg-gray-200"
-                    : "bg-muted text-muted-foreground cursor-not-allowed opacity-50",
-                )}
-              >
-                <ArrowUp className="w-4 h-4" />
-              </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() =>
+                        setActivePopover(
+                          activePopover === "history" ? "none" : "history",
+                        )
+                      }
+                      className={cn(
+                        "p-2 text-muted-foreground cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors",
+                        activePopover === "history" &&
+                          "bg-black/5 dark:bg-white/5 text-foreground",
+                      )}
+                      aria-label="Chat History"
+                    >
+                      <History className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Chat History</TooltipContent>
+                </Tooltip>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => sendMessage(input)}
+                      disabled={isLoading || !input.trim()}
+                      className={cn(
+                        "w-8 h-8 flex items-center justify-center rounded transition-all",
+                        input.trim() && !isLoading
+                          ? "bg-[#1A1A1A] text-white hover:bg-black dark:bg-white dark:text-black dark:hover:bg-gray-200"
+                          : "bg-muted text-muted-foreground cursor-not-allowed opacity-50",
+                        "cursor-pointer",
+                      )}
+                      aria-label="Send message"
+                    >
+                      <ArrowUp className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Send message</TooltipContent>
+                </Tooltip>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </TooltipProvider>
     </>
   );
 }

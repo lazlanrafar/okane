@@ -46,4 +46,18 @@ export const metricsController = new Elysia({ prefix: "/metrics" })
     {
       detail: { tags: ["Metrics"] },
     },
+  )
+  .get(
+    "/category-breakdown",
+    async ({ workspaceId, query }) => {
+      const type = query?.type === "income" ? "income" : "expense";
+      const response = await MetricsService.getCategoryBreakdown(
+        workspaceId!,
+        type,
+      );
+      return response;
+    },
+    {
+      detail: { tags: ["Metrics"] },
+    },
   );

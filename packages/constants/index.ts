@@ -1,6 +1,7 @@
 export * from "./default/category";
 export * from "./default/wallet";
 export * from "./roles";
+export * from "./colors";
 import countriesJson from "./countries.json";
 
 export const COUNTRIES = countriesJson;

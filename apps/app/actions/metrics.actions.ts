@@ -54,3 +54,27 @@ export const getBurnRateMetrics = async (): Promise<
     };
   }
 };
+
+export interface CategoryBreakdownPoint {
+  categoryId: string | null;
+  name: string;
+  value: number;
+}
+
+export const getCategoryBreakdown = async (
+  type: "income" | "expense" = "expense",
+): Promise<ActionResponse<CategoryBreakdownPoint[]>> => {
+  try {
+    const res = await api.get("/metrics/category-breakdown", {
+      params: { type },
+    });
+    return { success: true, data: res.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error:
+        error?.response?.data?.message ||
+        "Failed to fetch category breakdown metrics",
+    };
+  }
+};
