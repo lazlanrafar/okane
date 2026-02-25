@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../core/services/auth_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import 'setting_tab.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,84 +14,95 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
 
-  Future<void> _signOut() async {
-    await AuthService.signOut();
-    if (mounted) context.go('/login');
-  }
-
   @override
   Widget build(BuildContext context) {
     final email = Supabase.instance.client.auth.currentUser?.email ?? '';
 
+    final isMoreTab = _selectedIndex == 3;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Trans.',
+          isMoreTab ? 'Settings' : 'Trans.',
           style: TextStyle(
             color: context.colors.textPrimary,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
+            fontSize: isMoreTab ? 18 : 20,
+            fontWeight: isMoreTab ? FontWeight.w600 : FontWeight.w700,
             letterSpacing: -0.3,
             fontFamily: 'Inter',
           ),
         ),
-        leading: IconButton(
-          icon: Icon(Icons.search, color: context.colors.textPrimary),
-          onPressed: () {},
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.tune, color: context.colors.textPrimary),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          _MonthNavBar(),
-          _TabBar(),
-          _SummaryRow(),
-          Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.receipt_long_outlined,
-                    color: context.colors.textDisabled,
-                    size: 56,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'No transactions yet',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: context.colors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    email,
-                    style: AppTextStyles.caption.copyWith(
-                      color: context.colors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  TextButton.icon(
-                    onPressed: _signOut,
-                    icon: const Icon(Icons.logout, size: 16),
-                    label: const Text('Sign Out'),
-                  ),
-                ],
+        leading: isMoreTab
+            ? null
+            : IconButton(
+                icon: Icon(Icons.search, color: context.colors.textPrimary),
+                onPressed: () {},
               ),
+        actions: isMoreTab
+            ? [
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 16.0),
+                    child: Text(
+                      '2.12.3 AP',
+                      style: AppTextStyles.caption.copyWith(
+                        color: context.colors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+              ]
+            : [
+                IconButton(
+                  icon: Icon(Icons.tune, color: context.colors.textPrimary),
+                  onPressed: () {},
+                ),
+              ],
+      ),
+      body: isMoreTab
+          ? const SettingTab()
+          : Column(
+              children: [
+                _MonthNavBar(),
+                _TabBar(),
+                _SummaryRow(),
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.receipt_long_outlined,
+                          color: context.colors.textDisabled,
+                          size: 56,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No transactions yet',
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: context.colors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          email,
+                          style: AppTextStyles.caption.copyWith(
+                            color: context.colors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: context.colors.primary,
-        child: Icon(Icons.add, color: context.colors.primaryForeground),
-      ),
+      floatingActionButton: isMoreTab
+          ? null
+          : FloatingActionButton(
+              onPressed: () {},
+              backgroundColor: context.colors.primary,
+              child: Icon(Icons.add, color: context.colors.primaryForeground),
+            ),
       bottomNavigationBar: _BottomNav(
         selectedIndex: _selectedIndex,
         onTap: (i) => setState(() => _selectedIndex = i),
@@ -266,7 +276,10 @@ class _BottomNav extends StatelessWidget {
           icon: Icon(Icons.account_balance_wallet_outlined),
           label: 'Accounts',
         ),
-        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'More'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.settings_outlined),
+          label: 'Setting',
+        ),
       ],
     );
   }

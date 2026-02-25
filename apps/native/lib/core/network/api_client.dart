@@ -75,7 +75,11 @@ class ApiClient {
           }
           handler.next(response);
         },
-        onError: (error, handler) {
+        onError: (error, handler) async {
+          if (error.response?.statusCode == 401) {
+            await clearToken(); // Auto-logout on 401
+          }
+
           try {
             final rawBody = error.response?.data as String? ?? '';
             final isEncrypted =

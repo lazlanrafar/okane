@@ -7,6 +7,8 @@ import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 
+import '../../features/settings/screens/transaction_settings_screen.dart';
+
 final appRouter = GoRouter(
   initialLocation: AppRoutes.login,
   redirect: _globalRedirect,
@@ -30,6 +32,11 @@ final appRouter = GoRouter(
       path: AppRoutes.dashboard,
       name: 'dashboard',
       builder: (context, state) => const DashboardScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.settingsTransaction,
+      name: 'settings-transaction',
+      builder: (context, state) => const TransactionSettingsScreen(),
     ),
   ],
 );
