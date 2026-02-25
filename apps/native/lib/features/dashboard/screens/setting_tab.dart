@@ -113,8 +113,7 @@ class SettingTab extends StatelessWidget {
           context,
           icon: Icons.palette_outlined,
           title: "Style",
-          isComingSoon: true,
-          onTap: () {},
+          onTap: () => context.push('/settings/style'),
         ),
         _buildListTile(
           context,
@@ -171,74 +170,86 @@ class SettingTab extends StatelessWidget {
     Color? trailingColor,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          crossAxisAlignment: subtitle != null
-              ? CrossAxisAlignment.start
-              : CrossAxisAlignment.center,
-          children: [
-            Icon(icon, color: context.colors.textSecondary, size: 24),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+            child: Row(
+              crossAxisAlignment: subtitle != null
+                  ? CrossAxisAlignment.start
+                  : CrossAxisAlignment.center,
+              children: [
+                Icon(icon, color: context.colors.textSecondary, size: 24),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: context.colors.textPrimary,
-                        ),
-                      ),
-                      if (isComingSoon) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: context.colors.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'Soon',
-                            style: AppTextStyles.caption.copyWith(
-                              fontSize: 10,
-                              color: context.colors.primary,
+                      Row(
+                        children: [
+                          Text(
+                            title,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: context.colors.textPrimary,
                             ),
+                          ),
+                          if (isComingSoon) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: context.colors.primary.withValues(
+                                  alpha: 0.12,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'Soon',
+                                style: AppTextStyles.caption.copyWith(
+                                  fontSize: 10,
+                                  color: context.colors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: context.colors.textSecondary,
                           ),
                         ),
                       ],
                     ],
                   ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: context.colors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            if (trailingText != null)
-              Text(
-                trailingText,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: trailingColor ?? context.colors.textSecondary,
-                  fontWeight: FontWeight.w600,
                 ),
-              ),
-          ],
+                if (trailingText != null)
+                  Text(
+                    trailingText,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: trailingColor ?? context.colors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
-      ),
+        Divider(
+          height: 1,
+          thickness: 0.5,
+          indent: 56, // aligns under the icon+gap
+          color: context.colors.border,
+        ),
+      ],
     );
   }
 }

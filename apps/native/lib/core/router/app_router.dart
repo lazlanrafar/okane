@@ -10,6 +10,7 @@ import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/settings/screens/transaction_settings_screen.dart';
 import '../../features/settings/screens/category_settings_screen.dart';
 import '../../features/settings/screens/category_form_screen.dart';
+import '../../features/settings/screens/style_setting_screen.dart';
 import '../../features/settings/models/category_model.dart';
 
 final appRouter = GoRouter(
@@ -51,6 +52,11 @@ final appRouter = GoRouter(
       name: 'settings-categories-expense',
       builder: (context, state) =>
           const CategorySettingsScreen(type: 'expense'),
+    ),
+    GoRoute(
+      path: '/settings/style',
+      name: 'settings-style',
+      builder: (context, state) => const StyleSettingScreen(),
     ),
     // Create new category form (no existing category in extra)
     GoRoute(
