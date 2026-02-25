@@ -8,9 +8,98 @@ import {
   wallets,
   transactions,
   categories,
+  aiSessions,
+  aiMessages,
 } from "@workspace/database";
 
 export abstract class AiRepository {
+  /**
+   * Create a new AI chat session.
+   */
+  static async createSession(workspaceId: string, title: string) {
+    const [session] = await db
+      .insert(aiSessions)
+      .values({
+        workspace_id: workspaceId,
+        title,
+      })
+      .returning();
+    return session;
+  }
+
+  /**
+   * Get all chat sessions for a workspace.
+   */
+  static async getSessions(workspaceId: string) {
+    return await db
+      .select({
+        id: aiSessions.id,
+        title: aiSessions.title,
+        updatedAt: aiSessions.updated_at,
+      })
+      .from(aiSessions)
+      .where(
+        and(
+          eq(aiSessions.workspace_id, workspaceId),
+          isNull(aiSessions.deleted_at),
+        ),
+      )
+      .orderBy(desc(aiSessions.updated_at));
+  }
+
+  /**
+   * Get a specific session.
+   */
+  static async getSession(sessionId: string, workspaceId: string) {
+    const [session] = await db
+      .select()
+      .from(aiSessions)
+      .where(
+        and(
+          eq(aiSessions.id, sessionId),
+          eq(aiSessions.workspace_id, workspaceId),
+          isNull(aiSessions.deleted_at),
+        ),
+      );
+    return session;
+  }
+
+  /**
+   * Save a single message to a session and touch the session updated_at.
+   */
+  static async saveMessage(
+    sessionId: string,
+    role: "user" | "assistant" | "system",
+    content: string,
+  ) {
+    await db.transaction(async (tx) => {
+      await tx.insert(aiMessages).values({
+        session_id: sessionId,
+        role,
+        content,
+      });
+      await tx
+        .update(aiSessions)
+        .set({ updated_at: new Date() })
+        .where(eq(aiSessions.id, sessionId));
+    });
+  }
+
+  /**
+   * Get all messages for a session.
+   */
+  static async getSessionMessages(sessionId: string) {
+    return await db
+      .select({
+        id: aiMessages.id,
+        role: aiMessages.role,
+        content: aiMessages.content,
+        createdAt: aiMessages.created_at,
+      })
+      .from(aiMessages)
+      .where(eq(aiMessages.session_id, sessionId))
+      .orderBy(aiMessages.created_at);
+  }
   /**
    * Get recent transactions with wallet & category name.
    */

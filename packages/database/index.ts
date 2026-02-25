@@ -14,3 +14,5 @@ export * from "./schema/vault-files";
 export * from "./schema/workspace-invitations";
 export * from "./schema/transactions";
 export * from "./schema/transaction-attachments";
+export * from "./schema/ai-sessions";
+export * from "./schema/ai-messages";

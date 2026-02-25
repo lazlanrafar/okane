@@ -92,15 +92,70 @@ ${recentLines}
   }
 
   /**
-   * Chat with Claude using the user's financial context.
+   * Helper to generate a short title for a new chat session.
+   */
+  static async generateTitle(firstMessage: string): Promise<string> {
+    const client = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+    const response = await client.messages.create({
+      model: "claude-3-haiku-20240307",
+      max_tokens: 20,
+      system:
+        "You are a title generator. Generate a very short (max 4 words) title summarizing the user's message. Output ONLY the title, no quotes or extra text.",
+      messages: [{ role: "user", content: firstMessage }],
+    });
+    const textBlock = response.content.find(
+      (b): b is Anthropic.TextBlock => b.type === "text",
+    );
+    return textBlock
+      ? textBlock.text.trim().replace(/^['"]|['"]$/g, "")
+      : "New Chat";
+  }
+
+  /**
+   * Chat with Claude using the user's financial context and save to DB.
    */
   static async chat(
     messages: ChatMessage[],
     workspaceId: string,
+    sessionId?: string,
   ): Promise<ChatResponse> {
     const client = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
+
+    let currentSessionId = sessionId;
+    const latestUserMessage = messages[messages.length - 1];
+
+    if (!latestUserMessage) {
+      throw new Error("No messages provided");
+    }
+
+    if (!currentSessionId) {
+      const title = await AiService.generateTitle(latestUserMessage.content);
+      const newSession = await AiRepository.createSession(workspaceId, title);
+      currentSessionId = newSession!.id;
+
+      // Save all previous messages acting as history if they were passed, though typically it's just 1
+      for (const msg of messages.slice(0, -1)) {
+        await AiRepository.saveMessage(currentSessionId, msg.role, msg.content);
+      }
+    } else {
+      // Verify session belongs to workspace
+      const session = await AiRepository.getSession(
+        currentSessionId,
+        workspaceId,
+      );
+      if (!session) throw new Error("Chat session not found or access denied.");
+    }
+
+    // Save the new user message
+    await AiRepository.saveMessage(
+      currentSessionId,
+      latestUserMessage.role,
+      latestUserMessage.content,
+    );
 
     const financialContext = await AiService.buildFinancialContext(workspaceId);
     const systemPrompt = `${SYSTEM_PROMPT_BASE}\n\n${financialContext}`;
@@ -109,10 +164,12 @@ ${recentLines}
       model: "claude-3-haiku-20240307",
       max_tokens: 1024,
       system: systemPrompt,
-      messages: messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      })),
+      messages: messages
+        .filter((m) => m.role !== "system")
+        .map((m) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        })),
     });
 
     const textBlock = response.content.find(
@@ -122,12 +179,26 @@ ${recentLines}
       ? textBlock.text
       : "I couldn't generate a response. Please try again.";
 
+    // Save assistant response
+    await AiRepository.saveMessage(currentSessionId, "assistant", reply);
+
     return {
+      sessionId: currentSessionId,
       reply,
       usage: {
         input_tokens: response.usage.input_tokens,
         output_tokens: response.usage.output_tokens,
       },
     };
+  }
+
+  static async getSessions(workspaceId: string) {
+    return AiRepository.getSessions(workspaceId);
+  }
+
+  static async getSessionMessages(sessionId: string, workspaceId: string) {
+    const session = await AiRepository.getSession(sessionId, workspaceId);
+    if (!session) throw new Error("Chat session not found or access denied.");
+    return AiRepository.getSessionMessages(sessionId);
   }
 }

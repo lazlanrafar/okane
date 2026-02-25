@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, useTransition } from "react";
-import { sendChatMessage, type ChatMessage } from "@/actions/ai.actions";
+import {
+  sendChatMessage,
+  getChatSessions,
+  getChatSessionMessages,
+  type ChatMessage,
+} from "@/actions/ai.actions";
 import {
   cn,
   useSidebar,
@@ -26,7 +31,8 @@ export type ChatSession = {
   id: string;
   title: string;
   messages: ChatMessage[];
-  updatedAt: Date;
+  updatedAt: Date | string;
+  messagesLoaded?: boolean;
 };
 
 function TypingIndicator() {
@@ -102,23 +108,38 @@ export function AiChat() {
 
   const sidebarOffset = isMobile ? 0 : state === "expanded" ? 256 : 48;
 
-  useEffect(() => {
-    const saved = localStorage.getItem("okane:chat-sessions");
-    if (saved) {
-      try {
-        setSessions(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse chat sessions", e);
+  const loadSessionMessages = async (id: string) => {
+    const session = sessions.find((s) => s.id === id);
+    if (session && !session.messagesLoaded) {
+      const res = await getChatSessionMessages(id);
+      if (res.success && res.data) {
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === id
+              ? { ...s, messages: res.data!, messagesLoaded: true }
+              : s,
+          ),
+        );
       }
     }
-    setIsLoaded(true);
-  }, []);
+  };
 
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem("okane:chat-sessions", JSON.stringify(sessions));
-    }
-  }, [sessions, isLoaded]);
+    const fetchSessions = async () => {
+      const res = await getChatSessions();
+      if (res.success && res.data) {
+        setSessions(
+          res.data.map((s) => ({
+            ...s,
+            messages: [],
+            messagesLoaded: false,
+          })),
+        );
+      }
+      setIsLoaded(true);
+    };
+    fetchSessions();
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -151,7 +172,9 @@ export function AiChat() {
     if (!trimmed || isLoading) return;
 
     let sessionId = currentSessionId;
-    if (!sessionId) {
+    // We will optimistically create a temporary session id if none exists
+    const isNewSession = !sessionId;
+    if (isNewSession) {
       sessionId = crypto.randomUUID();
       setCurrentSessionId(sessionId);
       setSessions((prev) => [
@@ -160,6 +183,7 @@ export function AiChat() {
           title: trimmed.slice(0, 30) + (trimmed.length > 30 ? "..." : ""),
           messages: [],
           updatedAt: new Date(),
+          messagesLoaded: true,
         },
         ...prev,
       ]);
@@ -186,23 +210,38 @@ export function AiChat() {
     startTransition(async () => {
       try {
         const currentMessages = activeSession ? activeSession.messages : [];
-        const result = await sendChatMessage([...currentMessages, userMessage]);
+        const result = await sendChatMessage(
+          [...currentMessages, userMessage],
+          isNewSession ? undefined : (sessionId ?? undefined),
+        );
 
         if (result.success && result.data) {
-          setSessions((prev) =>
-            prev.map((s) =>
+          const actualSessionId = result.data.sessionId || sessionId;
+
+          if (isNewSession && result.data.sessionId) {
+            setCurrentSessionId(actualSessionId);
+          }
+
+          setSessions((prev) => {
+            // If it's a new session, we need to replace the temporary ID with the real one
+            const updated = prev.map((s) =>
               s.id === sessionId
                 ? {
                     ...s,
+                    id: actualSessionId!,
                     messages: [
                       ...s.messages,
-                      { role: "assistant", content: result.data!.reply },
+                      {
+                        role: "assistant" as const,
+                        content: result.data!.reply,
+                      },
                     ],
                     updatedAt: new Date(),
                   }
                 : s,
-            ),
-          );
+            );
+            return updated;
+          });
         } else {
           setSessions((prev) =>
             prev.map((s) =>
@@ -362,6 +401,7 @@ export function AiChat() {
                       key={session.id}
                       onClick={() => {
                         setCurrentSessionId(session.id);
+                        loadSessionMessages(session.id);
                         setActivePopover("none");
                       }}
                       className="w-full flex items-center justify-between px-3 py-3 text-sm rounded-lg hover:bg-muted transition-colors text-left cursor-pointer"

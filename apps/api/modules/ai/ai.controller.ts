@@ -16,11 +16,31 @@ export const aiController = new Elysia({ prefix: "/ai" })
       return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
     }
   })
+  .get(
+    "/sessions",
+    async ({ workspaceId }) => {
+      const sessions = await AiService.getSessions(workspaceId!);
+      return buildSuccess(sessions, "Sessions retrieved");
+    },
+    { detail: { tags: ["AI"] } },
+  )
+  .get(
+    "/sessions/:id",
+    async ({ params: { id }, workspaceId }) => {
+      const messages = await AiService.getSessionMessages(id, workspaceId!);
+      return buildSuccess(messages, "Session messages retrieved");
+    },
+    { detail: { tags: ["AI"] } },
+  )
   .post(
     "/chat",
     async ({ body, workspaceId, set }) => {
       try {
-        const response = await AiService.chat(body.messages, workspaceId!);
+        const response = await AiService.chat(
+          body.messages,
+          workspaceId!,
+          body.sessionId,
+        );
         return buildSuccess(response, "Chat response generated");
       } catch (error: any) {
         set.status = 500;
@@ -30,5 +50,5 @@ export const aiController = new Elysia({ prefix: "/ai" })
         );
       }
     },
-    { body: ChatRequestDto },
+    { body: ChatRequestDto, detail: { tags: ["AI"] } },
   );

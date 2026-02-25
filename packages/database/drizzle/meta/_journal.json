@@ -92,6 +92,13 @@
       "when": 1771826340818,
       "tag": "0012_left_skreet",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1771989672625,
+      "tag": "0013_omniscient_bishop",
+      "breakpoints": true
     }
   ]
 }
