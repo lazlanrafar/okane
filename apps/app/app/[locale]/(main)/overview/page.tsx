@@ -9,8 +9,9 @@ import {
   getCategoryBreakdown,
 } from "@/actions/metrics.actions";
 import { getTransactionSettings } from "@/actions/setting.actions";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui";
+import { TabsContent, TabsList, TabsTrigger } from "@workspace/ui";
 import { Grid2X2, LineChart } from "lucide-react";
+import { OverviewTabs } from "@/components/overview/overview-tabs";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -19,7 +20,13 @@ function getGreeting() {
   return "Good evening";
 }
 
-export default async function OverviewPage() {
+export default async function OverviewPage(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const searchParams = await props.searchParams;
+  const initialTab =
+    typeof searchParams.tab === "string" ? searchParams.tab : "overview";
+
   const [
     meResult,
     revenueResult,
@@ -60,10 +67,7 @@ export default async function OverviewPage() {
         </div>
       </div>
 
-      <Tabs
-        defaultValue="overview"
-        className="flex flex-col flex-1 dashboard-content-tabs"
-      >
+      <OverviewTabs defaultTab={initialTab}>
         <div className="flex justify-end mb-4">
           <TabsList className="grid w-[200px] grid-cols-2">
             <TabsTrigger
@@ -95,7 +99,7 @@ export default async function OverviewPage() {
             settings={settings}
           />
         </TabsContent>
-      </Tabs>
+      </OverviewTabs>
 
       <AiChat />
     </div>

@@ -26,6 +26,7 @@ import {
   Zap,
   Search,
 } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export type ChatSession = {
   id: string;
@@ -85,8 +86,14 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 }
 
 export function AiChat() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(
+    () => searchParams.get("chat") || null,
+  );
   const [activePopover, setActivePopover] = useState<
     "none" | "history" | "suggestions"
   >("none");
@@ -108,8 +115,12 @@ export function AiChat() {
 
   const sidebarOffset = isMobile ? 0 : state === "expanded" ? 256 : 48;
 
-  const loadSessionMessages = async (id: string) => {
-    const session = sessions.find((s) => s.id === id);
+  const loadSessionMessages = async (
+    id: string,
+    fetchedSessions?: ChatSession[],
+  ) => {
+    const listToCheck = fetchedSessions || sessions;
+    const session = listToCheck.find((s) => s.id === id);
     if (session && !session.messagesLoaded) {
       const res = await getChatSessionMessages(id);
       if (res.success && res.data) {
@@ -125,21 +136,43 @@ export function AiChat() {
   };
 
   useEffect(() => {
+    if (isLoaded) return;
+
     const fetchSessions = async () => {
       const res = await getChatSessions();
+      let updatedSessions: ChatSession[] = [];
       if (res.success && res.data) {
-        setSessions(
-          res.data.map((s) => ({
-            ...s,
-            messages: [],
-            messagesLoaded: false,
-          })),
-        );
+        updatedSessions = res.data.map((s) => ({
+          ...s,
+          messages: [],
+          messagesLoaded: false,
+        }));
+        setSessions(updatedSessions);
       }
       setIsLoaded(true);
+
+      const initialChatId = searchParams.get("chat");
+      if (initialChatId) {
+        loadSessionMessages(initialChatId, updatedSessions);
+      }
     };
     fetchSessions();
-  }, []);
+  }, [isLoaded, searchParams]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (currentSessionId) {
+      if (params.get("chat") !== currentSessionId) {
+        params.set("chat", currentSessionId);
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      }
+    } else {
+      if (params.has("chat")) {
+        params.delete("chat");
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      }
+    }
+  }, [currentSessionId, pathname, router, searchParams]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
