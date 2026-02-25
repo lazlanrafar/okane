@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/router/app_routes.dart';
 import 'package:go_router/go_router.dart';
 
 class SettingTab extends StatelessWidget {
@@ -41,17 +42,15 @@ class SettingTab extends StatelessWidget {
         _buildSectionHeader(context, "Category/Accounts"),
         _buildListTile(
           context,
-          icon: Icons.add_circle_outline, // closest to stack with +
+          icon: Icons.add_circle_outline,
           title: "Income Category Setting",
-          isComingSoon: true,
-          onTap: () {},
+          onTap: () => context.push(AppRoutes.settingsCategoriesIncome),
         ),
         _buildListTile(
           context,
-          icon: Icons.remove_circle_outline, // closest to stack with -
+          icon: Icons.remove_circle_outline,
           title: "Expenses Category Setting",
-          isComingSoon: true,
-          onTap: () {},
+          onTap: () => context.push(AppRoutes.settingsCategoriesExpense),
         ),
         _buildListTile(
           context,

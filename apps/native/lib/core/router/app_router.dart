@@ -8,6 +8,9 @@ import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 
 import '../../features/settings/screens/transaction_settings_screen.dart';
+import '../../features/settings/screens/category_settings_screen.dart';
+import '../../features/settings/screens/category_form_screen.dart';
+import '../../features/settings/models/category_model.dart';
 
 final appRouter = GoRouter(
   initialLocation: AppRoutes.login,
@@ -37,6 +40,38 @@ final appRouter = GoRouter(
       path: AppRoutes.settingsTransaction,
       name: 'settings-transaction',
       builder: (context, state) => const TransactionSettingsScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.settingsCategoriesIncome,
+      name: 'settings-categories-income',
+      builder: (context, state) => const CategorySettingsScreen(type: 'income'),
+    ),
+    GoRoute(
+      path: AppRoutes.settingsCategoriesExpense,
+      name: 'settings-categories-expense',
+      builder: (context, state) =>
+          const CategorySettingsScreen(type: 'expense'),
+    ),
+    // Create new category form (no existing category in extra)
+    GoRoute(
+      path: '/settings/categories/:type/form',
+      name: 'category-create',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return CategoryFormScreen(type: extra['type'] as String);
+      },
+    ),
+    // Edit existing category form
+    GoRoute(
+      path: '/settings/categories/:type/:id/form',
+      name: 'category-form',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return CategoryFormScreen(
+          type: extra['type'] as String,
+          category: extra['category'] as CategoryModel?,
+        );
+      },
     ),
   ],
 );
