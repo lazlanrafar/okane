@@ -11,6 +11,9 @@ import '../../features/settings/screens/transaction_settings_screen.dart';
 import '../../features/settings/screens/category_settings_screen.dart';
 import '../../features/settings/screens/category_form_screen.dart';
 import '../../features/settings/screens/style_setting_screen.dart';
+import '../../features/settings/screens/main_currency_screen.dart';
+import '../../features/settings/screens/sub_currency_screen.dart';
+import '../../features/settings/screens/currency_picker_screen.dart';
 import '../../features/settings/models/category_model.dart';
 
 final appRouter = GoRouter(
@@ -57,6 +60,21 @@ final appRouter = GoRouter(
       path: '/settings/style',
       name: 'settings-style',
       builder: (context, state) => const StyleSettingScreen(),
+    ),
+    GoRoute(
+      path: '/settings/main-currency',
+      name: 'settings-main-currency',
+      builder: (context, state) => const MainCurrencyScreen(),
+    ),
+    GoRoute(
+      path: '/settings/sub-currency',
+      name: 'settings-sub-currency',
+      builder: (context, state) => const SubCurrencyScreen(),
+    ),
+    GoRoute(
+      path: '/settings/currency-picker',
+      name: 'currency-picker',
+      builder: (context, state) => const CurrencyPickerScreen(),
     ),
     // Create new category form (no existing category in extra)
     GoRoute(

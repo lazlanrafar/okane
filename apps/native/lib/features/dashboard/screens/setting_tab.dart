@@ -92,15 +92,13 @@ class SettingTab extends StatelessWidget {
           icon: Icons.payments_outlined,
           title: "Main Currency Setting",
           subtitle: "IDR(Rp)",
-          isComingSoon: true,
-          onTap: () {},
+          onTap: () => context.push('/settings/main-currency'),
         ),
         _buildListTile(
           context,
           icon: Icons.request_quote_outlined,
           title: "Sub Currency Setting",
-          isComingSoon: true,
-          onTap: () {},
+          onTap: () => context.push('/settings/sub-currency'),
         ),
         _buildListTile(
           context,
