@@ -13,7 +13,7 @@ import {
  * All reads filter deleted_at: null on workspaces.
  */
 export const workspacesRepository = {
-  async create(data: { name: string; slug: string }) {
+  async create(data: { name: string; slug: string; country?: string | null }) {
     const [workspace] = await db.insert(workspaces).values(data).returning();
     return workspace ?? null;
   },

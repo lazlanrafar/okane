@@ -1,13 +1,9 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui";
+import { usePathname, useRouter } from "next/navigation";
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui";
+
 import type { Locale } from "@/i18n-config";
 
 interface LanguageSettingsFormProps {
@@ -27,10 +23,7 @@ interface LanguageSettingsFormProps {
   };
 }
 
-export function LanguageSettingsForm({
-  currentLocale,
-  dictionary,
-}: LanguageSettingsFormProps) {
+export function LanguageSettingsForm({ currentLocale, dictionary }: LanguageSettingsFormProps) {
   const router = useRouter();
   const pathname = usePathname();
 

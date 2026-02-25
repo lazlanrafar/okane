@@ -1,20 +1,21 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+
+import { COUNTRIES } from "@workspace/constants";
 import {
+  Button,
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
+  cn,
   Popover,
   PopoverContent,
   PopoverTrigger,
-  Button,
-  cn,
 } from "@workspace/ui";
-import { COUNTRIES } from "@workspace/constants";
 import { Check, ChevronsUpDown } from "lucide-react";
 
 interface Currency {
@@ -28,27 +29,19 @@ interface Currency {
 
 interface CurrencySelectorProps {
   value?: string;
-  onSelect: (
-    currency: NonNullable<Currency["currency"]> & { countryName: string },
-  ) => void;
+  onSelect: (currency: NonNullable<Currency["currency"]> & { countryName: string }) => void;
   trigger?: React.ReactNode;
   className?: string;
 }
 
-export function CurrencySelector({
-  value,
-  onSelect,
-  trigger,
-  className,
-}: CurrencySelectorProps) {
+export function CurrencySelector({ value, onSelect, trigger, className }: CurrencySelectorProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const filteredCurrencies = useMemo(() => {
     return (COUNTRIES as Currency[]).filter((c) => {
       if (!c.currency) return false;
-      const searchStr =
-        `${c.name} ${c.currency.code} ${c.currency.symbol}`.toLowerCase();
+      const searchStr = `${c.name} ${c.currency.code} ${c.currency.symbol}`.toLowerCase();
       return searchStr.includes(search.toLowerCase());
     });
   }, [search]);
@@ -80,16 +73,9 @@ export function CurrencySelector({
           </Button>
         )}
       </PopoverTrigger>
-      <PopoverContent
-        className="w-(--radix-popover-trigger-width) p-0"
-        align="start"
-      >
+      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
         <Command>
-          <CommandInput
-            placeholder="Search currency..."
-            value={search}
-            onValueChange={setSearch}
-          />
+          <CommandInput placeholder="Search currency..." value={search} onValueChange={setSearch} />
           <CommandList className="max-h-[300px] overflow-y-auto overflow-x-hidden">
             <CommandEmpty>No currency found.</CommandEmpty>
             {groupedCurrencies.map(([letter, currencies]) => (
@@ -109,12 +95,7 @@ export function CurrencySelector({
                     }}
                   >
                     <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value?.startsWith(c.currency!.code)
-                          ? "opacity-100"
-                          : "opacity-0",
-                      )}
+                      className={cn("mr-2 h-4 w-4", value?.startsWith(c.currency!.code) ? "opacity-100" : "opacity-0")}
                     />
                     <span className="text-sm font-medium">
                       {c.currency!.code} - {c.name} ({c.currency!.symbol})

@@ -26,11 +26,12 @@ export const workspacesService = {
     user_id: string,
     data: {
       name: string;
+      country?: string;
       mainCurrencyCode?: string;
       mainCurrencySymbol?: string;
     },
   ) {
-    const { name, mainCurrencyCode, mainCurrencySymbol } = data;
+    const { name, country, mainCurrencyCode, mainCurrencySymbol } = data;
     // Generate slug
     const base_slug =
       name.toLowerCase().replace(/[^a-z0-9]/g, "-") || "workspace";
@@ -38,7 +39,11 @@ export const workspacesService = {
     const slug = `${base_slug}-${random_suffix}`;
 
     // Create workspace
-    const workspace = await workspacesRepository.create({ name, slug });
+    const workspace = await workspacesRepository.create({
+      name,
+      slug,
+      country,
+    });
     if (!workspace) {
       throw new Error("Failed to create workspace");
     }

@@ -1,20 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import {
-  getTransactionSettings,
-  updateTransactionSettings,
-} from "@/actions/setting.actions";
-import {
-  Cloud,
-  Settings,
-  ExternalLink,
-  ShieldCheck,
-  Info,
-  CheckCircle2,
-} from "lucide-react";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Button,
   Card,
@@ -26,6 +14,10 @@ import {
   Label,
   Skeleton,
 } from "@workspace/ui";
+import { CheckCircle2, Cloud, ExternalLink, Info, Settings, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
+
+import { getTransactionSettings, updateTransactionSettings } from "@/actions/setting.actions";
 
 export function AppsClient() {
   const queryClient = useQueryClient();
@@ -91,9 +83,7 @@ export function AppsClient() {
     <div className="max-w-4xl space-y-8">
       <div>
         <h1 className="text-2xl font-bold">Apps & Integrations</h1>
-        <p className="text-muted-foreground text-sm">
-          Connect your third-party services to enhance your experience.
-        </p>
+        <p className="text-muted-foreground text-sm">Connect your third-party services to enhance your experience.</p>
       </div>
 
       <div className="grid gap-6">
@@ -106,21 +96,13 @@ export function AppsClient() {
               <div>
                 <CardTitle className="flex items-center gap-2">
                   Cloudflare R2 Storage
-                  {isConfigured && (
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  )}
+                  {isConfigured && <CheckCircle2 className="h-4 w-4 text-green-500" />}
                 </CardTitle>
-                <CardDescription>
-                  Use your own Cloudflare R2 bucket for file storage.
-                </CardDescription>
+                <CardDescription>Use your own Cloudflare R2 bucket for file storage.</CardDescription>
               </div>
             </div>
             <Button variant="outline" size="sm" asChild>
-              <a
-                href="https://dash.cloudflare.com/"
-                target="_blank"
-                rel="noreferrer"
-              >
+              <a href="https://dash.cloudflare.com/" target="_blank" rel="noreferrer">
                 Dashboard <ExternalLink className="ml-2 h-3 w-3" />
               </a>
             </Button>
@@ -131,9 +113,8 @@ export function AppsClient() {
               <div className="text-sm space-y-1">
                 <p className="font-medium">Why connect your own storage?</p>
                 <p className="text-muted-foreground">
-                  By default, files are stored in our secure system bucket.
-                  Connecting your own R2 bucket gives you full control and
-                  ownership over your data.
+                  By default, files are stored in our secure system bucket. Connecting your own R2 bucket gives you full
+                  control and ownership over your data.
                 </p>
               </div>
             </div>
@@ -145,9 +126,7 @@ export function AppsClient() {
                   id="endpoint"
                   placeholder="https://<id>.r2.cloudflarestorage.com"
                   value={formData.r2Endpoint}
-                  onChange={(e) =>
-                    setFormData({ ...formData, r2Endpoint: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, r2Endpoint: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -156,9 +135,7 @@ export function AppsClient() {
                   id="bucket"
                   placeholder="my-vault-bucket"
                   value={formData.r2BucketName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, r2BucketName: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, r2BucketName: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -168,9 +145,7 @@ export function AppsClient() {
                   type="password"
                   placeholder="Enter Access Key ID"
                   value={formData.r2AccessKeyId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, r2AccessKeyId: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, r2AccessKeyId: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -209,10 +184,7 @@ export function AppsClient() {
                   Reset to Default
                 </Button>
               )}
-              <Button
-                onClick={() => updateMutation.mutate(formData)}
-                disabled={updateMutation.isPending}
-              >
+              <Button onClick={() => updateMutation.mutate(formData)} disabled={updateMutation.isPending}>
                 {updateMutation.isPending ? "Saving..." : "Save Configuration"}
               </Button>
             </div>

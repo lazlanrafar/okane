@@ -1,15 +1,7 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  cn,
-  Icons,
-} from "@workspace/ui";
-import { Wallet, TrendingUp, Receipt, LineChart, PieChart } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Icons } from "@workspace/ui";
+import { LineChart, PieChart, Receipt, TrendingUp, Wallet } from "lucide-react";
 
 import { useAiChatStore } from "@/stores/ai-chat-store";
 
@@ -32,8 +24,7 @@ const SUGGESTION_CHIPS = [
   {
     icon: <TrendingUp className="w-3.5 h-3.5" />,
     label: "Monthly summary",
-    message:
-      "Give me a summary of my income vs expenses over the last 3 months.",
+    message: "Give me a summary of my income vs expenses over the last 3 months.",
   },
   {
     icon: <PieChart className="w-3.5 h-3.5" />,
@@ -42,11 +33,7 @@ const SUGGESTION_CHIPS = [
   },
 ];
 
-export function OverviewCards({
-  onCardClick,
-}: {
-  onCardClick?: (message: string) => void;
-}) {
+export function OverviewCards({ onCardClick }: { onCardClick?: (message: string) => void }) {
   const sendMessageFn = useAiChatStore((state) => state.sendMessageFn);
 
   const handleCardClick = (message: string) => {
@@ -66,14 +53,11 @@ export function OverviewCards({
           onClick={() => handleCardClick("Show weekly insights")}
         >
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Weekly Insights
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Insights</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-sm">
-              No new insights available. Every Monday you'll receive a summary
-              of the previous week's performance.
+              No new insights available. Every Monday you'll receive a summary of the previous week's performance.
             </div>
           </CardContent>
         </Card>
@@ -104,9 +88,7 @@ export function OverviewCards({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">0 months</div>
-            <div className="text-xs text-muted-foreground mt-1 hover:underline">
-              View runway
-            </div>
+            <div className="text-xs text-muted-foreground mt-1 hover:underline">View runway</div>
           </CardContent>
         </Card>
 
@@ -136,9 +118,7 @@ export function OverviewCards({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+IDR 0</div>
-            <div className="text-xs text-muted-foreground mt-1 hover:underline">
-              View cash flow analysis
-            </div>
+            <div className="text-xs text-muted-foreground mt-1 hover:underline">View cash flow analysis</div>
           </CardContent>
         </Card>
 
@@ -168,17 +148,13 @@ export function OverviewCards({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">IDR 0</div>
-            <div className="text-xs text-muted-foreground mt-1 hover:underline">
-              View account balances
-            </div>
+            <div className="text-xs text-muted-foreground mt-1 hover:underline">View account balances</div>
           </CardContent>
         </Card>
 
         <Card
           className="cursor-pointer hover:border-primary/50 transition-colors"
-          onClick={() =>
-            handleCardClick("Show detailed profit and loss analysis")
-          }
+          onClick={() => handleCardClick("Show detailed profit and loss analysis")}
         >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -199,9 +175,7 @@ export function OverviewCards({
               </svg>
               Profit &amp; Loss
             </CardTitle>
-            <CardDescription>
-              IDR 0 &middot; 1 year &middot; Net
-            </CardDescription>
+            <CardDescription>IDR 0 &middot; 1 year &middot; Net</CardDescription>
           </CardHeader>
           <CardContent className="h-full flex flex-col justify-end">
             <div className="text-xs text-muted-foreground mt-6 pt-4 border-t border-border hover:underline">
@@ -238,9 +212,7 @@ export function OverviewCards({
             <div className="text-sm mb-1">
               Next month projection <b>+IDR 0.00</b>
             </div>
-            <div className="text-xs text-muted-foreground hover:underline">
-              View forecast details
-            </div>
+            <div className="text-xs text-muted-foreground hover:underline">View forecast details</div>
           </CardContent>
         </Card>
 
@@ -269,9 +241,7 @@ export function OverviewCards({
           </CardHeader>
           <CardContent className="h-full flex flex-col justify-end">
             <div className="text-2xl font-bold">IDR 0.00</div>
-            <div className="text-xs text-muted-foreground mt-1 hover:underline">
-              View revenue trends
-            </div>
+            <div className="text-xs text-muted-foreground mt-1 hover:underline">View revenue trends</div>
           </CardContent>
         </Card>
 
@@ -300,15 +270,11 @@ export function OverviewCards({
               </svg>
               Growth Rate
             </CardTitle>
-            <CardDescription>
-              Net revenue growth &middot; 1 year
-            </CardDescription>
+            <CardDescription>Net revenue growth &middot; 1 year</CardDescription>
           </CardHeader>
           <CardContent className="h-full flex flex-col justify-end">
             <div className="text-2xl font-bold">0.0%</div>
-            <div className="text-xs text-muted-foreground mt-1 hover:underline">
-              View growth analysis
-            </div>
+            <div className="text-xs text-muted-foreground mt-1 hover:underline">View growth analysis</div>
           </CardContent>
         </Card>
       </div>

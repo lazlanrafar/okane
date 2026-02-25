@@ -1,9 +1,11 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { i18n } from "./i18n-config";
+import { NextResponse } from "next/server";
+
 import { match as matchLocale } from "@formatjs/intl-localematcher";
-import Negotiator from "negotiator";
 import { createMiddlewareClient } from "@workspace/supabase/middleware";
+import Negotiator from "negotiator";
+
+import { i18n } from "./i18n-config";
 
 function getLocale(request: NextRequest): string | undefined {
   const negotiatorHeaders: Record<string, string> = {};
@@ -13,9 +15,7 @@ function getLocale(request: NextRequest): string | undefined {
 
   // @ts-expect-error locales are readonly
   const locales: string[] = i18n.locales;
-  const languages = new Negotiator({ headers: negotiatorHeaders }).languages(
-    locales,
-  );
+  const languages = new Negotiator({ headers: negotiatorHeaders }).languages(locales);
 
   return matchLocale(languages, locales, i18n.defaultLocale);
 }
@@ -24,26 +24,17 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Ignore static assets and ignored paths
-  if (
-    ["/manifest.json", "/favicon.ico", "/robots.txt", "/sitemap.xml"].includes(
-      pathname,
-    )
-  )
-    return;
+  if (["/manifest.json", "/favicon.ico", "/robots.txt", "/sitemap.xml"].includes(pathname)) return;
 
   // Check if there is any supported locale in the pathname
   const pathnameIsMissingLocale = i18n.locales.every(
-    (locale) =>
-      !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`,
+    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`,
   );
 
   // Redirect if there is no locale
   if (pathnameIsMissingLocale) {
     const locale = getLocale(request);
-    const url = new URL(
-      `/${locale}${pathname.startsWith("/") ? "" : "/"}${pathname}`,
-      request.url,
-    );
+    const url = new URL(`/${locale}${pathname.startsWith("/") ? "" : "/"}${pathname}`, request.url);
     url.search = request.nextUrl.search;
     return NextResponse.redirect(url);
   }
@@ -53,7 +44,7 @@ export async function proxy(request: NextRequest) {
   const locale = pathname.split("/")[1];
 
   // Calculate specific path after locale
-  // e.g. /en/dashboard -> /dashboard
+  // e.g. /en/overview -> /overview
   // e.g. /en -> /
   const pathAfterLocale = pathname.replace(`/${locale}`, "") || "/";
 
@@ -74,7 +65,7 @@ export async function proxy(request: NextRequest) {
   const okane_session = request.cookies.get("okane-session")?.value;
 
   // Protect dashboard routes
-  if (pathAfterLocale.startsWith("/dashboard")) {
+  if (pathAfterLocale.startsWith("/overview")) {
     if (!session || !okane_session) {
       return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
     }
@@ -89,12 +80,8 @@ export async function proxy(request: NextRequest) {
   }
 
   // Redirect to dashboard if logged in and on login/register pages
-  if (
-    (pathAfterLocale === "/login" || pathAfterLocale === "/register") &&
-    session &&
-    okane_session
-  ) {
-    return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
+  if ((pathAfterLocale === "/login" || pathAfterLocale === "/register") && session && okane_session) {
+    return NextResponse.redirect(new URL(`/${locale}/overview`, request.url));
   }
 
   return response;

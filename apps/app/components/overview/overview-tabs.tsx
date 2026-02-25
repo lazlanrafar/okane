@@ -1,15 +1,10 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
 import { Tabs } from "@workspace/ui";
 
-export function OverviewTabs({
-  defaultTab,
-  children,
-}: {
-  defaultTab: string;
-  children: React.ReactNode;
-}) {
+export function OverviewTabs({ defaultTab, children }: { defaultTab: string; children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -23,11 +18,7 @@ export function OverviewTabs({
   };
 
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={handleTabChange}
-      className="flex flex-col flex-1 dashboard-content-tabs"
-    >
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col flex-1 dashboard-content-tabs">
       {children}
     </Tabs>
   );

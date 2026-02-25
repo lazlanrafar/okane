@@ -1,23 +1,11 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  Button,
-} from "@workspace/ui";
-import {
-  Upload,
-  FileUp,
-  CheckCircle2,
-  AlertCircle,
-  X,
-  Loader2,
-} from "lucide-react";
+
+import { Button, cn, Dialog, DialogContent, DialogHeader, DialogTitle } from "@workspace/ui";
+import { AlertCircle, CheckCircle2, FileUp, Loader2, Upload, X } from "lucide-react";
+
 import { importTransactions } from "@/actions/import.actions";
-import { cn } from "@workspace/ui";
 
 interface ImportModalProps {
   open: boolean;
@@ -48,11 +36,7 @@ function formatAccepted() {
   return "Images, PDF, CSV, Excel, plain text";
 }
 
-export function ImportModal({
-  open,
-  onOpenChange,
-  onSuccess,
-}: ImportModalProps) {
+export function ImportModal({ open, onOpenChange, onSuccess }: ImportModalProps) {
   const [state, setState] = useState<State>({ status: "idle" });
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -136,24 +120,13 @@ export function ImportModal({
             >
               <FileUp className="w-10 h-10 text-muted-foreground" />
               <div className="text-center">
-                <p className="font-medium text-sm">
-                  Drop a file or click to browse
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formatAccepted()}
-                </p>
+                <p className="font-medium text-sm">Drop a file or click to browse</p>
+                <p className="text-xs text-muted-foreground mt-1">{formatAccepted()}</p>
               </div>
             </div>
-            <input
-              ref={inputRef}
-              type="file"
-              accept={ACCEPTED}
-              className="hidden"
-              onChange={handleFileChange}
-            />
+            <input ref={inputRef} type="file" accept={ACCEPTED} className="hidden" onChange={handleFileChange} />
             <p className="text-xs text-center text-muted-foreground">
-              AI will extract transactions from your file and import them
-              automatically.
+              AI will extract transactions from your file and import them automatically.
             </p>
           </>
         )}
@@ -163,9 +136,7 @@ export function ImportModal({
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
             <div className="text-center">
               <p className="font-medium text-sm">Analysing with AI…</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                This may take a few seconds
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">This may take a few seconds</p>
             </div>
           </div>
         )}
@@ -176,15 +147,11 @@ export function ImportModal({
             <div className="text-center">
               <p className="font-semibold text-base">Import complete</p>
               <p className="text-sm text-muted-foreground mt-1">
-                <span className="font-medium text-foreground">
-                  {state.imported}
-                </span>{" "}
-                transaction
+                <span className="font-medium text-foreground">{state.imported}</span> transaction
                 {state.imported !== 1 ? "s" : ""} imported
                 {state.skipped > 0 && (
                   <>
-                    , <span className="font-medium">{state.skipped}</span>{" "}
-                    skipped
+                    , <span className="font-medium">{state.skipped}</span> skipped
                   </>
                 )}
               </p>
@@ -205,9 +172,7 @@ export function ImportModal({
             <AlertCircle className="w-12 h-12 text-destructive" />
             <div className="text-center">
               <p className="font-semibold text-base">Import failed</p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-[300px]">
-                {state.message}
-              </p>
+              <p className="text-xs text-muted-foreground mt-1 max-w-[300px]">{state.message}</p>
             </div>
             <Button variant="outline" size="sm" onClick={reset}>
               Try again

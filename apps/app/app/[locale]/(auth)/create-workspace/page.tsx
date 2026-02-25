@@ -1,18 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
-import { Building2, Globe } from "lucide-react";
+
 import { createBrowserClient } from "@workspace/supabase/client";
-import { createWorkspaceAction } from "../../../../actions/auth.actions";
+import { Button } from "@workspace/ui";
+import { Building2, Globe } from "lucide-react";
+
 import { CurrencySelector } from "@/components/setting/currency-selector";
+import { CountrySelector } from "@/components/shared/country-selector";
+
+import { createWorkspaceAction } from "../../../../actions/auth.actions";
 
 export default function CreateWorkspacePage() {
   const router = useRouter();
+
   const [name, setName] = useState("");
-  const [currency, setCurrency] = useState({ code: "USD", symbol: "$" });
-  const [is_loading, set_is_loading] = useState(false);
-  const [error, set_error] = useState<string | null>(null);
+  const [country, setCountry] = useState("Indonesia");
+  const [currency, setCurrency] = useState({ code: "IDR", symbol: "Rp" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Redirect if not logged in (client-side backup)
   useEffect(() => {
@@ -32,11 +40,12 @@ export default function CreateWorkspacePage() {
     e.preventDefault();
     if (!name.trim()) return;
 
-    set_is_loading(true);
-    set_error(null);
+    setLoading(true);
+    setError(null);
 
     const result = await createWorkspaceAction({
       name: name.trim(),
+      country,
       mainCurrencyCode: currency.code,
       mainCurrencySymbol: currency.symbol,
     });
@@ -44,74 +53,68 @@ export default function CreateWorkspacePage() {
     if (result.success) {
       // Success will redirect automatically via createWorkspaceAction
     } else {
-      set_error(result.error);
-      set_is_loading(false);
+      setError(result.error);
+      setLoading(false);
     }
-    // Success will redirect automatically
   };
 
   return (
-    <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[400px]">
-      <div className="space-y-2 text-center">
+    <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[500px]">
+      <div className="space-y-4 text-center">
         <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10">
           <Building2 className="size-6 text-primary" />
         </div>
-        <h1 className="font-medium text-3xl">Create your workspace</h1>
-        <p className="text-muted-foreground text-sm">
-          Set up your workspace to get started. You can invite team members
-          later.
+        <h1 className="text-[28px] tracking-tight">Business details</h1>
+        <p className="text-muted-foreground text-sm leading-normal">
+          Add company details so amounts, currency, tax, and reporting periods line up correctly across insights,
+          invoices and exports.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <label
-            htmlFor="workspace-name"
-            className="font-medium text-sm leading-none"
-          >
-            Workspace name
+          <label htmlFor="workspace-name" className="text-sm font-medium">
+            Company name
           </label>
           <input
             id="workspace-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. My Company"
+            placeholder="Ex: Acme Marketing or Acme Co"
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             required
             // biome-ignore lint/a11y/noAutofocus: UX requirement
             autoFocus
-            disabled={is_loading}
+            disabled={loading}
           />
         </div>
 
         <div className="space-y-2 flex flex-col">
-          <span className="font-medium text-sm leading-none">
-            Default Currency
-          </span>
-          <CurrencySelector
-            value={`${currency.code} (${currency.symbol})`}
-            onSelect={(c) => setCurrency({ code: c.code, symbol: c.symbol })}
-          />
-          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-            <Globe className="size-3" />
-            Can be changed later in settings
+          <span className="text-sm font-medium">Country</span>
+          <CountrySelector value={country} onSelect={setCountry} />
+        </div>
+
+        <div className="space-y-2 flex flex-col">
+          <span className="text-sm font-medium">Base currency</span>
+          <CurrencySelector value={currency.code} onSelect={(c) => setCurrency({ code: c.code, symbol: c.symbol })} />
+          <p className="text-xs text-muted-foreground pt-1 leading-relaxed">
+            If you have multiple accounts in different currencies, this will be the default currency for your company.
+            You can change it later.
           </p>
         </div>
 
         {error && (
-          <div className="rounded-md bg-destructive/10 px-3 py-2 text-destructive text-sm">
+          <div className="rounded-md bg-destructive/10 px-3 py-2 text-destructive text-sm border border-destructive/20">
             {error}
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={is_loading || !name.trim()}
-          className="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground text-sm ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-        >
-          {is_loading ? "Creating..." : "Create Workspace"}
-        </button>
+        <div className="pt-8">
+          <Button type="submit" className="w-full cursor-pointer" disabled={loading || !name.trim()} loading={loading}>
+            {loading ? "Creating..." : "Continue"}
+          </Button>
+        </div>
       </form>
     </div>
   );

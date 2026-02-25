@@ -1,15 +1,15 @@
 import {
   Banknote,
-  LayoutDashboard,
-  Settings,
-  IdCard,
-  LucideIcon,
   Box,
-  DotSquare,
-  Users,
   Clock,
-  Inbox,
+  DotSquare,
   FileText,
+  IdCard,
+  Inbox,
+  LayoutDashboard,
+  type LucideIcon,
+  Settings,
+  Users,
 } from "lucide-react";
 
 export interface NavSubItem {

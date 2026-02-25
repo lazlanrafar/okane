@@ -1,7 +1,8 @@
 "use server";
 
-import { axiosInstance as api } from "@/lib/axios";
 import type { ActionResponse } from "@workspace/types";
+
+import { axiosInstance as api } from "@/lib/axios";
 
 // Re-export the type so frontend can use it
 export interface ImportedTransaction {
@@ -18,9 +19,7 @@ export interface ImportResult {
   transactions: ImportedTransaction[];
 }
 
-export const importTransactions = async (
-  formData: FormData,
-): Promise<ActionResponse<ImportResult>> => {
+export const importTransactions = async (formData: FormData): Promise<ActionResponse<ImportResult>> => {
   try {
     const res = await api.post("/transactions/import", formData, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -29,10 +28,7 @@ export const importTransactions = async (
   } catch (error: any) {
     return {
       success: false,
-      error:
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Failed to import transactions",
+      error: error.response?.data?.message || error.response?.data?.error || "Failed to import transactions",
     };
   }
 };

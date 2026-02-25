@@ -1,9 +1,9 @@
 "use client";
 
-import { CircleUser, CreditCard, EllipsisVertical, LogOut, MessageSquareDot } from "lucide-react";
-
-import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui";
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -11,9 +11,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  getInitials,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
 } from "@workspace/ui";
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@workspace/ui";
-import { getInitials } from "@workspace/ui";
+import { CircleUser, CreditCard, EllipsisVertical, LogOut, MessageSquareDot } from "lucide-react";
 
 export function NavUser({
   user,

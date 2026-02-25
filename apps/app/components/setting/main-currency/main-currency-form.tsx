@@ -1,31 +1,31 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Button } from "@workspace/ui";
-import { Label } from "@workspace/ui";
+
 import {
+  Button,
+  Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Separator,
 } from "@workspace/ui";
-import { Input } from "@workspace/ui";
-import { Separator } from "@workspace/ui";
 import { toast } from "sonner";
-import { CurrencySelector } from "../currency-selector";
+
 import { updateTransactionSettings } from "@/actions/setting.actions";
 import type { TransactionSettings } from "@/types/settings";
+
+import { CurrencySelector } from "../currency-selector";
 
 interface MainCurrencyFormProps {
   settings: TransactionSettings;
   dictionary: any; // Keep any for now as dictionary structure is complex, but the import issue is fixed.
 }
 
-export function MainCurrencyForm({
-  settings,
-  dictionary,
-}: MainCurrencyFormProps) {
+export function MainCurrencyForm({ settings, dictionary }: MainCurrencyFormProps) {
   const [data, setData] = useState(settings);
   const [isPending, startTransition] = useTransition();
 
@@ -89,9 +89,7 @@ export function MainCurrencyForm({
           <Label>Unit position</Label>
           <Select
             value={data.mainCurrencySymbolPosition}
-            onValueChange={(v: "Front" | "Back") =>
-              handleUpdate({ mainCurrencySymbolPosition: v })
-            }
+            onValueChange={(v: "Front" | "Back") => handleUpdate({ mainCurrencySymbolPosition: v })}
           >
             <SelectTrigger className="w-[180px] border-none shadow-none text-right justify-end font-medium">
               <SelectValue />
@@ -107,9 +105,7 @@ export function MainCurrencyForm({
           <Label>Decimal point</Label>
           <Select
             value={data.mainCurrencyDecimalPlaces.toString()}
-            onValueChange={(v) =>
-              handleUpdate({ mainCurrencyDecimalPlaces: parseInt(v) })
-            }
+            onValueChange={(v) => handleUpdate({ mainCurrencyDecimalPlaces: parseInt(v) })}
           >
             <SelectTrigger className="w-[180px] border-none shadow-none text-right justify-end font-medium">
               <SelectValue />

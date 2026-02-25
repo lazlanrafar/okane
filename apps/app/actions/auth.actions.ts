@@ -1,16 +1,18 @@
 "use server";
 
-import { createClient } from "@workspace/supabase/server";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { headers, cookies } from "next/headers";
-import { sync_user } from "./user.actions";
-import { createWorkspace } from "./workspace.actions";
-import { axiosInstance } from "@/lib/axios";
+
+import { createClient } from "@workspace/supabase/server";
 import type { ActionResponse } from "@workspace/types";
 
-export async function login(
-  form_data: FormData,
-): Promise<ActionResponse<void>> {
+import { axiosInstance } from "@/lib/axios";
+
+import { sync_user } from "./user.actions";
+import { createWorkspace } from "./workspace.actions";
+
+export async function login(form_data: FormData): Promise<ActionResponse<void>> {
   const email = form_data.get("email") as string;
   const password = form_data.get("password") as string;
 
@@ -36,8 +38,7 @@ export async function login(
         email: user.email ?? "",
         name: user.user_metadata?.full_name || user.user_metadata?.name,
         oauth_provider: "email",
-        profile_picture:
-          user.user_metadata?.avatar_url || user.user_metadata?.picture,
+        profile_picture: user.user_metadata?.avatar_url || user.user_metadata?.picture,
         providers: user.app_metadata?.providers,
       });
 
@@ -49,9 +50,7 @@ export async function login(
         // 3. Exchange for app JWT
         const { data: session_data } = await supabase.auth.getSession();
         if (session_data.session?.access_token) {
-          const exchangeResult = await exchangeSupabaseToken(
-            session_data.session.access_token,
-          );
+          const exchangeResult = await exchangeSupabaseToken(session_data.session.access_token);
 
           if (exchangeResult.success && exchangeResult.data) {
             (await cookies()).set("okane-session", exchangeResult.data.token, {
@@ -65,17 +64,15 @@ export async function login(
         }
       }
     } catch (e: any) {
-      if (e.消化 === "NEXT_REDIRECT") throw e;
+      if (isRedirectError(e)) throw e;
       console.error("Sync error:", e);
     }
   }
 
-  redirect("/dashboard");
+  redirect("/overview");
 }
 
-export async function signup(
-  form_data: FormData,
-): Promise<ActionResponse<void>> {
+export async function signup(form_data: FormData): Promise<ActionResponse<void>> {
   const origin = (await headers()).get("origin");
   const email = form_data.get("email") as string;
   const password = form_data.get("password") as string;
@@ -115,9 +112,7 @@ export async function signup(
         // 3. Exchange for app JWT
         const { data: session_data } = await supabase.auth.getSession();
         if (session_data.session?.access_token) {
-          const exchangeResult = await exchangeSupabaseToken(
-            session_data.session.access_token,
-          );
+          const exchangeResult = await exchangeSupabaseToken(session_data.session.access_token);
 
           if (exchangeResult.success && exchangeResult.data) {
             (await cookies()).set("okane-session", exchangeResult.data.token, {
@@ -131,17 +126,15 @@ export async function signup(
         }
       }
     } catch (e: any) {
-      if (e.digest === "NEXT_REDIRECT") throw e;
+      if (isRedirectError(e)) throw e;
       console.error("Sync error:", e);
     }
   }
 
-  redirect("/dashboard");
+  redirect("/overview");
 }
 
-export async function loginWithOAuth(
-  provider: "google" | "github",
-): Promise<ActionResponse<void>> {
+export async function loginWithOAuth(provider: "google" | "github"): Promise<ActionResponse<void>> {
   const origin = (await headers()).get("origin");
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -171,6 +164,7 @@ export async function logout() {
 
 export async function createWorkspaceAction(data: {
   name: string;
+  country?: string;
   mainCurrencyCode?: string;
   mainCurrencySymbol?: string;
 }): Promise<ActionResponse<void>> {
@@ -185,7 +179,7 @@ export async function createWorkspaceAction(data: {
 
   try {
     // 1. Create workspace via API
-    const wsResult = await createWorkspace(data);
+    const wsResult = await createWorkspace(data, session.access_token);
     if (!wsResult.success) {
       return { success: false, error: wsResult.error };
     }
@@ -208,7 +202,7 @@ export async function createWorkspaceAction(data: {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
   } catch (error: any) {
-    if (error.digest === "NEXT_REDIRECT") throw error;
+    if (isRedirectError(error)) throw error;
     console.error("Failed to create workspace:", error);
     return {
       success: false,
@@ -216,12 +210,10 @@ export async function createWorkspaceAction(data: {
     };
   }
 
-  redirect("/dashboard");
+  redirect("/overview");
 }
 
-export async function exchangeSupabaseToken(
-  supabase_token: string,
-): Promise<
+export async function exchangeSupabaseToken(supabase_token: string): Promise<
   ActionResponse<{
     token: string;
     user_id: string;

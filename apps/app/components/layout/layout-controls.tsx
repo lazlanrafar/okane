@@ -1,12 +1,21 @@
 "use client";
 
+import {
+  Button,
+  Label,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@workspace/ui";
 import { Settings } from "lucide-react";
 
-import { Button } from "@workspace/ui";
-import { Label } from "@workspace/ui";
-import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui";
-import { ToggleGroup, ToggleGroupItem } from "@workspace/ui";
 import { type FontKey, fontOptions } from "@/lib/fonts/registry";
 import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from "@/lib/preferences/layout";
 import {

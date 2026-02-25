@@ -1,13 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 
-import { cn } from "@workspace/ui";
-import { Button } from "@workspace/ui";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+  Button,
+  cn,
   Form,
   FormControl,
   FormDescription,
@@ -15,13 +14,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  Input,
+  Textarea,
 } from "@workspace/ui";
-import { Input } from "@workspace/ui";
-import { Textarea } from "@workspace/ui";
-import { toast } from "sonner";
-import { getMe, updateProfileAction } from "@/actions/user.actions";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+
+import { getMe, updateProfileAction } from "@/actions/user.actions";
 
 interface SettingProfileFormProps {
   dictionary: {
@@ -174,11 +175,7 @@ export function SettingProfileForm({ dictionary }: SettingProfileFormProps) {
             <FormItem>
               <FormLabel>{profile.bio.label}</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder={profile.bio.placeholder}
-                  className="resize-none"
-                  {...field}
-                />
+                <Textarea placeholder={profile.bio.placeholder} className="resize-none" {...field} />
               </FormControl>
               <FormDescription>{profile.bio.description}</FormDescription>
               <FormMessage />
@@ -186,9 +183,7 @@ export function SettingProfileForm({ dictionary }: SettingProfileFormProps) {
           )}
         />
         <Button type="submit" disabled={updateMutation.isPending}>
-          {updateMutation.isPending && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
+          {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {profile.update_profile}
         </Button>
       </form>

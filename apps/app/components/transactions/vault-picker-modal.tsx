@@ -1,15 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle } from "@workspace/ui";
+import { Check, File, FileText, Film, Image, Paperclip } from "lucide-react";
+
 import { getVaultFiles } from "@/actions/vault.actions";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  Button,
-} from "@workspace/ui";
-import { Paperclip, Check, FileText, Image, Film, File } from "lucide-react";
 
 interface VaultFile {
   id: string;
@@ -34,17 +30,11 @@ function formatBytes(bytes: number) {
 function FileIcon({ type }: { type: string }) {
   if (type.startsWith("image/")) return <Image className="w-4 h-4 shrink-0" />;
   if (type.startsWith("video/")) return <Film className="w-4 h-4 shrink-0" />;
-  if (type === "application/pdf")
-    return <FileText className="w-4 h-4 shrink-0" />;
+  if (type === "application/pdf") return <FileText className="w-4 h-4 shrink-0" />;
   return <File className="w-4 h-4 shrink-0" />;
 }
 
-export function VaultPickerModal({
-  open,
-  onOpenChange,
-  selectedIds,
-  onConfirm,
-}: VaultPickerModalProps) {
+export function VaultPickerModal({ open, onOpenChange, selectedIds, onConfirm }: VaultPickerModalProps) {
   const [files, setFiles] = useState<VaultFile[]>([]);
   const [pending, setPending] = useState<Set<string>>(new Set(selectedIds));
   const [isLoading, setIsLoading] = useState(false);
@@ -83,11 +73,7 @@ export function VaultPickerModal({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto min-h-0">
-          {isLoading && (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              Loading vault…
-            </p>
-          )}
+          {isLoading && <p className="py-8 text-center text-sm text-muted-foreground">Loading vault…</p>}
           {!isLoading && files.length === 0 && (
             <p className="py-8 text-center text-sm text-muted-foreground">
               No vault files found. Upload files in the Vault section first.
@@ -108,13 +94,9 @@ export function VaultPickerModal({
                   <FileIcon type={file.type} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{file.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatBytes(file.size)}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>
                   </div>
-                  {selected && (
-                    <Check className="w-4 h-4 text-primary shrink-0" />
-                  )}
+                  {selected && <Check className="w-4 h-4 text-primary shrink-0" />}
                 </button>
               );
             })}
@@ -125,11 +107,7 @@ export function VaultPickerModal({
             {pending.size} file{pending.size !== 1 ? "s" : ""} selected
           </span>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button

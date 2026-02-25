@@ -1,11 +1,13 @@
 "use server";
 
-import { axiosInstance } from "../lib/axios";
-import type { User, WorkspaceWithRole, ActionResponse } from "@workspace/types";
-import { cookies } from "next/headers";
-import { createClient } from "@workspace/supabase/server";
-import { exchangeSupabaseToken } from "./auth.actions";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+
+import { createClient } from "@workspace/supabase/server";
+import type { ActionResponse, User, WorkspaceWithRole } from "@workspace/types";
+
+import { axiosInstance } from "../lib/axios";
+import { exchangeSupabaseToken } from "./auth.actions";
 
 export interface SyncUserDTO {
   id: string;
@@ -21,14 +23,9 @@ export interface SyncUserResponse {
   workspace_id: string | null;
 }
 
-export const syncUser = async (
-  user: SyncUserDTO,
-): Promise<ActionResponse<SyncUserResponse>> => {
+export const syncUser = async (user: SyncUserDTO): Promise<ActionResponse<SyncUserResponse>> => {
   try {
-    const response = await axiosInstance.post<SyncUserResponse>(
-      "users/sync",
-      user,
-    );
+    const response = await axiosInstance.post<SyncUserResponse>("users/sync", user);
     return { success: true, data: response.data };
   } catch (error: any) {
     return {
@@ -38,9 +35,7 @@ export const syncUser = async (
   }
 };
 
-export const getMe = async (): Promise<
-  ActionResponse<{ user: User; workspaces: WorkspaceWithRole[] }>
-> => {
+export const getMe = async (): Promise<ActionResponse<{ user: User; workspaces: WorkspaceWithRole[] }>> => {
   try {
     // Note: token is handled by axiosInstance interceptor from okane-session cookie
     const response = await axiosInstance.get("users/me");
@@ -57,9 +52,7 @@ export const getMe = async (): Promise<
 export const sync_user = syncUser;
 export const get_me = getMe;
 
-export const switchWorkspaceAction = async (
-  workspace_id: string,
-): Promise<ActionResponse<void>> => {
+export const switchWorkspaceAction = async (workspace_id: string): Promise<ActionResponse<void>> => {
   try {
     // 1. Update active workspace in DB via API
     await axiosInstance.patch("users/me/workspace", { workspace_id });
@@ -84,7 +77,7 @@ export const switchWorkspaceAction = async (
       }
     }
 
-    revalidatePath("/[locale]/dashboard", "layout");
+    revalidatePath("/[locale]/overview", "layout");
     return { success: true, data: undefined };
   } catch (error: any) {
     return {
@@ -94,10 +87,7 @@ export const switchWorkspaceAction = async (
   }
 };
 
-export const updateProfileAction = async (data: {
-  name: string;
-  bio?: string;
-}): Promise<ActionResponse<void>> => {
+export const updateProfileAction = async (data: { name: string; bio?: string }): Promise<ActionResponse<void>> => {
   try {
     await axiosInstance.patch("users/me", data);
     revalidatePath("/[locale]/settings/profile", "page");
@@ -110,9 +100,7 @@ export const updateProfileAction = async (data: {
   }
 };
 
-export const getProvidersAction = async (): Promise<
-  ActionResponse<{ providers: string[]; identities: any[] }>
-> => {
+export const getProvidersAction = async (): Promise<ActionResponse<{ providers: string[]; identities: any[] }>> => {
   try {
     const response = await axiosInstance.get("users/me/providers");
     return { success: true, data: response.data.data };
@@ -124,9 +112,7 @@ export const getProvidersAction = async (): Promise<
   }
 };
 
-export const disconnectProviderAction = async (
-  provider: string,
-): Promise<ActionResponse<void>> => {
+export const disconnectProviderAction = async (provider: string): Promise<ActionResponse<void>> => {
   try {
     await axiosInstance.delete(`users/me/providers/${provider}`);
     revalidatePath("/[locale]/settings/account", "page");

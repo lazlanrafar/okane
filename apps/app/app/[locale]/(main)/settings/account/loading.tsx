@@ -1,10 +1,4 @@
-import {
-  Separator,
-  Skeleton,
-  Card,
-  CardHeader,
-  CardContent,
-} from "@workspace/ui";
+import { Card, CardContent, CardHeader, Separator, Skeleton } from "@workspace/ui";
 
 export default function Loading() {
   return (
@@ -21,10 +15,7 @@ export default function Loading() {
         </CardHeader>
         <CardContent className="space-y-4">
           {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between rounded-lg border p-4"
-            >
+            <div key={i} className="flex items-center justify-between rounded-lg border p-4">
               <div className="flex items-center gap-4">
                 <Skeleton className="size-10 rounded-full" />
                 <div className="space-y-2">

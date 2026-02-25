@@ -28,10 +28,7 @@ export interface ChatSession {
   updatedAt: string;
 }
 
-export async function sendChatMessage(
-  messages: ChatMessage[],
-  sessionId?: string,
-): Promise<AiChatResponse> {
+export async function sendChatMessage(messages: ChatMessage[], sessionId?: string): Promise<AiChatResponse> {
   try {
     const response = await api.post("/ai/chat", { messages, sessionId });
     const apiResponse = (response as any)._api_response;
@@ -82,8 +79,7 @@ export async function getChatSessionMessages(
   } catch (error: any) {
     return {
       success: false,
-      error:
-        error.response?.data?.message ?? "Failed to fetch session messages",
+      error: error.response?.data?.message ?? "Failed to fetch session messages",
     };
   }
 }

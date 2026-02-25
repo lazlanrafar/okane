@@ -1,11 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import {
   Button,
   Form,
@@ -23,12 +21,16 @@ import {
   Switch,
 } from "@workspace/ui";
 import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+
 import {
+  type CreateWalletData,
   createWallet,
+  type UpdateWalletData,
   updateWallet,
-  Wallet,
-  CreateWalletData,
-  UpdateWalletData,
+  type Wallet,
 } from "@/actions/wallet.actions";
 import { getWalletGroups } from "@/actions/wallet-group.actions";
 
@@ -134,10 +136,7 @@ export function WalletForm({ wallet, onClose, dictionary }: WalletFormProps) {
             <FormItem>
               <FormLabel>{dictionary.form.name.label}</FormLabel>
               <FormControl>
-                <Input
-                  placeholder={dictionary.form.name.placeholder}
-                  {...field}
-                />
+                <Input placeholder={dictionary.form.name.placeholder} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -151,21 +150,14 @@ export function WalletForm({ wallet, onClose, dictionary }: WalletFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>{dictionary.form.group.label}</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value ?? "none"}
-              >
+              <Select onValueChange={field.onChange} defaultValue={field.value ?? "none"}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue
-                      placeholder={dictionary.form.group.placeholder}
-                    />
+                    <SelectValue placeholder={dictionary.form.group.placeholder} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="none">
-                    {dictionary.form.group.none}
-                  </SelectItem>
+                  <SelectItem value="none">{dictionary.form.group.none}</SelectItem>
                   {groups?.map((group) => (
                     <SelectItem key={group.id} value={group.id}>
                       {group.name}
@@ -186,12 +178,7 @@ export function WalletForm({ wallet, onClose, dictionary }: WalletFormProps) {
             <FormItem>
               <FormLabel>{dictionary.form.balance.label}</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder={dictionary.form.balance.placeholder}
-                  {...field}
-                />
+                <Input type="number" step="0.01" placeholder={dictionary.form.balance.placeholder} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -206,27 +193,17 @@ export function WalletForm({ wallet, onClose, dictionary }: WalletFormProps) {
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
                 <FormLabel>{dictionary.form.is_included.label}</FormLabel>
-                <p className="text-[0.8rem] text-muted-foreground">
-                  {dictionary.form.is_included.description}
-                </p>
+                <p className="text-[0.8rem] text-muted-foreground">{dictionary.form.is_included.description}</p>
               </div>
               <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
+                <Switch checked={field.value} onCheckedChange={field.onChange} />
               </FormControl>
             </FormItem>
           )}
         />
 
         <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
+          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             {dictionary.form.cancel}
           </Button>
           <Button type="submit" disabled={isSubmitting}>

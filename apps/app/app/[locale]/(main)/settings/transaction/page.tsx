@@ -1,8 +1,10 @@
 import React from "react";
-import { TransactionSettingsForm } from "@/components/setting/transaction/transaction-settings-form";
+
 import { Separator } from "@workspace/ui";
+
+import { TransactionSettingsForm } from "@/components/setting/transaction/transaction-settings-form";
 import { getDictionary } from "@/get-dictionary";
-import { Locale } from "@/i18n-config";
+import type { Locale } from "@/i18n-config";
 
 interface Props {
   params: Promise<{
@@ -19,9 +21,7 @@ export default async function SettingTransactionPage({ params }: Props) {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-medium">{transaction.title}</h3>
-        <p className="text-sm text-muted-foreground">
-          {transaction.description}
-        </p>
+        <p className="text-sm text-muted-foreground">{transaction.description}</p>
       </div>
       <Separator />
       <TransactionSettingsForm dictionary={dictionary} />

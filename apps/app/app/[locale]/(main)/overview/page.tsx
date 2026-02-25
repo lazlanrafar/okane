@@ -1,16 +1,17 @@
+import { TabsContent, TabsList, TabsTrigger } from "@workspace/ui";
+import { Grid2X2, LineChart } from "lucide-react";
+
+import {
+  getBurnRateMetrics,
+  getCategoryBreakdown,
+  getExpenseMetrics,
+  getRevenueMetrics,
+} from "@/actions/metrics.actions";
+import { getTransactionSettings } from "@/actions/setting.actions";
+import { getMe } from "@/actions/user.actions";
 import { AiChat } from "@/components/overview/ai-chat";
 import { OverviewCards } from "@/components/overview/overview-cards";
 import { OverviewMetrics } from "@/components/overview/overview-metrics";
-import { getMe } from "@/actions/user.actions";
-import {
-  getRevenueMetrics,
-  getExpenseMetrics,
-  getBurnRateMetrics,
-  getCategoryBreakdown,
-} from "@/actions/metrics.actions";
-import { getTransactionSettings } from "@/actions/setting.actions";
-import { TabsContent, TabsList, TabsTrigger } from "@workspace/ui";
-import { Grid2X2, LineChart } from "lucide-react";
 import { OverviewTabs } from "@/components/overview/overview-tabs";
 
 function getGreeting() {
@@ -24,17 +25,9 @@ export default async function OverviewPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const searchParams = await props.searchParams;
-  const initialTab =
-    typeof searchParams.tab === "string" ? searchParams.tab : "overview";
+  const initialTab = typeof searchParams.tab === "string" ? searchParams.tab : "overview";
 
-  const [
-    meResult,
-    revenueResult,
-    expenseResult,
-    burnRateResult,
-    settingsResult,
-    categoryResult,
-  ] = await Promise.all([
+  const [meResult, revenueResult, expenseResult, burnRateResult, settingsResult, categoryResult] = await Promise.all([
     getMe(),
     getRevenueMetrics(),
     getExpenseMetrics(),
@@ -44,9 +37,7 @@ export default async function OverviewPage(props: {
   ]);
 
   const user = meResult.success ? meResult.data?.user : null;
-  const displayName = user?.name
-    ? user.name.split(" ")[0]
-    : (user?.email?.split("@")[0] ?? "there");
+  const displayName = user?.name ? user.name.split(" ")[0] : (user?.email?.split("@")[0] ?? "there");
 
   const revenueData = revenueResult.success ? revenueResult.data! : [];
   const expenseData = expenseResult.success ? expenseResult.data! : [];
@@ -61,26 +52,18 @@ export default async function OverviewPage(props: {
           <h1 className="text-3xl font-regular tracking-tight text-foreground">
             {getGreeting()} {displayName},
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground font-medium">
-            here's a quick look at how things are going.
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground font-medium">here's a quick look at how things are going.</p>
         </div>
       </div>
 
       <OverviewTabs defaultTab={initialTab}>
         <div className="flex justify-end mb-4">
           <TabsList className="grid w-[200px] grid-cols-2">
-            <TabsTrigger
-              value="overview"
-              className="flex items-center gap-2 cursor-pointer"
-            >
+            <TabsTrigger value="overview" className="flex items-center gap-2 cursor-pointer">
               <Grid2X2 className="w-4 h-4" />
               Overview
             </TabsTrigger>
-            <TabsTrigger
-              value="metrics"
-              className="flex items-center gap-2 cursor-pointer"
-            >
+            <TabsTrigger value="metrics" className="flex items-center gap-2 cursor-pointer">
               <LineChart className="w-4 h-4" />
               Metrics
             </TabsTrigger>

@@ -1,32 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
+
+import { useRouter } from "next/navigation";
+
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui";
-import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui";
-import { Badge } from "@workspace/ui";
-import { Button } from "@workspace/ui";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui";
-import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Badge,
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 } from "@workspace/ui";
-import { MoreHorizontal, Trash2, Clock, XCircle } from "lucide-react";
-import { InviteMemberDialog } from "./invite-member-dialog";
-import { cancelInvitation } from "@/actions/workspace.actions";
+import { format } from "date-fns";
+import { Clock, MoreHorizontal, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+
+import { cancelInvitation } from "@/actions/workspace.actions";
+
+import { InviteMemberDialog } from "./invite-member-dialog";
 
 interface Member {
   userId: string;
@@ -52,11 +59,7 @@ interface MembersClientProps {
   invitations: Invitation[];
 }
 
-export function MembersClient({
-  workspaceId,
-  members,
-  invitations,
-}: MembersClientProps) {
+export function MembersClient({ workspaceId, members, invitations }: MembersClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("members");
 
@@ -78,17 +81,10 @@ export function MembersClient({
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Members</h2>
-        <InviteMemberDialog
-          workspaceId={workspaceId}
-          onSuccess={handleRefresh}
-        />
+        <InviteMemberDialog workspaceId={workspaceId} onSuccess={handleRefresh} />
       </div>
 
-      <Tabs
-        defaultValue="members"
-        onValueChange={setActiveTab}
-        className="w-full"
-      >
+      <Tabs defaultValue="members" onValueChange={setActiveTab} className="w-full">
         <TabsList>
           <TabsTrigger value="members">Members</TabsTrigger>
           <TabsTrigger value="invitations">Pending Invitations</TabsTrigger>
@@ -103,7 +99,7 @@ export function MembersClient({
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Joined</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead className="w-[50px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -111,33 +107,16 @@ export function MembersClient({
                   <TableRow key={member.userId}>
                     <TableCell>
                       <Avatar className="h-9 w-9">
-                        <AvatarImage
-                          src={member.profilePicture || ""}
-                          alt={member.name || ""}
-                        />
-                        <AvatarFallback>
-                          {(member.name || member.email || "")
-                            .slice(0, 1)
-                            .toUpperCase()}
-                        </AvatarFallback>
+                        <AvatarImage src={member.profilePicture || ""} alt={member.name || ""} />
+                        <AvatarFallback>{(member.name || member.email || "").slice(0, 1).toUpperCase()}</AvatarFallback>
                       </Avatar>
                     </TableCell>
-                    <TableCell className="font-medium">
-                      {member.name || "N/A"}
-                    </TableCell>
+                    <TableCell className="font-medium">{member.name || "N/A"}</TableCell>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          member.role === "owner" ? "default" : "secondary"
-                        }
-                      >
-                        {member.role}
-                      </Badge>
+                      <Badge variant={member.role === "owner" ? "default" : "secondary"}>{member.role}</Badge>
                     </TableCell>
-                    <TableCell>
-                      {format(new Date(member.joinedAt), "PP")}
-                    </TableCell>
+                    <TableCell>{format(new Date(member.joinedAt), "PP")}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -171,7 +150,7 @@ export function MembersClient({
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Expires</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead className="w-[50px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -184,9 +163,7 @@ export function MembersClient({
                 )}
                 {invitations.map((invite) => (
                   <TableRow key={invite.id}>
-                    <TableCell className="font-medium">
-                      {invite.email}
-                    </TableCell>
+                    <TableCell className="font-medium">{invite.email}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{invite.role}</Badge>
                     </TableCell>
@@ -196,9 +173,7 @@ export function MembersClient({
                         <span className="capitalize">{invite.status}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {format(new Date(invite.expiresAt), "PP")}
-                    </TableCell>
+                    <TableCell>{format(new Date(invite.expiresAt), "PP")}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

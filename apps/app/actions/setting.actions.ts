@@ -1,21 +1,20 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { axiosInstance as api } from "@/lib/axios";
+
 import type { ActionResponse } from "@workspace/types";
+
+import { axiosInstance as api } from "@/lib/axios";
 import type { TransactionSettings } from "@/types/settings";
 
-export const getTransactionSettings = async (): Promise<
-  ActionResponse<TransactionSettings>
-> => {
+export const getTransactionSettings = async (): Promise<ActionResponse<TransactionSettings>> => {
   try {
     const res = await api.get("/settings/transaction");
     return { success: true, data: res.data };
   } catch (error: any) {
     return {
       success: false,
-      error:
-        error.response?.data?.message || "Failed to fetch transaction settings",
+      error: error.response?.data?.message || "Failed to fetch transaction settings",
     };
   }
 };
@@ -30,9 +29,7 @@ export const updateTransactionSettings = async (
   } catch (error: any) {
     return {
       success: false,
-      error:
-        error.response?.data?.message ||
-        "Failed to update transaction settings",
+      error: error.response?.data?.message || "Failed to update transaction settings",
     };
   }
 };
@@ -49,9 +46,7 @@ export const getSubCurrencies = async (): Promise<ActionResponse<any>> => {
   }
 };
 
-export const addSubCurrency = async (data: {
-  currencyCode: string;
-}): Promise<ActionResponse<any>> => {
+export const addSubCurrency = async (data: { currencyCode: string }): Promise<ActionResponse<any>> => {
   try {
     const res = await api.post("/settings/sub-currencies", data);
     return { success: true, data: res.data };
@@ -63,9 +58,7 @@ export const addSubCurrency = async (data: {
   }
 };
 
-export const removeSubCurrency = async (
-  id: string,
-): Promise<ActionResponse<void>> => {
+export const removeSubCurrency = async (id: string): Promise<ActionResponse<void>> => {
   try {
     const res = await api.delete(`/settings/sub-currencies/${id}`);
     return { success: true, data: res.data };
@@ -77,9 +70,7 @@ export const removeSubCurrency = async (
   }
 };
 
-export const getExchangeRates = async (
-  base?: string,
-): Promise<ActionResponse<any>> => {
+export const getExchangeRates = async (base?: string): Promise<ActionResponse<any>> => {
   try {
     const res = await api.get("/settings/rates", { params: { base } });
     return { success: true, data: res.data };

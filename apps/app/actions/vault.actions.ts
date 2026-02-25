@@ -1,7 +1,8 @@
 "use server";
 
-import { axiosInstance as api } from "@/lib/axios";
 import type { ActionResponse, PaginationMeta } from "@workspace/types";
+
+import { axiosInstance as api } from "@/lib/axios";
 
 export interface VaultFile {
   id: string;
@@ -22,10 +23,7 @@ export type PaginatedVaultFiles = {
   pagination: PaginationMeta;
 };
 
-export const getVaultFiles = async (
-  page: number = 1,
-  limit: number = 20,
-): Promise<ActionResponse<PaginatedVaultFiles>> => {
+export const getVaultFiles = async (page = 1, limit = 20): Promise<ActionResponse<PaginatedVaultFiles>> => {
   try {
     const res = await api.get("/vault", {
       params: { page, limit },
@@ -45,9 +43,7 @@ export const getVaultFiles = async (
   }
 };
 
-export const uploadVaultFile = async (
-  formData: FormData,
-): Promise<ActionResponse<VaultFile>> => {
+export const uploadVaultFile = async (formData: FormData): Promise<ActionResponse<VaultFile>> => {
   try {
     const res = await api.post("/vault/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -61,9 +57,7 @@ export const uploadVaultFile = async (
   }
 };
 
-export const deleteVaultFile = async (
-  id: string,
-): Promise<ActionResponse<void>> => {
+export const deleteVaultFile = async (id: string): Promise<ActionResponse<void>> => {
   try {
     const res = await api.delete(`/vault/${id}`);
     return { success: true, data: res.data };
@@ -75,9 +69,7 @@ export const deleteVaultFile = async (
   }
 };
 
-export const getVaultDownloadUrl = async (
-  id: string,
-): Promise<ActionResponse<{ url: string }>> => {
+export const getVaultDownloadUrl = async (id: string): Promise<ActionResponse<{ url: string }>> => {
   try {
     const res = await api.get(`/vault/${id}/download`);
     return { success: true, data: res.data };
@@ -89,10 +81,7 @@ export const getVaultDownloadUrl = async (
   }
 };
 
-export const updateVaultFileTags = async (
-  id: string,
-  tags: string[],
-): Promise<ActionResponse<VaultFile>> => {
+export const updateVaultFileTags = async (id: string, tags: string[]): Promise<ActionResponse<VaultFile>> => {
   try {
     const res = await api.patch(`/vault/${id}/tags`, { tags });
     return { success: true, data: res.data };

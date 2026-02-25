@@ -1,32 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect, useTransition } from "react";
-import {
-  sendChatMessage,
-  getChatSessions,
-  getChatSessionMessages,
-  type ChatMessage,
-} from "@/actions/ai.actions";
-import {
-  cn,
-  useSidebar,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@workspace/ui";
-import { useAiChatStore } from "@/stores/ai-chat-store";
-import {
-  History,
-  ArrowLeft,
-  Plus,
-  ArrowUp,
-  Sparkles,
-  Globe,
-  Zap,
-  Search,
-} from "lucide-react";
+import { useEffect, useRef, useState, useTransition } from "react";
+
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { cn, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, useSidebar } from "@workspace/ui";
+import { ArrowLeft, ArrowUp, Globe, History, Plus, Search, Sparkles, Zap } from "lucide-react";
+
+import { type ChatMessage, getChatSessionMessages, getChatSessions, sendChatMessage } from "@/actions/ai.actions";
+import { useAiChatStore } from "@/stores/ai-chat-store";
 
 export type ChatSession = {
   id: string;
@@ -39,10 +21,7 @@ export type ChatSession = {
 function TypingIndicator() {
   return (
     <div className="flex items-center gap-1 px-4 py-3">
-      <span
-        className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce"
-        style={{ animationDelay: "0ms" }}
-      />
+      <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: "0ms" }} />
       <span
         className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce"
         style={{ animationDelay: "150ms" }}
@@ -58,9 +37,7 @@ function TypingIndicator() {
 function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
   return (
-    <div
-      className={cn("flex w-full", isUser ? "justify-end" : "justify-start")}
-    >
+    <div className={cn("flex w-full", isUser ? "justify-end" : "justify-start")}>
       {!isUser && (
         <div className="mr-2 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Sparkles className="w-3 h-3" />
@@ -91,12 +68,8 @@ export function AiChat() {
   const pathname = usePathname();
 
   const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(
-    () => searchParams.get("chat") || null,
-  );
-  const [activePopover, setActivePopover] = useState<
-    "none" | "history" | "suggestions"
-  >("none");
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(() => searchParams.get("chat") || null);
+  const [activePopover, setActivePopover] = useState<"none" | "history" | "suggestions">("none");
   const [isLoaded, setIsLoaded] = useState(false);
 
   const { state, isMobile } = useSidebar();
@@ -115,22 +88,13 @@ export function AiChat() {
 
   const sidebarOffset = isMobile ? 0 : state === "expanded" ? 256 : 48;
 
-  const loadSessionMessages = async (
-    id: string,
-    fetchedSessions?: ChatSession[],
-  ) => {
+  const loadSessionMessages = async (id: string, fetchedSessions?: ChatSession[]) => {
     const listToCheck = fetchedSessions || sessions;
     const session = listToCheck.find((s) => s.id === id);
     if (session && !session.messagesLoaded) {
       const res = await getChatSessionMessages(id);
       if (res.success && res.data) {
-        setSessions((prev) =>
-          prev.map((s) =>
-            s.id === id
-              ? { ...s, messages: res.data!, messagesLoaded: true }
-              : s,
-          ),
-        );
+        setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, messages: res.data!, messagesLoaded: true } : s)));
       }
     }
   };
@@ -180,10 +144,7 @@ export function AiChat() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        chatContainerRef.current &&
-        !chatContainerRef.current.contains(event.target as Node)
-      ) {
+      if (chatContainerRef.current && !chatContainerRef.current.contains(event.target as Node)) {
         setActivePopover("none");
       }
     };
@@ -285,9 +246,7 @@ export function AiChat() {
                       ...s.messages,
                       {
                         role: "assistant",
-                        content:
-                          result.error ??
-                          "Something went wrong. Please try again.",
+                        content: result.error ?? "Something went wrong. Please try again.",
                       },
                     ],
                     updatedAt: new Date(),
@@ -306,8 +265,7 @@ export function AiChat() {
                     ...s.messages,
                     {
                       role: "assistant",
-                      content:
-                        "Failed to connect. Please check your connection and try again.",
+                      content: "Failed to connect. Please check your connection and try again.",
                     },
                   ],
                   updatedAt: new Date(),
@@ -360,9 +318,7 @@ export function AiChat() {
             >
               <ArrowLeft className="w-5 h-5 text-muted-foreground" />
             </button>
-            <div className="text-sm font-medium">
-              {activeSession?.title || "Greeting and Introduction"}
-            </div>
+            <div className="text-sm font-medium">{activeSession?.title || "Greeting and Introduction"}</div>
             <button
               onClick={() => setCurrentSessionId(null)}
               className="w-10 h-10 border border-border/80 bg-background flex items-center justify-center rounded-lg hover:bg-muted transition-colors shadow-sm"
@@ -375,9 +331,7 @@ export function AiChat() {
           <div className="w-full max-w-3xl mx-auto flex-1 flex flex-col pt-16 pb-[140px]">
             <div className="flex flex-col gap-6 px-4 w-full h-full">
               <div className="flex items-center justify-center my-4">
-                <div className="bg-muted px-3 py-1 rounded-full text-xs text-muted-foreground">
-                  Today
-                </div>
+                <div className="bg-muted px-3 py-1 rounded-full text-xs text-muted-foreground">Today</div>
               </div>
 
               {messages.map((msg, i) => (
@@ -425,9 +379,7 @@ export function AiChat() {
               </div>
               <div className="p-2 flex flex-col overflow-y-auto">
                 {sessions.length === 0 ? (
-                  <div className="text-sm text-muted-foreground px-4 py-8 text-center">
-                    No recent chats
-                  </div>
+                  <div className="text-sm text-muted-foreground px-4 py-8 text-center">No recent chats</div>
                 ) : (
                   sessions.map((session) => (
                     <button
@@ -439,9 +391,7 @@ export function AiChat() {
                       }}
                       className="w-full flex items-center justify-between px-3 py-3 text-sm rounded-lg hover:bg-muted transition-colors text-left cursor-pointer"
                     >
-                      <span className="truncate pr-4 font-medium text-foreground">
-                        {session.title}
-                      </span>
+                      <span className="truncate pr-4 font-medium text-foreground">{session.title}</span>
                       <span className="shrink-0 text-xs text-muted-foreground">
                         {new Date(session.updatedAt).toLocaleTimeString([], {
                           hour: "2-digit",
@@ -491,8 +441,7 @@ export function AiChat() {
               onChange={(e) => {
                 setInput(e.target.value);
                 e.target.style.height = "auto";
-                e.target.style.height =
-                  Math.min(e.target.scrollHeight, 200) + "px";
+                e.target.style.height = Math.min(e.target.scrollHeight, 200) + "px";
               }}
               onKeyDown={handleKeyDown}
               placeholder="Ask anything"
@@ -522,17 +471,10 @@ export function AiChat() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      onClick={() =>
-                        setActivePopover(
-                          activePopover === "suggestions"
-                            ? "none"
-                            : "suggestions",
-                        )
-                      }
+                      onClick={() => setActivePopover(activePopover === "suggestions" ? "none" : "suggestions")}
                       className={cn(
                         "p-2 text-muted-foreground cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors",
-                        activePopover === "suggestions" &&
-                          "bg-black/5 dark:bg-white/5 text-foreground",
+                        activePopover === "suggestions" && "bg-black/5 dark:bg-white/5 text-foreground",
                       )}
                       aria-label="Suggested actions"
                     >
@@ -557,15 +499,10 @@ export function AiChat() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      onClick={() =>
-                        setActivePopover(
-                          activePopover === "history" ? "none" : "history",
-                        )
-                      }
+                      onClick={() => setActivePopover(activePopover === "history" ? "none" : "history")}
                       className={cn(
                         "p-2 text-muted-foreground cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors",
-                        activePopover === "history" &&
-                          "bg-black/5 dark:bg-white/5 text-foreground",
+                        activePopover === "history" && "bg-black/5 dark:bg-white/5 text-foreground",
                       )}
                       aria-label="Chat History"
                     >

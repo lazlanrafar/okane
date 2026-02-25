@@ -6,21 +6,16 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
-  transpilePackages: [
-    "@workspace/ui",
-    "@workspace/supabase",
-    "@workspace/utils",
-    "@workspace/dictionaries",
-  ],
-  async redirects() {
-    return [
-      {
-        source: "/dashboard",
-        destination: "/overview",
-        permanent: false,
-      },
-    ];
-  },
+  transpilePackages: ["@workspace/ui", "@workspace/supabase", "@workspace/utils", "@workspace/dictionaries"],
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: "/overview",
+  //       destination: "/overview",
+  //       permanent: false,
+  //     },
+  //   ];
+  // },
 };
 
 export default withSentryConfig(nextConfig, {

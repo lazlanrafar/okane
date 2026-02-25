@@ -11,7 +11,7 @@ export function proxy(_req: NextRequest) {
   // Example: redirect to dashboard if user is logged in
   // const token = req.cookies.get("session_token")?.value;
   // if (token && req.nextUrl.pathname === "/auth/login")
-  //   return NextResponse.redirect(new URL("/dashboard", req.url));
+  //   return NextResponse.redirect(new URL("/overview", req.url));
 
   return NextResponse.next();
 }

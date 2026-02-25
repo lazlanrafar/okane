@@ -1,11 +1,9 @@
 "use client";
 
+import { DonutChart, LineMetricChart } from "@workspace/ui";
+
+import type { CategoryBreakdownPoint, ChartDataPoint } from "@/actions/metrics.actions";
 import { formatCurrency } from "@/lib/currency";
-import { LineMetricChart, DonutChart } from "@workspace/ui";
-import type {
-  ChartDataPoint,
-  CategoryBreakdownPoint,
-} from "@/actions/metrics.actions";
 import type { TransactionSettings } from "@/types/settings";
 
 export function OverviewMetrics({

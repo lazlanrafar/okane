@@ -1,32 +1,16 @@
 import * as React from "react";
-import { Input } from "@workspace/ui";
-import { cn } from "@workspace/ui";
 
-interface CurrencyInputProps extends Omit<
-  React.InputHTMLAttributes<HTMLInputElement>,
-  "onChange"
-> {
+import { cn, Input } from "@workspace/ui";
+
+interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
   value: number;
   onChange: (value: number) => void;
   currencySymbol?: string;
   decimalPlaces?: number;
 }
 
-export const CurrencyInput = React.forwardRef<
-  HTMLInputElement,
-  CurrencyInputProps
->(
-  (
-    {
-      value,
-      onChange,
-      currencySymbol = "$",
-      decimalPlaces = 2,
-      className,
-      ...props
-    },
-    ref,
-  ) => {
+export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
+  ({ value, onChange, currencySymbol = "$", decimalPlaces = 2, className, ...props }, ref) => {
     const [displayValue, setDisplayValue] = React.useState("");
 
     // Format the initial value or when value changes externally
@@ -88,9 +72,7 @@ export const CurrencyInput = React.forwardRef<
         const integerPart = parts[0];
         const decimalPart = parts[1];
 
-        const formattedInteger = integerPart
-          ? parseInt(integerPart).toLocaleString("en-US")
-          : "0"; // handle 001 -> 1
+        const formattedInteger = integerPart ? parseInt(integerPart).toLocaleString("en-US") : "0"; // handle 001 -> 1
 
         let newDisplay = formattedInteger;
 

@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
+
 import { Button, Input } from "@workspace/ui";
-import { HardHat, Mail, ArrowRight } from "lucide-react";
+import { ArrowRight, HardHat, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ComingSoonPage() {
@@ -54,9 +55,7 @@ export default function ComingSoonPage() {
           </Button>
         </form>
 
-        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-          Stay tuned for updates
-        </p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Stay tuned for updates</p>
       </div>
     </div>
   );

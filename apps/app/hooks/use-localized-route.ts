@@ -1,14 +1,13 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+
 import { i18n } from "@/i18n-config";
 
 export function useLocalizedRoute() {
   const pathname = usePathname();
 
-  const currentLocale = i18n.locales.find(
-    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
-  );
+  const currentLocale = i18n.locales.find((locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`);
 
   const prefix = currentLocale ? `/${currentLocale}` : "";
 

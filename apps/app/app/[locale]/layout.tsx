@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
-import type { Metadata } from "next";
+
 import { Toaster } from "@workspace/ui";
+import type { Metadata } from "next";
+
+import { Providers } from "@/components/providers";
 import { APP_CONFIG } from "@/config/app-config";
 import { fontVars } from "@/lib/fonts/registry";
 import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 import { ThemeBootScript } from "@/scripts/theme-boot";
 import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
-import { Providers } from "@/components/providers";
 import "@workspace/ui/globals.css";
 // import { i18n } from "@/i18n-config";
 
@@ -25,15 +27,8 @@ export default async function RootLayout({
 }: Readonly<{ children: ReactNode; params: Promise<{ locale: string }> }>) {
   const { locale } = await params;
 
-  const {
-    theme_mode,
-    theme_preset,
-    content_layout,
-    navbar_style,
-    sidebar_variant,
-    sidebar_collapsible,
-    font,
-  } = PREFERENCE_DEFAULTS;
+  const { theme_mode, theme_preset, content_layout, navbar_style, sidebar_variant, sidebar_collapsible, font } =
+    PREFERENCE_DEFAULTS;
 
   return (
     <html

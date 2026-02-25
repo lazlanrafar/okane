@@ -1,7 +1,9 @@
+import * as React from "react";
+
 import { useQuery } from "@tanstack/react-query";
+
 import { getTransactionSettings } from "@/actions/setting.actions";
 import { formatCurrency } from "@/lib/currency";
-import * as React from "react";
 
 export function useCurrency() {
   const { data: settings, isLoading } = useQuery({

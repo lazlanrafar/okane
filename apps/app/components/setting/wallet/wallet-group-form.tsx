@@ -1,27 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import {
-  Button,
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  Input,
-} from "@workspace/ui";
+import { Button, Form, FormControl, FormField, FormItem, FormLabel, FormMessage, Input } from "@workspace/ui";
 import { Loader2 } from "lucide-react";
-import {
-  createWalletGroup,
-  updateWalletGroup,
-  WalletGroup,
-} from "@/actions/wallet-group.actions";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+
+import { createWalletGroup, updateWalletGroup, type WalletGroup } from "@/actions/wallet-group.actions";
 
 interface WalletGroupFormProps {
   group?: WalletGroup | null;
@@ -29,17 +18,11 @@ interface WalletGroupFormProps {
   dictionary: any;
 }
 
-export function WalletGroupForm({
-  group,
-  onClose,
-  dictionary,
-}: WalletGroupFormProps) {
+export function WalletGroupForm({ group, onClose, dictionary }: WalletGroupFormProps) {
   const queryClient = useQueryClient();
 
   const formSchema = z.object({
-    name: z
-      .string()
-      .min(1, { message: dictionary.groups.form.name.error_required }),
+    name: z.string().min(1, { message: dictionary.groups.form.name.error_required }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -106,10 +89,7 @@ export function WalletGroupForm({
             <FormItem>
               <FormLabel>{dictionary.groups.form.name.label}</FormLabel>
               <FormControl>
-                <Input
-                  placeholder={dictionary.groups.form.name.placeholder}
-                  {...field}
-                />
+                <Input placeholder={dictionary.groups.form.name.placeholder} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -117,12 +97,7 @@ export function WalletGroupForm({
         />
 
         <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
+          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             {dictionary.form.cancel}
           </Button>
           <Button type="submit" disabled={isSubmitting}>

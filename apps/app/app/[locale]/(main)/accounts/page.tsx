@@ -1,6 +1,6 @@
-import { getDictionary } from "@/get-dictionary";
-import { Locale } from "@/i18n-config";
 import { AccountsClient } from "@/components/accounts/accounts-client";
+import { getDictionary } from "@/get-dictionary";
+import type { Locale } from "@/i18n-config";
 
 interface AccountsPageProps {
   params: {
@@ -12,10 +12,5 @@ export default async function AccountsPage({ params }: AccountsPageProps) {
   const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
-  return (
-    <AccountsClient
-      dictionary={dictionary.accounts}
-      walletsDictionary={dictionary.settings.wallets}
-    />
-  );
+  return <AccountsClient dictionary={dictionary.accounts} walletsDictionary={dictionary.settings.wallets} />;
 }

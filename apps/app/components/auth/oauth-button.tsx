@@ -1,12 +1,10 @@
 "use client";
 
-import { siGithub, siGoogle } from "simple-icons";
-
-import { SimpleIcon } from "@workspace/ui";
-import { Button } from "@workspace/ui";
-import { cn } from "@workspace/ui";
 import { ActionResponse } from "@workspace/types";
+import { Button, cn, SimpleIcon } from "@workspace/ui";
+import { siGithub, siGoogle } from "simple-icons";
 import { toast } from "sonner";
+
 import { loginWithOAuth } from "@/actions/auth.actions";
 
 interface OAuthButtonProps extends React.ComponentProps<typeof Button> {
@@ -14,15 +12,9 @@ interface OAuthButtonProps extends React.ComponentProps<typeof Button> {
   label?: string;
 }
 
-export function OAuthButton({
-  provider,
-  className,
-  label,
-  ...props
-}: OAuthButtonProps) {
+export function OAuthButton({ provider, className, label, ...props }: OAuthButtonProps) {
   const icon = provider === "google" ? siGoogle : siGithub;
-  const defaultLabel =
-    provider === "google" ? "Continue with Google" : "Continue with GitHub";
+  const defaultLabel = provider === "google" ? "Continue with Google" : "Continue with GitHub";
 
   return (
     <Button

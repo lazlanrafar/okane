@@ -1,7 +1,8 @@
-import { AccountForm } from "@/components/setting/account/account-form";
 import { Separator } from "@workspace/ui";
+
+import { AccountForm } from "@/components/setting/account/account-form";
 import { getDictionary } from "@/get-dictionary";
-import { Locale } from "@/i18n-config";
+import type { Locale } from "@/i18n-config";
 
 interface Props {
   params: Promise<{

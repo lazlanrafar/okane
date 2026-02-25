@@ -1,9 +1,11 @@
+import { Suspense } from "react";
+
+import type { Category, Transaction, Wallet } from "@workspace/types";
+
+import { getCategories } from "@/actions/category.actions";
 import { getTransactions } from "@/actions/transaction.actions";
 import { getWallets } from "@/actions/wallet.actions";
-import { getCategories } from "@/actions/category.actions";
 import { TransactionView } from "@/components/transactions/transaction-view";
-import { Suspense } from "react";
-import { Transaction, Wallet, Category } from "@workspace/types";
 
 export const dynamic = "force-dynamic";
 
@@ -41,13 +43,7 @@ export default async function TransactionPage() {
   return (
     <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col">
       <div className="flex-1 min-h-0">
-        <Suspense
-          fallback={
-            <div className="p-8 text-center text-muted-foreground">
-              Loading...
-            </div>
-          }
-        >
+        <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Loading...</div>}>
           <TransactionView
             initialTransactions={initialTransactions}
             initialTotal={initialTotal}

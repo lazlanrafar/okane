@@ -1,6 +1,6 @@
-import { getDictionary } from "@/get-dictionary";
-import { Locale } from "@/i18n-config";
 import { WalletList } from "@/components/setting/wallet/wallet-list";
+import { getDictionary } from "@/get-dictionary";
+import type { Locale } from "@/i18n-config";
 
 interface SettingsWalletsPageProps {
   params: {
@@ -8,9 +8,7 @@ interface SettingsWalletsPageProps {
   };
 }
 
-export default async function SettingsWalletsPage({
-  params,
-}: SettingsWalletsPageProps) {
+export default async function SettingsWalletsPage({ params }: SettingsWalletsPageProps) {
   const { locale } = await params;
   const dictionary = await getDictionary(locale);
 

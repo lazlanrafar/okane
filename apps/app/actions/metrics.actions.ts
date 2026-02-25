@@ -1,7 +1,8 @@
 "use server";
 
-import { axiosInstance as api } from "@/lib/axios";
 import type { ActionResponse } from "@workspace/types";
+
+import { axiosInstance as api } from "@/lib/axios";
 
 export interface ChartDataPoint {
   name: string;
@@ -10,47 +11,38 @@ export interface ChartDataPoint {
   average?: number;
 }
 
-export const getRevenueMetrics = async (): Promise<
-  ActionResponse<ChartDataPoint[]>
-> => {
+export const getRevenueMetrics = async (): Promise<ActionResponse<ChartDataPoint[]>> => {
   try {
     const res = await api.get("/metrics/revenue");
     return { success: true, data: res.data };
   } catch (error: any) {
     return {
       success: false,
-      error:
-        error?.response?.data?.message || "Failed to fetch revenue metrics",
+      error: error?.response?.data?.message || "Failed to fetch revenue metrics",
     };
   }
 };
 
-export const getExpenseMetrics = async (): Promise<
-  ActionResponse<ChartDataPoint[]>
-> => {
+export const getExpenseMetrics = async (): Promise<ActionResponse<ChartDataPoint[]>> => {
   try {
     const res = await api.get("/metrics/expenses");
     return { success: true, data: res.data };
   } catch (error: any) {
     return {
       success: false,
-      error:
-        error?.response?.data?.message || "Failed to fetch expense metrics",
+      error: error?.response?.data?.message || "Failed to fetch expense metrics",
     };
   }
 };
 
-export const getBurnRateMetrics = async (): Promise<
-  ActionResponse<ChartDataPoint[]>
-> => {
+export const getBurnRateMetrics = async (): Promise<ActionResponse<ChartDataPoint[]>> => {
   try {
     const res = await api.get("/metrics/burn-rate");
     return { success: true, data: res.data };
   } catch (error: any) {
     return {
       success: false,
-      error:
-        error?.response?.data?.message || "Failed to fetch burn rate metrics",
+      error: error?.response?.data?.message || "Failed to fetch burn rate metrics",
     };
   }
 };
@@ -72,9 +64,7 @@ export const getCategoryBreakdown = async (
   } catch (error: any) {
     return {
       success: false,
-      error:
-        error?.response?.data?.message ||
-        "Failed to fetch category breakdown metrics",
+      error: error?.response?.data?.message || "Failed to fetch category breakdown metrics",
     };
   }
 };

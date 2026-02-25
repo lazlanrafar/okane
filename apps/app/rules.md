@@ -80,8 +80,8 @@ export const create_workspace = async (
 1. **Supabase** handles auth (email/password + OAuth).
 2. After auth, `/api/auth/callback` → calls `sync_user()` → checks `has_workspace`.
 3. If no workspace: redirect to `/create-workspace`.
-4. If has workspace: redirect to `/dashboard`.
-5. Middleware protects `/dashboard` (requires session) and `/create-workspace` (requires session).
+4. If has workspace: redirect to `/overview`.
+5. Middleware protects `/overview` (requires session) and `/create-workspace` (requires session).
 
 ## 6. Server Components vs Client Components
 

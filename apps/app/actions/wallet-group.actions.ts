@@ -1,7 +1,8 @@
 "use server";
 
-import { axiosInstance as api } from "@/lib/axios";
 import type { ActionResponse } from "@workspace/types";
+
+import { axiosInstance as api } from "@/lib/axios";
 
 export interface WalletGroup {
   id: string;
@@ -21,9 +22,7 @@ export interface UpdateWalletGroupData {
   sortOrder?: number;
 }
 
-export const getWalletGroups = async (): Promise<
-  ActionResponse<WalletGroup[]>
-> => {
+export const getWalletGroups = async (): Promise<ActionResponse<WalletGroup[]>> => {
   try {
     const res = await api.get("/wallet-groups");
     return { success: true, data: res.data };
@@ -35,9 +34,7 @@ export const getWalletGroups = async (): Promise<
   }
 };
 
-export const createWalletGroup = async (
-  data: CreateWalletGroupData,
-): Promise<ActionResponse<WalletGroup>> => {
+export const createWalletGroup = async (data: CreateWalletGroupData): Promise<ActionResponse<WalletGroup>> => {
   try {
     const res = await api.post("/wallet-groups", data);
     return { success: true, data: res.data };
@@ -78,9 +75,7 @@ export const reorderWalletGroups = async (
   }
 };
 
-export const deleteWalletGroup = async (
-  id: string,
-): Promise<ActionResponse<void>> => {
+export const deleteWalletGroup = async (id: string): Promise<ActionResponse<void>> => {
   try {
     const res = await api.delete(`/wallet-groups/${id}`);
     return { success: true, data: res.data };

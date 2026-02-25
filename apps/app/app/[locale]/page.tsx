@@ -1,13 +1,11 @@
-import { getDictionary } from "@/get-dictionary";
-import type { Locale } from "@/i18n-config";
 import Link from "next/link";
+
 import { Button } from "@workspace/ui";
 
-export default async function IndexPage({
-  params,
-}: {
-  params: Promise<{ locale: Locale }>;
-}) {
+import { getDictionary } from "@/get-dictionary";
+import type { Locale } from "@/i18n-config";
+
+export default async function IndexPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
@@ -19,7 +17,7 @@ export default async function IndexPage({
         <p className="mt-3 text-2xl">{dictionary.home.description}</p>
 
         <div className="flex flex-wrap items-center justify-around max-w-4xl mt-6 sm:w-full">
-          <Link href={`/${locale}/dashboard`}>
+          <Link href={`/${locale}/overview`}>
             <Button>{dictionary.navigation.dashboard}</Button>
           </Link>
         </div>

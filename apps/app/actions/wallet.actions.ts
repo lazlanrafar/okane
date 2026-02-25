@@ -1,7 +1,8 @@
 "use server";
 
-import { axiosInstance as api } from "@/lib/axios";
 import type { ActionResponse } from "@workspace/types";
+
+import { axiosInstance as api } from "@/lib/axios";
 
 export interface Wallet {
   id: string;
@@ -42,9 +43,7 @@ export const getWallets = async (): Promise<ActionResponse<Wallet[]>> => {
   }
 };
 
-export const createWallet = async (
-  data: CreateWalletData,
-): Promise<ActionResponse<Wallet>> => {
+export const createWallet = async (data: CreateWalletData): Promise<ActionResponse<Wallet>> => {
   try {
     const res = await api.post("/wallets", data);
     return { success: true, data: res.data };
@@ -56,10 +55,7 @@ export const createWallet = async (
   }
 };
 
-export const updateWallet = async (
-  id: string,
-  data: UpdateWalletData,
-): Promise<ActionResponse<Wallet>> => {
+export const updateWallet = async (id: string, data: UpdateWalletData): Promise<ActionResponse<Wallet>> => {
   try {
     const res = await api.put(`/wallets/${id}`, data);
     return { success: true, data: res.data };
@@ -85,9 +81,7 @@ export const reorderWallets = async (
   }
 };
 
-export const deleteWallet = async (
-  id: string,
-): Promise<ActionResponse<void>> => {
+export const deleteWallet = async (id: string): Promise<ActionResponse<void>> => {
   try {
     const res = await api.delete(`/wallets/${id}`);
     return { success: true, data: res.data };

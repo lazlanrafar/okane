@@ -1,18 +1,15 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
-import { Button } from "@workspace/ui";
-import { Card, CardContent } from "@workspace/ui";
+import { useEffect, useState, useTransition } from "react";
+
+import { Button, Card, CardContent } from "@workspace/ui";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { Plus, Trash2, Loader2 } from "lucide-react";
-import { CurrencySelector } from "../currency-selector";
-import {
-  getSubCurrencies,
-  addSubCurrency,
-  removeSubCurrency,
-  getExchangeRates,
-} from "@/actions/setting.actions";
+
+import { addSubCurrency, getExchangeRates, getSubCurrencies, removeSubCurrency } from "@/actions/setting.actions";
 import type { SubCurrency, TransactionSettings } from "@/types/settings";
+
+import { CurrencySelector } from "../currency-selector";
 
 interface SubCurrencyListProps {
   initialSubCurrencies: SubCurrency[];
@@ -20,11 +17,7 @@ interface SubCurrencyListProps {
   dictionary: any;
 }
 
-export function SubCurrencyList({
-  initialSubCurrencies,
-  settings,
-  dictionary,
-}: SubCurrencyListProps) {
+export function SubCurrencyList({ initialSubCurrencies, settings, dictionary }: SubCurrencyListProps) {
   const [subCurrencies, setSubCurrencies] = useState(initialSubCurrencies);
   const [rates, setRates] = useState<Record<string, string>>({});
   const [isLoadingRates, setIsLoadingRates] = useState(false);
@@ -80,9 +73,7 @@ export function SubCurrencyList({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-medium">Sub Currencies</h3>
-          <p className="text-sm text-muted-foreground">
-            Manage secondary currencies for your workspace.
-          </p>
+          <p className="text-sm text-muted-foreground">Manage secondary currencies for your workspace.</p>
         </div>
         <CurrencySelector
           onSelect={handleAdd}
@@ -97,16 +88,11 @@ export function SubCurrencyList({
 
       <div className="grid gap-4">
         {subCurrencies.map((sc) => (
-          <Card
-            key={sc.id}
-            className="overflow-hidden border-none shadow-sm bg-accent/50"
-          >
+          <Card key={sc.id} className="overflow-hidden border-none shadow-sm bg-accent/50">
             <CardContent className="p-4 flex items-center justify-between">
               <div className="flex flex-col">
                 <span className="font-semibold text-lg">{sc.currencyCode}</span>
-                <span className="text-xs text-muted-foreground uppercase">
-                  Workspace Currency
-                </span>
+                <span className="text-xs text-muted-foreground uppercase">Workspace Currency</span>
               </div>
 
               <div className="flex items-center gap-6">
@@ -118,16 +104,11 @@ export function SubCurrencyList({
                       <span className="text-sm font-medium">
                         1 {settings.mainCurrencyCode} ={" "}
                         {rates[sc.currencyCode]
-                          ? parseFloat(rates[sc.currencyCode]!).toLocaleString(
-                              undefined,
-                              { maximumFractionDigits: 4 },
-                            )
+                          ? parseFloat(rates[sc.currencyCode]!).toLocaleString(undefined, { maximumFractionDigits: 4 })
                           : "---"}{" "}
                         {sc.currencyCode}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        RATE NOW
-                      </span>
+                      <span className="text-[10px] text-muted-foreground">RATE NOW</span>
                     </div>
                   )}
                 </div>
@@ -148,9 +129,7 @@ export function SubCurrencyList({
 
         {subCurrencies.length === 0 && (
           <div className="text-center py-12 border-2 border-dashed rounded-xl border-accent">
-            <p className="text-muted-foreground">
-              No sub-currencies added yet.
-            </p>
+            <p className="text-muted-foreground">No sub-currencies added yet.</p>
           </div>
         )}
       </div>

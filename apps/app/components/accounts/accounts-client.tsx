@@ -1,30 +1,26 @@
 "use client";
 
 import * as React from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getWallets, deleteWallet } from "@/actions/wallet.actions";
+
 import {
-  getWalletGroups,
-  deleteWalletGroup,
-} from "@/actions/wallet-group.actions";
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import {
-  WalletItem,
-  WalletGroupHeader,
-  Wallet,
-  WalletGroup,
-} from "@/components/shared/wallet-display";
-import { useCurrency } from "@/hooks/use-currency";
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Skeleton,
-  Table,
-  TableBody,
-  Separator,
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -33,30 +29,27 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  Separator,
+  Skeleton,
+  Table,
+  TableBody,
   TableRow,
 } from "@workspace/ui";
-import { Plus, Pencil } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
+
+import { deleteWallet, getWallets, reorderWallets } from "@/actions/wallet.actions";
+import { deleteWalletGroup, getWalletGroups } from "@/actions/wallet-group.actions";
 import { WalletForm } from "@/components/setting/wallet/wallet-form";
 import { WalletGroupForm } from "@/components/setting/wallet/wallet-group-form";
-import { reorderWallets } from "@/actions/wallet.actions";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { type Wallet, WalletGroup, WalletGroupHeader, WalletItem } from "@/components/shared/wallet-display";
+import { useCurrency } from "@/hooks/use-currency";
 
 function SortableWalletRow({
   wallet,
@@ -67,14 +60,10 @@ function SortableWalletRow({
   onEdit: (wallet: Wallet) => void;
   onDelete: (wallet: Wallet) => void;
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: wallet.id, data: { type: "wallet", wallet } });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: wallet.id,
+    data: { type: "wallet", wallet },
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -84,11 +73,7 @@ function SortableWalletRow({
   } as React.CSSProperties;
 
   return (
-    <TableRow
-      ref={setNodeRef}
-      style={style}
-      className="group transition-colors border-b"
-    >
+    <TableRow ref={setNodeRef} style={style} className="group transition-colors border-b">
       <WalletItem
         wallet={wallet}
         mode="manage"
@@ -107,10 +92,7 @@ interface AccountsClientProps {
   walletsDictionary: any; // Added to reuse WalletForm
 }
 
-export function AccountsClient({
-  dictionary,
-  walletsDictionary,
-}: AccountsClientProps) {
+export function AccountsClient({ dictionary, walletsDictionary }: AccountsClientProps) {
   const queryClient = useQueryClient();
   const { formatAmount } = useCurrency();
 
@@ -205,18 +187,12 @@ export function AccountsClient({
   };
 
   const assets = React.useMemo(
-    () =>
-      wallets
-        ?.filter((w) => w.balance > 0)
-        .reduce((acc, w) => acc + w.balance, 0) ?? 0,
+    () => wallets?.filter((w) => w.balance > 0).reduce((acc, w) => acc + w.balance, 0) ?? 0,
     [wallets],
   );
 
   const liabilities = React.useMemo(
-    () =>
-      wallets
-        ?.filter((w) => w.balance < 0)
-        .reduce((acc, w) => acc + w.balance, 0) ?? 0,
+    () => wallets?.filter((w) => w.balance < 0).reduce((acc, w) => acc + w.balance, 0) ?? 0,
     [wallets],
   );
 
@@ -271,34 +247,20 @@ export function AccountsClient({
       {/* Summary */}
       <div className="grid grid-cols-3 text-center px-4 py-6 border-b border-t bg-muted/5">
         <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">
-            {dictionary.assets}
-          </p>
-          <p className="text-base font-bold text-blue-500">
-            {formatCurrency(assets)}
-          </p>
+          <p className="text-sm font-medium text-muted-foreground">{dictionary.assets}</p>
+          <p className="text-base font-bold text-blue-500">{formatCurrency(assets)}</p>
         </div>
         <div className="space-y-1 border-x">
-          <p className="text-sm font-medium text-muted-foreground">
-            {dictionary.liabilities}
-          </p>
-          <p className="text-base font-bold text-red-500">
-            {formatCurrency(liabilities)}
-          </p>
+          <p className="text-sm font-medium text-muted-foreground">{dictionary.liabilities}</p>
+          <p className="text-base font-bold text-red-500">{formatCurrency(liabilities)}</p>
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">
-            {dictionary.total}
-          </p>
+          <p className="text-sm font-medium text-muted-foreground">{dictionary.total}</p>
           <p className="text-base font-bold">{formatCurrency(total)}</p>
         </div>
       </div>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <div className="flex-1 overflow-auto">
           {groups?.map((group) => {
             const groupWallets = walletsByGroup.get(group.id) || [];
@@ -314,10 +276,7 @@ export function AccountsClient({
                   onDelete={() => {}}
                 />
                 <Table>
-                  <SortableContext
-                    items={groupWallets}
-                    strategy={verticalListSortingStrategy}
-                  >
+                  <SortableContext items={groupWallets} strategy={verticalListSortingStrategy}>
                     <TableBody>
                       {groupWallets.map((wallet) => (
                         <SortableWalletRow
@@ -327,9 +286,7 @@ export function AccountsClient({
                             setEditingWallet(w);
                             setIsWalletDialogOpen(true);
                           }}
-                          onDelete={(w) =>
-                            setDeleteAlert({ type: "wallet", id: w.id })
-                          }
+                          onDelete={(w) => setDeleteAlert({ type: "wallet", id: w.id })}
                         />
                       ))}
                     </TableBody>
@@ -344,16 +301,9 @@ export function AccountsClient({
             if (ungrouped.length === 0) return null;
             return (
               <div className="last:pb-20">
-                <WalletGroupHeader
-                  groupName="Ungrouped"
-                  count={ungrouped.length}
-                  mode="manage"
-                />
+                <WalletGroupHeader groupName="Ungrouped" count={ungrouped.length} mode="manage" />
                 <Table>
-                  <SortableContext
-                    items={ungrouped}
-                    strategy={verticalListSortingStrategy}
-                  >
+                  <SortableContext items={ungrouped} strategy={verticalListSortingStrategy}>
                     <TableBody>
                       {ungrouped.map((wallet) => (
                         <SortableWalletRow
@@ -363,9 +313,7 @@ export function AccountsClient({
                             setEditingWallet(w);
                             setIsWalletDialogOpen(true);
                           }}
-                          onDelete={(w) =>
-                            setDeleteAlert({ type: "wallet", id: w.id })
-                          }
+                          onDelete={(w) => setDeleteAlert({ type: "wallet", id: w.id })}
                         />
                       ))}
                     </TableBody>
@@ -386,12 +334,8 @@ export function AccountsClient({
       <Dialog open={isWalletDialogOpen} onOpenChange={setIsWalletDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {editingWallet ? "Edit Wallet" : walletsDictionary.add_button}
-            </DialogTitle>
-            <DialogDescription>
-              {walletsDictionary.description}
-            </DialogDescription>
+            <DialogTitle>{editingWallet ? "Edit Wallet" : walletsDictionary.add_button}</DialogTitle>
+            <DialogDescription>{walletsDictionary.description}</DialogDescription>
           </DialogHeader>
           <WalletForm
             wallet={editingWallet}
@@ -401,24 +345,18 @@ export function AccountsClient({
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!deleteAlert}
-        onOpenChange={(open) => !open && setDeleteAlert(null)}
-      >
+      <AlertDialog open={!!deleteAlert} onOpenChange={(open) => !open && setDeleteAlert(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {walletsDictionary.form.delete_confirm}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{walletsDictionary.form.delete_confirm}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive hover:bg-destructive/90"
               onClick={() => {
-                if (deleteAlert?.type === "wallet")
-                  deleteWalletMutation.mutate(deleteAlert.id);
+                if (deleteAlert?.type === "wallet") deleteWalletMutation.mutate(deleteAlert.id);
               }}
             >
               Delete

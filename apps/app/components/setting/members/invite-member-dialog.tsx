@@ -1,18 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { inviteMember } from "@/actions/workspace.actions";
 import {
   Button,
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Form,
   FormControl,
   FormField,
@@ -26,8 +24,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui";
-import { toast } from "sonner";
 import { Loader2, UserPlus } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+
+import { inviteMember } from "@/actions/workspace.actions";
 
 const inviteSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -41,10 +43,7 @@ interface InviteMemberDialogProps {
   onSuccess?: () => void;
 }
 
-export function InviteMemberDialog({
-  workspaceId,
-  onSuccess,
-}: InviteMemberDialogProps) {
+export function InviteMemberDialog({ workspaceId, onSuccess }: InviteMemberDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -80,9 +79,7 @@ export function InviteMemberDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Invite Member</DialogTitle>
-          <DialogDescription>
-            Invite a new member to join your workspace.
-          </DialogDescription>
+          <DialogDescription>Invite a new member to join your workspace.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -107,10 +104,7 @@ export function InviteMemberDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a role" />
@@ -127,12 +121,7 @@ export function InviteMemberDialog({
             />
 
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-                disabled={loading}
-              >
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>

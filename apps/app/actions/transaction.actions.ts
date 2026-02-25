@@ -1,6 +1,7 @@
 "use server";
 
-import { ActionResponse, ApiResponse, Transaction } from "@workspace/types";
+import type { ActionResponse, ApiResponse, Transaction } from "@workspace/types";
+
 import { axiosInstance as api } from "@/lib/axios";
 
 export const getTransactions = async (params: {
@@ -19,9 +20,7 @@ export const getTransactions = async (params: {
 
     // The interceptor puts the full ApiResponse in _api_response
     // and sets response.data to the payload (Transaction[])
-    const apiResponse = (response as any)._api_response as ApiResponse<
-      Transaction[]
-    >;
+    const apiResponse = (response as any)._api_response as ApiResponse<Transaction[]>;
 
     if (apiResponse) {
       return apiResponse;
@@ -62,14 +61,9 @@ export const getTransactions = async (params: {
   }
 };
 
-export const createTransaction = async (
-  data: Partial<Transaction>,
-): Promise<ActionResponse<Transaction>> => {
+export const createTransaction = async (data: Partial<Transaction>): Promise<ActionResponse<Transaction>> => {
   try {
-    const { data: response } = await api.post<ApiResponse<Transaction>>(
-      "/transactions",
-      data,
-    );
+    const { data: response } = await api.post<ApiResponse<Transaction>>("/transactions", data);
     return { success: true, data: response.data as Transaction };
   } catch (error: any) {
     return {
@@ -84,14 +78,9 @@ export const updateTransaction = async (
   data: Partial<Transaction>,
 ): Promise<ActionResponse<Transaction>> => {
   try {
-    const response = await api.put<ApiResponse<Transaction>>(
-      `/transactions/${id}`,
-      data,
-    );
-    const apiResponse = (response as any)
-      ._api_response as ApiResponse<Transaction>;
-    const transaction =
-      apiResponse?.data ?? (response.data as any)?.data ?? response.data;
+    const response = await api.put<ApiResponse<Transaction>>(`/transactions/${id}`, data);
+    const apiResponse = (response as any)._api_response as ApiResponse<Transaction>;
+    const transaction = apiResponse?.data ?? (response.data as any)?.data ?? response.data;
     return { success: true, data: transaction as Transaction };
   } catch (error: any) {
     return {
@@ -101,9 +90,7 @@ export const updateTransaction = async (
   }
 };
 
-export const deleteTransaction = async (
-  id: string,
-): Promise<ActionResponse<void>> => {
+export const deleteTransaction = async (id: string): Promise<ActionResponse<void>> => {
   try {
     await api.delete(`/transactions/${id}`);
     return { success: true, data: undefined };

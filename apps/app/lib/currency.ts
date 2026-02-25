@@ -1,9 +1,6 @@
 import type { TransactionSettings } from "@/types/settings";
 
-export function formatCurrency(
-  amount: number,
-  settings: TransactionSettings | null | undefined,
-) {
+export function formatCurrency(amount: number, settings: TransactionSettings | null | undefined) {
   if (!settings) {
     // Fallback to a basic formatter if settings aren't loaded yet
     return amount.toLocaleString("en-US", {
@@ -12,11 +9,7 @@ export function formatCurrency(
     });
   }
 
-  const {
-    mainCurrencySymbol,
-    mainCurrencySymbolPosition,
-    mainCurrencyDecimalPlaces,
-  } = settings;
+  const { mainCurrencySymbol, mainCurrencySymbolPosition, mainCurrencyDecimalPlaces } = settings;
 
   const formattedAmount = Math.abs(amount).toLocaleString(undefined, {
     minimumFractionDigits: mainCurrencyDecimalPlaces,

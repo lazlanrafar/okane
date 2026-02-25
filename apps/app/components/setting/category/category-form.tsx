@@ -1,35 +1,37 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+
 import {
-  DndContext,
   closestCenter,
+  DndContext,
+  type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
   useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Category } from "@workspace/types";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
   Button,
   Dialog,
   DialogContent,
@@ -45,27 +47,27 @@ import {
   FormLabel,
   FormMessage,
   Input,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
   Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@workspace/ui";
-import { Plus, Pencil, Trash2, Loader2, GripVertical } from "lucide-react";
+import { GripVertical, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+
 import {
-  getIncomeCategories,
-  getExpenseCategories,
   createCategory,
-  updateCategory,
   deleteCategory,
+  getExpenseCategories,
+  getIncomeCategories,
   reorderCategories,
+  updateCategory,
 } from "@/actions/category.actions";
-import type { Category } from "@workspace/types";
 
 interface CategoryFormProps {
   type: "income" | "expense";
@@ -106,19 +108,8 @@ interface SortableRowProps {
   handleDeleteClick: (category: Category) => void;
 }
 
-function SortableRow({
-  category,
-  handleEdit,
-  handleDeleteClick,
-}: SortableRowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: category.id });
+function SortableRow({ category, handleEdit, handleDeleteClick }: SortableRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: category.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -128,11 +119,7 @@ function SortableRow({
   } as React.CSSProperties;
 
   return (
-    <TableRow
-      ref={setNodeRef}
-      style={style}
-      className={isDragging ? "bg-muted/50" : ""}
-    >
+    <TableRow ref={setNodeRef} style={style} className={isDragging ? "bg-muted/50" : ""}>
       {/* <TableCell className="w-[20px]">
         <Button
           variant="ghost"
@@ -145,13 +132,7 @@ function SortableRow({
         </Button>
       </TableCell> */}
       <TableCell className="font-medium">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="cursor-move"
-          {...attributes}
-          {...listeners}
-        >
+        <Button variant="ghost" size="icon" className="cursor-move" {...attributes} {...listeners}>
           <GripVertical className="h-4 w-4 text-muted-foreground" />
         </Button>
 
@@ -159,11 +140,7 @@ function SortableRow({
       </TableCell>
       <TableCell className="text-right">
         <div className="flex items-center justify-end gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => handleEdit(category)}
-          >
+          <Button variant="ghost" size="icon" onClick={() => handleEdit(category)}>
             <Pencil className="h-4 w-4" />
           </Button>
           <Button
@@ -182,12 +159,9 @@ function SortableRow({
 
 export function CategoryForm({ type, dictionary }: CategoryFormProps) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [activeCategory, setActiveCategory] = React.useState<Category | null>(
-    null,
-  );
+  const [activeCategory, setActiveCategory] = React.useState<Category | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const [categoryToDelete, setCategoryToDelete] =
-    React.useState<Category | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = React.useState<Category | null>(null);
   const [items, setItems] = React.useState<Category[]>([]);
 
   const queryClient = useQueryClient();
@@ -209,9 +183,7 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
   const { data: categories, isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
-      const result = await (type === "income"
-        ? getIncomeCategories()
-        : getExpenseCategories());
+      const result = await (type === "income" ? getIncomeCategories() : getExpenseCategories());
       if (result.success) return result.data;
       throw new Error(result.error);
     },
@@ -387,9 +359,7 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
       <div className="space-y-4">
         <div>
           <h4 className="text-base font-medium">{dictionary.title}</h4>
-          <p className="text-sm text-muted-foreground">
-            {dictionary.description}
-          </p>
+          <p className="text-sm text-muted-foreground">{dictionary.description}</p>
         </div>
         <div className="flex justify-end">
           <Skeleton className="h-10 w-32" />
@@ -408,9 +378,7 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h4 className="text-base font-medium">{dictionary.title}</h4>
-          <p className="text-sm text-muted-foreground">
-            {dictionary.description}
-          </p>
+          <p className="text-sm text-muted-foreground">{dictionary.description}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={handleDialogChange}>
           <DialogTrigger asChild>
@@ -421,22 +389,11 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                {activeCategory
-                  ? dictionary.form.submit
-                  : dictionary.add_button}
-              </DialogTitle>
-              <DialogDescription>
-                {activeCategory
-                  ? dictionary.description
-                  : dictionary.description}
-              </DialogDescription>
+              <DialogTitle>{activeCategory ? dictionary.form.submit : dictionary.add_button}</DialogTitle>
+              <DialogDescription>{activeCategory ? dictionary.description : dictionary.description}</DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -444,10 +401,7 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
                     <FormItem>
                       <FormLabel>{dictionary.form.name.label}</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder={dictionary.form.name.placeholder}
-                          {...field}
-                        />
+                        <Input placeholder={dictionary.form.name.placeholder} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -455,9 +409,7 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
                 />
                 <DialogFooter>
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {dictionary.form.submit}
                   </Button>
                 </DialogFooter>
@@ -468,26 +420,17 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
       </div>
 
       <div className="border rounded-md">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <Table>
             <TableHeader>
               <TableRow>
                 {/* <TableHead className="w-[50px]"></TableHead> */}
                 <TableHead>{dictionary.table.name}</TableHead>
-                <TableHead className="w-[100px] text-right">
-                  {dictionary.table.actions}
-                </TableHead>
+                <TableHead className="w-[100px] text-right">{dictionary.table.actions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <SortableContext
-                items={items}
-                strategy={verticalListSortingStrategy}
-              >
+              <SortableContext items={items} strategy={verticalListSortingStrategy}>
                 {items.length > 0 ? (
                   items.map((category) => (
                     <SortableRow
@@ -499,10 +442,7 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell
-                      colSpan={3}
-                      className="h-24 text-center text-muted-foreground"
-                    >
+                    <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
                       {dictionary.empty}
                     </TableCell>
                   </TableRow>
@@ -513,21 +453,14 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
         </DndContext>
       </div>
 
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{dictionary.form.delete}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {dictionary.form.delete_confirm}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{dictionary.form.delete_confirm}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>
-              {dictionary.form.cancel}
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>{dictionary.form.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
@@ -538,9 +471,7 @@ export function CategoryForm({ type, dictionary }: CategoryFormProps) {
               disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {dictionary.form.delete}
             </AlertDialogAction>
           </AlertDialogFooter>

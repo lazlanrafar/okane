@@ -1,23 +1,29 @@
 "use client";
 
-import { Transaction, Wallet, Category } from "@workspace/types";
-import { TransactionList } from "./transaction-list";
-import { TransactionForm } from "./transaction-form";
-import { Button } from "@workspace/ui";
-import { Plus, Loader2, Upload, X } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@workspace/ui";
-import { useState, useEffect, useCallback } from "react";
-import { getTransactions } from "@/actions/transaction.actions";
-import { ImportModal } from "./import-modal";
-import { DateRangePicker } from "@workspace/ui";
-import { DateRange } from "react-day-picker";
+import { useCallback, useEffect, useState } from "react";
+
+import type { Category, Transaction, Wallet } from "@workspace/types";
 import {
+  Button,
+  DateRangePicker,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
 } from "@workspace/ui";
+import { Loader2, Plus, Upload, X } from "lucide-react";
+import type { DateRange } from "react-day-picker";
+
+import { getTransactions } from "@/actions/transaction.actions";
+
+import { ImportModal } from "./import-modal";
+import { TransactionForm } from "./transaction-form";
+import { TransactionList } from "./transaction-list";
 
 const PAGE_LIMIT = 20;
 
@@ -37,15 +43,11 @@ export function TransactionView({
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] =
-    useState<Transaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
-  const [transactions, setTransactions] =
-    useState<Transaction[]>(initialTransactions);
+  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(
-    Math.max(1, Math.ceil(initialTotal / PAGE_LIMIT)),
-  );
+  const [totalPages, setTotalPages] = useState(Math.max(1, Math.ceil(initialTotal / PAGE_LIMIT)));
   const [isLoading, setIsLoading] = useState(false);
 
   // Filters State
@@ -71,12 +73,9 @@ export function TransactionView({
         const params: any = { page: p, limit: PAGE_LIMIT };
         if (filters.type !== "all") params.type = filters.type;
         if (filters.walletId !== "all") params.walletId = filters.walletId;
-        if (filters.categoryId !== "all")
-          params.categoryId = filters.categoryId;
-        if (filters.dateRange?.from)
-          params.startDate = filters.dateRange.from.toISOString();
-        if (filters.dateRange?.to)
-          params.endDate = filters.dateRange.to.toISOString();
+        if (filters.categoryId !== "all") params.categoryId = filters.categoryId;
+        if (filters.dateRange?.from) params.startDate = filters.dateRange.from.toISOString();
+        if (filters.dateRange?.to) params.endDate = filters.dateRange.to.toISOString();
 
         const res = await getTransactions(params);
         if (res.success && res.data) {
@@ -151,23 +150,14 @@ export function TransactionView({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2 pb-6 shrink-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Transactions</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage your income and expenses across all wallets.
-          </p>
+          <p className="text-sm text-muted-foreground mt-1">Manage your income and expenses across all wallets.</p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Button
-            variant="outline"
-            className="w-full sm:w-auto flex-1"
-            onClick={() => setImportOpen(true)}
-          >
+          <Button variant="outline" className="w-full sm:w-auto flex-1" onClick={() => setImportOpen(true)}>
             <Upload className="w-4 h-4 mr-2" />
             Import CSV
           </Button>
-          <Button
-            className="w-full sm:w-auto flex-1"
-            onClick={() => setAddOpen(true)}
-          >
+          <Button className="w-full sm:w-auto flex-1" onClick={() => setAddOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             New Transaction
           </Button>
@@ -183,10 +173,7 @@ export function TransactionView({
           className="w-[280px]"
         />
 
-        <Select
-          value={typeFilter}
-          onValueChange={(val) => handleFilterChange(setTypeFilter, val)}
-        >
+        <Select value={typeFilter} onValueChange={(val) => handleFilterChange(setTypeFilter, val)}>
           <SelectTrigger className="w-[140px] bg-background">
             <SelectValue placeholder="Type" />
           </SelectTrigger>
@@ -198,10 +185,7 @@ export function TransactionView({
           </SelectContent>
         </Select>
 
-        <Select
-          value={walletFilter}
-          onValueChange={(val) => handleFilterChange(setWalletFilter, val)}
-        >
+        <Select value={walletFilter} onValueChange={(val) => handleFilterChange(setWalletFilter, val)}>
           <SelectTrigger className="w-[180px] bg-background">
             <SelectValue placeholder="Wallet" />
           </SelectTrigger>
@@ -215,10 +199,7 @@ export function TransactionView({
           </SelectContent>
         </Select>
 
-        <Select
-          value={categoryFilter}
-          onValueChange={(val) => handleFilterChange(setCategoryFilter, val)}
-        >
+        <Select value={categoryFilter} onValueChange={(val) => handleFilterChange(setCategoryFilter, val)}>
           <SelectTrigger className="w-[180px] bg-background">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
@@ -232,10 +213,7 @@ export function TransactionView({
           </SelectContent>
         </Select>
 
-        {(dateRange ||
-          typeFilter !== "all" ||
-          walletFilter !== "all" ||
-          categoryFilter !== "all") && (
+        {(dateRange || typeFilter !== "all" || walletFilter !== "all" || categoryFilter !== "all") && (
           <Button
             variant="ghost"
             onClick={handleResetFilters}
@@ -296,23 +274,16 @@ export function TransactionView({
                   amount: Number(selectedTransaction.amount),
                   date: (() => {
                     const raw = selectedTransaction.date ?? "";
-                    return typeof raw === "string"
-                      ? raw.slice(0, 10)
-                      : new Date(raw).toISOString().slice(0, 10);
+                    return typeof raw === "string" ? raw.slice(0, 10) : new Date(raw).toISOString().slice(0, 10);
                   })(),
-                  type: selectedTransaction.type as
-                    | "income"
-                    | "expense"
-                    | "transfer",
+                  type: selectedTransaction.type as "income" | "expense" | "transfer",
                   walletId: selectedTransaction.walletId ?? "",
                   toWalletId: selectedTransaction.toWalletId ?? "",
                   categoryId: selectedTransaction.categoryId ?? "",
                   name: (selectedTransaction as any).name ?? "",
                   description: selectedTransaction.description ?? "",
                 }}
-                initialAttachments={
-                  (selectedTransaction as any).attachments ?? []
-                }
+                initialAttachments={(selectedTransaction as any).attachments ?? []}
                 onSuccess={handleEditSuccess}
               />
             )}

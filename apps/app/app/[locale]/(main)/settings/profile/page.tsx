@@ -1,7 +1,8 @@
-import { SettingProfileForm } from "@/components/setting/profile/setting-profile-form";
 import { Separator } from "@workspace/ui";
+
+import { SettingProfileForm } from "@/components/setting/profile/setting-profile-form";
 import { getDictionary } from "@/get-dictionary";
-import { Locale } from "@/i18n-config";
+import type { Locale } from "@/i18n-config";
 
 interface Props {
   params: Promise<{

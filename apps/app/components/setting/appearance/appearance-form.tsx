@@ -1,23 +1,20 @@
 "use client";
 
-import { Button } from "@workspace/ui";
-import { Label } from "@workspace/ui";
-import { Separator } from "@workspace/ui";
 import {
+  Button,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Separator,
+  ToggleGroup,
+  ToggleGroupItem,
 } from "@workspace/ui";
-import { ToggleGroup, ToggleGroupItem } from "@workspace/ui";
+
 import { type FontKey, fontOptions } from "@/lib/fonts/registry";
-import type {
-  ContentLayout,
-  NavbarStyle,
-  SidebarCollapsible,
-  SidebarVariant,
-} from "@/lib/preferences/layout";
+import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from "@/lib/preferences/layout";
 import {
   applyContentLayout,
   applyFont,
@@ -27,11 +24,7 @@ import {
 } from "@/lib/preferences/layout-utils";
 import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 import { persistPreference } from "@/lib/preferences/preferences-storage";
-import {
-  THEME_PRESET_OPTIONS,
-  type ThemeMode,
-  type ThemePreset,
-} from "@/lib/preferences/theme";
+import { THEME_PRESET_OPTIONS, type ThemeMode, type ThemePreset } from "@/lib/preferences/theme";
 import { applyThemePreset } from "@/lib/preferences/theme-utils";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
@@ -96,9 +89,7 @@ export function AppearanceForm({ dictionary }: AppearanceFormProps) {
   const variant = usePreferencesStore((s) => s.sidebarVariant);
   const setSidebarVariant = usePreferencesStore((s) => s.setSidebarVariant);
   const collapsible = usePreferencesStore((s) => s.sidebarCollapsible);
-  const setSidebarCollapsible = usePreferencesStore(
-    (s) => s.setSidebarCollapsible,
-  );
+  const setSidebarCollapsible = usePreferencesStore((s) => s.setSidebarCollapsible);
   const font = usePreferencesStore((s) => s.font);
   const setFont = usePreferencesStore((s) => s.setFont);
 
@@ -163,9 +154,7 @@ export function AppearanceForm({ dictionary }: AppearanceFormProps) {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-medium">{appearance.title}</h3>
-        <p className="text-sm text-muted-foreground">
-          {appearance.description}
-        </p>
+        <p className="text-sm text-muted-foreground">{appearance.description}</p>
       </div>
       <Separator />
 
@@ -173,9 +162,7 @@ export function AppearanceForm({ dictionary }: AppearanceFormProps) {
       <div className="space-y-4">
         <div>
           <h4 className="text-sm font-medium">{appearance.theme.title}</h4>
-          <p className="text-sm text-muted-foreground">
-            {appearance.theme.description}
-          </p>
+          <p className="text-sm text-muted-foreground">{appearance.theme.description}</p>
         </div>
         <div className="space-y-4">
           <div className="space-y-2">
@@ -192,9 +179,7 @@ export function AppearanceForm({ dictionary }: AppearanceFormProps) {
                         className="size-4 rounded-full"
                         style={{
                           backgroundColor:
-                            (resolvedThemeMode ?? "light") === "dark"
-                              ? preset.primary.dark
-                              : preset.primary.light,
+                            (resolvedThemeMode ?? "light") === "dark" ? preset.primary.dark : preset.primary.light,
                         }}
                       />
                       {preset.label}
@@ -232,9 +217,7 @@ export function AppearanceForm({ dictionary }: AppearanceFormProps) {
       <div className="space-y-4">
         <div>
           <h4 className="text-sm font-medium">{appearance.layout.title}</h4>
-          <p className="text-sm text-muted-foreground">
-            {appearance.layout.description}
-          </p>
+          <p className="text-sm text-muted-foreground">{appearance.layout.description}</p>
         </div>
         <div className="space-y-4">
           <div className="space-y-2">
@@ -249,10 +232,7 @@ export function AppearanceForm({ dictionary }: AppearanceFormProps) {
               <ToggleGroupItem value="centered" aria-label="Toggle centered">
                 {appearance.layout.centered}
               </ToggleGroupItem>
-              <ToggleGroupItem
-                value="full-width"
-                aria-label="Toggle full-width"
-              >
+              <ToggleGroupItem value="full-width" aria-label="Toggle full-width">
                 {appearance.layout.full_width}
               </ToggleGroupItem>
             </ToggleGroup>
@@ -282,9 +262,7 @@ export function AppearanceForm({ dictionary }: AppearanceFormProps) {
       <div className="space-y-4">
         <div>
           <h4 className="text-sm font-medium">{appearance.sidebar.title}</h4>
-          <p className="text-sm text-muted-foreground">
-            {appearance.sidebar.description}
-          </p>
+          <p className="text-sm text-muted-foreground">{appearance.sidebar.description}</p>
         </div>
         <div className="space-y-4">
           <div className="space-y-2">
@@ -332,9 +310,7 @@ export function AppearanceForm({ dictionary }: AppearanceFormProps) {
       <div className="space-y-4">
         <div>
           <h4 className="text-sm font-medium">{appearance.typography.title}</h4>
-          <p className="text-sm text-muted-foreground">
-            {appearance.typography.description}
-          </p>
+          <p className="text-sm text-muted-foreground">{appearance.typography.description}</p>
         </div>
         <div className="space-y-4">
           <div className="space-y-2">

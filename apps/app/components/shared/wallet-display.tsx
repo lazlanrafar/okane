@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@workspace/ui";
-import { Table, TableBody, TableCell, TableRow, Button } from "@workspace/ui";
+
+import { Button, cn, Table, TableBody, TableCell, TableRow } from "@workspace/ui";
 import { GripVertical, Pencil, Trash2 } from "lucide-react";
+
 import type { Wallet } from "@/actions/wallet.actions";
 import type { WalletGroup } from "@/actions/wallet-group.actions";
 import { useCurrency } from "@/hooks/use-currency";
@@ -46,9 +47,7 @@ export function WalletItem({
               <GripVertical className="h-4 w-4 text-muted-foreground" />
             </Button>
           )}
-          <span className={cn(mode === "view" && "text-base")}>
-            {wallet.name}
-          </span>
+          <span className={cn(mode === "view" && "text-base")}>{wallet.name}</span>
         </div>
       </TableCell>
       <TableCell className={cn("text-right", mode === "view" && "py-3")}>
@@ -65,12 +64,7 @@ export function WalletItem({
       {mode === "manage" && (
         <TableCell className="text-right w-[100px]">
           <div className="flex items-center justify-end gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onEdit?.(wallet)}
-              className="h-8 w-8"
-            >
+            <Button variant="ghost" size="icon" onClick={() => onEdit?.(wallet)} className="h-8 w-8">
               <Pencil className="h-4 w-4" />
             </Button>
             <Button
@@ -90,12 +84,7 @@ export function WalletItem({
   if (cellsOnly) return cells;
 
   return (
-    <TableRow
-      className={cn(
-        "group transition-colors",
-        mode === "view" && "hover:bg-transparent border-none py-2",
-      )}
-    >
+    <TableRow className={cn("group transition-colors", mode === "view" && "hover:bg-transparent border-none py-2")}>
       {cells}
     </TableRow>
   );
@@ -109,51 +98,26 @@ interface WalletGroupHeaderProps {
   onDelete?: () => void;
 }
 
-export function WalletGroupHeader({
-  groupName,
-  count,
-  mode = "view",
-  onEdit,
-  onDelete,
-}: WalletGroupHeaderProps) {
+export function WalletGroupHeader({ groupName, count, mode = "view", onEdit, onDelete }: WalletGroupHeaderProps) {
   return (
     <div
-      className={cn(
-        "flex items-center justify-between p-4",
-        mode === "manage" ? "border-b bg-muted/20" : "pt-6 pb-2",
-      )}
+      className={cn("flex items-center justify-between p-4", mode === "manage" ? "border-b bg-muted/20" : "pt-6 pb-2")}
     >
       <h4
         className={cn(
           "font-medium",
-          mode === "manage"
-            ? "text-sm text-muted-foreground"
-            : "text-lg text-muted-foreground",
+          mode === "manage" ? "text-sm text-muted-foreground" : "text-lg text-muted-foreground",
         )}
       >
         {groupName}
-        {mode === "manage" && (
-          <span className="text-xs bg-muted px-2 py-0.5 rounded-full ml-2">
-            {count}
-          </span>
-        )}
+        {mode === "manage" && <span className="text-xs bg-muted px-2 py-0.5 rounded-full ml-2">{count}</span>}
       </h4>
       {mode === "manage" && (
         <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={onEdit}
-          >
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onEdit}>
             <Pencil className="h-3 w-3" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 text-destructive"
-            onClick={onDelete}
-          >
+          <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={onDelete}>
             <Trash2 className="h-3 w-3" />
           </Button>
         </div>

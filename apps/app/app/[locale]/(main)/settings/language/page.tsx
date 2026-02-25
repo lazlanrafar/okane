@@ -1,7 +1,8 @@
 import React from "react";
-import { getDictionary } from "@/get-dictionary";
-import { Locale } from "@/i18n-config";
+
 import { LanguageSettingsForm } from "@/components/setting/language/language-settings-form";
+import { getDictionary } from "@/get-dictionary";
+import type { Locale } from "@/i18n-config";
 
 interface Props {
   params: Promise<{

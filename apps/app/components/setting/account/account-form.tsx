@@ -1,23 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
-import {
-  getProvidersAction,
-  disconnectProviderAction,
-} from "@/actions/user.actions";
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Skeleton,
-} from "@workspace/ui";
+
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from "@workspace/ui";
 import { Loader2, ShieldCheck, Unlink } from "lucide-react";
+import { toast } from "sonner";
+
+import { disconnectProviderAction, getProvidersAction } from "@/actions/user.actions";
 
 interface AccountFormProps {
   dictionary: {
@@ -71,10 +61,7 @@ export function AccountForm({ dictionary }: AccountFormProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between rounded-lg border p-4"
-            >
+            <div key={i} className="flex items-center justify-between rounded-lg border p-4">
               <div className="flex items-center gap-4">
                 <Skeleton className="size-10 rounded-full" />
                 <div className="space-y-2">
@@ -100,25 +87,16 @@ export function AccountForm({ dictionary }: AccountFormProps) {
           <CardDescription>{t.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {providers.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              No providers linked.
-            </p>
-          )}
+          {providers.length === 0 && <p className="text-sm text-muted-foreground">No providers linked.</p>}
           {providers.map((provider) => (
-            <div
-              key={provider}
-              className="flex items-center justify-between rounded-lg border p-4"
-            >
+            <div key={provider} className="flex items-center justify-between rounded-lg border p-4">
               <div className="flex items-center gap-4">
                 <div className="flex size-10 items-center justify-center rounded-full bg-muted capitalize font-bold">
                   {provider.charAt(0)}
                 </div>
                 <div>
                   <p className="text-sm font-medium capitalize">{provider}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Logged in via {provider}
-                  </p>
+                  <p className="text-xs text-muted-foreground">Logged in via {provider}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -127,9 +105,7 @@ export function AccountForm({ dictionary }: AccountFormProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={
-                    providers.length <= 1 || disconnectMutation.isPending
-                  }
+                  disabled={providers.length <= 1 || disconnectMutation.isPending}
                   onClick={() => disconnectMutation.mutate(provider)}
                 >
                   {disconnectMutation.isPending ? (

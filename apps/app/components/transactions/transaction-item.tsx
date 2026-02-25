@@ -1,36 +1,24 @@
 "use client";
 
-import { Transaction } from "@workspace/types";
-import {
-  ArrowRightLeft,
-  ArrowUpRight,
-  ArrowDownLeft,
-  Wallet,
-} from "lucide-react";
-import { cn } from "@workspace/ui";
+import type { Transaction } from "@workspace/types";
+import { Badge, cn } from "@workspace/ui";
+import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Wallet } from "lucide-react";
+
 import { useCurrency } from "@/hooks/use-currency";
-import { Badge } from "@workspace/ui";
 
 interface TransactionItemProps {
   transaction: Transaction;
   onClick: () => void;
 }
 
-export function TransactionItem({
-  transaction,
-  onClick,
-}: TransactionItemProps) {
+export function TransactionItem({ transaction, onClick }: TransactionItemProps) {
   const { formatAmount, isIncomeBlue } = useCurrency();
 
   const isExpense = transaction.type === "expense";
   const isIncome = transaction.type === "income";
   const isTransfer = transaction.type === "transfer";
 
-  const Icon = isTransfer
-    ? ArrowRightLeft
-    : isIncome
-      ? ArrowDownLeft
-      : ArrowUpRight;
+  const Icon = isTransfer ? ArrowRightLeft : isIncome ? ArrowDownLeft : ArrowUpRight;
 
   const label =
     transaction.name ||
@@ -79,9 +67,7 @@ export function TransactionItem({
       </div>
 
       {/* Category / Wallet */}
-      <div className="text-sm text-muted-foreground truncate pr-4">
-        {subtitle}
-      </div>
+      <div className="text-sm text-muted-foreground truncate pr-4">{subtitle}</div>
 
       {/* Type Badge */}
       <div>
@@ -97,8 +83,7 @@ export function TransactionItem({
               (isIncomeBlue
                 ? "border-blue-200 text-blue-600 dark:border-blue-800 dark:text-blue-400"
                 : "border-green-200 text-green-600 dark:border-green-800 dark:text-green-400"),
-            isTransfer &&
-              "border-slate-200 text-slate-600 dark:border-slate-800 dark:text-slate-400",
+            isTransfer && "border-slate-200 text-slate-600 dark:border-slate-800 dark:text-slate-400",
           )}
         >
           {transaction.type}
@@ -109,14 +94,8 @@ export function TransactionItem({
       <div
         className={cn(
           "text-sm font-semibold text-right",
-          isExpense &&
-            (isIncomeBlue
-              ? "text-red-600 dark:text-red-400"
-              : "text-red-600 dark:text-red-400"),
-          isIncome &&
-            (isIncomeBlue
-              ? "text-blue-600 dark:text-blue-400"
-              : "text-green-600 dark:text-green-400"),
+          isExpense && (isIncomeBlue ? "text-red-600 dark:text-red-400" : "text-red-600 dark:text-red-400"),
+          isIncome && (isIncomeBlue ? "text-blue-600 dark:text-blue-400" : "text-green-600 dark:text-green-400"),
           isTransfer && "text-slate-600 dark:text-slate-400",
         )}
       >
