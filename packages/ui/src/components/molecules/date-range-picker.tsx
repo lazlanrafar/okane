@@ -12,8 +12,8 @@ import {
   subDays,
 } from "date-fns";
 import { Button } from "../atoms/button";
-import { Calendar } from "../organisms/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { Calendar } from "../atoms/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../atoms/popover";
 import { cn } from "../../lib/utils";
 import { Icons } from "../atoms/icons";
 

@@ -9,9 +9,9 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "./card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "./chart";
-import type { ChartConfig } from "./chart";
+} from "../atoms/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../atoms/chart";
+import type { ChartConfig } from "../atoms/chart";
 import { cn } from "../../lib/utils";
 
 /** Built-in color palette for pie slices. Override via `colors` prop. */

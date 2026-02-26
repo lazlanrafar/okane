@@ -7,19 +7,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-} from "recharts";
 
 import {
   cn,
@@ -44,6 +31,8 @@ import {
   RotateCcw,
   Check,
 } from "lucide-react";
+
+import { AiChart } from "@workspace/ui";
 
 import {
   type ChatMessage,
@@ -81,110 +70,6 @@ function TypingIndicator() {
       </div>
     </div>
   );
-}
-
-function renderChart(code: string) {
-  try {
-    const parsed = JSON.parse(code);
-    const { type, data, xKey, yKeys, colors } = parsed;
-
-    if (!data || !Array.isArray(data)) throw new Error("Invalid chart data");
-
-    if (type === "bar") {
-      return (
-        <div className="w-full h-[300px] my-4 bg-background p-4 rounded-xl border shadow-sm">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="hsl(var(--border))"
-              />
-              <XAxis
-                dataKey={xKey || "name"}
-                tick={{ fill: "currentColor", fontSize: 12 }}
-              />
-              <YAxis tick={{ fill: "currentColor", fontSize: 12 }} />
-              <RechartsTooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--background))",
-                  borderColor: "hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              {(yKeys || ["value"]).map((key: string, idx: number) => (
-                <Bar
-                  key={key}
-                  dataKey={key}
-                  fill={colors?.[idx] || "hsl(var(--primary))"}
-                  radius={[4, 4, 0, 0]}
-                />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      );
-    }
-
-    if (type === "line" || type === "area") {
-      const ChartComponent = type === "area" ? AreaChart : LineChart;
-      const DataComponent = type === "area" ? Area : Line;
-
-      return (
-        <div className="w-full h-[300px] my-4 bg-background p-4 rounded-xl border shadow-sm">
-          <ResponsiveContainer width="100%" height="100%">
-            {/* @ts-ignore dynamic recharts component dispatching */}
-            <ChartComponent data={data}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="hsl(var(--border))"
-              />
-              <XAxis
-                dataKey={xKey || "name"}
-                tick={{ fill: "currentColor", fontSize: 12 }}
-              />
-              <YAxis tick={{ fill: "currentColor", fontSize: 12 }} />
-              <RechartsTooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--background))",
-                  borderColor: "hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              {(yKeys || ["value"]).map((key: string, idx: number) => {
-                const CommonProps: any = {
-                  key: key,
-                  type: "monotone",
-                  dataKey: key,
-                  stroke: colors?.[idx] || "hsl(var(--primary))",
-                  fill:
-                    type === "area"
-                      ? colors?.[idx] || "hsl(var(--primary))"
-                      : "none",
-                  fillOpacity: type === "area" ? 0.2 : undefined,
-                  strokeWidth: 2,
-                };
-                return <DataComponent {...CommonProps} />;
-              })}
-            </ChartComponent>
-          </ResponsiveContainer>
-        </div>
-      );
-    }
-
-    return (
-      <div className="p-4 bg-destructive/10 text-destructive rounded-md text-sm border border-destructive/20 my-2">
-        Unsupported chart type: {type}
-      </div>
-    );
-  } catch (err) {
-    return (
-      <div className="p-4 bg-destructive/10 text-destructive rounded-md text-sm border border-destructive/20 my-2">
-        Failed to render chart: Invalid JSON format.
-      </div>
-    );
-  }
 }
 
 function MessageBubble({
@@ -286,7 +171,9 @@ function MessageBubble({
                   const isChart = match && match[1] === "chart";
 
                   if (!inline && isChart) {
-                    return renderChart(String(children).replace(/\n$/, ""));
+                    return (
+                      <AiChart code={String(children).replace(/\n$/, "")} />
+                    );
                   }
 
                   return !inline ? (

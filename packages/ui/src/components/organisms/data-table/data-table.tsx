@@ -32,7 +32,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../table";
+} from "../../atoms/table";
 
 import { DraggableRow } from "./draggable-row";
 

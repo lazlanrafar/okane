@@ -16,7 +16,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../molecules";
+} from "../../atoms";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;

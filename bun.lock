@@ -320,6 +320,7 @@
       "devDependencies": {
         "@types/react": "^19.2.10",
         "@types/react-dom": "^19.2.3",
+        "@workspace/constants": "workspace:*",
         "@workspace/eslint-config": "workspace:*",
         "@workspace/typescript-config": "workspace:*",
         "@workspace/utils": "workspace:*",

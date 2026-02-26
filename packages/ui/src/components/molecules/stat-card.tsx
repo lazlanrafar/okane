@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { Card, CardContent } from "./card";
+import { Card, CardContent } from "../atoms/card";
 import { cn } from "../../lib/utils";
 
 export interface StatCardProps {

@@ -12,7 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../dropdown-menu";
+} from "../../atoms/dropdown-menu";
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>;

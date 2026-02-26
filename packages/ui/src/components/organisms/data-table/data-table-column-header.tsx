@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../dropdown-menu";
+} from "../../atoms/dropdown-menu";
 
 interface DataTableColumnHeaderProps<
   TData,
