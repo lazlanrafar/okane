@@ -46,13 +46,13 @@ export default async function OverviewPage(props: {
   const settings = settingsResult.success ? settingsResult.data! : null;
 
   return (
-    <div className="flex flex-col min-h-full pb-24 relative">
-      <div className="dashboard-greeting flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
+    <div className="flex flex-col min-h-full pb-50 relative">
+      <div className="dashboard-greeting flex flex-col md:flex-row items-start md:items-center justify-between mb-4">
         <div>
-          <h1 className="text-3xl font-regular tracking-tight text-foreground">
+          <h1 className="text-2xl font-regular tracking-tight text-foreground">
             {getGreeting()} {displayName},
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground font-medium">here's a quick look at how things are going.</p>
+          <p className="mt-1 text-xm text-muted-foreground">here's a quick look at how things are going.</p>
         </div>
       </div>
 

@@ -14,7 +14,7 @@ import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 import { SIDEBAR_COLLAPSIBLE_VALUES, SIDEBAR_VARIANT_VALUES } from "@/lib/preferences/layout";
 import { getPreference } from "@/server/server-actions";
 
-async function get_user_and_workspaces() {
+async function getUserAndWorkspaces() {
   const result = await getMe();
   if (result.success) {
     return result.data;
@@ -28,7 +28,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
   const [variant, collapsible, me_data] = await Promise.all([
     getPreference("sidebar_variant", SIDEBAR_VARIANT_VALUES, "inset"),
     getPreference("sidebar_collapsible", SIDEBAR_COLLAPSIBLE_VALUES, "icon"),
-    get_user_and_workspaces(),
+    getUserAndWorkspaces(),
   ]);
 
   const current_user = me_data?.user ?? null;

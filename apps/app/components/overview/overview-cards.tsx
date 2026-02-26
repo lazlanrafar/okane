@@ -47,27 +47,27 @@ export function OverviewCards({ onCardClick }: { onCardClick?: (message: string)
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors"
+          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
           onClick={() => handleCardClick("Show weekly insights")}
         >
-          <CardHeader className="pb-2">
+          <CardHeader className="p-4 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Insights</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-sm">
+          <CardContent className="p-4 pt-0">
+            <div className="text-xs text-muted-foreground">
               No new insights available. Every Monday you'll receive a summary of the previous week's performance.
             </div>
           </CardContent>
         </Card>
 
         <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors"
+          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
           onClick={() => handleCardClick("Show cash runway")}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
@@ -86,18 +86,18 @@ export function OverviewCards({ onCardClick }: { onCardClick?: (message: string)
             </CardTitle>
             <CardDescription>Based on last 6 months</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0 months</div>
+          <CardContent className="p-4 pt-0">
+            <div className="text-xl font-bold">0 months</div>
             <div className="text-xs text-muted-foreground mt-1 hover:underline">View runway</div>
           </CardContent>
         </Card>
 
         <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors"
+          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
           onClick={() => handleCardClick("Show cash flow analysis")}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
@@ -116,18 +116,18 @@ export function OverviewCards({ onCardClick }: { onCardClick?: (message: string)
             </CardTitle>
             <CardDescription>Net cash position &middot; 1 year</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+IDR 0</div>
+          <CardContent className="p-4 pt-0">
+            <div className="text-xl font-bold">+IDR 0</div>
             <div className="text-xs text-muted-foreground mt-1 hover:underline">View cash flow analysis</div>
           </CardContent>
         </Card>
 
         <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors"
+          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
           onClick={() => handleCardClick("Show account balances")}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
@@ -146,18 +146,18 @@ export function OverviewCards({ onCardClick }: { onCardClick?: (message: string)
             </CardTitle>
             <CardDescription>No accounts connected</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">IDR 0</div>
+          <CardContent className="p-4 pt-0">
+            <div className="text-xl font-bold">IDR 0</div>
             <div className="text-xs text-muted-foreground mt-1 hover:underline">View account balances</div>
           </CardContent>
         </Card>
 
         <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors"
+          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
           onClick={() => handleCardClick("Show detailed profit and loss analysis")}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
@@ -177,7 +177,7 @@ export function OverviewCards({ onCardClick }: { onCardClick?: (message: string)
             </CardTitle>
             <CardDescription>IDR 0 &middot; 1 year &middot; Net</CardDescription>
           </CardHeader>
-          <CardContent className="h-full flex flex-col justify-end">
+          <CardContent className="p-4 pt-0 h-full flex flex-col justify-end">
             <div className="text-xs text-muted-foreground mt-6 pt-4 border-t border-border hover:underline">
               See detailed analysis
             </div>
@@ -185,11 +185,11 @@ export function OverviewCards({ onCardClick }: { onCardClick?: (message: string)
         </Card>
 
         <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors"
+          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
           onClick={() => handleCardClick("Show forecast details")}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
@@ -207,9 +207,9 @@ export function OverviewCards({ onCardClick }: { onCardClick?: (message: string)
             </CardTitle>
             <CardDescription>Revenue projection</CardDescription>
           </CardHeader>
-          <CardContent className="h-full flex flex-col justify-end">
+          <CardContent className="p-4 pt-0 h-full flex flex-col justify-end">
             <div className="w-full h-px bg-foreground mb-4" />
-            <div className="text-sm mb-1">
+            <div className="text-xs mb-1">
               Next month projection <b>+IDR 0.00</b>
             </div>
             <div className="text-xs text-muted-foreground hover:underline">View forecast details</div>
@@ -217,11 +217,11 @@ export function OverviewCards({ onCardClick }: { onCardClick?: (message: string)
         </Card>
 
         <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors"
+          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
           onClick={() => handleCardClick("Show revenue trends")}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
@@ -239,18 +239,18 @@ export function OverviewCards({ onCardClick }: { onCardClick?: (message: string)
             </CardTitle>
             <CardDescription>Net revenue &middot; 1 year</CardDescription>
           </CardHeader>
-          <CardContent className="h-full flex flex-col justify-end">
-            <div className="text-2xl font-bold">IDR 0.00</div>
+          <CardContent className="p-4 pt-0 h-full flex flex-col justify-end">
+            <div className="text-xl font-bold">IDR 0.00</div>
             <div className="text-xs text-muted-foreground mt-1 hover:underline">View revenue trends</div>
           </CardContent>
         </Card>
 
         <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors"
+          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
           onClick={() => handleCardClick("Show growth analysis")}
         >
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
@@ -272,20 +272,20 @@ export function OverviewCards({ onCardClick }: { onCardClick?: (message: string)
             </CardTitle>
             <CardDescription>Net revenue growth &middot; 1 year</CardDescription>
           </CardHeader>
-          <CardContent className="h-full flex flex-col justify-end">
-            <div className="text-2xl font-bold">0.0%</div>
+          <CardContent className="p-4 pt-0 h-full flex flex-col justify-end">
+            <div className="text-xl font-bold">0.0%</div>
             <div className="text-xs text-muted-foreground mt-1 hover:underline">View growth analysis</div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="w-full flex flex-wrap justify-center gap-2 mt-10">
+      <div className="w-full flex flex-wrap justify-center gap-2 mt-6">
         {SUGGESTION_CHIPS.map((chip) => (
           <button
             key={chip.label}
             onClick={() => handleCardClick(chip.message)}
             className={cn(
-              "border bg-background px-3 py-1.5 text-sm transition-all",
+              "border bg-background px-3 py-2 text-xs transition-all",
               "hover:border-primary/30 hover:bg-muted hover:text-foreground",
               "disabled:cursor-not-allowed disabled:opacity-50",
               "flex items-center gap-1.5 text-muted-foreground",
