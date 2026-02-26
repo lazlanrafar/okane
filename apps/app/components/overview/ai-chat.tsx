@@ -1,13 +1,56 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+} from "recharts";
 
-import { cn, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, useSidebar } from "@workspace/ui";
-import { ArrowLeft, ArrowUp, Globe, History, Plus, Search, Sparkles, Zap } from "lucide-react";
+import {
+  cn,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+  useSidebar,
+} from "@workspace/ui";
+import {
+  ArrowLeft,
+  ArrowUp,
+  Globe,
+  History,
+  Plus,
+  Search,
+  Sparkles,
+  Zap,
+  Copy,
+  ThumbsUp,
+  ThumbsDown,
+  RotateCcw,
+  Check,
+} from "lucide-react";
 
-import { type ChatMessage, getChatSessionMessages, getChatSessions, sendChatMessage } from "@/actions/ai.actions";
+import {
+  type ChatMessage,
+  getChatSessionMessages,
+  getChatSessions,
+  sendChatMessage,
+} from "@/actions/ai.actions";
 import { useAiChatStore } from "@/stores/ai-chat-store";
 
 export type ChatSession = {
@@ -20,44 +63,359 @@ export type ChatSession = {
 
 function TypingIndicator() {
   return (
-    <div className="flex items-center gap-1 px-4 py-3">
-      <span className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: "0ms" }} />
-      <span
-        className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce"
-        style={{ animationDelay: "150ms" }}
-      />
-      <span
-        className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce"
-        style={{ animationDelay: "300ms" }}
-      />
+    <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground/80">
+      <span className="font-medium animate-pulse">Thinking</span>
+      <div className="flex items-center gap-1 pb-1">
+        <span
+          className="h-1 w-1 rounded-full bg-muted-foreground/60 animate-bounce"
+          style={{ animationDelay: "0ms" }}
+        />
+        <span
+          className="h-1 w-1 rounded-full bg-muted-foreground/60 animate-bounce"
+          style={{ animationDelay: "150ms" }}
+        />
+        <span
+          className="h-1 w-1 rounded-full bg-muted-foreground/60 animate-bounce"
+          style={{ animationDelay: "300ms" }}
+        />
+      </div>
     </div>
   );
 }
 
-function MessageBubble({ message }: { message: ChatMessage }) {
-  const isUser = message.role === "user";
-  return (
-    <div className={cn("flex w-full", isUser ? "justify-end" : "justify-start")}>
-      {!isUser && (
-        <div className="mr-2 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Sparkles className="w-3 h-3" />
+function renderChart(code: string) {
+  try {
+    const parsed = JSON.parse(code);
+    const { type, data, xKey, yKeys, colors } = parsed;
+
+    if (!data || !Array.isArray(data)) throw new Error("Invalid chart data");
+
+    if (type === "bar") {
+      return (
+        <div className="w-full h-[300px] my-4 bg-background p-4 rounded-xl border shadow-sm">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="hsl(var(--border))"
+              />
+              <XAxis
+                dataKey={xKey || "name"}
+                tick={{ fill: "currentColor", fontSize: 12 }}
+              />
+              <YAxis tick={{ fill: "currentColor", fontSize: 12 }} />
+              <RechartsTooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--background))",
+                  borderColor: "hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              {(yKeys || ["value"]).map((key: string, idx: number) => (
+                <Bar
+                  key={key}
+                  dataKey={key}
+                  fill={colors?.[idx] || "hsl(var(--primary))"}
+                  radius={[4, 4, 0, 0]}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
         </div>
+      );
+    }
+
+    if (type === "line" || type === "area") {
+      const ChartComponent = type === "area" ? AreaChart : LineChart;
+      const DataComponent = type === "area" ? Area : Line;
+
+      return (
+        <div className="w-full h-[300px] my-4 bg-background p-4 rounded-xl border shadow-sm">
+          <ResponsiveContainer width="100%" height="100%">
+            {/* @ts-ignore dynamic recharts component dispatching */}
+            <ChartComponent data={data}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="hsl(var(--border))"
+              />
+              <XAxis
+                dataKey={xKey || "name"}
+                tick={{ fill: "currentColor", fontSize: 12 }}
+              />
+              <YAxis tick={{ fill: "currentColor", fontSize: 12 }} />
+              <RechartsTooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--background))",
+                  borderColor: "hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              {(yKeys || ["value"]).map((key: string, idx: number) => {
+                const CommonProps: any = {
+                  key: key,
+                  type: "monotone",
+                  dataKey: key,
+                  stroke: colors?.[idx] || "hsl(var(--primary))",
+                  fill:
+                    type === "area"
+                      ? colors?.[idx] || "hsl(var(--primary))"
+                      : "none",
+                  fillOpacity: type === "area" ? 0.2 : undefined,
+                  strokeWidth: 2,
+                };
+                return <DataComponent {...CommonProps} />;
+              })}
+            </ChartComponent>
+          </ResponsiveContainer>
+        </div>
+      );
+    }
+
+    return (
+      <div className="p-4 bg-destructive/10 text-destructive rounded-md text-sm border border-destructive/20 my-2">
+        Unsupported chart type: {type}
+      </div>
+    );
+  } catch (err) {
+    return (
+      <div className="p-4 bg-destructive/10 text-destructive rounded-md text-sm border border-destructive/20 my-2">
+        Failed to render chart: Invalid JSON format.
+      </div>
+    );
+  }
+}
+
+function MessageBubble({
+  message,
+  onRegenerate,
+}: {
+  message: ChatMessage;
+  onRegenerate?: () => void;
+}) {
+  const isUser = message.role === "user";
+  const [copied, setCopied] = useState(false);
+  const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message.content);
+    setCopied(true);
+    toast.success("Copied to clipboard");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleFeedback = (type: "up" | "down") => {
+    setFeedback(type);
+    toast.success(
+      type === "up" ? "Thanks for the feedback!" : "We'll try to improve.",
+    );
+    // Data is stored locally. An API call could be hooked up here.
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex w-full flex-col gap-2",
+        isUser ? "items-end" : "items-start",
       )}
+    >
       <div
         className={cn(
-          "max-w-[85%] px-4 py-2.5 text-sm leading-relaxed shadow-sm",
+          "max-w-[85%] px-4 py-2.5 text-sm leading-relaxed overflow-hidden",
           isUser
             ? "rounded-2xl rounded-tr-sm bg-primary text-primary-foreground"
-            : "rounded-2xl rounded-tl-sm bg-muted text-foreground",
+            : "rounded-tl-sm text-foreground",
         )}
       >
-        {message.content.split("\n").map((line, i) => (
-          <span key={i}>
-            {line}
-            {i < message.content.split("\n").length - 1 && <br />}
-          </span>
-        ))}
+        {isUser ? (
+          message.content.split("\n").map((line, i) => (
+            <span key={i}>
+              {line}
+              {i < message.content.split("\n").length - 1 && <br />}
+            </span>
+          ))
+        ) : (
+          <div className="markdown-content space-y-3">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
+              components={{
+                p: ({ children }) => (
+                  <p className="mb-2 last:mb-0 leading-relaxed text-sm">
+                    {children}
+                  </p>
+                ),
+                ul: ({ children }) => (
+                  <ul className="list-disc pl-5 mb-2 space-y-1">{children}</ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="list-decimal pl-5 mb-2 space-y-1">
+                    {children}
+                  </ol>
+                ),
+                li: ({ children }) => <li className="pl-1">{children}</li>,
+                h1: ({ children }) => (
+                  <h1 className="text-xl font-bold mt-4 mb-2">{children}</h1>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="text-lg font-semibold mt-3 mb-1">
+                    {children}
+                  </h2>
+                ),
+                h3: ({ children }) => (
+                  <h3 className="text-base font-semibold mt-2 mb-1">
+                    {children}
+                  </h3>
+                ),
+                a: ({ href, children }) => (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline underline-offset-4"
+                  >
+                    {children}
+                  </a>
+                ),
+                strong: ({ children }) => (
+                  <strong className="font-semibold">{children}</strong>
+                ),
+                code({ node, inline, className, children, ...props }: any) {
+                  const match = /language-(\w+)/.exec(className || "");
+                  const isChart = match && match[1] === "chart";
+
+                  if (!inline && isChart) {
+                    return renderChart(String(children).replace(/\n$/, ""));
+                  }
+
+                  return !inline ? (
+                    <div className="rounded-md bg-muted p-4 my-2 overflow-x-auto text-xs font-mono border shadow-sm">
+                      <code {...props}>{children}</code>
+                    </div>
+                  ) : (
+                    <code
+                      className="bg-muted px-1.5 py-0.5 rounded-md text-xs font-mono border"
+                      {...props}
+                    >
+                      {children}
+                    </code>
+                  );
+                },
+                table({ children }) {
+                  return (
+                    <div className="overflow-x-auto my-4 rounded-lg border">
+                      <table className="w-full text-sm border-collapse">
+                        {children}
+                      </table>
+                    </div>
+                  );
+                },
+                th({ children }) {
+                  return (
+                    <th className="border-b bg-muted/50 p-3 text-left font-medium text-muted-foreground">
+                      {children}
+                    </th>
+                  );
+                },
+                td({ children }) {
+                  return (
+                    <td className="border-b border-border/50 p-3 text-left align-top">
+                      {children}
+                    </td>
+                  );
+                },
+                blockquote({ children }) {
+                  return (
+                    <blockquote className="border-l-4 border-primary/50 pl-4 py-1 italic text-muted-foreground bg-muted/30 rounded-r-md">
+                      {children}
+                    </blockquote>
+                  );
+                },
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
+          </div>
+        )}
       </div>
+      {!isUser && (
+        <div className="flex items-center gap-1 text-muted-foreground/60">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleCopy}
+                className="p-1.5 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors"
+                aria-label="Copy"
+              >
+                {copied ? (
+                  <Check className="w-3.5 h-3.5 text-green-500" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Copy response</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => handleFeedback("up")}
+                className={cn(
+                  "p-1.5 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors",
+                  feedback === "up" && "text-blue-500 bg-blue-500/10",
+                )}
+                aria-label="Good response"
+              >
+                <ThumbsUp
+                  className={cn(
+                    "w-3.5 h-3.5",
+                    feedback === "up" && "fill-current",
+                  )}
+                />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Good response</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => handleFeedback("down")}
+                className={cn(
+                  "p-1.5 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors",
+                  feedback === "down" && "text-destructive bg-destructive/10",
+                )}
+                aria-label="Bad response"
+              >
+                <ThumbsDown
+                  className={cn(
+                    "w-3.5 h-3.5",
+                    feedback === "down" && "fill-current",
+                  )}
+                />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Bad response</TooltipContent>
+          </Tooltip>
+
+          {onRegenerate && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onRegenerate}
+                  className="p-1.5 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded transition-colors"
+                  aria-label="Regenerate"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Regenerate</TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -68,8 +426,12 @@ export function AiChat() {
   const pathname = usePathname();
 
   const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(() => searchParams.get("chat") || null);
-  const [activePopover, setActivePopover] = useState<"none" | "history" | "suggestions">("none");
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(
+    () => searchParams.get("chat") || null,
+  );
+  const [activePopover, setActivePopover] = useState<
+    "none" | "history" | "suggestions"
+  >("none");
   const [isLoaded, setIsLoaded] = useState(false);
 
   const { state, isMobile } = useSidebar();
@@ -88,13 +450,22 @@ export function AiChat() {
 
   const sidebarOffset = isMobile ? 0 : state === "expanded" ? 256 : 48;
 
-  const loadSessionMessages = async (id: string, fetchedSessions?: ChatSession[]) => {
+  const loadSessionMessages = async (
+    id: string,
+    fetchedSessions?: ChatSession[],
+  ) => {
     const listToCheck = fetchedSessions || sessions;
     const session = listToCheck.find((s) => s.id === id);
     if (session && !session.messagesLoaded) {
       const res = await getChatSessionMessages(id);
       if (res.success && res.data) {
-        setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, messages: res.data!, messagesLoaded: true } : s)));
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === id
+              ? { ...s, messages: res.data!, messagesLoaded: true }
+              : s,
+          ),
+        );
       }
     }
   };
@@ -144,7 +515,10 @@ export function AiChat() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (chatContainerRef.current && !chatContainerRef.current.contains(event.target as Node)) {
+      if (
+        chatContainerRef.current &&
+        !chatContainerRef.current.contains(event.target as Node)
+      ) {
         setActivePopover("none");
       }
     };
@@ -246,7 +620,9 @@ export function AiChat() {
                       ...s.messages,
                       {
                         role: "assistant",
-                        content: result.error ?? "Something went wrong. Please try again.",
+                        content:
+                          result.error ??
+                          "Something went wrong. Please try again.",
                       },
                     ],
                     updatedAt: new Date(),
@@ -265,7 +641,8 @@ export function AiChat() {
                     ...s.messages,
                     {
                       role: "assistant",
-                      content: "Failed to connect. Please check your connection and try again.",
+                      content:
+                        "Failed to connect. Please check your connection and try again.",
                     },
                   ],
                   updatedAt: new Date(),
@@ -310,7 +687,7 @@ export function AiChat() {
       {hasMessages && (
         <div className="flex-1 w-full flex flex-col animate-in fade-in duration-300 relative">
           {/* Top Header matching the screenshot */}
-          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-2 bg-background/80 backdrop-blur">
+          <div className="sticky top-[47px] z-10 flex items-center justify-between px-4 py-2 bg-background/80 backdrop-blur">
             <button
               onClick={() => setCurrentSessionId(null)}
               className="w-10 h-10 border border-border/80 bg-background flex items-center justify-center rounded-lg hover:bg-muted transition-colors shadow-sm"
@@ -318,7 +695,9 @@ export function AiChat() {
             >
               <ArrowLeft className="w-5 h-5 text-muted-foreground" />
             </button>
-            <div className="text-sm font-medium">{activeSession?.title || "Greeting and Introduction"}</div>
+            <div className="text-sm font-medium">
+              {activeSession?.title || "Greeting and Introduction"}
+            </div>
             <button
               onClick={() => setCurrentSessionId(null)}
               className="w-10 h-10 border border-border/80 bg-background flex items-center justify-center rounded-lg hover:bg-muted transition-colors shadow-sm"
@@ -331,11 +710,29 @@ export function AiChat() {
           <div className="w-full max-w-3xl mx-auto flex-1 flex flex-col pt-16 pb-[140px]">
             <div className="flex flex-col gap-6 px-4 w-full h-full">
               <div className="flex items-center justify-center my-4">
-                <div className="bg-muted px-3 py-1 rounded-full text-xs text-muted-foreground">Today</div>
+                <div className="bg-muted px-3 py-1 rounded-full text-xs text-muted-foreground">
+                  Today
+                </div>
               </div>
 
               {messages.map((msg, i) => (
-                <MessageBubble key={i} message={msg} />
+                <MessageBubble
+                  key={i}
+                  message={msg}
+                  onRegenerate={
+                    !isLoading &&
+                    i === messages.length - 1 &&
+                    msg.role === "assistant"
+                      ? () => {
+                          // Try to send the last user message again
+                          const lastUserMsg = [...messages]
+                            .reverse()
+                            .find((m) => m.role === "user");
+                          if (lastUserMsg) sendMessage(lastUserMsg.content);
+                        }
+                      : undefined
+                  }
+                />
               ))}
 
               {isLoading && (
@@ -343,7 +740,7 @@ export function AiChat() {
                   <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <Sparkles className="w-3 h-3" />
                   </div>
-                  <div className="rounded-2xl rounded-tl-sm bg-muted shadow-sm">
+                  <div className="rounded-2xl rounded-tl-sm bg-transparent shadow-none">
                     <TypingIndicator />
                   </div>
                 </div>
@@ -379,7 +776,9 @@ export function AiChat() {
               </div>
               <div className="p-2 flex flex-col overflow-y-auto">
                 {sessions.length === 0 ? (
-                  <div className="text-sm text-muted-foreground px-4 py-8 text-center">No recent chats</div>
+                  <div className="text-sm text-muted-foreground px-4 py-8 text-center">
+                    No recent chats
+                  </div>
                 ) : (
                   sessions.map((session) => (
                     <button
@@ -391,7 +790,9 @@ export function AiChat() {
                       }}
                       className="w-full flex items-center justify-between px-3 py-3 text-sm rounded-lg hover:bg-muted transition-colors text-left cursor-pointer"
                     >
-                      <span className="truncate pr-4 font-medium text-foreground">{session.title}</span>
+                      <span className="truncate pr-4 font-medium text-foreground">
+                        {session.title}
+                      </span>
                       <span className="shrink-0 text-xs text-muted-foreground">
                         {new Date(session.updatedAt).toLocaleTimeString([], {
                           hour: "2-digit",
@@ -441,7 +842,8 @@ export function AiChat() {
               onChange={(e) => {
                 setInput(e.target.value);
                 e.target.style.height = "auto";
-                e.target.style.height = Math.min(e.target.scrollHeight, 200) + "px";
+                e.target.style.height =
+                  Math.min(e.target.scrollHeight, 200) + "px";
               }}
               onKeyDown={handleKeyDown}
               placeholder="Ask anything"
@@ -471,10 +873,17 @@ export function AiChat() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      onClick={() => setActivePopover(activePopover === "suggestions" ? "none" : "suggestions")}
+                      onClick={() =>
+                        setActivePopover(
+                          activePopover === "suggestions"
+                            ? "none"
+                            : "suggestions",
+                        )
+                      }
                       className={cn(
                         "p-2 text-muted-foreground cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors",
-                        activePopover === "suggestions" && "bg-black/5 dark:bg-white/5 text-foreground",
+                        activePopover === "suggestions" &&
+                          "bg-black/5 dark:bg-white/5 text-foreground",
                       )}
                       aria-label="Suggested actions"
                     >
@@ -499,10 +908,15 @@ export function AiChat() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      onClick={() => setActivePopover(activePopover === "history" ? "none" : "history")}
+                      onClick={() =>
+                        setActivePopover(
+                          activePopover === "history" ? "none" : "history",
+                        )
+                      }
                       className={cn(
                         "p-2 text-muted-foreground cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors",
-                        activePopover === "history" && "bg-black/5 dark:bg-white/5 text-foreground",
+                        activePopover === "history" &&
+                          "bg-black/5 dark:bg-white/5 text-foreground",
                       )}
                       aria-label="Chat History"
                     >
