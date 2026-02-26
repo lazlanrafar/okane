@@ -16,12 +16,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
   Tabs,
   TabsContent,
   TabsList,
@@ -59,7 +53,11 @@ interface MembersClientProps {
   invitations: Invitation[];
 }
 
-export function MembersClient({ workspaceId, members, invitations }: MembersClientProps) {
+export function MembersClient({
+  workspaceId,
+  members,
+  invitations,
+}: MembersClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("members");
 
@@ -81,125 +79,125 @@ export function MembersClient({ workspaceId, members, invitations }: MembersClie
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Members</h2>
-        <InviteMemberDialog workspaceId={workspaceId} onSuccess={handleRefresh} />
+        <InviteMemberDialog
+          workspaceId={workspaceId}
+          onSuccess={handleRefresh}
+        />
       </div>
 
-      <Tabs defaultValue="members" onValueChange={setActiveTab} className="w-full">
+      <Tabs
+        defaultValue="members"
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
         <TabsList>
           <TabsTrigger value="members">Members</TabsTrigger>
           <TabsTrigger value="invitations">Pending Invitations</TabsTrigger>
         </TabsList>
-        <TabsContent value="members" className="mt-4">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[80px]">User</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead className="w-[50px]" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {members.map((member) => (
-                  <TableRow key={member.userId}>
-                    <TableCell>
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={member.profilePicture || ""} alt={member.name || ""} />
-                        <AvatarFallback>{(member.name || member.email || "").slice(0, 1).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                    </TableCell>
-                    <TableCell className="font-medium">{member.name || "N/A"}</TableCell>
-                    <TableCell>{member.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={member.role === "owner" ? "default" : "secondary"}>{member.role}</Badge>
-                    </TableCell>
-                    <TableCell>{format(new Date(member.joinedAt), "PP")}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive focus:text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Remove
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+        <TabsContent value="members" className="mt-4 space-y-3">
+          {members.map((member) => (
+            <div
+              key={member.userId}
+              className="flex items-center justify-between p-4 rounded-xl border bg-card text-card-foreground"
+            >
+              <div className="flex items-center gap-4">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage
+                    src={member.profilePicture || ""}
+                    alt={member.name || ""}
+                  />
+                  <AvatarFallback>
+                    {(member.name || member.email || "")
+                      .slice(0, 1)
+                      .toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium leading-none">
+                    {member.name || "N/A"}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {member.email}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge
+                  variant={member.role === "owner" ? "default" : "secondary"}
+                  className="capitalize"
+                >
+                  {member.role}
+                </Badge>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Open menu</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-destructive focus:text-destructive">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          ))}
         </TabsContent>
-        <TabsContent value="invitations" className="mt-4">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Expires</TableHead>
-                  <TableHead className="w-[50px]" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invitations.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
-                      No pending invitations.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {invitations.map((invite) => (
-                  <TableRow key={invite.id}>
-                    <TableCell className="font-medium">{invite.email}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{invite.role}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-3 w-3 text-muted-foreground" />
-                        <span className="capitalize">{invite.status}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{format(new Date(invite.expiresAt), "PP")}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => handleCancelInvitation(invite.id)}
-                          >
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Cancel Invitation
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+        <TabsContent value="invitations" className="mt-4 space-y-3">
+          {invitations.length === 0 && (
+            <div className="flex flex-col items-center justify-center p-8 rounded-xl border border-dashed text-center text-muted-foreground">
+              No pending invitations.
+            </div>
+          )}
+          {invitations.map((invite) => (
+            <div
+              key={invite.id}
+              className="flex items-center justify-between p-4 rounded-xl border bg-card text-card-foreground shadow-sm"
+            >
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium leading-none">
+                    {invite.email}
+                  </span>
+                  <span className="text-sm text-muted-foreground capitalize">
+                    {invite.status}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="capitalize">
+                  {invite.role}
+                </Badge>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Open menu</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => handleCancelInvitation(invite.id)}
+                    >
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Cancel Invitation
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          ))}
         </TabsContent>
       </Tabs>
     </div>

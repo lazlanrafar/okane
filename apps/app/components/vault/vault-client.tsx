@@ -66,14 +66,23 @@ const ALLOWED_TYPES = [
   "text/csv",
 ];
 
-const SUGGESTED_TAGS = ["Invoice", "Transaction", "Receipt", "Report", "Contract", "Document"];
+const SUGGESTED_TAGS = [
+  "Invoice",
+  "Transaction",
+  "Receipt",
+  "Report",
+  "Contract",
+  "Document",
+];
 
 export function VaultClient() {
   const queryClient = useQueryClient();
   const [view, setView] = React.useState<"grid" | "list">("grid");
   const [search, setSearch] = React.useState("");
   const [isDragging, setIsDragging] = React.useState(false);
-  const [selectedFile, setSelectedFile] = React.useState<VaultFile | null>(null);
+  const [selectedFile, setSelectedFile] = React.useState<VaultFile | null>(
+    null,
+  );
   const [tagInput, setTagInput] = React.useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [page, setPage] = React.useState(1);
@@ -96,7 +105,9 @@ export function VaultClient() {
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       if (!ALLOWED_TYPES.includes(file.type)) {
-        throw new Error(`Invalid file type for ${file.name}. Only documents and images are allowed.`);
+        throw new Error(
+          `Invalid file type for ${file.name}. Only documents and images are allowed.`,
+        );
       }
       const formData = new FormData();
       formData.append("file", file);
@@ -135,7 +146,9 @@ export function VaultClient() {
     const toastId = toast.loading(`Uploading ${filesArray.length} file(s)...`);
 
     try {
-      await Promise.all(filesArray.map((file) => uploadMutation.mutateAsync(file)));
+      await Promise.all(
+        filesArray.map((file) => uploadMutation.mutateAsync(file)),
+      );
       toast.success("All files uploaded successfully", { id: toastId });
     } catch (error) {
       toast.error("Some files failed to upload", { id: toastId });
@@ -198,7 +211,10 @@ export function VaultClient() {
     tagsMutation.mutate({ id: selectedFile.id, tags: newTags });
   };
 
-  const filteredFiles = files?.filter((f: VaultFile) => f.name.toLowerCase().includes(search.toLowerCase())) || [];
+  const filteredFiles =
+    files?.filter((f: VaultFile) =>
+      f.name.toLowerCase().includes(search.toLowerCase()),
+    ) || [];
 
   const formatSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
@@ -301,15 +317,21 @@ export function VaultClient() {
             <div className="bg-background p-6 rounded-full shadow-xl mb-4">
               <UploadCloud className="h-12 w-12 text-primary animate-bounce" />
             </div>
-            <p className="text-xl font-bold text-primary">Drop to upload your documents</p>
-            <p className="text-sm text-muted-foreground mt-2">Images, PDFs, or Excel files only</p>
+            <p className="text-xl font-bold text-primary">
+              Drop to upload your documents
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Images, PDFs, or Excel files only
+            </p>
           </div>
         )}
 
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
           <div>
-            <h1 className="text-2xl font-bold">Vaults</h1>
-            <p className="text-muted-foreground text-sm">Manage your documents and invoices securely.</p>
+            <h1 className="text-2xl tracking-tight">Vaults</h1>
+            <p className="text-muted-foreground text-sm">
+              Manage your documents and invoices securely.
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -352,8 +374,13 @@ export function VaultClient() {
                 <FileText className="h-6 w-6 text-muted-foreground" />
               </div>
               <h3 className="font-semibold text-lg">No files found</h3>
-              <p className="text-muted-foreground mb-4">Upload some files to get started.</p>
-              <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+              <p className="text-muted-foreground mb-4">
+                Upload some files to get started.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <Plus className="mr-2 h-4 w-4" /> Upload First File
               </Button>
             </div>
@@ -372,13 +399,19 @@ export function VaultClient() {
                 >
                   <div className="w-full h-full bg-muted flex items-center justify-center">
                     {file.type.startsWith("image/") ? (
-                      <img src={file.url} alt={file.name} className="object-cover w-full h-full" />
+                      <img
+                        src={file.url}
+                        alt={file.name}
+                        className="object-cover w-full h-full"
+                      />
                     ) : (
                       <FileText className="h-12 w-12 text-muted-foreground" />
                     )}
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 p-2 bg-linear-to-t from-black/60 to-transparent">
-                    <p className="text-[10px] text-white font-medium truncate">{file.name}</p>
+                    <p className="text-[10px] text-white font-medium truncate">
+                      {file.name}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -391,7 +424,9 @@ export function VaultClient() {
                     <th className="px-4 text-left font-medium">Filename</th>
                     <th className="px-4 text-left font-medium">Format</th>
                     <th className="px-4 text-right font-medium">File Size</th>
-                    <th className="px-4 text-right font-medium">Date Created</th>
+                    <th className="px-4 text-right font-medium">
+                      Date Created
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -408,16 +443,25 @@ export function VaultClient() {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded border bg-muted flex items-center justify-center shrink-0">
                             {file.type.startsWith("image/") ? (
-                              <img src={file.url} className="w-full h-full object-cover rounded" />
+                              <img
+                                src={file.url}
+                                className="w-full h-full object-cover rounded"
+                              />
                             ) : (
                               <FileText className="h-5 w-5 text-muted-foreground" />
                             )}
                           </div>
-                          <span className="font-medium truncate max-w-[200px]">{file.name}</span>
+                          <span className="font-medium truncate max-w-[200px]">
+                            {file.name}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-4 text-primary font-medium">{file.type}</td>
-                      <td className="px-4 text-right tabular-nums">{formatSize(file.size)}</td>
+                      <td className="px-4 text-primary font-medium">
+                        {file.type}
+                      </td>
+                      <td className="px-4 text-right tabular-nums">
+                        {formatSize(file.size)}
+                      </td>
                       <td className="px-4 text-right text-muted-foreground">
                         {new Date(file.createdAt).toLocaleDateString()}
                       </td>
@@ -433,9 +477,12 @@ export function VaultClient() {
         {pagination && pagination.total > 0 && (
           <div className="flex items-center justify-between px-2 shrink-0 h-12 border-t mt-auto">
             <div className="text-xs text-muted-foreground">
-              Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
-              <span className="font-medium">{Math.min(page * limit, pagination.total)}</span> of{" "}
-              <span className="font-medium">{pagination.total}</span> files
+              Showing{" "}
+              <span className="font-medium">{(page - 1) * limit + 1}</span> to{" "}
+              <span className="font-medium">
+                {Math.min(page * limit, pagination.total)}
+              </span>{" "}
+              of <span className="font-medium">{pagination.total}</span> files
             </div>
             {pagination.total_pages > 1 && (
               <div className="flex items-center gap-2">
@@ -450,14 +497,25 @@ export function VaultClient() {
                   Previous
                 </Button>
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: pagination.total_pages }, (_, i) => i + 1)
+                  {Array.from(
+                    { length: pagination.total_pages },
+                    (_, i) => i + 1,
+                  )
                     .filter((p) => {
                       // Show current page, first, last, and neighbors
-                      return p === 1 || p === pagination.total_pages || Math.abs(p - page) <= 1;
+                      return (
+                        p === 1 ||
+                        p === pagination.total_pages ||
+                        Math.abs(p - page) <= 1
+                      );
                     })
                     .map((p, i, arr) => (
                       <React.Fragment key={p}>
-                        {i > 0 && arr[i - 1] !== p - 1 && <span className="text-muted-foreground px-1">...</span>}
+                        {i > 0 && arr[i - 1] !== p - 1 && (
+                          <span className="text-muted-foreground px-1">
+                            ...
+                          </span>
+                        )}
                         <Button
                           variant={page === p ? "secondary" : "ghost"}
                           size="sm"
@@ -489,14 +547,19 @@ export function VaultClient() {
       <div
         className={cn(
           "w-full lg:w-[400px] h-full border rounded-xl bg-card flex flex-col shrink-0 transition-all overflow-hidden",
-          !selectedFile && "hidden lg:flex opacity-50 grayscale select-none pointer-events-none",
+          !selectedFile &&
+            "hidden lg:flex opacity-50 grayscale select-none pointer-events-none",
         )}
       >
         {selectedFile ? (
           <>
             <div className="p-4 border-b flex justify-between items-center bg-muted/20">
               <h2 className="font-semibold text-sm">File Details</h2>
-              <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedFile(null)}
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -505,7 +568,10 @@ export function VaultClient() {
               <div className="space-y-6">
                 <div className="aspect-video rounded-lg border bg-muted/30 flex items-center justify-center overflow-hidden shadow-inner">
                   {selectedFile.type.startsWith("image/") ? (
-                    <img src={selectedFile.url} className="max-w-full max-h-full object-contain" />
+                    <img
+                      src={selectedFile.url}
+                      className="max-w-full max-h-full object-contain"
+                    />
                   ) : (
                     <FileText className="h-16 w-16 text-muted-foreground" />
                   )}
@@ -513,7 +579,9 @@ export function VaultClient() {
 
                 <div className="space-y-4">
                   <div className="flex items-start justify-between group">
-                    <h3 className="font-bold text-lg leading-tight break-all">{selectedFile.name}</h3>
+                    <h3 className="font-bold text-lg leading-tight break-all">
+                      {selectedFile.name}
+                    </h3>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -525,7 +593,9 @@ export function VaultClient() {
 
                   <div className="grid grid-cols-[120px,1fr] gap-x-4 gap-y-3 text-sm">
                     <span className="text-muted-foreground">Date Created</span>
-                    <span className="font-medium">{new Date(selectedFile.createdAt).toLocaleString()}</span>
+                    <span className="font-medium">
+                      {new Date(selectedFile.createdAt).toLocaleString()}
+                    </span>
 
                     <span className="text-muted-foreground">Format</span>
                     <span className="font-medium text-primary uppercase">
@@ -533,11 +603,15 @@ export function VaultClient() {
                     </span>
 
                     <span className="text-muted-foreground">File Size</span>
-                    <span className="font-medium">{formatSize(selectedFile.size)}</span>
+                    <span className="font-medium">
+                      {formatSize(selectedFile.size)}
+                    </span>
 
                     {selectedFile.type.startsWith("image/") && (
                       <>
-                        <span className="text-muted-foreground">Dimensions</span>
+                        <span className="text-muted-foreground">
+                          Dimensions
+                        </span>
                         <span className="font-medium">N/A</span>
                       </>
                     )}
@@ -561,13 +635,19 @@ export function VaultClient() {
                           className="px-2 py-0 text-[11px] h-6 flex items-center gap-1 group/tag bg-primary/10 text-primary border-primary/20"
                         >
                           {tag}
-                          <button onClick={() => handleRemoveTag(tag)} className="hover:text-destructive shrink-0">
+                          <button
+                            onClick={() => handleRemoveTag(tag)}
+                            className="hover:text-destructive shrink-0"
+                          >
                             <X className="h-3 w-3" />
                           </button>
                         </Badge>
                       ))}
-                      {(!selectedFile.tags || selectedFile.tags.length === 0) && (
-                        <p className="text-xs text-muted-foreground italic">No tags added</p>
+                      {(!selectedFile.tags ||
+                        selectedFile.tags.length === 0) && (
+                        <p className="text-xs text-muted-foreground italic">
+                          No tags added
+                        </p>
                       )}
                     </div>
 
@@ -576,7 +656,9 @@ export function VaultClient() {
                         Suggested Tags
                       </p>
                       <div className="flex flex-wrap gap-1.5">
-                        {SUGGESTED_TAGS.filter((t) => !selectedFile.tags?.includes(t)).map((tag) => (
+                        {SUGGESTED_TAGS.filter(
+                          (t) => !selectedFile.tags?.includes(t),
+                        ).map((tag) => (
                           <button
                             key={tag}
                             onClick={() => handleAddTag(tag)}
@@ -623,12 +705,17 @@ export function VaultClient() {
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="px-2 rounded-l-none border-l-0 h-9">
+                    <Button
+                      variant="outline"
+                      className="px-2 rounded-l-none border-l-0 h-9"
+                    >
                       <ChevronDown className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => window.open(selectedFile.url, "_blank")}>
+                    <DropdownMenuItem
+                      onClick={() => window.open(selectedFile.url, "_blank")}
+                    >
                       <ExternalLink className="mr-2 h-4 w-4" /> Open Original
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -660,7 +747,9 @@ export function VaultClient() {
             </div>
             <div>
               <p className="font-semibold text-sm">No file selected</p>
-              <p className="text-[10px]">Select a file to view its details, size, and manage tags.</p>
+              <p className="text-[10px]">
+                Select a file to view its details, size, and manage tags.
+              </p>
             </div>
           </div>
         )}

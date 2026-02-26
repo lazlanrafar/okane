@@ -53,7 +53,11 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
 import { useLocalizedRoute } from "@/hooks/use-localized-route";
 import { i18n } from "@/i18n-config";
 
-export function SettingSidebar({ className, dictionary, ...props }: SidebarNavProps) {
+export function SettingSidebar({
+  className,
+  dictionary,
+  ...props
+}: SidebarNavProps) {
   const pathname = usePathname();
   const { sidebar } = dictionary;
   const { getLocalizedUrl } = useLocalizedRoute();
@@ -69,11 +73,11 @@ export function SettingSidebar({ className, dictionary, ...props }: SidebarNavPr
       href: "/settings/members",
       icon: Users,
     },
-    {
-      title: sidebar.account,
-      href: "/settings/account",
-      icon: Settings,
-    },
+    // {
+    //   title: sidebar.account,
+    //   href: "/settings/account",
+    //   icon: Settings,
+    // },
     {
       title: sidebar.appearance,
       href: "/settings/appearance",
@@ -165,12 +169,20 @@ export function SettingSidebar({ className, dictionary, ...props }: SidebarNavPr
   const normalizedPath = `/${activePath.join("/")}`;
 
   return (
-    <nav className={cn("flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1", className)} {...props}>
+    <nav
+      className={cn(
+        "flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1",
+        className,
+      )}
+      {...props}
+    >
       {sidebarNavItems.map((item, index) => {
         if ("groupLabel" in item) {
           return (
             <div key={index} className="mt-4 first:mt-0">
-              <h4 className="mb-2 text-xs font-semibold tracking-tight text-muted-foreground">{item.groupLabel}</h4>
+              <h4 className="mb-2 text-xs font-semibold tracking-tight text-muted-foreground">
+                {item.groupLabel}
+              </h4>
               <div className="space-y-1">
                 {/* biome-ignore lint/suspicious/noExplicitAny: implicit any */}
                 {item.items?.map((subItem: any) => (
@@ -210,7 +222,9 @@ export function SettingSidebar({ className, dictionary, ...props }: SidebarNavPr
             href={getLocalizedUrl(flatItem.href)}
             className={cn(
               buttonVariants({ variant: "ghost" }),
-              normalizedPath === flatItem.href ? "bg-muted hover:bg-muted" : "hover:bg-transparent hover:underline",
+              normalizedPath === flatItem.href
+                ? "bg-muted hover:bg-muted"
+                : "hover:bg-transparent hover:underline",
               "justify-start w-full",
               flatItem.comingSoon && "opacity-60 pointer-events-none",
             )}
