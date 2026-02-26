@@ -9,6 +9,7 @@ export const aiController = new Elysia({ prefix: "/ai" })
   .use(authPlugin)
   .derive(({ auth }) => ({
     workspaceId: auth?.workspace_id,
+    userId: auth?.user_id,
   }))
   .onBeforeHandle(({ auth, set }) => {
     if (!auth) {
@@ -34,11 +35,12 @@ export const aiController = new Elysia({ prefix: "/ai" })
   )
   .post(
     "/chat",
-    async ({ body, workspaceId, set }) => {
+    async ({ body, workspaceId, userId, set }) => {
       try {
         const response = await AiService.chat(
           body.messages,
           workspaceId!,
+          userId!,
           body.sessionId,
         );
         return buildSuccess(response, "Chat response generated");

@@ -1,6 +1,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { ChatMessage, ChatResponse } from "./ai.dto";
 import { AiRepository } from "./ai.repository";
+import { CategoriesRepository } from "../categories/categories.repository";
+import { aiTools, executeAiTool } from "./ai.tools";
+import { PDFExtract } from "pdf.js-extract";
 
 const SYSTEM_PROMPT_BASE = `You are Okane, a friendly and insightful personal finance assistant. You have access to the user's real financial data below and can answer questions about their spending, income, wallet balances, and financial health.
 
@@ -26,12 +29,13 @@ export abstract class AiService {
    * Build a financial context block from the database for the given workspace.
    */
   static async buildFinancialContext(workspaceId: string): Promise<string> {
-    const [recentTxns, walletSummary, spending, monthlyTotals] =
+    const [recentTxns, walletSummary, spending, monthlyTotals, categories] =
       await Promise.all([
         AiRepository.getRecentTransactions(workspaceId, 20),
         AiRepository.getWalletSummary(workspaceId),
         AiRepository.getSpendingByCategory(workspaceId, 30),
         AiRepository.getMonthlyTotals(workspaceId, 3),
+        CategoriesRepository.findMany(workspaceId),
       ]);
 
     const totalBalance = walletSummary
@@ -39,7 +43,11 @@ export abstract class AiService {
       .reduce((sum, w) => sum + w.balance, 0);
 
     const walletLines = walletSummary
-      .map((w) => `  - ${w.name}: ${w.balance.toLocaleString()}`)
+      .map((w) => `  - ${w.name}: ${w.balance.toLocaleString()} (ID: ${w.id})`)
+      .join("\n");
+
+    const categoryLines = categories
+      .map((c) => `  - ${c.name} (${c.type}): ID: ${c.id}`)
       .join("\n");
 
     const spendingLines =
@@ -81,7 +89,7 @@ export abstract class AiService {
             .slice(0, 10)
             .map(
               (t) =>
-                `  - [${t.date}] ${t.name} | ${t.type} | ${Number(t.amount).toLocaleString()} | ${t.walletName ?? "?"} | ${t.categoryName ?? "Uncategorized"}`,
+                `  - [${t.date}] ${t.name} | ${t.type} | ${Number(t.amount).toLocaleString()} | ${t.walletName ?? "?"} | ${t.categoryName ?? "Uncategorized"} (ID: ${t.id})`,
             )
             .join("\n")
         : "  - No recent transactions found.";
@@ -92,6 +100,9 @@ export abstract class AiService {
 ### Wallet Balances
 ${walletLines || "  - No wallets found."}
 Total (included in totals): ${totalBalance.toLocaleString()}
+
+### Available Categories
+${categoryLines || "  - No categories found."}
 
 ### Spending by Category (last 30 days)
 ${spendingLines}
@@ -132,6 +143,7 @@ ${recentLines}
   static async chat(
     messages: ChatMessage[],
     workspaceId: string,
+    userId: string,
     sessionId?: string,
   ): Promise<ChatResponse> {
     const client = new Anthropic({
@@ -173,17 +185,60 @@ ${recentLines}
     const financialContext = await AiService.buildFinancialContext(workspaceId);
     const systemPrompt = `${SYSTEM_PROMPT_BASE}\n\n${financialContext}`;
 
-    const response = await client.messages.create({
+    let requestMessages: Anthropic.MessageParam[] = messages
+      .filter((m) => m.role !== "system")
+      .map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content as string,
+      }));
+
+    let response = await client.messages.create({
       model: "claude-3-haiku-20240307",
       max_tokens: 1024,
       system: systemPrompt,
-      messages: messages
-        .filter((m) => m.role !== "system")
-        .map((m) => ({
-          role: m.role as "user" | "assistant",
-          content: m.content,
-        })),
+      tools: aiTools,
+      messages: requestMessages,
     });
+
+    while (response.stop_reason === "tool_use") {
+      requestMessages.push({
+        role: "assistant",
+        content: response.content,
+      });
+
+      const toolResultsMsg: Anthropic.MessageParam = {
+        role: "user",
+        // @ts-ignore
+        content: [],
+      };
+
+      for (const block of response.content) {
+        if (block.type === "tool_use") {
+          const toolResult = await executeAiTool(
+            block.name,
+            block.input,
+            workspaceId,
+            userId,
+          );
+          // @ts-ignore
+          toolResultsMsg.content.push({
+            type: "tool_result",
+            tool_use_id: block.id,
+            content: JSON.stringify(toolResult),
+          });
+        }
+      }
+
+      requestMessages.push(toolResultsMsg);
+
+      response = await client.messages.create({
+        model: "claude-3-haiku-20240307",
+        max_tokens: 1024,
+        system: systemPrompt,
+        tools: aiTools,
+        messages: requestMessages,
+      });
+    }
 
     const textBlock = response.content.find(
       (block): block is Anthropic.TextBlock => block.type === "text",
@@ -213,5 +268,82 @@ ${recentLines}
     const session = await AiRepository.getSession(sessionId, workspaceId);
     if (!session) throw new Error("Chat session not found or access denied.");
     return AiRepository.getSessionMessages(sessionId);
+  }
+
+  static async parseReceipt(base64Image: string, mediaType: string) {
+    const client = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+
+    let pdfText = "";
+    if (mediaType === "application/pdf") {
+      try {
+        const buffer = Buffer.from(base64Image, "base64");
+        const pdfExtract = new PDFExtract();
+        const data = await pdfExtract.extractBuffer(buffer);
+        // Extract text from the page structures
+        pdfText = data.pages
+          .map((page) => page.content.map((item) => item.str).join(" "))
+          .join("\n");
+      } catch (e) {
+        console.error("Failed to parse PDF locally", e);
+        return null;
+      }
+    }
+
+    const messagesContent: any[] = [];
+    if (pdfText) {
+      messagesContent.push({
+        type: "text",
+        text:
+          "Here is the extracted text from the receipt/invoice document:\n\n" +
+          pdfText +
+          "\n\nExtract receipt data as JSON.",
+      });
+    } else {
+      messagesContent.push({
+        type: "image",
+        source: {
+          type: "base64",
+          media_type: mediaType as any,
+          data: base64Image,
+        },
+      });
+      messagesContent.push({
+        type: "text",
+        text: "Extract receipt data as JSON.",
+      });
+    }
+
+    const response = await client.messages.create({
+      model: "claude-3-haiku-20240307",
+      max_tokens: 500,
+      system: `You are an AI receipt parser. The user has uploaded an image or document text of a receipt. Extract the relevant financial data exactly as JSON with these keys:
+{
+  "amount": number, // total amount
+  "date": "YYYY-MM-DDTHH:mm:ss.000Z", // iso string date
+  "name": string, // name of merchant or item
+  "category": string // guessed category
+}
+Only output the JSON object without any markdown wrapping or extra text.`,
+      messages: [
+        {
+          role: "user",
+          content: messagesContent,
+        },
+      ],
+    });
+
+    const textBlock = response.content.find(
+      (b): b is Anthropic.TextBlock => b.type === "text",
+    );
+    if (!textBlock) return null;
+
+    try {
+      return JSON.parse(textBlock.text.trim());
+    } catch (e) {
+      console.error("Failed to parse AI JSON response", e);
+      return null;
+    }
   }
 }

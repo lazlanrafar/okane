@@ -14,6 +14,7 @@ import { authPlugin } from "./plugins/auth";
 import { encryptionPlugin } from "./plugins/encryption";
 import { rateLimitPlugin } from "./plugins/rate-limit";
 import { loggerPlugin } from "./plugins/logger";
+import { staticPlugin } from "@elysiajs/static";
 import { healthController } from "./modules/health";
 import { settingsController } from "./modules/settings/settings.controller";
 
@@ -26,12 +27,15 @@ import { vaultController } from "./modules/vault/vault.controller";
 import { transactions } from "./modules/transactions/transactions.controller";
 import { aiController } from "./modules/ai/ai.controller";
 import { metricsController } from "./modules/metrics/metrics.controller";
+import { integrationsController } from "./modules/integrations/integrations.controller";
 
 const log = createLogger("api");
 const port = process.env.API_PORT ?? 3001;
 
 const app = new Elysia()
   .use(cors())
+  .use(staticPlugin({ assets: "public", prefix: "" }))
+  .get("/", () => Bun.file("public/index.html"))
   .use(loggerPlugin)
   .use(encryptionPlugin)
   .use(authPlugin)
@@ -60,7 +64,8 @@ const app = new Elysia()
       .use(vaultController)
       .use(transactions)
       .use(aiController)
-      .use(metricsController),
+      .use(metricsController)
+      .use(integrationsController),
   )
   .onError(({ error, code }) => {
     if (code === "NOT_FOUND") return;

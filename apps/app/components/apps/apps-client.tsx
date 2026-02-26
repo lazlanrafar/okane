@@ -1,27 +1,94 @@
 "use client";
 
 import * as React from "react";
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import {
   Button,
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
   Input,
   Label,
   Skeleton,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
 } from "@workspace/ui";
-import { CheckCircle2, Cloud, ExternalLink, Info, Settings, ShieldCheck } from "lucide-react";
+import {
+  Cloud,
+  Search,
+  ExternalLink,
+  Info,
+  MessageCircle,
+  Github,
+  Figma,
+  Mail,
+  Slack,
+  Box,
+  Coffee,
+} from "lucide-react";
 import { toast } from "sonner";
 
-import { getTransactionSettings, updateTransactionSettings } from "@/actions/setting.actions";
+import {
+  getTransactionSettings,
+  updateTransactionSettings,
+} from "@/actions/setting.actions";
+import {
+  getIntegrationsAction,
+  connectWhatsAppAction,
+} from "@/actions/integrations.actions";
+
+const MOCK_APPS = [
+  {
+    id: "discord",
+    name: "Discord",
+    desc: "Connect with Discord for seamless team communication.",
+    icon: MessageCircle,
+  },
+  {
+    id: "docker",
+    name: "Docker",
+    desc: "Effortlessly manage Docker containers on your dashboard.",
+    icon: Box,
+  },
+  {
+    id: "figma",
+    name: "Figma",
+    desc: "View and collaborate on Figma designs in one place.",
+    icon: Figma,
+  },
+  {
+    id: "github",
+    name: "GitHub",
+    desc: "Streamline code management with GitHub integration.",
+    icon: Github,
+  },
+  {
+    id: "gmail",
+    name: "Gmail",
+    desc: "Access and manage Gmail messages effortlessly.",
+    icon: Mail,
+  },
+  {
+    id: "slack",
+    name: "Slack",
+    desc: "Connect with Slack for team collaboration.",
+    icon: Slack,
+  },
+];
 
 export function AppsClient() {
   const queryClient = useQueryClient();
-  const { data: settings, isLoading } = useQuery({
+  const [search, setSearch] = React.useState("");
+  const [filter, setFilter] = React.useState<
+    "all" | "connected" | "not_connected"
+  >("all");
+  const [expandedApp, setExpandedApp] = React.useState<string | null>(null);
+
+  const { data: settings, isLoading: isSettingsLoading } = useQuery({
     queryKey: ["transaction-settings"],
     queryFn: async () => {
       const result = await getTransactionSettings();
@@ -30,27 +97,58 @@ export function AppsClient() {
     },
   });
 
+  const { data: integrations, isLoading: isIntegrationsLoading } = useQuery({
+    queryKey: ["integrations"],
+    queryFn: async () => {
+      const result = await getIntegrationsAction();
+      if (result.success) return result.data;
+      return [];
+    },
+  });
+
   const updateMutation = useMutation({
     mutationFn: updateTransactionSettings,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transaction-settings"] });
-      toast.success("Storage settings updated successfully");
+    onSuccess: (res) => {
+      if (res.success) {
+        queryClient.invalidateQueries({ queryKey: ["transaction-settings"] });
+        toast.success("Storage settings updated successfully");
+        setExpandedApp(null);
+      } else {
+        toast.error(res.error || "Failed to update settings");
+      }
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to update settings");
     },
   });
 
-  const [formData, setFormData] = React.useState({
+  const whatsappMutation = useMutation({
+    mutationFn: connectWhatsAppAction,
+    onSuccess: (res) => {
+      if (res.success) {
+        queryClient.invalidateQueries({ queryKey: ["integrations"] });
+        toast.success("WhatsApp connected successfully!");
+        setExpandedApp(null);
+      } else {
+        toast.error(res.error || "Failed to connect WhatsApp");
+      }
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to connect WhatsApp");
+    },
+  });
+
+  const [r2Data, setR2Data] = React.useState({
     r2Endpoint: "",
     r2AccessKeyId: "",
     r2SecretAccessKey: "",
     r2BucketName: "",
   });
+  const [waPhone, setWaPhone] = React.useState("");
 
   React.useEffect(() => {
     if (settings) {
-      setFormData({
+      setR2Data({
         r2Endpoint: settings.r2Endpoint || "",
         r2AccessKeyId: settings.r2AccessKeyId || "",
         r2SecretAccessKey: settings.r2SecretAccessKey || "",
@@ -59,179 +157,318 @@ export function AppsClient() {
     }
   }, [settings]);
 
-  if (isLoading) {
+  React.useEffect(() => {
+    if (integrations) {
+      const wa = integrations.find((i: any) => i.provider === "whatsapp");
+      if (wa && wa.settings?.phoneNumber) {
+        setWaPhone(wa.settings.phoneNumber);
+      }
+    }
+  }, [integrations]);
+
+  if (isSettingsLoading || isIntegrationsLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-7xl">
         <Skeleton className="h-10 w-48" />
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-32 mb-2" />
-            <Skeleton className="h-4 w-64" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+        </div>
       </div>
     );
   }
 
-  const isConfigured = settings?.r2BucketName && settings?.r2Endpoint;
+  const isR2Configured = Boolean(
+    settings?.r2BucketName && settings?.r2Endpoint,
+  );
+  const isWaConfigured = Boolean(
+    integrations?.find((i: any) => i.provider === "whatsapp" && i.isActive),
+  );
+
+  const allApps: Array<{
+    id: string;
+    name: string;
+    desc: string;
+    icon: any;
+    connected: boolean;
+    isReal: boolean;
+    renderContent?: () => React.ReactNode;
+  }> = [
+    {
+      id: "cloudflare-r2",
+      name: "Cloudflare R2 Storage",
+      desc: "Use your own Cloudflare R2 bucket for file storage.",
+      icon: Cloud,
+      connected: isR2Configured,
+      isReal: true,
+      renderContent: () => (
+        <div className="space-y-6">
+          <div className="bg-background/50 p-4 rounded-lg flex gap-3 items-start border border-muted">
+            <Info className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+            <div className="text-sm space-y-1">
+              <p className="font-medium text-foreground">
+                Why connect your own storage?
+              </p>
+              <p className="text-muted-foreground">
+                By default, files are stored in our secure system bucket.
+                Connecting your own R2 bucket gives you full control and
+                ownership over your data.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="endpoint">Endpoint</Label>
+              <Input
+                id="endpoint"
+                placeholder="https://<id>.r2.cloudflarestorage.com"
+                value={r2Data.r2Endpoint}
+                onChange={(e) =>
+                  setR2Data({ ...r2Data, r2Endpoint: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bucket">Bucket Name</Label>
+              <Input
+                id="bucket"
+                placeholder="my-vault-bucket"
+                value={r2Data.r2BucketName}
+                onChange={(e) =>
+                  setR2Data({ ...r2Data, r2BucketName: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="accessKey">Access Key ID</Label>
+              <Input
+                id="accessKey"
+                type="password"
+                placeholder="Enter Access Key ID"
+                value={r2Data.r2AccessKeyId}
+                onChange={(e) =>
+                  setR2Data({ ...r2Data, r2AccessKeyId: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="secretKey">Secret Access Key</Label>
+              <Input
+                id="secretKey"
+                type="password"
+                placeholder="Enter Secret Access Key"
+                value={r2Data.r2SecretAccessKey}
+                onChange={(e) =>
+                  setR2Data({ ...r2Data, r2SecretAccessKey: e.target.value })
+                }
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            {isR2Configured && (
+              <Button
+                variant="ghost"
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => {
+                  if (confirm("Reset to system storage?")) {
+                    updateMutation.mutate({
+                      r2Endpoint: null,
+                      r2AccessKeyId: null,
+                      r2SecretAccessKey: null,
+                      r2BucketName: null,
+                    });
+                  }
+                }}
+              >
+                Reset Default
+              </Button>
+            )}
+            <Button
+              onClick={() => updateMutation.mutate(r2Data)}
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending ? "Saving..." : "Save Configuration"}
+            </Button>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "whatsapp",
+      name: "WhatsApp AI Receipts (Beta)",
+      desc: "Chat with a WhatsApp bot to quickly add receipts and track transactions using AI.",
+      icon: MessageCircle,
+      connected: isWaConfigured,
+      isReal: true,
+      renderContent: () => (
+        <div className="space-y-6">
+          <div className="bg-background/50 p-4 rounded-lg flex gap-3 items-start border border-muted">
+            <Info className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+            <div className="text-sm space-y-1">
+              <p className="font-medium text-foreground">How it Works:</p>
+              <p className="text-muted-foreground">
+                Enter your WhatsApp phone number below. We use this to
+                authenticate incoming images. Send any image of a receipt to our
+                designated Twilio WhatsApp number and our AI will automatically
+                parse it and save it as an Expense!
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="waPhone">Your Phone Number</Label>
+            <Input
+              id="waPhone"
+              placeholder="e.g. +1234567890"
+              value={waPhone}
+              onChange={(e) => setWaPhone(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Include country code (e.g., +1 for US, +44 for UK).
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              onClick={() => whatsappMutation.mutate(waPhone)}
+              disabled={whatsappMutation.isPending || !waPhone}
+            >
+              {whatsappMutation.isPending ? "Saving..." : "Save Connection"}
+            </Button>
+          </div>
+        </div>
+      ),
+    },
+    ...MOCK_APPS.map((a) => ({ ...a, connected: false, isReal: false })),
+  ];
+
+  const filteredApps = allApps.filter((app) => {
+    if (filter === "connected" && !app.connected) return false;
+    if (filter === "not_connected" && app.connected) return false;
+    if (search && !app.name.toLowerCase().includes(search.toLowerCase()))
+      return false;
+    return true;
+  });
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="max-w-7xl space-y-8 pb-12">
       <div>
-        <h1 className="text-2xl font-bold">Apps & Integrations</h1>
-        <p className="text-muted-foreground text-sm">Connect your third-party services to enhance your experience.</p>
+        <h1 className="text-2xl font-bold">Integrations</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Connect your third-party services to enhance your experience.
+        </p>
       </div>
 
-      <div className="grid gap-6">
-        <Card className={cn(isConfigured && "border-primary/50")}>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <Cloud className="h-6 w-6 text-orange-500" />
-              </div>
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  Cloudflare R2 Storage
-                  {isConfigured && <CheckCircle2 className="h-4 w-4 text-green-500" />}
-                </CardTitle>
-                <CardDescription>Use your own Cloudflare R2 bucket for file storage.</CardDescription>
-              </div>
-            </div>
-            <Button variant="outline" size="sm" asChild>
-              <a href="https://dash.cloudflare.com/" target="_blank" rel="noreferrer">
-                Dashboard <ExternalLink className="ml-2 h-3 w-3" />
-              </a>
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="bg-muted/30 p-4 rounded-lg flex gap-3 items-start border border-muted">
-              <Info className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
-              <div className="text-sm space-y-1">
-                <p className="font-medium">Why connect your own storage?</p>
-                <p className="text-muted-foreground">
-                  By default, files are stored in our secure system bucket. Connecting your own R2 bucket gives you full
-                  control and ownership over your data.
-                </p>
-              </div>
-            </div>
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Filter apps..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 bg-background/50 border-border"
+          />
+        </div>
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value as any)}
+          className="bg-background border border-border text-sm rounded-md px-3 py-2 w-full sm:w-auto h-10 outline-none focus:ring-2 focus:ring-ring focus:border-input"
+        >
+          <option value="all">All Apps</option>
+          <option value="connected">Connected</option>
+          <option value="not_connected">Not Connected</option>
+        </select>
+      </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="endpoint">Endpoint</Label>
-                <Input
-                  id="endpoint"
-                  placeholder="https://<id>.r2.cloudflarestorage.com"
-                  value={formData.r2Endpoint}
-                  onChange={(e) => setFormData({ ...formData, r2Endpoint: e.target.value })}
-                />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredApps.map((app) => (
+          <Card
+            key={app.id}
+            className={`flex flex-col border transition-all duration-200 isolate overflow-hidden ${
+              app.connected
+                ? "border-primary/50 shadow-sm"
+                : "border-border shadow-none"
+            }`}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2 bg-transparent">
+              <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center border border-border">
+                <app.icon className="h-5 w-5 text-foreground" />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="bucket">Bucket Name</Label>
-                <Input
-                  id="bucket"
-                  placeholder="my-vault-bucket"
-                  value={formData.r2BucketName}
-                  onChange={(e) => setFormData({ ...formData, r2BucketName: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="accessKey">Access Key ID</Label>
-                <Input
-                  id="accessKey"
-                  type="password"
-                  placeholder="Enter Access Key ID"
-                  value={formData.r2AccessKeyId}
-                  onChange={(e) => setFormData({ ...formData, r2AccessKeyId: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="secretKey">Secret Access Key</Label>
-                <Input
-                  id="secretKey"
-                  type="password"
-                  placeholder="Enter Secret Access Key"
-                  value={formData.r2SecretAccessKey}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      r2SecretAccessKey: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              {isConfigured && (
+              {app.connected ? (
                 <Button
-                  variant="ghost"
-                  className="text-destructive"
-                  onClick={() => {
-                    if (confirm("Reset to system storage?")) {
-                      updateMutation.mutate({
-                        r2Endpoint: null,
-                        r2AccessKeyId: null,
-                        r2SecretAccessKey: null,
-                        r2BucketName: null,
-                      });
-                    }
+                  variant="secondary"
+                  size="sm"
+                  className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors pointer-events-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedApp(expandedApp === app.id ? null : app.id);
                   }}
                 >
-                  Reset to Default
+                  Connected
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="pointer-events-auto shadow-none"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    app.isReal
+                      ? setExpandedApp(expandedApp === app.id ? null : app.id)
+                      : toast.info("Integration coming soon!");
+                  }}
+                >
+                  Connect
                 </Button>
               )}
-              <Button onClick={() => updateMutation.mutate(formData)} disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? "Saving..." : "Save Configuration"}
-              </Button>
+            </CardHeader>
+            <div className="px-6 pb-6 flex-1 flex flex-col justify-start">
+              <h3 className="font-semibold text-base text-foreground mt-2">
+                {app.name}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+                {app.desc}
+              </p>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="opacity-60 grayscale cursor-not-allowed">
-          <CardHeader>
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <Box className="h-6 w-6 text-blue-500" />
-              </div>
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  Amazon S3
-                  <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                    Coming Soon
-                  </span>
-                </CardTitle>
-                <CardDescription>Connect your AWS S3 buckets.</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
+          </Card>
+        ))}
       </div>
+
+      <Sheet
+        open={!!expandedApp}
+        onOpenChange={(open) => !open && setExpandedApp(null)}
+      >
+        <SheetContent
+          side="right"
+          className="overflow-y-auto sm:max-w-md w-full p-0"
+        >
+          {(() => {
+            const activeApp = allApps.find((a) => a.id === expandedApp);
+            if (!activeApp) return null;
+            return (
+              <>
+                <SheetHeader className="p-6 pb-2">
+                  <SheetTitle className="flex items-center gap-3 text-xl font-bold">
+                    <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center border border-border">
+                      <activeApp.icon className="h-5 w-5 text-foreground" />
+                    </div>
+                    {activeApp.name}
+                  </SheetTitle>
+                  <SheetDescription className="pt-2">
+                    {activeApp.desc}
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="p-6">
+                  {activeApp.renderContent && activeApp.renderContent()}
+                </div>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
     </div>
-  );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(" ");
-}
-
-function Box({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
-      <path d="m3.3 7 8.7 5 8.7-5" />
-      <path d="M12 22V12" />
-    </svg>
   );
 }
