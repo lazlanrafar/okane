@@ -418,6 +418,7 @@
         "@workspace/eslint-config": "workspace:*",
         "@workspace/typescript-config": "workspace:*",
         "@workspace/utils": "workspace:*",
+        "next": "^16.1.6",
         "typescript": "^5.9.3",
       },
     },

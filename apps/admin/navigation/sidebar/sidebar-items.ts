@@ -39,6 +39,11 @@ export const sidebarItems: NavGroup[] = [
         url: "/overview",
         icon: LayoutDashboard,
       },
+      {
+        title: "Orders",
+        url: "/orders",
+        icon: Banknote,
+      },
     ],
   },
   {
@@ -49,11 +54,6 @@ export const sidebarItems: NavGroup[] = [
         title: "Users",
         url: "/users",
         icon: Users,
-      },
-      {
-        title: "Revenue",
-        url: "/revenue",
-        icon: Banknote,
       },
       {
         title: "Pricing",
