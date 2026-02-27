@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@workspace/supabase/server";
 
 import { exchangeSupabaseToken } from "@workspace/modules";
-import { sync_user } from "@workspace/modules";
+import { syncUser } from "@workspace/modules";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
 
       if (user) {
         try {
-          const syncResult = await sync_user({
+          const syncResult = await syncUser({
             id: user.id,
             email: user.email ?? "",
             name: user.user_metadata?.full_name || user.user_metadata?.name,

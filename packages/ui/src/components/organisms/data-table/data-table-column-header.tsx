@@ -1,7 +1,13 @@
 "use no memo";
 
 import type { Column } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronsUpDown,
+  EyeOff,
+} from "lucide-react";
 import { cn } from "../../../lib/utils";
 import { Button } from "../../atoms";
 import {
@@ -27,7 +33,7 @@ function getSortIcon(sort: "asc" | "desc" | false | undefined) {
     case "asc":
       return <ArrowUp />;
     default:
-      return <ChevronsUpDown />;
+      return <ArrowUpDown size={18} />;
   }
 }
 
@@ -46,7 +52,7 @@ export function DataTableColumnHeader<TData, TValue>({
           <Button
             variant="ghost"
             size="sm"
-            className="-ml-3 h-8 data-[state=open]:bg-accent"
+            className="text-muted-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap -ml-3 h-8 data-[state=open]:bg-accent"
           >
             <span>{title}</span>
             {getSortIcon(column.getIsSorted())}

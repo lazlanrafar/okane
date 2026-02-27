@@ -41,6 +41,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   dndEnabled?: boolean;
   onReorder?: (newData: TData[]) => void;
+  showSelect?: boolean;
 }
 
 function renderTableBody<TData, TValue>({
@@ -87,8 +88,13 @@ export function DataTable<TData, TValue>({
   table,
   columns,
   dndEnabled = false,
+  showSelect = false,
   onReorder,
 }: DataTableProps<TData, TValue>) {
+  React.useEffect(() => {
+    table.getColumn("select")?.toggleVisibility(!!showSelect);
+  }, [table, showSelect]);
+
   const dataIds: UniqueIdentifier[] = table
     .getRowModel()
     .rows.map((row) => Number(row.id) as UniqueIdentifier);

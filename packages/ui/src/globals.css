@@ -65,13 +65,13 @@ These serve as the fallback; there is no separate default.css file. */
   --primary-foreground: oklch(0.9848 0 0);
   --secondary: oklch(0.9192 0.006 84.5675);
   --secondary-foreground: oklch(0.2103 0.0059 285.8835);
-  --muted: oklch(0.9192 0.006 84.5675);
-  --muted-foreground: oklch(0.5519 0.0137 285.9422);
+  --muted: lab(96.52% -0.0000298023 0.0000119209);
+  --muted-foreground: lab(48.496% 0 0);
   --accent: oklch(0.956 0.0029 84.5592);
   --accent-foreground: oklch(0.2103 0.0059 285.8835);
   --destructive: oklch(0.6368 0.2078 25.3259);
   --destructive-foreground: oklch(0.9848 0 0);
-  --border: oklch(0.8874 0.004 91.4489);
+  --border: lab(90.6739% 0.53075 -1.9261);
   --input: oklch(0.9197 0.004 286.3199);
   --ring: oklch(0.2103 0.0059 285.8835);
 

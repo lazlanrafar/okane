@@ -8,6 +8,7 @@ export * from "./setting/setting.action";
 export * from "./transaction/transaction.action";
 export * from "./user/user.action";
 export * from "./vault/vault.action";
+export * from "./system-admin/system-admin.action";
 export * from "./wallet-group/wallet-group.action";
 export * from "./wallet/wallet.action";
 export * from "./workspace/workspace.action";

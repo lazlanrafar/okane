@@ -82,7 +82,10 @@ export async function proxy(request: NextRequest) {
     }
 
     // Admin Auth Logic
-    if (session.user.email !== "lazlanrafar@gmail.com") {
+    if (
+      session.user.email !== "lazlanrafar@gmail.com" &&
+      session.user.app_metadata?.is_super_admin !== true
+    ) {
       return NextResponse.redirect(
         new URL(`/${locale}/unauthorized`, request.url),
       );
@@ -101,7 +104,10 @@ export async function proxy(request: NextRequest) {
     session &&
     okane_session
   ) {
-    if (session.user.email === "lazlanrafar@gmail.com") {
+    if (
+      session.user.email === "lazlanrafar@gmail.com" ||
+      session.user.app_metadata?.is_super_admin === true
+    ) {
       return NextResponse.redirect(new URL(`/${locale}/overview`, request.url));
     } else {
       return NextResponse.redirect(

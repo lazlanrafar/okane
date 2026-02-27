@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@workspace/supabase/server";
 
 import { exchangeSupabaseToken } from "@workspace/modules";
-import { sync_user } from "@workspace/modules";
+import { syncUser } from "@workspace/modules";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -21,12 +21,13 @@ export async function GET(request: Request) {
 
       if (user) {
         try {
-          const syncResult = await sync_user({
+          const syncResult = await syncUser({
             id: user.id,
             email: user.email ?? "",
             name: user.user_metadata?.full_name || user.user_metadata?.name,
             oauth_provider: user.app_metadata?.provider,
-            profile_picture: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+            profile_picture:
+              user.user_metadata?.avatar_url || user.user_metadata?.picture,
             providers: user.app_metadata?.providers,
           });
 
@@ -38,15 +39,21 @@ export async function GET(request: Request) {
           // 2. Exchange for app JWT
           const { data: session_data } = await supabase.auth.getSession();
           if (session_data.session?.access_token) {
-            const exchangeResult = await exchangeSupabaseToken(session_data.session.access_token);
+            const exchangeResult = await exchangeSupabaseToken(
+              session_data.session.access_token,
+            );
             if (exchangeResult.success && exchangeResult.data) {
-              (await cookies()).set("okane-session", exchangeResult.data.token, {
-                path: "/",
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax",
-                maxAge: 60 * 60 * 24 * 7, // 7 days
-              });
+              (await cookies()).set(
+                "okane-session",
+                exchangeResult.data.token,
+                {
+                  path: "/",
+                  httpOnly: true,
+                  secure: process.env.NODE_ENV === "production",
+                  sameSite: "lax",
+                  maxAge: 60 * 60 * 24 * 7, // 7 days
+                },
+              );
             }
           }
         } catch (e) {
