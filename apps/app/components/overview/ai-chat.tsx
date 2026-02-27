@@ -109,7 +109,7 @@ function MessageBubble({
         className={cn(
           "max-w-[85%] px-4 py-2.5 text-sm leading-relaxed overflow-hidden",
           isUser
-            ? "rounded-2xl rounded-tr-sm bg-primary text-primary-foreground"
+            ? "rounded rounded-tr-sm bg-primary text-primary-foreground"
             : "rounded-tl-sm text-foreground",
         )}
       >
@@ -627,7 +627,7 @@ export function AiChat() {
                   <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <Sparkles className="w-3 h-3" />
                   </div>
-                  <div className="rounded-2xl rounded-tl-sm bg-transparent shadow-none">
+                  <div className="rounded rounded-tl-sm bg-transparent shadow-none">
                     <TypingIndicator />
                   </div>
                 </div>
@@ -650,9 +650,9 @@ export function AiChat() {
         >
           {/* Chat History Popover */}
           {activePopover === "history" && (
-            <div className="absolute bottom-full left-0 mb-4 w-full bg-background border border-border/80 shadow p-0 max-h-[400px] overflow-hidden flex flex-col z-50 animate-in slide-in-from-bottom-2">
-              <div className="sticky top-0 p-2 backdrop-blur-md border-b border-border/50">
-                <div className="flex items-center bg-background border border-border/50 rounded-md px-3 py-2">
+            <div className="absolute bottom-full left-0 mb-4 w-full bg-background/80 backdrop-blur-xl border border-border/80 shadow-sm p-0 max-h-[400px] overflow-hidden flex flex-col z-50 animate-in slide-in-from-bottom-2 rounded">
+              <div className="sticky top-0 p-2 border-b border-border/50">
+                <div className="flex items-center bg-background/50 border border-border/50 rounded-xl px-3 py-2">
                   <Search className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
                   <input
                     type="text"
@@ -695,7 +695,7 @@ export function AiChat() {
 
           {/* Suggested Prompts Popover */}
           {activePopover === "suggestions" && (
-            <div className="absolute bottom-full left-0 mb-4 w-full bg-background border border-border/80 shadow p-0 max-h-[400px] overflow-hidden flex flex-col z-50 animate-in slide-in-from-bottom-2">
+            <div className="absolute bottom-full left-0 mb-4 w-full bg-background/80 backdrop-blur-xl border border-border/80 shadow-sm p-0 max-h-[400px] overflow-hidden flex flex-col z-50 animate-in slide-in-from-bottom-2 rounded">
               <div className="p-2 flex flex-col overflow-y-auto">
                 {[
                   "Show balance sheet",
@@ -722,7 +722,7 @@ export function AiChat() {
           )}
 
           {/* Auto-sizing Input Bar */}
-          <div className="w-full bg-[#F7F7F7] dark:bg-[#131313] shadow-sm border border-border/50 flex flex-col overflow-hidden transition-all">
+          <div className="w-full bg-white/50 dark:bg-background/20 backdrop-blur-xl shadow-sm border border-border/50 flex flex-col overflow-hidden transition-all rounded">
             <textarea
               ref={inputRef}
               value={input}
