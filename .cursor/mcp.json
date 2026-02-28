@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "okane-mcp": {
+      "command": "bun",
+      "args": ["run", "mcp"]
+    }
+  }
+}

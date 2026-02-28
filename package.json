@@ -7,7 +7,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "migrate": "turbo run migrate"
+    "migrate": "turbo run migrate",
+    "mcp": "bun run --cwd apps/api mcp.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.14",
