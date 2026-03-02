@@ -2,6 +2,7 @@
 
 # Dependencies
 node_modules
+references
 .pnp
 .pnp.js
 

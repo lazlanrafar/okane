@@ -62,6 +62,31 @@ export function DataTableHeader<TData>({
       .map((col) => col.id);
   }, [table, tableId]);
 
+  // Find the index of the last visible non-sticky non-actions column
+  const lastNonStickyHeaderIndex = useMemo(() => {
+    if (!table) return -1;
+    const visibleHeaders = table.getHeaderGroups()[0]?.headers ?? [];
+    for (let i = visibleHeaders.length - 1; i >= 0; i--) {
+      const h = visibleHeaders[i];
+      if (!h) continue;
+      if (h.column.id === "actions") continue;
+      const m = h.column.columnDef.meta as { sticky?: boolean } | undefined;
+      if (!m?.sticky && isVisible(h.column.id)) return i;
+    }
+    return -1;
+  }, [table, isVisible]);
+
+  // The last sticky column gets the horizontal pagination arrows
+  const lastStickyColumnId = useMemo(() => {
+    const stickyCols = STICKY_COLUMNS[tableId];
+    // Walk backwards to find the last sticky column that's actually visible
+    for (let i = stickyCols.length - 1; i >= 0; i--) {
+      const col = stickyCols[i];
+      if (col && isVisible(col.id)) return col.id;
+    }
+    return null;
+  }, [tableId, isVisible]);
+
   if (!table) return null;
 
   const headerGroups = table.getHeaderGroups();
@@ -100,15 +125,19 @@ export function DataTableHeader<TData>({
               });
               const actionsFullWidth = isActions && !hasNonStickyVisible;
 
-              // Check if this column should flex (last before actions, or full-width actions)
+              // Check if this column should flex (last before actions, or full-width actions, or true last non-sticky)
               const isLastBeforeActions =
                 headerIndex === headers.length - 2 &&
                 headers[headers.length - 1]?.column.id === "actions";
+              const isLastNonSticky = headerIndex === lastNonStickyHeaderIndex;
               const shouldFlex =
-                (isLastBeforeActions && !isSticky) || actionsFullWidth;
+                isLastNonSticky ||
+                (isLastBeforeActions && !isSticky) ||
+                actionsFullWidth;
 
               const headerStyle = {
-                width: actionsFullWidth ? undefined : header.getSize(),
+                width:
+                  actionsFullWidth || shouldFlex ? undefined : header.getSize(),
                 minWidth: actionsFullWidth
                   ? undefined
                   : isSticky
@@ -119,6 +148,7 @@ export function DataTableHeader<TData>({
                   : isSticky
                     ? header.getSize()
                     : undefined,
+                flexShrink: shouldFlex ? 1 : 0,
                 ...(!actionsFullWidth && getStickyStyle(columnId)),
                 ...(shouldFlex && { flex: 1 }),
               };
@@ -150,6 +180,7 @@ export function DataTableHeader<TData>({
                       table,
                       tableId,
                       tableScroll,
+                      lastStickyColumnId,
                     )}
                     <DataTableResizeHandle header={header} />
                   </TableHead>
@@ -176,6 +207,7 @@ export function DataTableHeader<TData>({
                     table,
                     tableId,
                     tableScroll,
+                    lastStickyColumnId,
                   )}
                   {header.column.getCanResize() && (
                     <DataTableResizeHandle header={header} />
@@ -202,6 +234,7 @@ function renderHeaderContent<TData>(
   table: Table<TData>,
   tableId: TableId,
   tableScroll?: TableScrollState,
+  lastStickyColumnId?: string | null,
 ) {
   const sortField = SORT_FIELD_MAPS[tableId][columnId];
 
@@ -233,18 +266,24 @@ function renderHeaderContent<TData>(
     return <span className="truncate">Tax Amount</span>;
   }
 
-  // Description column - special case with horizontal pagination
-  if (columnId === "description") {
+  // Last sticky column — render sort button + horizontal pagination arrows
+  if (columnId === lastStickyColumnId) {
+    const sortField = SORT_FIELD_MAPS[tableId][columnId];
+    const label = getHeaderLabel(columnId);
     return (
       <div className="flex items-center justify-between w-full overflow-hidden">
         <div className="min-w-0 overflow-hidden">
-          <SortButton
-            label="Description"
-            sortField="name"
-            currentSortColumn={sortColumn}
-            currentSortValue={sortValue}
-            onSort={createSortQuery}
-          />
+          {sortField ? (
+            <SortButton
+              label={label}
+              sortField={sortField}
+              currentSortColumn={sortColumn}
+              currentSortValue={sortValue}
+              onSort={createSortQuery}
+            />
+          ) : (
+            <span className="truncate">{label}</span>
+          )}
         </div>
         {tableScroll?.isScrollable && (
           <HorizontalPagination

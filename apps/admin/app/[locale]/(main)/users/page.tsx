@@ -29,7 +29,7 @@ export default async function UsersPage(props: {
   return (
     <ScrollableContent>
       <div className="relative h-full">
-        <div className="flex justify-between items-center py-6">
+        <div className="flex justify-between items-center pb-6">
           <UserSearchFilter />
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-2">

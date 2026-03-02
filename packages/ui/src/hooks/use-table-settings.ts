@@ -8,11 +8,35 @@ import type {
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   mergeWithDefaults,
-  TABLE_SETTINGS_COOKIE,
-  TableId,
-  TableSettings,
+  type TableId,
+  type TableSettings,
 } from "../components/organisms/data-table/data-table-settings";
-import { updateTableSettingsAction } from "../actions/table-settings.action";
+
+const STORAGE_KEY = "table-settings";
+
+function readFromStorage(tableId: TableId): Partial<TableSettings> | undefined {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return undefined;
+    const all = JSON.parse(raw) as Record<string, Partial<TableSettings>>;
+    return all[tableId];
+  } catch {
+    return undefined;
+  }
+}
+
+function writeToStorage(tableId: TableId, settings: Partial<TableSettings>) {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const all: Record<string, Partial<TableSettings>> = raw
+      ? JSON.parse(raw)
+      : {};
+    all[tableId] = settings;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  } catch {
+    // Storage full or unavailable — fail silently
+  }
+}
 
 interface UseTableSettingsProps {
   tableId: TableId;
@@ -30,99 +54,80 @@ interface UseTableSettingsReturn {
 
 /**
  * Hook for managing table column settings (visibility, sizing, order)
- * with automatic persistence to a single unified cookie.
+ * with automatic persistence to localStorage so settings survive page refreshes.
+ *
+ * Hydration-safe: always initialises from defaults (matching the server render),
+ * then over-writes with localStorage values after mount inside a useEffect.
  */
 export function useTableSettings({
   tableId,
   initialSettings,
 }: UseTableSettingsProps): UseTableSettingsReturn {
-  // Merge initial settings with defaults
-  const settings = mergeWithDefaults(initialSettings, tableId);
+  // Always start from defaults so server HTML === client HTML (no hydration mismatch)
+  const defaults = mergeWithDefaults(initialSettings, tableId);
 
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    settings.columns,
+    defaults.columns,
   );
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>(
-    settings.sizing,
+    defaults.sizing,
   );
   const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(
-    settings.order,
+    defaults.order,
   );
 
-  // Track initial mount to skip first persist
-  const isInitialMount = useRef(true);
+  // After hydration, load persisted values from localStorage (client-only)
+  const hasHydrated = useRef(false);
+  useEffect(() => {
+    if (hasHydrated.current) return;
+    hasHydrated.current = true;
+
+    const stored = readFromStorage(tableId);
+    if (!stored) return;
+
+    if (stored.columns) setColumnVisibility(stored.columns);
+    if (stored.sizing && Object.keys(stored.sizing).length > 0)
+      setColumnSizing(stored.sizing);
+    if (stored.order && stored.order.length > 0) setColumnOrder(stored.order);
+  }, [tableId]);
+
+  // Track initial mount to skip the very first persist
+  // (the hydration useEffect above will trigger state changes; we don't want to
+  //  immediately write those back as if the user changed something)
+  const persistReady = useRef(false);
+  useEffect(() => {
+    // Mark as ready after the hydration effect has run
+    const t = setTimeout(() => {
+      persistReady.current = true;
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
 
   // Debounce timer ref
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Persist settings to unified cookie
   const persistSettings = useCallback(
     (
       visibility: VisibilityState,
       sizing: ColumnSizingState,
       order: ColumnOrderState,
     ) => {
-      // Clear existing debounce
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-
-      // Debounce persistence to avoid excessive cookie writes during resize
-      debounceRef.current = setTimeout(async () => {
-        try {
-          // Read current cookie value to preserve other table settings
-          const existingCookie = document.cookie
-            .split("; ")
-            .find((row) => row.startsWith(`${TABLE_SETTINGS_COOKIE}=`));
-
-          let allSettings: Record<string, Partial<TableSettings>> = {};
-          if (existingCookie) {
-            try {
-              allSettings = JSON.parse(
-                decodeURIComponent(existingCookie.split("=")[1] ?? "{}"),
-              );
-            } catch {
-              // Invalid JSON, start fresh
-              allSettings = {};
-            }
-          }
-
-          // Update only this table's settings
-          allSettings[tableId] = {
-            columns: visibility,
-            sizing: sizing,
-            order: order,
-          };
-
-          // Persist to server action (which sets the cookie)
-          await updateTableSettingsAction({
-            key: TABLE_SETTINGS_COOKIE,
-            data: allSettings,
-          });
-        } catch (error) {
-          console.error("Failed to persist table settings:", error);
-        }
+      if (!persistReady.current) return;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        writeToStorage(tableId, { columns: visibility, sizing, order });
       }, 300);
     },
     [tableId],
   );
 
-  // Effect to persist changes (skip initial mount)
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
     persistSettings(columnVisibility, columnSizing, columnOrder);
   }, [columnVisibility, columnSizing, columnOrder, persistSettings]);
 
-  // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
+      if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);
 

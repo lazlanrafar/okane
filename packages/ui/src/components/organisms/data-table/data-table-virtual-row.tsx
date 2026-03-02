@@ -44,6 +44,15 @@ function VirtualRowInner<TData>({
 }: VirtualRowProps<TData>) {
   const cells = row.getVisibleCells();
   const lastCellId = cells[cells.length - 1]?.column.id ?? "";
+  const lastNonStickyIndex = (() => {
+    for (let i = cells.length - 1; i >= 0; i--) {
+      const c = cells[i];
+      if (!c) continue;
+      const m = c.column.columnDef.meta as TableColumnMeta | undefined;
+      if (!m?.sticky && c.column.id !== "actions") return i;
+    }
+    return -1;
+  })();
 
   // Check if there are any non-sticky columns visible before actions
   const hasNonStickyBeforeActions = cells.some((cell) => {
@@ -75,11 +84,21 @@ function VirtualRowInner<TData>({
         const isLastBeforeActions =
           cellIndex === cells.length - 2 && lastCellId === "actions";
         const actionsFullWidth = isActions && !hasNonStickyBeforeActions;
+        const isLastNonSticky = cellIndex === lastNonStickyIndex;
         const shouldFlex =
-          (isLastBeforeActions && !isSticky) || actionsFullWidth;
+          isLastNonSticky ||
+          (isLastBeforeActions && !isSticky) ||
+          actionsFullWidth;
 
         const cellStyle: CSSProperties = {
-          width: actionsFullWidth ? undefined : cell.column.getSize(),
+          width:
+            actionsFullWidth || shouldFlex ? undefined : cell.column.getSize(),
+          minWidth: actionsFullWidth
+            ? undefined
+            : isSticky
+              ? cell.column.getSize()
+              : cell.column.columnDef.minSize,
+          flexShrink: shouldFlex ? 1 : 0,
           ...(!actionsFullWidth && getStickyStyle(columnId)),
           ...(shouldFlex && { flex: 1 }),
         };
@@ -92,7 +111,7 @@ function VirtualRowInner<TData>({
           <TableCell
             key={cell.id}
             className={cn(
-              "h-full flex items-center border-b border-border",
+              "h-full flex items-center border-b border-border overflow-hidden",
               cellClassName,
               isActions && "justify-center",
             )}
@@ -103,9 +122,7 @@ function VirtualRowInner<TData>({
               }
             }}
           >
-            <div className="w-full overflow-hidden truncate">
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-            </div>
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
         );
       })}

@@ -226,60 +226,71 @@ export function DataTable<TData extends { id: string | number }>({
           <div className="w-full">
             <div
               ref={(el) => {
-                (
-                  parentRef as React.MutableRefObject<HTMLDivElement | null>
-                ).current = el;
-                (
-                  tableScroll.containerRef as React.MutableRefObject<HTMLDivElement | null>
-                ).current = el;
+                // Combine refs for both scroll container and virtualizer
+                if (parentRef) {
+                  (
+                    parentRef as React.MutableRefObject<HTMLDivElement | null>
+                  ).current = el;
+                }
+                if (tableScroll.containerRef) {
+                  (
+                    tableScroll.containerRef as React.MutableRefObject<HTMLDivElement | null>
+                  ).current = el;
+                }
               }}
               className="overflow-auto overscroll-none border-l border-r border-b border-border scrollbar-hide"
               style={{ height: containerHeight }}
             >
-              <DndContext
-                id={`${tableId}-table-dnd`}
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <Table className="w-full min-w-full">
-                  <DataTableHeader
-                    table={table}
-                    tableScroll={tableScroll}
-                    tableId={tableId}
-                  />
+              {/* Block div carries minWidth so overflow:auto clips correctly.
+                  Native <table> elements (display:table) can escape overflow:auto —
+                  block divs cannot. This is sidebar-state-agnostic and needs no magic numbers. */}
+              <div style={{ minWidth: table.getTotalSize() }}>
+                <DndContext
+                  id={`${tableId}-table-dnd`}
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <Table className="w-full">
+                    <DataTableHeader
+                      table={table}
+                      tableScroll={tableScroll}
+                      tableId={tableId}
+                    />
 
-                  <TableBody
-                    className="border-l-0 border-r-0 block"
-                    style={{
-                      height: `${rowVirtualizer.getTotalSize()}px`,
-                      position: "relative",
-                    }}
-                  >
-                    {virtualItems.map((virtualRow: VirtualItem) => {
-                      const row = rows[virtualRow.index];
-                      if (!row) return null;
+                    <TableBody
+                      className="border-l-0 border-r-0 block"
+                      style={{
+                        height: `${rowVirtualizer.getTotalSize()}px`,
+                        position: "relative",
+                      }}
+                    >
+                      {virtualItems.map((virtualRow: VirtualItem) => {
+                        const row = rows[virtualRow.index];
+                        if (!row) return null;
 
-                      return (
-                        <VirtualRow
-                          key={row.id}
-                          row={row}
-                          virtualStart={virtualRow.start}
-                          rowHeight={rowHeight}
-                          getStickyStyle={getStickyStyle}
-                          getStickyClassName={getStickyClassName}
-                          nonClickableColumns={nonClickableColumns}
-                          onCellClick={handleCellClick}
-                          columnSizing={columnSizing}
-                          columnOrder={columnOrder}
-                          columnVisibility={columnVisibility}
-                          isSelected={!!rowSelection[row.id]}
-                        />
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </DndContext>
+                        return (
+                          <VirtualRow
+                            key={row.id}
+                            row={row}
+                            virtualStart={virtualRow.start}
+                            rowHeight={rowHeight}
+                            getStickyStyle={getStickyStyle}
+                            getStickyClassName={getStickyClassName}
+                            nonClickableColumns={nonClickableColumns}
+                            onCellClick={handleCellClick}
+                            columnSizing={columnSizing}
+                            columnOrder={columnOrder}
+                            columnVisibility={columnVisibility}
+                            isSelected={!!rowSelection[row.id]}
+                          />
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </DndContext>
+              </div>
+
               <div
                 style={{ height: "var(--header-offset, 0px)", flexShrink: 0 }}
                 aria-hidden
