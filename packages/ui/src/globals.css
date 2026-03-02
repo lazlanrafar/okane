@@ -162,7 +162,7 @@ These serve as the fallback; there is no separate default.css file. */
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
 
   body {

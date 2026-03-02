@@ -9,6 +9,8 @@ import { fontVars } from "@/lib/fonts/registry";
 import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 import { ThemeBootScript } from "@/scripts/theme-boot";
 import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+
 import "@workspace/ui/globals.css";
 // import { i18n } from "@/i18n-config";
 
@@ -27,8 +29,15 @@ export default async function RootLayout({
 }: Readonly<{ children: ReactNode; params: Promise<{ locale: string }> }>) {
   const { locale } = await params;
 
-  const { theme_mode, theme_preset, content_layout, navbar_style, sidebar_variant, sidebar_collapsible, font } =
-    PREFERENCE_DEFAULTS;
+  const {
+    theme_mode,
+    theme_preset,
+    content_layout,
+    navbar_style,
+    sidebar_variant,
+    sidebar_collapsible,
+    font,
+  } = PREFERENCE_DEFAULTS;
 
   return (
     <html
@@ -54,10 +63,12 @@ export default async function RootLayout({
           navbarStyle={navbar_style}
           font={font}
         >
-          <Providers>
-            {children}
-            <Toaster />
-          </Providers>
+          <NuqsAdapter>
+            <Providers>
+              {children}
+              <Toaster />
+            </Providers>
+          </NuqsAdapter>
         </PreferencesStoreProvider>
       </body>
     </html>

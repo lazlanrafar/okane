@@ -14,3 +14,5 @@ export * from "./line-metric-chart";
 export * from "./stat-card";
 export * from "./country-selector";
 export * from "./currency-input";
+export * from "./horizontal-pagination";
+export * from "./scrollable-content";
