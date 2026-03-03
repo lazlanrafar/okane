@@ -3,11 +3,11 @@ import packageJson from "../package.json";
 const currentYear = new Date().getFullYear();
 
 export const APP_CONFIG = {
-  name: "Okane - Money Manager",
+  name: "Okane Admin Panel",
   version: packageJson.version,
-  copyright: `© ${currentYear}, Okane - Money Manager.`,
+  copyright: `© ${currentYear}, Okane Admin Panel.`,
   meta: {
-    title: "Okane - Money Manager",
+    title: "Okane Admin Panel",
     description:
       "Okane is a modern, privacy-first personal finance tracker built to help you take control of your wealth. Manage your budgets, track your expenses, and achieve your financial goals with ease.",
   },

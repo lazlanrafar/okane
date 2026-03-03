@@ -7,6 +7,15 @@ import Negotiator from "negotiator";
 
 import { i18n } from "./i18n-config";
 
+const IGNORED_LOCALE_PATHS = [
+  "/manifest.json",
+  "/favicon.ico",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/terms",
+  "/policy",
+];
+
 function getLocale(request: NextRequest): string | undefined {
   const negotiatorHeaders: Record<string, string> = {};
   request.headers.forEach((value, key) => {
@@ -15,7 +24,9 @@ function getLocale(request: NextRequest): string | undefined {
 
   // @ts-expect-error locales are readonly
   const locales: string[] = i18n.locales;
-  const languages = new Negotiator({ headers: negotiatorHeaders }).languages(locales);
+  const languages = new Negotiator({ headers: negotiatorHeaders }).languages(
+    locales,
+  );
 
   return matchLocale(languages, locales, i18n.defaultLocale);
 }
@@ -24,17 +35,21 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Ignore static assets and ignored paths
-  if (["/manifest.json", "/favicon.ico", "/robots.txt", "/sitemap.xml"].includes(pathname)) return;
+  if (IGNORED_LOCALE_PATHS.some((path) => pathname.startsWith(path))) return;
 
   // Check if there is any supported locale in the pathname
   const pathnameIsMissingLocale = i18n.locales.every(
-    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`,
+    (locale) =>
+      !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`,
   );
 
   // Redirect if there is no locale
   if (pathnameIsMissingLocale) {
     const locale = getLocale(request);
-    const url = new URL(`/${locale}${pathname.startsWith("/") ? "" : "/"}${pathname}`, request.url);
+    const url = new URL(
+      `/${locale}${pathname.startsWith("/") ? "" : "/"}${pathname}`,
+      request.url,
+    );
     url.search = request.nextUrl.search;
     return NextResponse.redirect(url);
   }
@@ -80,7 +95,11 @@ export async function proxy(request: NextRequest) {
   }
 
   // Redirect to dashboard if logged in and on login/register pages
-  if ((pathAfterLocale === "/login" || pathAfterLocale === "/register") && session && okane_session) {
+  if (
+    (pathAfterLocale === "/login" || pathAfterLocale === "/register") &&
+    session &&
+    okane_session
+  ) {
     return NextResponse.redirect(new URL(`/${locale}/overview`, request.url));
   }
 

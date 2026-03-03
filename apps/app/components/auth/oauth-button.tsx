@@ -12,14 +12,20 @@ interface OAuthButtonProps extends React.ComponentProps<typeof Button> {
   label?: string;
 }
 
-export function OAuthButton({ provider, className, label, ...props }: OAuthButtonProps) {
+export function OAuthButton({
+  provider,
+  className,
+  label,
+  ...props
+}: OAuthButtonProps) {
   const icon = provider === "google" ? siGoogle : siGithub;
-  const defaultLabel = provider === "google" ? "Continue with Google" : "Continue with GitHub";
+  const defaultLabel =
+    provider === "google" ? "Continue with Google" : "Continue with GitHub";
 
   return (
     <Button
-      variant="secondary"
-      className={cn(className)}
+      variant="outline"
+      className={cn("w-full bg-transparent", className)}
       onClick={async () => {
         const result = await loginWithOAuth(provider);
         if (result && !result.success) {
