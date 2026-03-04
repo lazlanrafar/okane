@@ -79,6 +79,9 @@ export const ordersRepository = {
         workspaceName: workspaces.name,
         userName: users.name,
         userEmail: users.email,
+        stripe_payment_intent_id: orders.stripe_payment_intent_id,
+        stripe_invoice_id: orders.stripe_invoice_id,
+        stripe_subscription_id: orders.stripe_subscription_id,
       })
       .from(orders)
       .leftJoin(workspaces, eq(orders.workspace_id, workspaces.id))

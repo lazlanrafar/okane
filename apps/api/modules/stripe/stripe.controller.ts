@@ -24,8 +24,9 @@ export const stripeController = new Elysia({
         await StripeService.handleWebhook(payloadString, signature);
         return { received: true };
       } catch (err: any) {
-        console.error("[Stripe Webhook Error]", err.message);
+        console.error("[Stripe Webhook Error]", err.stack || err.message);
         set.status = 400;
+        return { error: err.message };
       }
     },
     { detail: { summary: "Stripe Webhook", tags: ["Stripe"] } },

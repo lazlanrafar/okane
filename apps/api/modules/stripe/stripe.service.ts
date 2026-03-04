@@ -1,12 +1,13 @@
 import Stripe from "stripe";
 import { db } from "@workspace/database";
 import { workspaces, pricing } from "@workspace/database";
-import { eq, or } from "drizzle-orm";
+import { eq, or, and } from "drizzle-orm";
 import { ErrorCode } from "@workspace/types";
 import { buildSuccess, buildError } from "@workspace/utils";
 import { status } from "elysia";
 import { OrdersService } from "../orders/orders.service";
 import { Env } from "@workspace/constants";
+import { user_workspaces, users } from "@workspace/database";
 
 const stripe = new Stripe(Env.STRIPE_SECRET_KEY as string);
 
@@ -17,11 +18,13 @@ export abstract class StripeService {
       throw new Error("STRIPE_WEBHOOK_SECRET is not configured");
     }
 
-    const event = stripe.webhooks.constructEvent(
+    const event = await stripe.webhooks.constructEventAsync(
       rawBody,
       signature,
       webhookSecret,
     );
+
+    console.log(`[Stripe Webhook] Received event: ${event.type}`);
 
     switch (event.type) {
       case "checkout.session.completed": {
@@ -49,6 +52,24 @@ export abstract class StripeService {
                 )
                 .limit(1);
 
+              console.log(
+                "[Stripe Webhook] Subscription keys:",
+                Object.keys(subscription),
+              );
+              let currentPeriodEnd = (subscription as any).current_period_end;
+              if (!currentPeriodEnd && (subscription as any).items?.data?.[0]) {
+                currentPeriodEnd = (subscription as any).items.data[0]
+                  .current_period_end;
+                console.log(
+                  "[Stripe Webhook] Found current_period_end in items.data[0]:",
+                  currentPeriodEnd,
+                );
+              }
+              console.log(
+                "[Stripe Webhook] current_period_end value:",
+                currentPeriodEnd,
+              );
+
               await db
                 .update(workspaces)
                 .set({
@@ -56,9 +77,9 @@ export abstract class StripeService {
                   stripe_subscription_id: subscriptionId,
                   plan_id: plan?.id,
                   plan_status: subscription.status,
-                  stripe_current_period_end: new Date(
-                    (subscription as any).current_period_end * 1000,
-                  ),
+                  stripe_current_period_end: currentPeriodEnd
+                    ? new Date(Number(currentPeriodEnd) * 1000)
+                    : null,
                   ai_tokens_used: 0,
                   vault_size_used_bytes: 0,
                 })
@@ -71,6 +92,22 @@ export abstract class StripeService {
       case "invoice.paid": {
         const invoice = event.data.object as any;
         const customerId = invoice.customer as string;
+        console.log(`[Stripe Webhook] invoice.paid for customer ${customerId}`);
+        console.log(
+          `[Stripe Webhook] Invoice details:`,
+          JSON.stringify(
+            {
+              id: invoice.id,
+              amount_paid: invoice.amount_paid,
+              currency: invoice.currency,
+              customer: invoice.customer,
+              subscription: invoice.subscription,
+            },
+            null,
+            2,
+          ),
+        );
+
         const [workspace] = await db
           .select()
           .from(workspaces)
@@ -78,8 +115,27 @@ export abstract class StripeService {
           .limit(1);
 
         if (workspace) {
-          await OrdersService.createOrderFromStripe({
+          console.log(
+            `[Stripe Webhook] Found workspace ${workspace.id} for customer ${customerId}. Creating order...`,
+          );
+
+          // Find the owner of the workspace to attribute the order
+          const owner = await db
+            .select({ id: users.id })
+            .from(users)
+            .innerJoin(user_workspaces, eq(users.id, user_workspaces.user_id))
+            .where(
+              and(
+                eq(user_workspaces.workspace_id, workspace.id),
+                eq(user_workspaces.role, "owner"),
+              ),
+            )
+            .limit(1)
+            .then((res) => res[0]);
+
+          const orderResult = await OrdersService.createOrderFromStripe({
             workspace_id: workspace.id,
+            user_id: owner?.id,
             stripe_invoice_id: invoice.id,
             stripe_subscription_id: invoice.subscription as string,
             stripe_payment_intent_id: invoice.payment_intent as string,
@@ -87,6 +143,14 @@ export abstract class StripeService {
             currency: invoice.currency,
             status: "paid",
           });
+          console.log(
+            `[Stripe Webhook] Order creation result:`,
+            JSON.stringify(orderResult, null, 2),
+          );
+        } else {
+          console.log(
+            `[Stripe Webhook] Workspace not found for customer ${customerId} (Checked stripe_customer_id)`,
+          );
         }
         break;
       }
@@ -100,8 +164,23 @@ export abstract class StripeService {
           .limit(1);
 
         if (workspace) {
+          // Find the owner of the workspace to attribute the order
+          const owner = await db
+            .select({ id: users.id })
+            .from(users)
+            .innerJoin(user_workspaces, eq(users.id, user_workspaces.user_id))
+            .where(
+              and(
+                eq(user_workspaces.workspace_id, workspace.id),
+                eq(user_workspaces.role, "owner"),
+              ),
+            )
+            .limit(1)
+            .then((res) => res[0]);
+
           await OrdersService.createOrderFromStripe({
             workspace_id: workspace.id,
+            user_id: owner?.id,
             stripe_invoice_id: invoice.id,
             stripe_subscription_id: invoice.subscription as string,
             stripe_payment_intent_id: invoice.payment_intent as string,
@@ -135,6 +214,24 @@ export abstract class StripeService {
             )
             .limit(1);
 
+          console.log(
+            "[Stripe Webhook] Subscription keys:",
+            Object.keys(subscription),
+          );
+          let currentPeriodEnd = (subscription as any).current_period_end;
+          if (!currentPeriodEnd && (subscription as any).items?.data?.[0]) {
+            currentPeriodEnd = (subscription as any).items.data[0]
+              .current_period_end;
+            console.log(
+              "[Stripe Webhook] Found current_period_end in items.data[0]:",
+              currentPeriodEnd,
+            );
+          }
+          console.log(
+            "[Stripe Webhook] Resolved current_period_end value:",
+            currentPeriodEnd,
+          );
+
           // Whenever a subscription updates (renews, upgrades), reset standard usages if the period rolled over
           await db
             .update(workspaces)
@@ -142,9 +239,9 @@ export abstract class StripeService {
               stripe_subscription_id: subscription.id,
               plan_id: plan?.id,
               plan_status: subscription.status,
-              stripe_current_period_end: new Date(
-                (subscription as any).current_period_end * 1000,
-              ),
+              stripe_current_period_end: currentPeriodEnd
+                ? new Date(Number(currentPeriodEnd) * 1000)
+                : null,
             })
             .where(eq(workspaces.stripe_customer_id, customerId));
         }

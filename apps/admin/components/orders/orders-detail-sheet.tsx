@@ -129,6 +129,42 @@ export function OrdersDetailSheet() {
             </div>
           </div>
 
+          <div className="border-b border-b-border/40 my-6"></div>
+
+          <div className="mt-6 mb-2">
+            <Label className="mb-4 block font-medium text-md">
+              Stripe Information
+            </Label>
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <Label className="mb-2 block text-muted-foreground">
+                  Stripe Invoice ID
+                </Label>
+                <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                  {selectedOrder.stripe_invoice_id || "N/A"}
+                </div>
+              </div>
+
+              <div>
+                <Label className="mb-2 block text-muted-foreground">
+                  Stripe Subscription ID
+                </Label>
+                <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                  {selectedOrder.stripe_subscription_id || "N/A"}
+                </div>
+              </div>
+
+              <div>
+                <Label className="mb-2 block text-muted-foreground">
+                  Stripe Payment Intent ID
+                </Label>
+                <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                  {selectedOrder.stripe_payment_intent_id || "N/A"}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="mt-8 pt-4">
             <Label className="mb-2 block font-medium text-md">
               Internal Settings
