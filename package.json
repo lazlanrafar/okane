@@ -8,7 +8,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "migrate": "turbo run migrate",
-    "mcp": "bun run --cwd apps/api mcp.ts"
+    "mcp": "bun run --cwd apps/api mcp.ts",
+    "setup:stripe": "bun run --cwd packages/database setup:stripe"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.14",

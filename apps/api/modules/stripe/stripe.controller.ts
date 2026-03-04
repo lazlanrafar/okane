@@ -41,11 +41,13 @@ export const stripeController = new Elysia({
         auth.workspace_id,
         auth.user_id,
         body.priceId,
+        body.returnPath,
       );
     },
     {
       body: t.Object({
         priceId: t.String(),
+        returnPath: t.Optional(t.String()),
       }),
       detail: { summary: "Create Checkout Session", tags: ["Stripe"] },
     },

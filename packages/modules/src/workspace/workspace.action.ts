@@ -46,6 +46,7 @@ export const getMyWorkspaces = async (): Promise<
 };
 
 // Backward-compatible aliases (snake_case → camelCase)
+export const createWorkspaceAction = createWorkspace;
 export const create_workspace = createWorkspace;
 export const get_my_workspaces = getMyWorkspaces;
 

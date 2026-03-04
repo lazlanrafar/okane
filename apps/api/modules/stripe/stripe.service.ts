@@ -172,6 +172,7 @@ export abstract class StripeService {
     workspaceId: string,
     userId: string,
     priceId: string,
+    returnPath?: string,
   ) {
     if (!Env.STRIPE_SECRET_KEY) {
       throw status(
@@ -228,8 +229,8 @@ export abstract class StripeService {
         },
       ],
       mode,
-      success_url: `${appUrl}/en/settings/billing?success=true`,
-      cancel_url: `${appUrl}/en/settings/billing?canceled=true`,
+      success_url: `${appUrl}${returnPath ?? "/en/settings/billing"}?success=true`,
+      cancel_url: `${appUrl}${returnPath ?? "/en/settings/billing"}?canceled=true`,
     });
 
     return buildSuccess({ url: session.url }, "Checkout session created");

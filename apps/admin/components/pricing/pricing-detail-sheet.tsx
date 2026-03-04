@@ -84,7 +84,10 @@ export function PricingDetailSheet() {
                         selectedPricing.price_one_time ??
                         0) / 100,
                       {
-                        currency: selectedPricing.currency,
+                        mainCurrencySymbol:
+                          selectedPricing.currency === "USD"
+                            ? "$"
+                            : selectedPricing.currency,
                       },
                     )}
                   </span>
@@ -135,7 +138,10 @@ export function PricingDetailSheet() {
               </Label>
               <div className="h-[36px] flex items-center border border-border/60 rounded-md px-3 text-sm bg-muted/10">
                 {formatCurrency((selectedPricing.price_monthly ?? 0) / 100, {
-                  currency: selectedPricing.currency,
+                  mainCurrencySymbol:
+                    selectedPricing.currency === "USD"
+                      ? "$"
+                      : selectedPricing.currency,
                 })}
               </div>
             </div>
@@ -149,7 +155,10 @@ export function PricingDetailSheet() {
               </Label>
               <div className="h-[36px] flex items-center border border-border/60 rounded-md px-3 text-sm bg-muted/10">
                 {formatCurrency((selectedPricing.price_yearly ?? 0) / 100, {
-                  currency: selectedPricing.currency,
+                  mainCurrencySymbol:
+                    selectedPricing.currency === "USD"
+                      ? "$"
+                      : selectedPricing.currency,
                 })}
               </div>
             </div>
@@ -163,7 +172,10 @@ export function PricingDetailSheet() {
               </Label>
               <div className="h-[36px] flex items-center border border-border/60 rounded-md px-3 text-sm bg-muted/10">
                 {formatCurrency((selectedPricing.price_one_time ?? 0) / 100, {
-                  currency: selectedPricing.currency,
+                  mainCurrencySymbol:
+                    selectedPricing.currency === "USD"
+                      ? "$"
+                      : selectedPricing.currency,
                 })}
               </div>
             </div>

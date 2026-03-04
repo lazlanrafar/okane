@@ -7,9 +7,13 @@ import type { ActionResponse } from "@workspace/types";
 
 export const createCheckoutSession = async (
   priceId: string,
+  returnPath?: string,
 ): Promise<ActionResponse<{ url: string }>> => {
   try {
-    const response = await api.post("/stripe/checkout", { priceId });
+    const response = await api.post("/stripe/checkout", {
+      priceId,
+      returnPath,
+    });
     return {
       success: true,
       data: response.data.data,

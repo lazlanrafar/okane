@@ -73,7 +73,10 @@ export function OrdersDetailSheet() {
                     )}
                   >
                     {formatCurrency(selectedOrder.amount / 100, {
-                      currency: selectedOrder.currency.toUpperCase(),
+                      mainCurrencySymbol:
+                        selectedOrder.currency.toUpperCase() === "USD"
+                          ? "$"
+                          : selectedOrder.currency.toUpperCase(),
                     })}
                   </span>
                   <div className="h-3">

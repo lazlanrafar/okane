@@ -44,15 +44,8 @@ import {
 import { Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  deleteWallet,
-  getWallets,
-  reorderWallets,
-} from "@workspace/modules";
-import {
-  deleteWalletGroup,
-  getWalletGroups,
-} from "@workspace/modules";
+import { deleteWallet, getWallets, reorderWallets } from "@workspace/modules";
+import { deleteWalletGroup, getWalletGroups } from "@workspace/modules";
 import { WalletForm } from "@/components/setting/wallet/wallet-form";
 import { WalletGroupForm } from "@/components/setting/wallet/wallet-group-form";
 import {
@@ -62,6 +55,7 @@ import {
   WalletItem,
 } from "@/components/shared/wallet-display";
 import { useCurrency } from "@workspace/ui/hooks";
+import { formatCurrency } from "@workspace/utils";
 
 function SortableWalletRow({
   wallet,
@@ -264,7 +258,7 @@ export function AccountsClient({
     return map;
   }, [wallets, groups]);
 
-  const formatCurrencyForSettings = (amount: number) => {
+  const formatCurrencyLocal = (amount: number) => {
     return formatAmount(amount);
   };
 
@@ -304,7 +298,7 @@ export function AccountsClient({
             {dictionary.assets}
           </p>
           <p className="text-base font-bold text-blue-500">
-            {formatCurrencyForSettings(assets)}
+            {formatCurrencyLocal(assets)}
           </p>
         </div>
         <div className="space-y-1 border-x">
@@ -312,14 +306,14 @@ export function AccountsClient({
             {dictionary.liabilities}
           </p>
           <p className="text-base font-bold text-red-500">
-            {formatCurrencyForSettings(liabilities)}
+            {formatCurrencyLocal(liabilities)}
           </p>
         </div>
         <div className="space-y-1">
           <p className="text-sm font-medium text-muted-foreground">
             {dictionary.total}
           </p>
-          <p className="text-base font-bold">{formatCurrencyForSettings(total)}</p>
+          <p className="text-base font-bold">{formatCurrencyLocal(total)}</p>
         </div>
       </div>
 

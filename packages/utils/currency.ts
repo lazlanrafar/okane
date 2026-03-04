@@ -1,8 +1,10 @@
-import type { TransactionSettings } from "@workspace/types";
-
-export function formatCurrencyForSettings(
+export function formatCurrency(
   amount: number,
-  settings: TransactionSettings | null | undefined,
+  settings?: {
+    mainCurrencySymbol?: string;
+    mainCurrencySymbolPosition?: string;
+    mainCurrencyDecimalPlaces?: number;
+  } | null,
 ) {
   if (!settings) {
     // Fallback to a basic formatter if settings aren't loaded yet
@@ -13,9 +15,9 @@ export function formatCurrencyForSettings(
   }
 
   const {
-    mainCurrencySymbol,
-    mainCurrencySymbolPosition,
-    mainCurrencyDecimalPlaces,
+    mainCurrencySymbol = "$",
+    mainCurrencySymbolPosition = "Front",
+    mainCurrencyDecimalPlaces = 2,
   } = settings;
 
   const formattedAmount = Math.abs(amount).toLocaleString(undefined, {

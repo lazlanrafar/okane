@@ -14,13 +14,14 @@ import {
   Progress,
 } from "@workspace/ui";
 import { Check, Zap, Shield, Rocket, CreditCard } from "lucide-react";
+import type { Pricing } from "@workspace/types";
 import {
   getPricing,
   createCheckoutSession,
   createCustomerPortal,
 } from "@workspace/modules";
 import { toast } from "sonner";
-import { formatBytes } from "@workspace/utils";
+import { formatBytes, displayPrice, getPlanLimits } from "@workspace/utils";
 
 interface BillingViewProps {
   dictionary: any;
@@ -74,15 +75,15 @@ export function BillingView({ dictionary, workspace }: BillingViewProps) {
   const aiUsed = workspace.ai_tokens_used || 0;
 
   // Find current plan details from pricing list
-  const currentPlan = pricingData?.find((p) => p.id === currentPlanId) || {
+  const currentPlan = (pricingData?.find((p) => p.id === currentPlanId) || {
     name: "Free Tier",
     max_vault_size_mb: 50,
     max_ai_tokens: 50,
-  };
+  }) as Pricing;
 
-  const vaultLimitBytes = currentPlan.max_vault_size_mb * 1024 * 1024;
+  const { vaultLimitBytes, aiLimitTokens } = getPlanLimits(currentPlan);
   const vaultProgress = Math.min(100, (vaultUsed / vaultLimitBytes) * 100);
-  const aiProgress = Math.min(100, (aiUsed / currentPlan.max_ai_tokens) * 100);
+  const aiProgress = Math.min(100, (aiUsed / aiLimitTokens) * 100);
 
   return (
     <div className="space-y-6">
@@ -162,11 +163,9 @@ export function BillingView({ dictionary, workspace }: BillingViewProps) {
               <CardDescription>{plan.description}</CardDescription>
               <div className="mt-4">
                 <span className="text-3xl font-bold">
-                  {plan.price_monthly !== null
-                    ? `$${(plan.price_monthly / 100).toFixed(2)}`
-                    : "Free"}
+                  {displayPrice(plan, "monthly", { showCents: true }).label}
                 </span>
-                {plan.price_monthly !== null && (
+                {displayPrice(plan, "monthly").note && (
                   <span className="text-muted-foreground ml-1">/mo</span>
                 )}
               </div>

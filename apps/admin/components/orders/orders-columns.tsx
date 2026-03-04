@@ -80,7 +80,10 @@ export const columns: ColumnDef<AdminOrderListing>[] = [
     cell: ({ row }) => (
       <span className="font-medium text-sm">
         {formatCurrency(row.original.amount / 100, {
-          currency: row.original.currency.toUpperCase(),
+          mainCurrencySymbol:
+            row.original.currency.toUpperCase() === "USD"
+              ? "$"
+              : row.original.currency.toUpperCase(),
         })}
       </span>
     ),
