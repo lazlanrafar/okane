@@ -7,7 +7,7 @@ import { GripVertical, Pencil, Trash2 } from "lucide-react";
 
 import type { Wallet } from "@workspace/modules";
 import type { WalletGroup } from "@workspace/modules";
-import { useCurrency } from "@/hooks/use-currency";
+import { useCurrency } from "@workspace/ui/hooks";
 
 export type { Wallet, WalletGroup };
 

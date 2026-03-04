@@ -6,7 +6,16 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./globals.css": "./src/globals.css"
+    "./globals.css": "./src/globals.css",
+    "./hooks": "./src/hooks/index.ts",
+    "./atoms": "./src/components/atoms/index.ts",
+    "./molecules": "./src/components/molecules/index.ts",
+    "./organisms": "./src/components/organisms/index.ts",
+    "./stores": "./src/stores/index.ts",
+    "./lib/fonts": "./src/lib/fonts/index.ts",
+    "./lib/preferences": "./src/lib/preferences/index.ts",
+    "./lib/cookie": "./src/lib/cookie.client.ts",
+    "./lib/local-storage": "./src/lib/local-storage.client.ts"
   },
   "scripts": {
     "lint": "biome lint",

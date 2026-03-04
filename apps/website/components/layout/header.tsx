@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@workspace/ui";
+import { Button } from "@workspace/ui/atoms";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { Menu, X } from "lucide-react";

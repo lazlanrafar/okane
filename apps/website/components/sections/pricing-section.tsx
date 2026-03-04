@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@workspace/ui";
+import { Button } from "@workspace/ui/atoms";
 import Link from "next/link";
 
 interface Plan {

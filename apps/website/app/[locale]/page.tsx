@@ -6,7 +6,7 @@ import { HowItWorksSection } from "@/components/sections/how-it-works";
 import { StatsSection } from "@/components/sections/stats";
 import { TestimonialsSection } from "@/components/sections/testimonials";
 import { FeaturesGridSection } from "@/components/sections/features-grid";
-import { Button } from "@workspace/ui";
+import { Button } from "@workspace/ui/atoms";
 
 export default async function Page() {
   const cookieStore = await cookies();

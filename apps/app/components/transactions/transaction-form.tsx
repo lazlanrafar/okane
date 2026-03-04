@@ -50,7 +50,7 @@ import {
 } from "@workspace/modules";
 import { getWallets } from "@workspace/modules";
 import { CurrencyInput } from "@workspace/ui";
-import { useCurrency } from "@/hooks/use-currency";
+import { useCurrency } from "@workspace/ui/hooks";
 
 import { VaultPickerModal } from "../shared/vault-picker-modal";
 

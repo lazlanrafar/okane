@@ -8,3 +8,16 @@ export * from "./lib/utils";
 export * from "./components/atoms"; // atoms barrel
 export * from "./components/molecules"; // molecules barrel (incl. chart components)
 export * from "./components/organisms"; // organisms barrel
+
+// ── Shared UI Utilities & State ─────────────────────────────────────────────
+export * from "./lib/fonts/registry";
+export * from "./lib/preferences/layout-utils";
+export * from "./lib/preferences/layout";
+export * from "./lib/preferences/preferences-config";
+export * from "./lib/preferences/preferences-storage";
+export * from "./lib/preferences/theme-utils";
+export * from "./lib/preferences/theme";
+export * from "./stores/preferences-store";
+export * from "./stores/preferences-provider";
+export * from "./lib/cookie.client";
+export * from "./lib/local-storage.client";

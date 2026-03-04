@@ -5,7 +5,7 @@ import { Button, cn } from "@workspace/ui";
 import { format, isToday, isYesterday, parseISO } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { useCurrency } from "@/hooks/use-currency";
+import { useCurrency } from "@workspace/ui/hooks";
 
 import { TransactionItem } from "./transaction-item";
 

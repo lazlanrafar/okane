@@ -3,7 +3,7 @@ import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { getTransactionSettings } from "@workspace/modules";
-import { formatCurrency } from "@/lib/currency";
+import { formatCurrencyForSettings } from "@workspace/utils";
 
 export function useCurrency() {
   const { data: settings, isLoading } = useQuery({
@@ -18,7 +18,7 @@ export function useCurrency() {
 
   const formatAmount = React.useCallback(
     (amount: number) => {
-      return formatCurrency(amount, settings);
+      return formatCurrencyForSettings(amount, settings);
     },
     [settings],
   );

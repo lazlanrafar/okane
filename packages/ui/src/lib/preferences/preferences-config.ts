@@ -11,7 +11,7 @@
  * Others are flexible and can use any persistence.
  */
 
-import type { FontKey } from "@/lib/fonts/registry";
+import type { FontKey } from "../fonts/registry";
 
 import type {
   ContentLayout,
@@ -80,10 +80,10 @@ type PreferencePersistenceConfig = {
 export const PREFERENCE_DEFAULTS: PreferenceValueMap = {
   theme_mode: "light",
   theme_preset: "default",
-  font: "dmSans",
+  font: "inter",
   content_layout: "full-width",
   navbar_style: "sticky",
-  sidebar_variant: "sidebar",
+  sidebar_variant: "inset",
   sidebar_collapsible: "icon",
 };
 

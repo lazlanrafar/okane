@@ -3,8 +3,8 @@
 import { Button } from "@workspace/ui";
 import { Monitor, Moon, Sun } from "lucide-react";
 
-import { persistPreference } from "@/lib/preferences/preferences-storage";
-import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
+import { persistPreference } from "@workspace/ui";
+import { usePreferencesStore } from "@workspace/ui";
 
 const THEME_CYCLE = ["light", "dark", "system"] as const;
 

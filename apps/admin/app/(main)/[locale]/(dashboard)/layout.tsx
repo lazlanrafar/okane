@@ -20,7 +20,7 @@ import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 import {
   SIDEBAR_COLLAPSIBLE_VALUES,
   SIDEBAR_VARIANT_VALUES,
-} from "@/lib/preferences/layout";
+} from "@workspace/ui";
 import { getPreference } from "@/server/server-actions";
 import { AccountSwitcher } from "@/components/layout/account-switcher";
 

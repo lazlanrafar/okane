@@ -3,7 +3,7 @@
 import { DonutChart, LineMetricChart } from "@workspace/ui";
 
 import type { CategoryBreakdownPoint, ChartDataPoint } from "@workspace/modules";
-import { formatCurrency } from "@/lib/currency";
+import { formatCurrencyForSettings } from "@workspace/utils";
 import type { TransactionSettings } from "@workspace/types";
 
 export function OverviewMetrics({
@@ -19,7 +19,7 @@ export function OverviewMetrics({
   categoryData: CategoryBreakdownPoint[];
   settings?: TransactionSettings | null;
 }) {
-  const fmt = (v: number) => formatCurrency(v, settings);
+  const fmt = (v: number) => formatCurrencyForSettings(v, settings);
 
   const latestRevenue = revenueData[revenueData.length - 1]?.current ?? 0;
   const latestBurnRate = burnRateData[burnRateData.length - 1]?.current ?? 0;

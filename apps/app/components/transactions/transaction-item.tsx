@@ -4,7 +4,7 @@ import type { Transaction } from "@workspace/types";
 import { Badge, cn } from "@workspace/ui";
 import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Wallet } from "lucide-react";
 
-import { useCurrency } from "@/hooks/use-currency";
+import { useCurrency } from "@workspace/ui/hooks";
 
 interface TransactionItemProps {
   transaction: Transaction;

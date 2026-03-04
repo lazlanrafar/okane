@@ -5,10 +5,10 @@ import type { Metadata } from "next";
 
 import { Providers } from "@/components/providers";
 import { ADMIN_CONFIG as APP_CONFIG } from "@workspace/constants";
-import { fontVars } from "@/lib/fonts/registry";
-import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
+import { fontVars } from "@workspace/ui";
+import { PREFERENCE_DEFAULTS } from "@workspace/ui";
 import { ThemeBootScript } from "@/scripts/theme-boot";
-import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
+import { PreferencesStoreProvider } from "@workspace/ui";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import "@workspace/ui/globals.css";

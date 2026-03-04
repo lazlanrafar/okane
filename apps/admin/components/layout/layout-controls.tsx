@@ -16,20 +16,20 @@ import {
 } from "@workspace/ui";
 import { Settings } from "lucide-react";
 
-import { type FontKey, fontOptions } from "@/lib/fonts/registry";
-import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from "@/lib/preferences/layout";
+import { type FontKey, fontOptions } from "@workspace/ui";
+import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from "@workspace/ui";
 import {
   applyContentLayout,
   applyFont,
   applyNavbarStyle,
   applySidebarCollapsible,
   applySidebarVariant,
-} from "@/lib/preferences/layout-utils";
-import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
-import { persistPreference } from "@/lib/preferences/preferences-storage";
-import { THEME_PRESET_OPTIONS, type ThemeMode, type ThemePreset } from "@/lib/preferences/theme";
-import { applyThemePreset } from "@/lib/preferences/theme-utils";
-import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
+} from "@workspace/ui";
+import { PREFERENCE_DEFAULTS } from "@workspace/ui";
+import { persistPreference } from "@workspace/ui";
+import { THEME_PRESET_OPTIONS, type ThemeMode, type ThemePreset } from "@workspace/ui";
+import { applyThemePreset } from "@workspace/ui";
+import { usePreferencesStore } from "@workspace/ui";
 
 export function LayoutControls() {
   const themeMode = usePreferencesStore((s) => s.themeMode);

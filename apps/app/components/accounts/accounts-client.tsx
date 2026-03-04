@@ -61,7 +61,7 @@ import {
   WalletGroupHeader,
   WalletItem,
 } from "@/components/shared/wallet-display";
-import { useCurrency } from "@/hooks/use-currency";
+import { useCurrency } from "@workspace/ui/hooks";
 
 function SortableWalletRow({
   wallet,
@@ -264,7 +264,7 @@ export function AccountsClient({
     return map;
   }, [wallets, groups]);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrencyForSettings = (amount: number) => {
     return formatAmount(amount);
   };
 
@@ -304,7 +304,7 @@ export function AccountsClient({
             {dictionary.assets}
           </p>
           <p className="text-base font-bold text-blue-500">
-            {formatCurrency(assets)}
+            {formatCurrencyForSettings(assets)}
           </p>
         </div>
         <div className="space-y-1 border-x">
@@ -312,14 +312,14 @@ export function AccountsClient({
             {dictionary.liabilities}
           </p>
           <p className="text-base font-bold text-red-500">
-            {formatCurrency(liabilities)}
+            {formatCurrencyForSettings(liabilities)}
           </p>
         </div>
         <div className="space-y-1">
           <p className="text-sm font-medium text-muted-foreground">
             {dictionary.total}
           </p>
-          <p className="text-base font-bold">{formatCurrency(total)}</p>
+          <p className="text-base font-bold">{formatCurrencyForSettings(total)}</p>
         </div>
       </div>
 

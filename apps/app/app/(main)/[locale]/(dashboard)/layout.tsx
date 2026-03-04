@@ -11,7 +11,7 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { LayoutControls } from "@/components/layout/layout-controls";
 import { SearchDialog } from "@/components/layout/search-dialog";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
-import { SIDEBAR_COLLAPSIBLE_VALUES, SIDEBAR_VARIANT_VALUES } from "@/lib/preferences/layout";
+import { SIDEBAR_COLLAPSIBLE_VALUES, SIDEBAR_VARIANT_VALUES } from "@workspace/ui";
 import { getPreference } from "@/server/server-actions";
 
 async function getUserAndWorkspaces() {

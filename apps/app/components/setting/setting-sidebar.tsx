@@ -52,7 +52,7 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   };
 }
 
-import { useLocalizedRoute } from "@/hooks/use-localized-route";
+import { useLocalizedRoute } from "@/utils/localized-route";
 import { i18n } from "@/i18n-config";
 
 export function SettingSidebar({

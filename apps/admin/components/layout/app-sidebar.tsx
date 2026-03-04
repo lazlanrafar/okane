@@ -10,7 +10,7 @@ import {
 import { useShallow } from "zustand/react/shallow";
 
 import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
-import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
+import { usePreferencesStore } from "@workspace/ui";
 
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";

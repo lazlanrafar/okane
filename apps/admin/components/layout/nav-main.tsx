@@ -31,7 +31,7 @@ interface NavMainProps {
   readonly items: readonly NavGroup[];
 }
 
-import { useLocalizedRoute } from "@/hooks/use-localized-route";
+import { useLocalizedRoute } from "@/utils/localized-route";
 import { i18n } from "@/i18n-config";
 
 const IsComingSoon = () => (
