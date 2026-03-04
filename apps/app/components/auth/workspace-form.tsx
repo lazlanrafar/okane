@@ -7,10 +7,8 @@ import { createBrowserClient } from "@workspace/supabase/client";
 import { Button, Input, Label, Badge, cn } from "@workspace/ui";
 import { CountrySelector } from "@workspace/ui";
 import type { Pricing } from "@workspace/types";
-import {
-  createWorkspaceAction,
-  createCheckoutSession,
-} from "@workspace/modules";
+import { onboardingCreateWorkspaceAction } from "@workspace/modules/auth/auth.action";
+import { createCheckoutSession } from "@workspace/modules/stripe/stripe.action";
 import { Check, ArrowLeft, Loader2 } from "lucide-react";
 import {
   isFree,
@@ -98,9 +96,9 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
     setLoading(true);
     setError(null);
 
-    // Step 1: Create the workspace
+    // Step 1: Create the workspace (orchestrated action sets cookie)
     setLoadingMsg("Creating workspace…");
-    const createResult = await createWorkspaceAction({
+    const createResult = await onboardingCreateWorkspaceAction({
       name: name.trim(),
       country,
       mainCurrencyCode: currency.code,
@@ -134,6 +132,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
     setLoadingMsg("Redirecting to checkout…");
     const checkoutResult = await createCheckoutSession(
       stripePrice,
+      createResult.data.id,
       `/${locale}/overview`,
     );
 
@@ -373,7 +372,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                           )}
                         >
                           {isSelected && (
-                            <Check className="size-2.5 stroke-[3]" />
+                            <Check className="size-2.5 stroke-3" />
                           )}
                         </div>
                       </div>

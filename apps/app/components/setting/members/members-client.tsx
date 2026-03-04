@@ -25,7 +25,7 @@ import { format } from "date-fns";
 import { Clock, MoreHorizontal, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { cancelInvitation } from "@workspace/modules";
+import { cancelInvitation } from "@workspace/modules/workspace/workspace.action";
 
 import { InviteMemberDialog } from "./invite-member-dialog";
 

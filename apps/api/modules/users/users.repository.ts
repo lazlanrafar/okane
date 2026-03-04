@@ -66,8 +66,8 @@ export const usersRepository = {
       .where(eq(users.id, user_id));
   },
 
-  async getWorkspaceId(user_id: string) {
-    const [user] = await db
+  async getWorkspaceId(user_id: string, tx: any = db) {
+    const [user] = await tx
       .select({ workspace_id: users.workspace_id })
       .from(users)
       .where(eq(users.id, user_id))
@@ -75,8 +75,8 @@ export const usersRepository = {
     return user?.workspace_id ?? null;
   },
 
-  async setWorkspaceId(user_id: string, workspace_id: string) {
-    await db
+  async setWorkspaceId(user_id: string, workspace_id: string, tx: any = db) {
+    await tx
       .update(users)
       .set({ workspace_id, updated_at: new Date() })
       .where(eq(users.id, user_id));

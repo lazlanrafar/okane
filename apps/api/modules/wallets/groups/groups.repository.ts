@@ -16,8 +16,11 @@ export const walletGroupsRepository = {
     return group ?? null;
   },
 
-  async createMany(data: { workspaceId: string; name: string }[]) {
-    return db.insert(walletGroups).values(data).returning();
+  async createMany(
+    data: { workspaceId: string; name: string }[],
+    tx: any = db,
+  ) {
+    return tx.insert(walletGroups).values(data).returning();
   },
 
   async update(

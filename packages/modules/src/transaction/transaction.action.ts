@@ -2,7 +2,7 @@
 
 import type { ActionResponse, ApiResponse, Transaction } from "@workspace/types";
 
-import { axiosInstance as api } from "../lib/axios";
+import { axiosInstance as api } from "../lib/axios.server";
 
 export const getTransactions = async (params: {
   page?: number;

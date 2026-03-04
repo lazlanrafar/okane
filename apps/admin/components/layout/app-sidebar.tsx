@@ -14,7 +14,6 @@ import { usePreferencesStore } from "@workspace/ui";
 
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
-import { WorkspaceSwitcher } from "./workspace-switcher";
 import { Cat } from "lucide-react";
 
 type WorkspaceData = {
@@ -54,10 +53,6 @@ export function AppSidebar({
   return (
     <Sidebar {...rest} variant={variant} collapsible={collapsible}>
       <SidebarHeader>
-        {/* <WorkspaceSwitcher
-          workspaces={workspaces}
-          activeWorkspaceId={currentUser?.workspace_id}
-        /> */}
         <SidebarMenuButton
           size="lg"
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"

@@ -3,11 +3,12 @@
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import type { Workspace } from "@workspace/types";
 
 import { createClient } from "@workspace/supabase/server";
 import type { ActionResponse } from "@workspace/types";
 
-import { axiosInstance } from "../lib/axios";
+import { axiosInstance } from "../lib/axios.server";
 
 import { sync_user } from "../user/user.action";
 import { createWorkspace } from "../workspace/workspace.action";
@@ -174,12 +175,12 @@ export async function logout() {
   redirect("/login");
 }
 
-export async function createWorkspaceAction(data: {
+export async function onboardingCreateWorkspaceAction(data: {
   name: string;
   country?: string;
   mainCurrencyCode?: string;
   mainCurrencySymbol?: string;
-}): Promise<ActionResponse<void>> {
+}): Promise<ActionResponse<Workspace>> {
   const supabase = await createClient();
   const {
     data: { session },
@@ -192,9 +193,10 @@ export async function createWorkspaceAction(data: {
   try {
     // 1. Create workspace via API
     const wsResult = await createWorkspace(data, session.access_token);
-    if (!wsResult.success) {
+    if (!wsResult.success || !wsResult.data) {
       return { success: false, error: wsResult.error };
     }
+    const workspace = wsResult.data;
 
     // 2. Exchange token for app JWT (now with workspace_id)
     const exchangeResult = await exchangeSupabaseToken(session.access_token);
@@ -213,6 +215,7 @@ export async function createWorkspaceAction(data: {
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
+    return { success: true, data: workspace };
   } catch (error: any) {
     if (isRedirectError(error)) throw error;
     console.error("Failed to create workspace:", error);
@@ -221,8 +224,6 @@ export async function createWorkspaceAction(data: {
       error: error.message || "Failed to create workspace",
     };
   }
-
-  redirect("/overview");
 }
 
 export async function exchangeSupabaseToken(supabase_token: string): Promise<

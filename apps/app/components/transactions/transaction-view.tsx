@@ -19,7 +19,7 @@ import {
 import { Loader2, Plus, Upload, X } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 
-import { getTransactions } from "@workspace/modules";
+import { getTransactions } from "@workspace/modules/transaction/transaction.action";
 
 import { ImportModal } from "./import-modal";
 import { TransactionForm } from "./transaction-form";

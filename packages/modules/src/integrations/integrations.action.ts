@@ -1,6 +1,6 @@
 "use server";
 
-import { axiosInstance as api } from "../lib/axios";
+import { axiosInstance as api } from "../lib/axios.server";
 import type { ActionResponse } from "@workspace/types";
 
 export async function connectWhatsAppAction(

@@ -8,16 +8,19 @@ import {
 import { ErrorCode } from "@workspace/types";
 
 export abstract class OrdersService {
-  static async createOrderFromStripe(data: {
-    workspace_id: string;
-    user_id?: string;
-    stripe_payment_intent_id?: string;
-    stripe_invoice_id?: string;
-    stripe_subscription_id?: string;
-    amount: number;
-    currency: string;
-    status: string;
-  }) {
+  static async createOrderFromStripe(
+    data: {
+      workspace_id: string;
+      user_id?: string;
+      stripe_payment_intent_id?: string;
+      stripe_invoice_id?: string;
+      stripe_subscription_id?: string;
+      amount: number;
+      currency: string;
+      status: string;
+    },
+    tx?: any,
+  ) {
     // If invoice ID exists, try updatng first, otherwise create
     if (data.stripe_invoice_id) {
       const existing = await ordersRepository.findByInvoiceId(
@@ -36,7 +39,7 @@ export abstract class OrdersService {
       }
     }
 
-    const order = await ordersRepository.create(data);
+    const order = await ordersRepository.create(data, tx);
     return buildSuccess(order, "Order created");
   }
 

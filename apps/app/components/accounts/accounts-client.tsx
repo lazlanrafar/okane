@@ -44,8 +44,8 @@ import {
 import { Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-import { deleteWallet, getWallets, reorderWallets } from "@workspace/modules";
-import { deleteWalletGroup, getWalletGroups } from "@workspace/modules";
+import { deleteWallet, getWallets, reorderWallets } from "@workspace/modules/wallet/wallet.action";
+import { deleteWalletGroup, getWalletGroups } from "@workspace/modules/wallet-group/wallet-group.action";
 import { WalletForm } from "@/components/setting/wallet/wallet-form";
 import { WalletGroupForm } from "@/components/setting/wallet/wallet-group-form";
 import {

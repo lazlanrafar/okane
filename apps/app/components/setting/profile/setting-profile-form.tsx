@@ -22,7 +22,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-import { getMe, updateProfileAction } from "@workspace/modules";
+import { getMe, updateProfileAction } from "@workspace/modules/user/user.action";
 
 interface SettingProfileFormProps {
   dictionary: {

@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { getVaultFiles, uploadVaultFile } from "@workspace/modules";
+import { getVaultFiles, uploadVaultFile } from "@workspace/modules/vault/vault.action";
 
 const ALLOWED_TYPES = [
   "image/jpeg",

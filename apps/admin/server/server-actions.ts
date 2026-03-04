@@ -33,6 +33,7 @@ export async function getPreference<T extends string>(
 }
 
 export async function searchOrdersAction(search: string) {
-  const { getAdminOrders } = await import("@workspace/modules");
+  const { getAdminOrders } =
+    await import("@workspace/modules/orders/orders.action");
   return getAdminOrders({ search, limit: 3 });
 }

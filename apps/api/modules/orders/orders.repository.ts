@@ -15,8 +15,8 @@ import {
  * Orders repository — ONLY layer with DB access.
  */
 export const ordersRepository = {
-  async create(data: typeof orders.$inferInsert) {
-    const [order] = await db.insert(orders).values(data).returning();
+  async create(data: typeof orders.$inferInsert, tx: any = db) {
+    const [order] = await tx.insert(orders).values(data).returning();
     return order;
   },
 

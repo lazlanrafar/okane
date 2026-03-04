@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@workspace/supabase/server";
 
-import { exchangeSupabaseToken } from "@workspace/modules";
-import { syncUser } from "@workspace/modules";
+import { exchangeSupabaseToken } from "@workspace/modules/server";
+import { syncUser } from "@workspace/modules/server";
 import { Env } from "@workspace/constants";
 
 export async function GET(request: Request) {

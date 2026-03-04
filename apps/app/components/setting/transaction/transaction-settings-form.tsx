@@ -28,7 +28,7 @@ import {
 } from "@workspace/ui";
 import { toast } from "sonner";
 
-import { getTransactionSettings, updateTransactionSettings } from "@workspace/modules";
+import { getTransactionSettings, updateTransactionSettings } from "@workspace/modules/setting/setting.action";
 import type { TransactionSettings } from "@workspace/types";
 
 interface TransactionSettingsFormProps {

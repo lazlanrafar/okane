@@ -7,7 +7,7 @@
   "exports": {
     ".": "./index.ts",
     "./client": "./client/client.ts",
-    "./server": "./client/server.ts",
+    "./server": "./client/server-client.ts",
     "./middleware": "./client/middleware.ts",
     "./admin": "./client/admin.ts",
     "./job": "./client/job.ts",

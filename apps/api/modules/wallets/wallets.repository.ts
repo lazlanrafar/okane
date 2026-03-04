@@ -38,8 +38,9 @@ export const walletsRepository = {
       balance: number;
       isIncludedInTotals?: boolean;
     }[],
+    tx: any = db,
   ) {
-    return db
+    return tx
       .insert(wallets)
       .values(
         data.map((w) => ({

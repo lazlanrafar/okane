@@ -2,7 +2,7 @@
 
 import type { ActionResponse, Category } from "@workspace/types";
 
-import { axiosInstance as api } from "../lib/axios";
+import { axiosInstance as api } from "../lib/axios.server";
 
 export interface CreateCategoryData {
   name: string;
@@ -13,7 +13,9 @@ export interface UpdateCategoryData {
   name?: string;
 }
 
-export const getCategories = async (type?: "income" | "expense"): Promise<ActionResponse<Category[]>> => {
+export const getCategories = async (
+  type?: "income" | "expense",
+): Promise<ActionResponse<Category[]>> => {
   try {
     const res = await api.get("/categories", { params: { type } });
     return { success: true, data: res.data || [] };
@@ -25,15 +27,21 @@ export const getCategories = async (type?: "income" | "expense"): Promise<Action
   }
 };
 
-export const getIncomeCategories = async (): Promise<ActionResponse<Category[]>> => {
+export const getIncomeCategories = async (): Promise<
+  ActionResponse<Category[]>
+> => {
   return getCategories("income");
 };
 
-export const getExpenseCategories = async (): Promise<ActionResponse<Category[]>> => {
+export const getExpenseCategories = async (): Promise<
+  ActionResponse<Category[]>
+> => {
   return getCategories("expense");
 };
 
-export const createCategory = async (data: CreateCategoryData): Promise<ActionResponse<Category>> => {
+export const createCategory = async (
+  data: CreateCategoryData,
+): Promise<ActionResponse<Category>> => {
   try {
     const res = await api.post("/categories", data);
     return { success: true, data: res.data };
@@ -45,7 +53,10 @@ export const createCategory = async (data: CreateCategoryData): Promise<ActionRe
   }
 };
 
-export const updateCategory = async (id: string, data: UpdateCategoryData): Promise<ActionResponse<Category>> => {
+export const updateCategory = async (
+  id: string,
+  data: UpdateCategoryData,
+): Promise<ActionResponse<Category>> => {
   try {
     const res = await api.patch(`/categories/${id}`, data);
     return { success: true, data: res.data };
@@ -71,7 +82,9 @@ export const reorderCategories = async (
   }
 };
 
-export const deleteCategory = async (id: string): Promise<ActionResponse<void>> => {
+export const deleteCategory = async (
+  id: string,
+): Promise<ActionResponse<void>> => {
   try {
     const res = await api.delete(`/categories/${id}`);
     return { success: true, data: res.data };

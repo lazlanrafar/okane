@@ -60,14 +60,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-import {
-  createCategory,
-  deleteCategory,
-  getExpenseCategories,
-  getIncomeCategories,
-  reorderCategories,
-  updateCategory,
-} from "@workspace/modules";
+import { createCategory, deleteCategory, getExpenseCategories, getIncomeCategories, reorderCategories, updateCategory } from "@workspace/modules/category/category.action";
 
 interface CategoryFormProps {
   type: "income" | "expense";

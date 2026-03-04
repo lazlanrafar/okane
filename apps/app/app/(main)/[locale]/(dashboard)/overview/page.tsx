@@ -6,9 +6,9 @@ import {
   getCategoryBreakdown,
   getExpenseMetrics,
   getRevenueMetrics,
-} from "@workspace/modules";
-import { getTransactionSettings } from "@workspace/modules";
-import { getMe } from "@workspace/modules";
+} from "@workspace/modules/server";
+import { getTransactionSettings } from "@workspace/modules/server";
+import { getMe } from "@workspace/modules/server";
 import { AiChat } from "@/components/overview/ai-chat";
 import { OverviewCards } from "@/components/overview/overview-cards";
 import { OverviewMetrics } from "@/components/overview/overview-metrics";

@@ -6,7 +6,7 @@ import * as jose from "jose";
 import {
   getWorkspaceInvitations,
   getWorkspaceMembers,
-} from "@workspace/modules";
+} from "@workspace/modules/server";
 import { MembersClient } from "@/components/setting/members/members-client";
 import { Env } from "@workspace/constants";
 

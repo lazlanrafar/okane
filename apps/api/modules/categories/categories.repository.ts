@@ -33,10 +33,11 @@ export abstract class CategoriesRepository {
       name: string;
       type: "income" | "expense";
     }[],
+    tx: any = db,
   ): Promise<Category[]> {
     if (data.length === 0) return [];
-    const results = await db.insert(categories).values(data).returning();
-    return results.map((c) => ({
+    const results = await tx.insert(categories).values(data).returning();
+    return results.map((c: any) => ({
       ...c,
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,

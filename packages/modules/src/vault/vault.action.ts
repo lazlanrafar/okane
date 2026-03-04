@@ -2,7 +2,7 @@
 
 import type { ActionResponse, PaginationMeta } from "@workspace/types";
 
-import { axiosInstance as api } from "../lib/axios";
+import { axiosInstance as api } from "../lib/axios.server";
 
 export interface VaultFile {
   id: string;

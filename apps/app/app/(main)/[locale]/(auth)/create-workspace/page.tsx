@@ -2,7 +2,7 @@
 // then passes plans as a prop to the client form.
 
 import { WorkspaceForm } from "@/components/auth/workspace-form";
-import { getPricing } from "@workspace/modules";
+import { getPricing } from "@workspace/modules/server";
 import type { Pricing } from "@workspace/types";
 
 export default async function CreateWorkspacePage() {

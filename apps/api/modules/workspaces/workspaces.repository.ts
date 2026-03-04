@@ -13,14 +13,17 @@ import {
  * All reads filter deleted_at: null on workspaces.
  */
 export const workspacesRepository = {
-  async create(data: {
-    name: string;
-    slug: string;
-    country?: string | null;
-    plan_id?: string | null;
-    plan_status?: string;
-  }) {
-    const [workspace] = await db.insert(workspaces).values(data).returning();
+  async create(
+    data: {
+      name: string;
+      slug: string;
+      country?: string | null;
+      plan_id?: string | null;
+      plan_status?: string;
+    },
+    tx: any = db,
+  ) {
+    const [workspace] = await tx.insert(workspaces).values(data).returning();
     return workspace ?? null;
   },
 
@@ -35,12 +38,15 @@ export const workspacesRepository = {
     return workspace ?? null;
   },
 
-  async addMember(data: {
-    workspace_id: string;
-    user_id: string;
-    role: string;
-  }) {
-    await db.insert(user_workspaces).values(data);
+  async addMember(
+    data: {
+      workspace_id: string;
+      user_id: string;
+      role: string;
+    },
+    tx: any = db,
+  ) {
+    await tx.insert(user_workspaces).values(data);
   },
 
   async getMemberWorkspaces(user_id: string) {

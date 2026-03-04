@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@workspace/supabase/server";
 import { cn, Separator, SidebarInset, SidebarProvider, SidebarTrigger } from "@workspace/ui";
 
-import { getMe } from "@workspace/modules";
+import { getMe } from "@workspace/modules/server";
 import { AccountSwitcher } from "@/components/layout/account-switcher";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { LayoutControls } from "@/components/layout/layout-controls";

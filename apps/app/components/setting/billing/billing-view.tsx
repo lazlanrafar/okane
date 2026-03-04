@@ -15,11 +15,8 @@ import {
 } from "@workspace/ui";
 import { Check, Zap, Shield, Rocket, CreditCard } from "lucide-react";
 import type { Pricing } from "@workspace/types";
-import {
-  getPricing,
-  createCheckoutSession,
-  createCustomerPortal,
-} from "@workspace/modules";
+import { getPricing } from "@workspace/modules/pricing/pricing.action";
+import { createCheckoutSession, createCustomerPortal } from "@workspace/modules/stripe/stripe.action";
 import { toast } from "sonner";
 import { formatBytes, displayPrice, getPlanLimits } from "@workspace/utils";
 

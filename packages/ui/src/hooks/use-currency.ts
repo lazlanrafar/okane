@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getTransactionSettings } from "@workspace/modules";
+import { getTransactionSettings } from "@workspace/modules/setting/setting.action";
 import { formatCurrency } from "@workspace/utils";
 
 export function useCurrency() {

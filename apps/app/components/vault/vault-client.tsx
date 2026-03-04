@@ -52,8 +52,8 @@ import {
   getVaultFiles,
   updateVaultFileTags,
   uploadVaultFile,
-  type VaultFile,
-} from "@workspace/modules";
+} from "@workspace/modules/vault/vault.action";
+import { type VaultFile } from "@workspace/modules/vault/vault.action";
 
 const ALLOWED_TYPES = [
   "image/jpeg",

@@ -94,13 +94,18 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
 
-  // Redirect to dashboard if logged in and on login/register pages
+  // Redirect to dashboard or onboarding if logged in and on login/register pages
   if (
     (pathAfterLocale === "/login" || pathAfterLocale === "/register") &&
-    session &&
-    okane_session
+    session
   ) {
-    return NextResponse.redirect(new URL(`/${locale}/overview`, request.url));
+    if (okane_session) {
+      return NextResponse.redirect(new URL(`/${locale}/overview`, request.url));
+    } else {
+      return NextResponse.redirect(
+        new URL(`/${locale}/create-workspace`, request.url),
+      );
+    }
   }
 
   return response;

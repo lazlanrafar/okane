@@ -48,122 +48,151 @@ export const workspacesService = {
         .then((res) => res[0]),
     ]);
 
-    // 2. Create workspace (sequential - needed for the ID)
-    const workspace = await workspacesRepository.create({
-      name,
-      slug,
-      country,
-      plan_id: freePlan?.id,
-      plan_status: "free",
+    // 2. Wrap creation in a transaction to rollback on partial failure
+    const workspaceResult = await db.transaction(async (tx) => {
+      const workspace = await workspacesRepository.create(
+        {
+          name,
+          slug,
+          country,
+          plan_id: freePlan?.id,
+          plan_status: "free",
+        },
+        tx,
+      );
+
+      if (!workspace) {
+        throw new Error("Failed to create workspace");
+      }
+
+      // 3. Parallelize independent initialization tasks within the transaction
+      await Promise.all([
+        // A. Add user as owner
+        workspacesRepository.addMember(
+          {
+            workspace_id: workspace.id,
+            user_id,
+            role: "owner",
+          },
+          tx,
+        ),
+
+        // B. Set as user's active workspace if they don't have one
+        (async () => {
+          const current_workspace_id = await usersRepository.getWorkspaceId(
+            user_id,
+            tx,
+          );
+          if (!current_workspace_id) {
+            await usersRepository.setWorkspaceId(user_id, workspace.id, tx);
+          }
+        })(),
+
+        // C. Populate default categories
+        CategoriesRepository.createMany(
+          [
+            ...DEFAULT_INCOME_CATEGORIES.map((catName) => ({
+              workspaceId: workspace.id,
+              name: catName,
+              type: "income" as const,
+            })),
+            ...DEFAULT_EXPENSE_CATEGORIES.map((catName) => ({
+              workspaceId: workspace.id,
+              name: catName,
+              type: "expense" as const,
+            })),
+          ],
+          tx,
+        ),
+
+        // D. Create default workspace settings
+        SettingsRepository.create(
+          workspace.id,
+          {
+            mainCurrencyCode,
+            mainCurrencySymbol,
+          } as any,
+          tx,
+        ),
+
+        // Audit log moved outside transaction
+
+        // F. Record initial free order
+        OrdersService.createOrderFromStripe(
+          {
+            workspace_id: workspace.id,
+            user_id,
+            amount: 0,
+            currency: mainCurrencyCode?.toLowerCase() || "usd",
+            status: "paid",
+          },
+          tx,
+        ),
+
+        // G. Handle wallet system (groups then items)
+        (async () => {
+          const defaultGroups = await walletGroupsRepository.createMany(
+            DEFAULT_WALLET_GROUPS.map((groupName) => ({
+              workspaceId: workspace.id,
+              name: groupName,
+            })),
+            tx,
+          );
+
+          const walletsToCreate: {
+            workspaceId: string;
+            groupId: string;
+            name: string;
+            balance: number;
+            isIncludedInTotals: boolean;
+          }[] = [];
+
+          for (const groupConfig of DEFAULT_WALLETS) {
+            const group = defaultGroups.find(
+              (g: any) => g.name === groupConfig.group,
+            );
+            if (group) {
+              for (const walletConfig of groupConfig.wallets) {
+                walletsToCreate.push({
+                  workspaceId: workspace.id,
+                  groupId: group.id,
+                  name: walletConfig.name,
+                  balance: walletConfig.balance,
+                  isIncludedInTotals: walletConfig.isIncludedInTotals,
+                });
+              }
+            }
+          }
+
+          if (walletsToCreate.length > 0) {
+            await walletsRepository.createMany(walletsToCreate, tx);
+          }
+        })(),
+      ]);
+
+      return {
+        id: workspace.id,
+        name: workspace.name,
+        slug: workspace.slug,
+      };
     });
 
-    if (!workspace) {
-      throw new Error("Failed to create workspace");
-    }
-
-    // 3. Parallelize independent initialization tasks
-    await Promise.all([
-      // A. Add user as owner
-      workspacesRepository.addMember({
-        workspace_id: workspace.id,
-        user_id,
-        role: "owner",
-      }),
-
-      // B. Set as user's active workspace if they don't have one
-      (async () => {
-        const current_workspace_id =
-          await usersRepository.getWorkspaceId(user_id);
-        if (!current_workspace_id) {
-          await usersRepository.setWorkspaceId(user_id, workspace.id);
-        }
-      })(),
-
-      // C. Populate default categories
-      CategoriesRepository.createMany([
-        ...DEFAULT_INCOME_CATEGORIES.map((catName) => ({
-          workspaceId: workspace.id,
-          name: catName,
-          type: "income" as const,
-        })),
-        ...DEFAULT_EXPENSE_CATEGORIES.map((catName) => ({
-          workspaceId: workspace.id,
-          name: catName,
-          type: "expense" as const,
-        })),
-      ]),
-
-      // D. Create default workspace settings
-      SettingsRepository.create(workspace.id, {
-        mainCurrencyCode,
-        mainCurrencySymbol,
-      } as any),
-
-      // E. Log action
-      auditLogsService.log({
-        workspace_id: workspace.id,
+    // E. Log action (after transaction commits to respect FK constraints)
+    auditLogsService
+      .log({
+        workspace_id: workspaceResult.id,
         user_id,
         action: "workspace.created",
         entity: "workspace",
-        entity_id: workspace.id,
+        entity_id: workspaceResult.id,
         after: {
-          name: workspace.name,
-          slug: workspace.slug,
+          name: workspaceResult.name,
+          slug: workspaceResult.slug,
         },
-      }),
+      })
+      .catch(console.error);
 
-      // F. Record initial free order
-      OrdersService.createOrderFromStripe({
-        workspace_id: workspace.id,
-        user_id,
-        amount: 0,
-        currency: mainCurrencyCode?.toLowerCase() || "usd",
-        status: "paid",
-      }),
-
-      // G. Handle wallet system (groups then items)
-      (async () => {
-        const defaultGroups = await walletGroupsRepository.createMany(
-          DEFAULT_WALLET_GROUPS.map((groupName) => ({
-            workspaceId: workspace.id,
-            name: groupName,
-          })),
-        );
-
-        const walletsToCreate: {
-          workspaceId: string;
-          groupId: string;
-          name: string;
-          balance: number;
-          isIncludedInTotals: boolean;
-        }[] = [];
-
-        for (const groupConfig of DEFAULT_WALLETS) {
-          const group = defaultGroups.find((g) => g.name === groupConfig.group);
-          if (group) {
-            for (const walletConfig of groupConfig.wallets) {
-              walletsToCreate.push({
-                workspaceId: workspace.id,
-                groupId: group.id,
-                name: walletConfig.name,
-                balance: walletConfig.balance,
-                isIncludedInTotals: walletConfig.isIncludedInTotals,
-              });
-            }
-          }
-        }
-
-        if (walletsToCreate.length > 0) {
-          await walletsRepository.createMany(walletsToCreate);
-        }
-      })(),
-    ]);
-
-    return {
-      id: workspace.id,
-      name: workspace.name,
-      slug: workspace.slug,
-    };
+    return workspaceResult;
   },
 
   /**

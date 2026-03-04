@@ -6,7 +6,7 @@ import { Button, Card, CardContent } from "@workspace/ui";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { addSubCurrency, getExchangeRates, getSubCurrencies, removeSubCurrency } from "@workspace/modules";
+import { addSubCurrency, getExchangeRates, getSubCurrencies, removeSubCurrency } from "@workspace/modules/setting/setting.action";
 import type { SubCurrency, TransactionSettings } from "@workspace/types";
 
 import { CurrencySelector } from "../currency-selector";

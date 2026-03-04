@@ -32,14 +32,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  getTransactionSettings,
-  updateTransactionSettings,
-} from "@workspace/modules";
-import {
-  getIntegrationsAction,
-  connectWhatsAppAction,
-} from "@workspace/modules";
+import { getTransactionSettings, updateTransactionSettings } from "@workspace/modules/setting/setting.action";
+import { getIntegrationsAction, connectWhatsAppAction } from "@workspace/modules/integrations/integrations.action";
 
 const MOCK_APPS = [
   {

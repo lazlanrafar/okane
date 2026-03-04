@@ -34,12 +34,12 @@ import {
 
 import { AiChart } from "@workspace/ui";
 
+import { type ChatMessage } from "@workspace/modules/ai/ai.action";
 import {
-  type ChatMessage,
   getChatSessionMessages,
   getChatSessions,
   sendChatMessage,
-} from "@workspace/modules";
+} from "@workspace/modules/ai/ai.action";
 import { useAiChatStore } from "@/stores/ai-chat-store";
 
 export type ChatSession = {

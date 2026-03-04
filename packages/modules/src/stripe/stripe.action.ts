@@ -1,4 +1,6 @@
-import { axiosInstance as api } from "../lib/axios";
+"use server";
+
+import { axiosInstance as api } from "../lib/axios.server";
 import type { ActionResponse } from "@workspace/types";
 
 /**
@@ -7,11 +9,13 @@ import type { ActionResponse } from "@workspace/types";
 
 export const createCheckoutSession = async (
   priceId: string,
+  workspaceId?: string,
   returnPath?: string,
 ): Promise<ActionResponse<{ url: string }>> => {
   try {
     const response = await api.post("/stripe/checkout", {
       priceId,
+      workspaceId,
       returnPath,
     });
     return {

@@ -29,7 +29,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-import { inviteMember } from "@workspace/modules";
+import { inviteMember } from "@workspace/modules/workspace/workspace.action";
 
 const inviteSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),

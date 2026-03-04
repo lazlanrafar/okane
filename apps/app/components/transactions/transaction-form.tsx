@@ -43,12 +43,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-import { getCategories } from "@workspace/modules";
-import {
-  createTransaction,
-  updateTransaction,
-} from "@workspace/modules";
-import { getWallets } from "@workspace/modules";
+import { getCategories } from "@workspace/modules/category/category.action";
+import { createTransaction, updateTransaction } from "@workspace/modules/transaction/transaction.action";
+import { getWallets } from "@workspace/modules/wallet/wallet.action";
 import { CurrencyInput } from "@workspace/ui";
 import { useCurrency } from "@workspace/ui/hooks";
 

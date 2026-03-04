@@ -1,3 +1,5 @@
+"use client";
+
 import { createBrowserClient as supabaseCreateBrowserClient } from "@supabase/ssr";
 import { Env } from "@workspace/constants";
 

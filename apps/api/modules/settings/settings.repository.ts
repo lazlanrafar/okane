@@ -25,8 +25,9 @@ export abstract class SettingsRepository {
   static async create(
     workspaceId: string,
     data?: Partial<TransactionSettingsInput>,
+    tx: any = db,
   ): Promise<WorkspaceSetting> {
-    const [settings] = await db
+    const [settings] = await tx
       .insert(workspaceSettings)
       .values({
         workspaceId,

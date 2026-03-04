@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import type { ActionResponse } from "@workspace/types";
 
-import { axiosInstance as api } from "../lib/axios";
+import { axiosInstance as api } from "../lib/axios.server";
 import type { TransactionSettings } from "@workspace/types";
 
 export const getTransactionSettings = async (): Promise<ActionResponse<TransactionSettings>> => {

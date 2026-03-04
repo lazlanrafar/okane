@@ -18,7 +18,7 @@ import {
 import { ChevronsUpDown, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-import { switchWorkspaceAction } from "@workspace/modules";
+import { switchWorkspaceAction } from "@workspace/modules/user/user.action";
 
 type WorkspaceData = {
   id: string;
@@ -36,7 +36,9 @@ export function WorkspaceSwitcher({
 }) {
   const { isMobile } = useSidebar();
   const [activeWorkspace, setActiveWorkspace] = React.useState(
-    workspaces.find((w) => w.id === activeWorkspaceId) ?? workspaces?.[0] ?? null,
+    workspaces.find((w) => w.id === activeWorkspaceId) ??
+      workspaces?.[0] ??
+      null,
   );
 
   const [isSwitching, setIsSwitching] = React.useState(false);
@@ -93,8 +95,12 @@ export function WorkspaceSwitcher({
                 )}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{activeWorkspace.name}</span>
-                <span className="truncate text-xs capitalize">{activeWorkspace.role || "member"}</span>
+                <span className="truncate font-semibold">
+                  {activeWorkspace.name}
+                </span>
+                <span className="truncate text-xs capitalize">
+                  {activeWorkspace.role || "member"}
+                </span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -105,7 +111,9 @@ export function WorkspaceSwitcher({
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
-            <DropdownMenuLabel className="text-muted-foreground text-xs">Workspaces</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-muted-foreground text-xs">
+              Workspaces
+            </DropdownMenuLabel>
             {workspaces.map((workspace, index) => (
               <DropdownMenuItem
                 key={workspace.id}
@@ -125,7 +133,9 @@ export function WorkspaceSwitcher({
               <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                 <Plus className="size-4" />
               </div>
-              <div className="font-medium text-muted-foreground">Add workspace</div>
+              <div className="font-medium text-muted-foreground">
+                Add workspace
+              </div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

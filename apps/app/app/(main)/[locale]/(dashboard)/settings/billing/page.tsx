@@ -1,7 +1,7 @@
 import { getDictionary } from "@/get-dictionary";
 import type { Locale } from "@/i18n-config";
 import { BillingView } from "@/components/setting/billing/billing-view";
-import { getActiveWorkspace } from "@workspace/modules";
+import { getActiveWorkspace } from "@workspace/modules/server";
 import { unauthorized } from "next/navigation";
 
 export default async function BillingPage({

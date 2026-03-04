@@ -5,7 +5,7 @@ import { DonutChart, LineMetricChart } from "@workspace/ui";
 import type {
   CategoryBreakdownPoint,
   ChartDataPoint,
-} from "@workspace/modules";
+} from "@workspace/modules/metrics/metrics.action";
 import { formatCurrency } from "@workspace/utils";
 import type { TransactionSettings } from "@workspace/types";
 

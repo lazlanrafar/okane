@@ -2,9 +2,9 @@ import { Suspense } from "react";
 
 import type { Category, Transaction, Wallet } from "@workspace/types";
 
-import { getCategories } from "@workspace/modules";
-import { getTransactions } from "@workspace/modules";
-import { getWallets } from "@workspace/modules";
+import { getCategories } from "@workspace/modules/server";
+import { getTransactions } from "@workspace/modules/server";
+import { getWallets } from "@workspace/modules/server";
 import { TransactionView } from "@/components/transactions/transaction-view";
 
 export const dynamic = "force-dynamic";

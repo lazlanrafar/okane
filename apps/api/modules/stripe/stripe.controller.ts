@@ -35,10 +35,15 @@ export const stripeController = new Elysia({
   .post(
     "/checkout",
     async ({ body, auth }) => {
-      if (!auth?.workspace_id) throw new Error("Unauthorized");
+      if (!auth?.user_id) throw new Error("Unauthorized");
+
+      // Use workspaceId from body (onboarding flow) or fallback to auth context (existing workspace)
+      const workspaceId = body.workspaceId || auth.workspace_id;
+      if (!workspaceId) throw new Error("Workspace context missing");
+
       // @ts-ignore
       return StripeService.createCheckoutSession(
-        auth.workspace_id,
+        workspaceId,
         auth.user_id,
         body.priceId,
         body.returnPath,
@@ -47,6 +52,7 @@ export const stripeController = new Elysia({
     {
       body: t.Object({
         priceId: t.String(),
+        workspaceId: t.Optional(t.String()),
         returnPath: t.Optional(t.String()),
       }),
       detail: { summary: "Create Checkout Session", tags: ["Stripe"] },
