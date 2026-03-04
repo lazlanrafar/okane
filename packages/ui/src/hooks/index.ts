@@ -4,7 +4,6 @@ export * from "./use-currency";
 export * from "./use-localized-route";
 export * from "./use-data-table-instance";
 export * from "./use-infinite-scroll";
-export * from "./use-realtime";
 export * from "./use-scroll-header";
 export * from "./use-sort-params";
 export * from "./use-sort-query";
