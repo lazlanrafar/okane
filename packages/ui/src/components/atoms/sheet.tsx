@@ -49,10 +49,12 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
+  title,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left";
   showCloseButton?: boolean;
+  title?: string;
 }) {
   return (
     <SheetPortal>
@@ -75,19 +77,19 @@ function SheetContent({
       >
         <div
           className={cn(
-            "border w-full h-full bg-[#FAFAF9] dark:bg-[#0C0C0C] p-6 relative overflow-hidden",
+            "border w-full h-full bg-[#FAFAF9] dark:bg-[#0C0C0C] relative overflow-hidden flex flex-col",
             className,
           )}
         >
-          {/* <SheetTitle className="sr-only">{title}</SheetTitle> */}
+          <SheetTitle className="sr-only">{title}</SheetTitle>
           {children}
         </div>
-        {showCloseButton && (
+        {/* {showCloseButton && (
           <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
             <XIcon className="size-4" />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
-        )}
+        )} */}
       </SheetPrimitive.Content>
     </SheetPortal>
   );
@@ -97,7 +99,10 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-header"
-      className={cn("flex flex-col gap-1.5 p-4", className)}
+      className={cn(
+        "flex flex-col space-y-2 text-center sm:text-left",
+        className,
+      )}
       {...props}
     />
   );

@@ -12,12 +12,23 @@ export default async function UsersPage(props: {
   const limit = Number(searchParams.limit) || 20;
   const search =
     typeof searchParams.search === "string" ? searchParams.search : undefined;
+  const system_role =
+    typeof searchParams.system_role === "string"
+      ? searchParams.system_role
+      : undefined;
+  const start =
+    typeof searchParams.start === "string" ? searchParams.start : undefined;
+  const end =
+    typeof searchParams.end === "string" ? searchParams.end : undefined;
 
   // Get initial data for SSR
   const response = await getSystemAdminUsers({
     page,
     limit,
     search,
+    system_role,
+    start,
+    end,
   });
 
   const users = response.success ? response.data.users : [];

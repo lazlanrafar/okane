@@ -40,12 +40,20 @@ export function UsersClient({
   } = useDataTableFilter({
     initialFilters: {
       q: "",
+      system_role: null,
+      start: null,
+      end: null,
     },
     pageSize,
     initialPage,
   });
 
   const { columns, setColumns } = useUsersStore();
+  const statusOptions = [
+    { id: "owner", name: "Owner" },
+    { id: "finance", name: "Finance" },
+    { id: "user", name: "User" },
+  ];
 
   return (
     <div className="flex w-full flex-col h-full space-y-4">
@@ -56,15 +64,19 @@ export function UsersClient({
             View and manage system administrative users.
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <DataTableFilter
-            filters={filters}
-            onFilterChange={handleFilterChange as any}
-            placeholder="Search users..."
-          />
+      </div>
+      <div className="flex items-center gap-4">
+        <DataTableFilter
+          filters={filters}
+          onFilterChange={handleFilterChange as any}
+          placeholder="Search users..."
+          statusOptions={statusOptions}
+          statusKey="system_role"
+          showDateFilter={true}
+          showAmountFilter={false}
+        />
 
-          <DataTableColumnsVisibility columns={columns} />
-        </div>
+        <DataTableColumnsVisibility columns={columns} />
       </div>
 
       <div className="flex-1 min-h-0 relative">

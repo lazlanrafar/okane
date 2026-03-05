@@ -68,6 +68,13 @@ export function FilterList({
 
   if (activeFilters.length === 0 && !loading) return null;
 
+  // _ to be space weAre to be We Are
+  const textCapitalize = (text: string) => {
+    return text
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
   return (
     <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
       {loading ? (
@@ -88,9 +95,9 @@ export function FilterList({
                   className="h-9 px-2 bg-secondary hover:bg-secondary font-normal flex space-x-1 items-center group rounded-none"
                   onClick={() => onRemove(key)}
                 >
-                  <Icons.Clear className="scale-0 group-hover:scale-100 transition-all w-0 group-hover:w-4" />
+                  <Icons.Clear className="scale-0 size-auto group-hover:scale-100 transition-all w-0 group-hover:w-4" />
                   <span className="text-[11px] font-medium text-foreground/90 whitespace-nowrap">
-                    {displayValue}
+                    {textCapitalize(key)}: {textCapitalize(displayValue)}
                   </span>
                 </Button>
               </li>

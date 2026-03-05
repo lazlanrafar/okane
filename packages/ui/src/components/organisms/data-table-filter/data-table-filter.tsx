@@ -28,7 +28,9 @@ interface DataTableFilterProps {
   filters: Record<string, any>;
   onFilterChange: (filters: Record<string, any>) => void;
   statusOptions?: FilterOption[];
+  statusKey?: string;
   showDateFilter?: boolean;
+  showAmountFilter?: boolean;
   showAttachments?: boolean;
   showSource?: boolean;
   isLoading?: boolean;
@@ -71,7 +73,9 @@ export function DataTableFilter({
   filters,
   onFilterChange,
   statusOptions,
+  statusKey = "status",
   showDateFilter = true,
+  showAmountFilter = true,
   isLoading,
   className,
   showAttachments,
@@ -100,8 +104,9 @@ export function DataTableFilter({
   };
 
   const handleStatusChange = (statusId: string) => {
-    const newStatus = filters.status === statusId ? null : statusId;
-    onFilterChange({ ...filters, status: newStatus });
+    const key = statusKey || "status";
+    const newValue = filters[key] === statusId ? null : statusId;
+    onFilterChange({ ...filters, [key]: newValue });
   };
 
   const handleDateSelect = (range: DateRange | undefined) => {
@@ -156,7 +161,7 @@ export function DataTableFilter({
               placeholder={placeholder}
               value={searchValue}
               onChange={handleSearchChange}
-              className="pl-9 pr-16 h-9 border border-secondary/50 bg-secondary/10 focus-visible:ring-1 focus-visible:ring-ring/20 transition-all shadow-none placeholder:text-muted-foreground/50 rounded-none text-xs"
+              className="pl-9 pr-16 h-9 border border-border bg-secondary/10 focus-visible:ring-1 focus-visible:ring-ring/20 transition-all shadow-none placeholder:text-muted-foreground/50 rounded-none text-xs"
             />
 
             <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
@@ -203,11 +208,13 @@ export function DataTableFilter({
                 </FilterMenuItem>
               )}
 
-              <FilterMenuItem icon={Icons.Amount} label="Amount">
-                <div className="p-4 text-center text-[10px] text-muted-foreground font-medium uppercase tracking-widest opacity-50">
-                  Amount range UI coming soon
-                </div>
-              </FilterMenuItem>
+              {showAmountFilter && (
+                <FilterMenuItem icon={Icons.Amount} label="Amount">
+                  <div className="p-4 text-center text-[10px] text-muted-foreground font-medium uppercase tracking-widest opacity-50">
+                    Amount range UI coming soon
+                  </div>
+                </FilterMenuItem>
+              )}
 
               {statusOptions && (
                 <FilterMenuItem icon={Icons.Status} label="Status">
@@ -215,7 +222,7 @@ export function DataTableFilter({
                     {statusOptions.map((option) => (
                       <DropdownMenuCheckboxItem
                         key={option.id}
-                        checked={filters.status === option.id}
+                        checked={filters[statusKey || "status"] === option.id}
                         onCheckedChange={() => handleStatusChange(option.id)}
                         className="text-xs rounded-none py-2 pr-3 focus:bg-accent cursor-default"
                       >

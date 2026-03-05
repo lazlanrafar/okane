@@ -12,6 +12,8 @@ export const getSystemAdminUsers = async (params: {
   limit?: number;
   search?: string;
   system_role?: string;
+  start?: string;
+  end?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }): Promise<

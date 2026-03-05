@@ -1,6 +1,12 @@
 "use client";
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@workspace/ui";
+import {
+  ScrollArea,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui";
 import { PricingForm } from "./pricing-form";
 import { usePricingStore } from "@/stores/pricing";
 
@@ -9,19 +15,20 @@ export function PricingSheet() {
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
-      <SheetContent className="sm:max-w-[540px] overflow-y-auto">
-        <SheetHeader className="px-6 pt-6 pb-4">
+      <SheetContent className="flex flex-col">
+        <SheetHeader className="p-6 mb-0">
           <SheetTitle>
             {mode === "create" ? "Create Pricing Plan" : "Edit Pricing Plan"}
           </SheetTitle>
         </SheetHeader>
-        <div className="px-6 pb-6">
+
+        <ScrollArea className="h-full p-0 pb-[130px]">
           <PricingForm
             key={selectedPricing?.id ?? "create"}
             initialData={selectedPricing}
             onSuccess={close}
           />
-        </div>
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );

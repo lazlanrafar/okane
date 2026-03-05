@@ -14,11 +14,15 @@ import {
   Input,
   Textarea,
   Switch,
+  ScrollArea,
 } from "@workspace/ui";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createPricingAction, updatePricingAction } from "@workspace/modules/pricing/pricing.action";
+import {
+  createPricingAction,
+  updatePricingAction,
+} from "@workspace/modules/pricing/pricing.action";
 import type { Pricing } from "@workspace/types";
 
 const pricingSchema = z.object({
@@ -93,141 +97,145 @@ export function PricingForm({ initialData, onSuccess }: PricingFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. Pro Plan" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Describe the plan..."
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-3 gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="space-y-4 px-6 py-4">
           <FormField
             control={form.control}
-            name="price_monthly"
+            name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Monthly Price</FormLabel>
+                <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" {...field} />
+                  <Input placeholder="e.g. Pro Plan" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
-            name="price_yearly"
+            name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Yearly Price</FormLabel>
+                <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" {...field} />
+                  <Textarea
+                    placeholder="Describe the plan..."
+                    className="resize-none"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          <div className="grid grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="price_monthly"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Monthly Price</FormLabel>
+                  <FormControl>
+                    <Input type="number" step="0.01" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="price_yearly"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Yearly Price</FormLabel>
+                  <FormControl>
+                    <Input type="number" step="0.01" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="price_one_time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>One-Time Price</FormLabel>
+                  <FormControl>
+                    <Input type="number" step="0.01" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
           <FormField
             control={form.control}
-            name="price_one_time"
+            name="currency"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>One-Time Price</FormLabel>
+                <FormLabel>Currency</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" {...field} />
+                  <Input placeholder="usd" {...field} />
                 </FormControl>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="features"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Features (one per line)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Unlimited users&#10;Priority support"
+                    rows={5}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="is_active"
+            render={({ field }) => (
+              <FormItem className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+                <div className="space-y-0.5">
+                  <FormLabel>Active</FormLabel>
+                  <div className="text-[0.8rem] text-muted-foreground">
+                    Whether this plan is available for selection.
+                  </div>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
               </FormItem>
             )}
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="currency"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Currency</FormLabel>
-              <FormControl>
-                <Input placeholder="usd" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="features"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Features (one per line)</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Unlimited users&#10;Priority support"
-                  rows={5}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="is_active"
-          render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
-              <div className="space-y-0.5">
-                <FormLabel>Active</FormLabel>
-                <div className="text-[0.8rem] text-muted-foreground">
-                  Whether this plan is available for selection.
-                </div>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading
-            ? "Saving..."
-            : initialData
-              ? "Update Plan"
-              : "Create Plan"}
-        </Button>
+        <div className="fixed bottom-8 w-full sm:max-w-[455px] right-8">
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading
+              ? "Saving..."
+              : initialData
+                ? "Update Plan"
+                : "Create Plan"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

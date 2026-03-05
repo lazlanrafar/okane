@@ -16,6 +16,8 @@ export abstract class SystemAdminsService {
     limit: number;
     search?: string;
     system_role?: string;
+    start?: string;
+    end?: string;
     sortBy?: string;
     sortOrder?: "asc" | "desc";
   }) {

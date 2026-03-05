@@ -1,21 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import React from "react";
 import {
-  cn,
   DataTable,
   TableSkeleton,
   DataTableColumnsVisibility,
   DataTableFilter,
   Icons,
+  Button,
 } from "@workspace/ui";
-import type { PaginationState } from "@tanstack/react-table";
 import type { Pricing } from "@workspace/types";
 import { useDataTableFilter } from "@/hooks/use-data-table-filter";
 import { usePricingStore } from "@/stores/pricing";
 import { pricingColumns } from "./pricing-columns";
-import { PricingAddButton } from "./pricing-add-button";
 
 type Props = {
   initialData: Pricing[];
@@ -47,7 +44,7 @@ export function PricingClient({
     initialPage,
   });
 
-  const { columns, setColumns, openDetail } = usePricingStore();
+  const { columns, setColumns, openDetail, openCreate } = usePricingStore();
 
   const statusOptions = [
     { id: "active", name: "Active" },
@@ -63,18 +60,20 @@ export function PricingClient({
             Manage system pricing plans and tiers.
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <DataTableFilter
-            filters={filters}
-            onFilterChange={handleFilterChange as any}
-            statusOptions={statusOptions}
-            placeholder="Search plans..."
-          />
+      </div>
+      <div className="flex items-center gap-4">
+        <DataTableFilter
+          filters={filters}
+          onFilterChange={handleFilterChange as any}
+          statusOptions={statusOptions}
+          placeholder="Search plans..."
+        />
 
-          <div className="flex items-center gap-2">
-            <PricingAddButton />
-            <DataTableColumnsVisibility columns={columns} />
-          </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={openCreate}>
+            <Icons.Add size={17} />
+          </Button>
+          <DataTableColumnsVisibility columns={columns} />
         </div>
       </div>
 

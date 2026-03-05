@@ -2,6 +2,7 @@
 
 import { useOrdersStore } from "@/stores/orders";
 import {
+  ScrollArea,
   Label,
   Sheet,
   SheetContent,
@@ -26,167 +27,166 @@ export function OrdersDetailSheet() {
 
   return (
     <Sheet open={isDetailOpen} onOpenChange={closeDetail}>
-      <SheetContent
-        className="sm:max-w-lg p-0 flex flex-col h-full"
-        showCloseButton={false}
-      >
+      <SheetContent showCloseButton={false}>
         <SheetHeader className="sr-only">
           <SheetTitle>Order Details</SheetTitle>
         </SheetHeader>
-        <div className="h-full scrollbar-hide overflow-auto pb-12 px-6 my-6">
-          <div className="flex justify-between mb-8">
-            <div className="flex-1 flex-col">
-              <div className="flex items-center justify-between">
-                <span className="text-[#606060] text-xs select-text flex items-center gap-2">
-                  <div
-                    className={cn(
-                      "w-2 h-2 rounded-full",
-                      selectedOrder.status === "paid"
-                        ? "bg-green"
-                        : selectedOrder.status === "pending"
-                          ? "bg-yellow-500"
-                          : "bg-red-500",
-                    )}
-                  />
-                  <span className="capitalize">{selectedOrder.status}</span>
-                </span>
-                <span className="text-[#606060] text-xs select-text">
-                  {selectedOrder.created_at
-                    ? format(
-                        new Date(selectedOrder.created_at),
-                        "MMM d, y HH:mm",
-                      )
-                    : "Date unknown"}
-                </span>
-              </div>
-
-              <h2 className="mt-6 mb-3 select-text text-xl font-medium font-mono">
-                {selectedOrder.code}
-              </h2>
-
-              <div className="flex justify-between items-center">
-                <div className="flex flex-col w-full space-y-1">
-                  <span
-                    className={cn(
-                      "text-4xl select-text font-serif",
-                      selectedOrder.status === "paid" && "text-green",
-                    )}
-                  >
-                    {formatCurrency(selectedOrder.amount / 100, {
-                      mainCurrencySymbol:
-                        selectedOrder.currency.toUpperCase() === "USD"
-                          ? "$"
-                          : selectedOrder.currency.toUpperCase(),
-                    })}
+        <ScrollArea className="h-full p-0 py-4">
+          <div className="px-6 py-6">
+            <div className="flex justify-between mb-8">
+              <div className="flex-1 flex-col">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#606060] text-xs select-text flex items-center gap-2">
+                    <div
+                      className={cn(
+                        "w-2 h-2 rounded-full",
+                        selectedOrder.status === "paid"
+                          ? "bg-green"
+                          : selectedOrder.status === "pending"
+                            ? "bg-yellow-500"
+                            : "bg-red-500",
+                      )}
+                    />
+                    <span className="capitalize">{selectedOrder.status}</span>
                   </span>
-                  <div className="h-3">
-                    <span className="text-[#606060] text-xs select-text">
-                      Total Order Amount
+                  <span className="text-[#606060] text-xs select-text">
+                    {selectedOrder.created_at
+                      ? format(
+                          new Date(selectedOrder.created_at),
+                          "MMM d, y HH:mm",
+                        )
+                      : "Date unknown"}
+                  </span>
+                </div>
+
+                <h2 className="mt-6 mb-3 select-text text-xl font-medium font-mono">
+                  {selectedOrder.code}
+                </h2>
+
+                <div className="flex justify-between items-center">
+                  <div className="flex flex-col w-full space-y-1">
+                    <span
+                      className={cn(
+                        "text-4xl select-text font-serif",
+                        selectedOrder.status === "paid" && "text-green",
+                      )}
+                    >
+                      {formatCurrency(selectedOrder.amount / 100, {
+                        mainCurrencySymbol:
+                          selectedOrder.currency.toUpperCase() === "USD"
+                            ? "$"
+                            : selectedOrder.currency.toUpperCase(),
+                      })}
                     </span>
+                    <div className="h-3">
+                      <span className="text-[#606060] text-xs select-text">
+                        Total Order Amount
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="border-b border-b-border/40 my-6"></div>
+            <div className="border-b border-b-border/40 my-6"></div>
 
-          <div className="grid grid-cols-2 gap-4 mt-6 mb-2">
-            <div>
-              <Label className="mb-2 block text-muted-foreground">
-                Customer Email
-              </Label>
-              <div className="h-[36px] flex items-center text-sm bg-muted/10">
-                {selectedOrder.userEmail || "N/A"}
-              </div>
-            </div>
-
-            <div>
-              <Label className="mb-2 block text-muted-foreground">
-                Customer Name
-              </Label>
-              <div className="h-[36px] flex items-center text-sm bg-muted/10">
-                {selectedOrder.userName || "N/A"}
-              </div>
-            </div>
-
-            <div>
-              <Label className="mb-2 block text-muted-foreground">
-                Workspace
-              </Label>
-              <div className="h-[36px] flex items-center text-sm bg-muted/10">
-                {selectedOrder.workspaceName || "N/A"}
-              </div>
-            </div>
-
-            <div>
-              <Label className="mb-2 block text-muted-foreground">
-                Currency
-              </Label>
-              <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10">
-                {selectedOrder.currency.toUpperCase()}
-              </div>
-            </div>
-          </div>
-
-          <div className="border-b border-b-border/40 my-6"></div>
-
-          <div className="mt-6 mb-2">
-            <Label className="mb-4 block font-medium text-md">
-              Stripe Information
-            </Label>
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-2 gap-4 mt-6 mb-2">
               <div>
                 <Label className="mb-2 block text-muted-foreground">
-                  Stripe Invoice ID
+                  Customer Email
                 </Label>
-                <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
-                  {selectedOrder.stripe_invoice_id || "N/A"}
+                <div className="h-[36px] flex items-center text-sm bg-muted/10">
+                  {selectedOrder.userEmail || "N/A"}
                 </div>
               </div>
 
               <div>
                 <Label className="mb-2 block text-muted-foreground">
-                  Stripe Subscription ID
+                  Customer Name
                 </Label>
-                <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
-                  {selectedOrder.stripe_subscription_id || "N/A"}
+                <div className="h-[36px] flex items-center text-sm bg-muted/10">
+                  {selectedOrder.userName || "N/A"}
                 </div>
               </div>
 
               <div>
                 <Label className="mb-2 block text-muted-foreground">
-                  Stripe Payment Intent ID
+                  Workspace
                 </Label>
-                <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
-                  {selectedOrder.stripe_payment_intent_id || "N/A"}
+                <div className="h-[36px] flex items-center text-sm bg-muted/10">
+                  {selectedOrder.workspaceName || "N/A"}
+                </div>
+              </div>
+
+              <div>
+                <Label className="mb-2 block text-muted-foreground">
+                  Currency
+                </Label>
+                <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10">
+                  {selectedOrder.currency.toUpperCase()}
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="mt-8 pt-4">
-            <Label className="mb-2 block font-medium text-md">
-              Internal Settings
-            </Label>
-            <div className="flex flex-row items-center justify-between border-b border-b-border/40 pb-4">
-              <div className="space-y-0.5 pr-4">
-                <p className="text-xs text-muted-foreground">
-                  Database internal identifier for this order record.
-                </p>
+            <div className="border-b border-b-border/40 my-6"></div>
+
+            <div className="mt-6 mb-2">
+              <Label className="mb-4 block font-medium text-md">
+                Stripe Information
+              </Label>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label className="mb-2 block text-muted-foreground">
+                    Stripe Invoice ID
+                  </Label>
+                  <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                    {selectedOrder.stripe_invoice_id || "N/A"}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="mb-2 block text-muted-foreground">
+                    Stripe Subscription ID
+                  </Label>
+                  <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                    {selectedOrder.stripe_subscription_id || "N/A"}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="mb-2 block text-muted-foreground">
+                    Stripe Payment Intent ID
+                  </Label>
+                  <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                    {selectedOrder.stripe_payment_intent_id || "N/A"}
+                  </div>
+                </div>
               </div>
-              <button
-                onClick={copyId}
-                className="flex items-center gap-2 hover:text-green transition-colors text-xs font-mono group"
-              >
-                <span className="opacity-80 group-hover:opacity-100">
-                  {selectedOrder.id.slice(0, 12)}...
-                </span>
-                <Copy className="w-3 h-3 transition-transform" />
-              </button>
+            </div>
+
+            <div className="mt-8 pt-4">
+              <Label className="mb-2 block font-medium text-md">
+                Internal Settings
+              </Label>
+              <div className="flex flex-row items-center justify-between border-b border-b-border/40 pb-4">
+                <div className="space-y-0.5 pr-4">
+                  <p className="text-xs text-muted-foreground">
+                    Database internal identifier for this order record.
+                  </p>
+                </div>
+                <button
+                  onClick={copyId}
+                  className="flex items-center gap-2 hover:text-green transition-colors text-xs font-mono group"
+                >
+                  <span className="opacity-80 group-hover:opacity-100">
+                    {selectedOrder.id.slice(0, 12)}...
+                  </span>
+                  <Copy className="w-3 h-3 transition-transform" />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );

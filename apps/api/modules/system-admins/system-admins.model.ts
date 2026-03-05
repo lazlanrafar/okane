@@ -6,6 +6,8 @@ export const SystemAdminModel = {
     limit: t.Optional(t.Numeric({ default: 50 })),
     search: t.Optional(t.String()),
     system_role: t.Optional(t.String()),
+    start: t.Optional(t.String()),
+    end: t.Optional(t.String()),
     sortBy: t.Optional(t.String()),
     sortOrder: t.Optional(t.Union([t.Literal("asc"), t.Literal("desc")])),
   }),

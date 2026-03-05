@@ -9,6 +9,8 @@ import {
   not,
   sql,
   inArray,
+  gte,
+  lte,
   type SQL,
 } from "drizzle-orm";
 
@@ -18,6 +20,8 @@ export abstract class SystemAdminsRepository {
     limit: number;
     search?: string;
     system_role?: string;
+    start?: string;
+    end?: string;
     sortBy?: string;
     sortOrder?: "asc" | "desc";
   }) {
@@ -37,6 +41,14 @@ export abstract class SystemAdminsRepository {
         ",",
       ) as import("@workspace/constants").SystemRole[];
       conditions.push(inArray(users.system_role, roles));
+    }
+
+    if (params.start) {
+      conditions.push(gte(users.created_at, new Date(params.start)));
+    }
+
+    if (params.end) {
+      conditions.push(lte(users.created_at, new Date(params.end)));
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
