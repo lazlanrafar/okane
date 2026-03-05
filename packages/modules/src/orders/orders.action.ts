@@ -10,6 +10,9 @@ export const getAdminOrders = async (params: {
   page?: number;
   limit?: number;
   search?: string;
+  status?: string;
+  start?: string;
+  end?: string;
 }): Promise<
   ActionResponse<{
     orders: AdminOrderListing[];

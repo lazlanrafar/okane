@@ -8,6 +8,8 @@ import {
   and,
   or,
   ilike,
+  gte,
+  lte,
   sql,
 } from "@workspace/database";
 
@@ -44,7 +46,16 @@ export const ordersRepository = {
     return order;
   },
 
-  async findAll(page = 1, limit = 20, search?: string) {
+  async findAll(
+    page = 1,
+    limit = 20,
+    search?: string,
+    status?: string,
+    start?: string,
+    end?: string,
+    attachments?: string,
+    manual?: string,
+  ) {
     const offset = (page - 1) * limit;
 
     const conditions: any[] = [];
@@ -58,6 +69,36 @@ export const ordersRepository = {
           ilike(codeSql, searchPattern),
         ),
       );
+    }
+
+    if (status) {
+      conditions.push(eq(orders.status, status));
+    }
+
+    if (attachments === "include") {
+      conditions.push(
+        sql`${orders.stripe_invoice_id} IS NOT NULL OR ${orders.stripe_payment_intent_id} IS NOT NULL`,
+      );
+    } else if (attachments === "exclude") {
+      conditions.push(
+        sql`${orders.stripe_invoice_id} IS NULL AND ${orders.stripe_payment_intent_id} IS NULL`,
+      );
+    }
+
+    if (manual === "include") {
+      conditions.push(eq(orders.manual, true));
+    } else if (manual === "exclude") {
+      conditions.push(eq(orders.manual, false));
+    }
+
+    if (start) {
+      conditions.push(gte(orders.created_at, new Date(start)));
+    }
+
+    if (end) {
+      const endDate = new Date(end);
+      endDate.setHours(23, 59, 59, 999);
+      conditions.push(lte(orders.created_at, endDate));
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

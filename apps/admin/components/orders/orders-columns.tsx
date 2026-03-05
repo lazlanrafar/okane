@@ -22,7 +22,7 @@ export const columns: ColumnDef<AdminOrderListing>[] = [
         "w-[140px] min-w-[100px] md:sticky md:left-[var(--stick-left)] bg-background group-hover:bg-[#F2F1EF] group-hover:dark:bg-[#0f0f0f] z-10",
     },
     cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.code}</span>
+      <span className="font-mono text-green">{row.original.code}</span>
     ),
   },
   {

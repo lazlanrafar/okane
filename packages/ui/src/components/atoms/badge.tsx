@@ -5,21 +5,25 @@ import type * as React from "react";
 import { cn } from "../../lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
+  "inline-flex items-center rounded border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
+        default:
+          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
         secondary:
-          "bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         success:
-          "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50",
+          "border-transparent bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 hover:bg-emerald-100/80",
         outline:
-          "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
-        ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 [a&]:hover:underline",
+          "rounded-none bg-transparent text-[10px] font-normal border-border border text-primary",
+        tag: "text-[#878787] bg-[#F2F1EF] text-[10px] dark:bg-[#1D1D1D] border-none font-normal rounded-none",
+        "tag-rounded":
+          "text-[#878787] bg-[#F2F1EF] text-[12px] dark:bg-[#1D1D1D] font-normal px-3 py-1 border-none",
+        "tag-outline":
+          "border-transparent bg-zinc-700 text-zinc-200 hover:bg-zinc-700/80",
       },
     },
     defaultVariants: {

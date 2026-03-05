@@ -6,6 +6,7 @@ import {
   uuid,
   integer,
   serial,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { workspaces } from "./workspaces";
 import { users } from "./users";
@@ -21,6 +22,7 @@ export const orders = pgTable("orders", {
   amount: integer("amount").notNull(), // in cents
   currency: text("currency").notNull(),
   status: text("status").notNull(), // 'pending', 'paid', 'failed', 'canceled'
+  manual: boolean("manual").default(false).notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });

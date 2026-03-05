@@ -54,8 +54,26 @@ export abstract class OrdersService {
     return buildSuccess(order, "Order updated");
   }
 
-  static async getAllOrders(page: number, limit: number, search?: string) {
-    const result = await ordersRepository.findAll(page, limit, search);
+  static async getAllOrders(
+    page: number,
+    limit: number,
+    search?: string,
+    status?: string,
+    start?: string,
+    end?: string,
+    attachments?: string,
+    manual?: string,
+  ) {
+    const result = await ordersRepository.findAll(
+      page,
+      limit,
+      search,
+      status,
+      start,
+      end,
+      attachments,
+      manual,
+    );
     return buildPaginatedSuccess(
       result.rows,
       buildPagination(result.total, page, limit),

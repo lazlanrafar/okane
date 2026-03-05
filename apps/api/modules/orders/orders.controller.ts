@@ -17,13 +17,27 @@ export const ordersController = new Elysia({
     async ({ query }) => {
       const page = Number(query.page) || 1;
       const limit = Number(query.limit) || 20;
-      return OrdersService.getAllOrders(page, limit, query.search);
+      return OrdersService.getAllOrders(
+        page,
+        limit,
+        query.search,
+        query.status,
+        query.start,
+        query.end,
+        query.attachments,
+        query.manual,
+      );
     },
     {
       query: t.Object({
         page: t.Optional(t.Numeric()),
         limit: t.Optional(t.Numeric()),
         search: t.Optional(t.String()),
+        status: t.Optional(t.String()),
+        start: t.Optional(t.String()),
+        end: t.Optional(t.String()),
+        attachments: t.Optional(t.String()),
+        manual: t.Optional(t.String()),
       }),
       detail: { summary: "List Orders", tags: ["Orders"] },
     },

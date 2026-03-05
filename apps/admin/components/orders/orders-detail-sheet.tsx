@@ -27,13 +27,13 @@ export function OrdersDetailSheet() {
   return (
     <Sheet open={isDetailOpen} onOpenChange={closeDetail}>
       <SheetContent
-        className="sm:max-w-lg border-l bg-background p-0 flex flex-col h-full shadow-2xl"
+        className="sm:max-w-lg p-0 flex flex-col h-full"
         showCloseButton={false}
       >
         <SheetHeader className="sr-only">
           <SheetTitle>Order Details</SheetTitle>
         </SheetHeader>
-        <div className="h-[calc(100vh)] scrollbar-hide overflow-auto pb-12 px-6 pt-6">
+        <div className="h-full scrollbar-hide overflow-auto pb-12 px-6 my-6">
           <div className="flex justify-between mb-8">
             <div className="flex-1 flex-col">
               <div className="flex items-center justify-between">
@@ -42,7 +42,7 @@ export function OrdersDetailSheet() {
                     className={cn(
                       "w-2 h-2 rounded-full",
                       selectedOrder.status === "paid"
-                        ? "bg-[#00C969]"
+                        ? "bg-green"
                         : selectedOrder.status === "pending"
                           ? "bg-yellow-500"
                           : "bg-red-500",
@@ -69,7 +69,7 @@ export function OrdersDetailSheet() {
                   <span
                     className={cn(
                       "text-4xl select-text font-serif",
-                      selectedOrder.status === "paid" && "text-[#00C969]",
+                      selectedOrder.status === "paid" && "text-green",
                     )}
                   >
                     {formatCurrency(selectedOrder.amount / 100, {
@@ -177,7 +177,7 @@ export function OrdersDetailSheet() {
               </div>
               <button
                 onClick={copyId}
-                className="flex items-center gap-2 hover:text-[#00C969] transition-colors text-xs font-mono group"
+                className="flex items-center gap-2 hover:text-green transition-colors text-xs font-mono group"
               >
                 <span className="opacity-80 group-hover:opacity-100">
                   {selectedOrder.id.slice(0, 12)}...

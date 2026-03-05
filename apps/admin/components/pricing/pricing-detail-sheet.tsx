@@ -50,7 +50,7 @@ export function PricingDetailSheet() {
                     className={cn(
                       "w-2 h-2 rounded-full",
                       selectedPricing.is_active
-                        ? "bg-[#00C969]"
+                        ? "bg-green"
                         : "bg-muted-foreground",
                     )}
                   />
@@ -75,7 +75,7 @@ export function PricingDetailSheet() {
                       (selectedPricing.price_monthly ??
                         selectedPricing.price_yearly ??
                         selectedPricing.price_one_time ??
-                        0) > 0 && "text-[#00C969]",
+                        0) > 0 && "text-green",
                     )}
                   >
                     {formatCurrency(
@@ -199,7 +199,7 @@ export function PricingDetailSheet() {
                         key={index}
                         className="flex items-center gap-3 group py-1"
                       >
-                        <ShieldCheck className="h-4 w-4 text-[#00C969]" />
+                        <ShieldCheck className="h-4 w-4 text-green" />
                         <span className="text-sm text-foreground/80">
                           {feature}
                         </span>
@@ -276,7 +276,7 @@ export function PricingDetailSheet() {
               </div>
               <button
                 onClick={copyId}
-                className="flex items-center gap-2 hover:text-[#00C969] transition-colors text-xs font-mono group"
+                className="flex items-center gap-2 hover:text-green transition-colors text-xs font-mono group"
               >
                 <span className="opacity-80 group-hover:opacity-100">
                   {selectedPricing.id.slice(0, 12)}...

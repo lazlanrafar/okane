@@ -57,7 +57,7 @@ export function AppSidebar({
           size="lg"
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-background text-foreground font-semibold text-sm">
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-foreground text-background font-semibold text-sm">
             <Cat className="size-4" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">

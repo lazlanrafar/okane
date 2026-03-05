@@ -1,7 +1,5 @@
 import { getAdminOrders } from "@workspace/modules/orders/orders.action";
-import OrdersDataTableWrapper from "@/components/orders/orders-data-table-wrapper";
-import OrdersSearchFilter from "@/components/orders/orders-search-filter";
-import OrdersDataTableColumnVisibility from "@/components/orders/orders-data-table-column-visibility";
+import { OrdersClient } from "@/components/orders/orders-client";
 import { OrdersDetailSheet } from "@/components/orders/orders-detail-sheet";
 
 export default async function OrdersPage(props: {
@@ -15,9 +13,19 @@ export default async function OrdersPage(props: {
     : 10;
   // Make sure we pass the search param to getAdminOrders if needed in backend,
   // but for UI layout let's mount the filter here:
-  const search = (searchParams?.search as string) || "";
+  const search = (searchParams?.search as string) || undefined;
+  const status = (searchParams?.status as string) || undefined;
+  const start = (searchParams?.start as string) || undefined;
+  const end = (searchParams?.end as string) || undefined;
 
-  const response = await getAdminOrders({ page, limit, search } as any);
+  const response = await getAdminOrders({
+    page,
+    limit,
+    search,
+    status,
+    start,
+    end,
+  });
   const orders = response?.data?.orders ?? [];
   const meta = response?.data?.meta ?? {
     total: 0,
@@ -27,31 +35,16 @@ export default async function OrdersPage(props: {
   };
 
   return (
-    <div className="flex w-full flex-col h-full space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
-        <div>
-          <h1 className="text-2xl tracking-tight">Orders</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            View and manage the system incoming active and historical orders.
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <OrdersSearchFilter />
-          <OrdersDataTableColumnVisibility />
-        </div>
-      </div>
-
-      <div className="flex-1 min-h-0 relative">
-        <OrdersDataTableWrapper
-          initialData={orders}
-          rowCount={meta.total}
-          pageCount={meta.total_pages}
-          initialPage={meta.page - 1}
-          pageSize={meta.limit}
-        />
-      </div>
+    <>
+      <OrdersClient
+        initialData={orders}
+        rowCount={meta.total}
+        pageCount={meta.total_pages}
+        initialPage={meta.page - 1}
+        pageSize={meta.limit}
+      />
 
       <OrdersDetailSheet />
-    </div>
+    </>
   );
 }

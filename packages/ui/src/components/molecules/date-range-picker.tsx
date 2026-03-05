@@ -25,6 +25,106 @@ type Props = {
   disabled?: boolean;
 };
 
+export function DateRangePickerContent({
+  range,
+  onSelect,
+}: {
+  range?: DateRange;
+  onSelect: (range?: DateRange) => void;
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x">
+      <div className="flex flex-col gap-1 p-3 w-full sm:w-[150px]">
+        <div className="text-xs font-semibold text-muted-foreground mb-1 px-2 uppercase tracking-wide">
+          Presets
+        </div>
+        <Button
+          variant="ghost"
+          className="justify-start font-normal text-sm h-8 px-2"
+          onClick={() =>
+            onSelect({
+              from: new Date(),
+              to: new Date(),
+            })
+          }
+        >
+          Today
+        </Button>
+        <Button
+          variant="ghost"
+          className="justify-start font-normal text-sm h-8 px-2"
+          onClick={() =>
+            onSelect({
+              from: subDays(new Date(), 7),
+              to: new Date(),
+            })
+          }
+        >
+          Last 7 Days
+        </Button>
+        <Button
+          variant="ghost"
+          className="justify-start font-normal text-sm h-8 px-2"
+          onClick={() =>
+            onSelect({
+              from: startOfMonth(new Date()),
+              to: endOfMonth(new Date()),
+            })
+          }
+        >
+          This Month
+        </Button>
+        <Button
+          variant="ghost"
+          className="justify-start font-normal text-sm h-8 px-2"
+          onClick={() =>
+            onSelect({
+              from: startOfMonth(subMonths(new Date(), 1)),
+              to: endOfMonth(subMonths(new Date(), 1)),
+            })
+          }
+        >
+          Last Month
+        </Button>
+        <Button
+          variant="ghost"
+          className="justify-start font-normal text-sm h-8 px-2"
+          onClick={() =>
+            onSelect({
+              from: subMonths(new Date(), 3),
+              to: new Date(),
+            })
+          }
+        >
+          Past 3 Months
+        </Button>
+        <Button
+          variant="ghost"
+          className="justify-start font-normal text-sm h-8 px-2"
+          onClick={() =>
+            onSelect({
+              from: startOfYear(new Date()),
+              to: endOfYear(new Date()),
+            })
+          }
+        >
+          This Year
+        </Button>
+      </div>
+      <div className="p-1">
+        <Calendar
+          initialFocus
+          mode="range"
+          defaultMonth={range?.from}
+          selected={range}
+          onSelect={onSelect}
+          numberOfMonths={2}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function DateRangePicker({
   className,
   range,
@@ -58,95 +158,7 @@ export function DateRangePicker({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0 mt-2" align="start">
-          <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x">
-            <div className="flex flex-col gap-1 p-3 w-full sm:w-[150px]">
-              <div className="text-xs font-semibold text-muted-foreground mb-1 px-2 uppercase tracking-wide">
-                Presets
-              </div>
-              <Button
-                variant="ghost"
-                className="justify-start font-normal text-sm h-8 px-2"
-                onClick={() =>
-                  onSelect({
-                    from: new Date(),
-                    to: new Date(),
-                  })
-                }
-              >
-                Today
-              </Button>
-              <Button
-                variant="ghost"
-                className="justify-start font-normal text-sm h-8 px-2"
-                onClick={() =>
-                  onSelect({
-                    from: subDays(new Date(), 7),
-                    to: new Date(),
-                  })
-                }
-              >
-                Last 7 Days
-              </Button>
-              <Button
-                variant="ghost"
-                className="justify-start font-normal text-sm h-8 px-2"
-                onClick={() =>
-                  onSelect({
-                    from: startOfMonth(new Date()),
-                    to: endOfMonth(new Date()),
-                  })
-                }
-              >
-                This Month
-              </Button>
-              <Button
-                variant="ghost"
-                className="justify-start font-normal text-sm h-8 px-2"
-                onClick={() =>
-                  onSelect({
-                    from: startOfMonth(subMonths(new Date(), 1)),
-                    to: endOfMonth(subMonths(new Date(), 1)),
-                  })
-                }
-              >
-                Last Month
-              </Button>
-              <Button
-                variant="ghost"
-                className="justify-start font-normal text-sm h-8 px-2"
-                onClick={() =>
-                  onSelect({
-                    from: subMonths(new Date(), 3),
-                    to: new Date(),
-                  })
-                }
-              >
-                Past 3 Months
-              </Button>
-              <Button
-                variant="ghost"
-                className="justify-start font-normal text-sm h-8 px-2"
-                onClick={() =>
-                  onSelect({
-                    from: startOfYear(new Date()),
-                    to: endOfYear(new Date()),
-                  })
-                }
-              >
-                This Year
-              </Button>
-            </div>
-            <div className="p-1">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={range?.from}
-                selected={range}
-                onSelect={onSelect}
-                numberOfMonths={2}
-              />
-            </div>
-          </div>
+          <DateRangePickerContent range={range} onSelect={onSelect} />
         </PopoverContent>
       </Popover>
     </div>
