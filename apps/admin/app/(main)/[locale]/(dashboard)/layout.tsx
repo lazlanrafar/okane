@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 
 import { cookies } from "next/headers";
 
-import { createClient } from "@workspace/supabase/server";
 import {
   cn,
   Separator,
@@ -13,8 +12,6 @@ import {
 
 import { getMe } from "@workspace/modules/user/user.action";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { LayoutControls } from "@/components/layout/layout-controls";
-import { NavUser } from "@/components/layout/nav-user";
 import { SearchDialog } from "@/components/layout/search-dialog";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 import {
@@ -81,7 +78,7 @@ export default async function Layout({
             </div>
             <div className="flex items-center gap-2">
               {/* <LayoutControls /> */}
-              <ThemeSwitcher />
+              {/* <ThemeSwitcher /> */}
               {current_user && (
                 <AccountSwitcher
                   user={{

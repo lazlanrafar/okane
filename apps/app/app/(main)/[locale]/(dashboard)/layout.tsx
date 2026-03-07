@@ -3,7 +3,13 @@ import type { ReactNode } from "react";
 import { cookies } from "next/headers";
 
 import { createClient } from "@workspace/supabase/server";
-import { cn, Separator, SidebarInset, SidebarProvider, SidebarTrigger } from "@workspace/ui";
+import {
+  cn,
+  Separator,
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@workspace/ui";
 
 import { getMe } from "@workspace/modules/server";
 import { AccountSwitcher } from "@/components/layout/account-switcher";
@@ -11,7 +17,10 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { LayoutControls } from "@/components/layout/layout-controls";
 import { SearchDialog } from "@/components/layout/search-dialog";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
-import { SIDEBAR_COLLAPSIBLE_VALUES, SIDEBAR_VARIANT_VALUES } from "@workspace/ui";
+import {
+  SIDEBAR_COLLAPSIBLE_VALUES,
+  SIDEBAR_VARIANT_VALUES,
+} from "@workspace/ui";
 import { getPreference } from "@/server/server-actions";
 
 async function getUserAndWorkspaces() {
@@ -22,7 +31,9 @@ async function getUserAndWorkspaces() {
   return null;
 }
 
-export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
+export default async function Layout({
+  children,
+}: Readonly<{ children: ReactNode }>) {
   const cookie_store = await cookies();
   const default_open = cookie_store.get("sidebar_state")?.value !== "false";
   const [variant, collapsible, me_data] = await Promise.all([
@@ -36,7 +47,12 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
 
   return (
     <SidebarProvider defaultOpen={default_open}>
-      <AppSidebar variant={variant} collapsible={collapsible} currentUser={current_user} workspaces={user_workspaces} />
+      <AppSidebar
+        variant={variant}
+        collapsible={collapsible}
+        currentUser={current_user}
+        workspaces={user_workspaces}
+      />
       <SidebarInset
         className={cn(
           "[html[data-content-layout=centered]_&]:mx-auto! [html[data-content-layout=centered]_&]:max-w-screen-2xl!",
@@ -52,12 +68,15 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
           <div className="flex w-full items-center justify-between px-4 lg:px-6">
             <div className="flex items-center gap-1 lg:gap-2">
               <SidebarTrigger className="-ml-1" />
-              <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
+              <Separator
+                orientation="vertical"
+                className="mx-2 data-[orientation=vertical]:h-4"
+              />
               <SearchDialog />
             </div>
             <div className="flex items-center gap-2">
               {/* <LayoutControls /> */}
-              <ThemeSwitcher />
+              {/* <ThemeSwitcher /> */}
               {current_user && (
                 <AccountSwitcher
                   user={{
