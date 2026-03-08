@@ -91,6 +91,11 @@ function DataTableRowInner<TData>({
             : isSticky
               ? cell.column.getSize()
               : cell.column.columnDef.minSize,
+          maxWidth: actionsFullWidth
+            ? undefined
+            : isSticky
+              ? cell.column.getSize()
+              : cell.column.columnDef.maxSize,
           flexShrink: shouldFlex ? 1 : 0,
           ...(!actionsFullWidth && getStickyStyle(columnId)),
           ...(shouldFlex && { flex: 1 }),

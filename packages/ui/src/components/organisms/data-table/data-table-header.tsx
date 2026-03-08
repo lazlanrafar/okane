@@ -97,7 +97,7 @@ export function DataTableHeader<TData>({
       {headerGroups.map((headerGroup) => (
         <TableRow
           key={headerGroup.id}
-          className="h-[45px] hover:bg-transparent flex items-center !border-b-0 min-w-full"
+          className="h-[45px] hover:bg-transparent flex items-center border-b-0! min-w-full"
         >
           <SortableContext
             items={sortableColumnIds}
@@ -148,7 +148,7 @@ export function DataTableHeader<TData>({
                   ? undefined
                   : isSticky
                     ? header.getSize()
-                    : undefined,
+                    : header.column.columnDef.maxSize,
                 flexShrink: shouldFlex ? 1 : 0,
                 ...(!actionsFullWidth && getStickyStyle(columnId)),
                 ...(shouldFlex && { flex: 1 }),
@@ -292,7 +292,7 @@ function renderHeaderContent<TData>(
             canScrollRight={tableScroll.canScrollRight}
             onScrollLeft={tableScroll.scrollLeft}
             onScrollRight={tableScroll.scrollRight}
-            className="hidden md:flex flex-shrink-0"
+            className="hidden md:flex shrink-0"
           />
         )}
       </div>

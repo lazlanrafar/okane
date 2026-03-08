@@ -43,7 +43,13 @@ export default async function TransactionPage() {
   return (
     <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col">
       <div className="flex-1 min-h-0">
-        <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Loading...</div>}>
+        <Suspense
+          fallback={
+            <div className="p-8 text-center text-muted-foreground">
+              Loading...
+            </div>
+          }
+        >
           <TransactionView
             initialTransactions={initialTransactions}
             initialTotal={initialTotal}

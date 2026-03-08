@@ -16,6 +16,7 @@ interface Props {
   loading?: boolean;
   onRemove: (key: string) => void;
   statusFilters?: FilterOption[];
+  statusKey?: string;
 }
 
 export function FilterList({
@@ -23,10 +24,12 @@ export function FilterList({
   loading,
   onRemove,
   statusFilters,
+  statusKey = "status",
 }: Props) {
   const renderFilterValue = (key: string, value: any) => {
     switch (key) {
       case "status":
+      case statusKey:
         return statusFilters?.find((f) => f.id === value)?.name || value;
       case "date":
         if (value?.from && value?.to) {

@@ -9,6 +9,7 @@ import { fontVars } from "@workspace/ui";
 import { PREFERENCE_DEFAULTS } from "@workspace/ui";
 import { ThemeBootScript } from "@/scripts/theme-boot";
 import { PreferencesStoreProvider } from "@workspace/ui";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "@workspace/ui/globals.css";
 // import { i18n } from "@/i18n-config";
 
@@ -61,10 +62,12 @@ export default async function RootLayout({
           navbarStyle={navbar_style}
           font={font}
         >
-          <Providers>
-            {children}
-            <Toaster />
-          </Providers>
+          <NuqsAdapter>
+            <Providers>
+              {children}
+              <Toaster />
+            </Providers>
+          </NuqsAdapter>
         </PreferencesStoreProvider>
       </body>
     </html>

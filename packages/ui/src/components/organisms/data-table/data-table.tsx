@@ -53,6 +53,7 @@ type DataTableMeta<TData> = {
   onRowClick?: (row: TData) => void;
   /** Called when copy URL is triggered */
   onCopyUrl?: (id: string) => void;
+  [key: string]: any;
 };
 
 type Props<TData extends { id: string | number }> = {
@@ -138,11 +139,12 @@ export function DataTable<TData extends { id: string | number }>({
 
   const tableMeta = useMemo(
     () => ({
+      ...meta,
       onRowClick: meta?.onRowClick,
       onCopyUrl: meta?.onCopyUrl,
       handleShiftClickRange,
     }),
-    [meta?.onRowClick, meta?.onCopyUrl, handleShiftClickRange],
+    [meta, handleShiftClickRange],
   );
 
   const table = useReactTable({

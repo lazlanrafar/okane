@@ -8,6 +8,7 @@ import {
   wallets,
   sql,
   inArray,
+  like,
 } from "@workspace/database";
 
 export type WalletsRepository = typeof walletsRepository;
@@ -84,13 +85,31 @@ export const walletsRepository = {
     return wallet ?? null;
   },
 
-  async findMany(workspaceId: string) {
+  async findMany(
+    workspaceId: string,
+    filters?: { search?: string; groupId?: string },
+  ) {
+    const conditions = [
+      eq(wallets.workspaceId, workspaceId),
+      isNull(wallets.deletedAt),
+    ];
+
+    if (filters?.search) {
+      conditions.push(like(wallets.name, `%${filters.search}%`));
+    }
+
+    if (filters?.groupId) {
+      if (filters.groupId === "none") {
+        conditions.push(isNull(wallets.groupId));
+      } else {
+        conditions.push(eq(wallets.groupId, filters.groupId));
+      }
+    }
+
     const result = await db
       .select()
       .from(wallets)
-      .where(
-        and(eq(wallets.workspaceId, workspaceId), isNull(wallets.deletedAt)),
-      )
+      .where(and(...conditions))
       .orderBy(asc(wallets.sortOrder), desc(wallets.createdAt));
 
     return result.map((wallet) => ({

@@ -49,6 +49,10 @@ export function useStickyColumns({
       ? STICKY_COLUMNS[tableId]
       : STICKY_COLUMNS.users;
 
+    if (!tableConfig) {
+      return ids.map((id) => ({ id, width: 150 }));
+    }
+
     return ids
       .map((id) => {
         const config = tableConfig.find((c: StickyColumnConfig) => c.id === id);

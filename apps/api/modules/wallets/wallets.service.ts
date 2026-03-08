@@ -36,8 +36,11 @@ export const walletsService = {
 
   // --- Wallets ---
 
-  async getWallets(workspaceId: string) {
-    return walletsRepository.findMany(workspaceId);
+  async getWallets(
+    workspaceId: string,
+    filters?: { search?: string; groupId?: string },
+  ) {
+    return walletsRepository.findMany(workspaceId, filters);
   },
 
   async createWallet(

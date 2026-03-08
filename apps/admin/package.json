@@ -46,6 +46,7 @@
     "negotiator": "^1.0.0",
     "next": "catalog:",
     "next-themes": "^0.4.6",
+    "nuqs": "catalog:",
     "radix-ui": "catalog:",
     "react": "catalog:",
     "react-day-picker": "^9.13.0",

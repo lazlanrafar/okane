@@ -29,6 +29,7 @@ interface DataTableFilterProps {
   onFilterChange: (filters: Record<string, any>) => void;
   statusOptions?: FilterOption[];
   statusKey?: string;
+  statusLabel?: string;
   showDateFilter?: boolean;
   showAmountFilter?: boolean;
   showAttachments?: boolean;
@@ -74,6 +75,7 @@ export function DataTableFilter({
   onFilterChange,
   statusOptions,
   statusKey = "status",
+  statusLabel = "Status",
   showDateFilter = true,
   showAmountFilter = true,
   isLoading,
@@ -217,7 +219,7 @@ export function DataTableFilter({
               )}
 
               {statusOptions && (
-                <FilterMenuItem icon={Icons.Status} label="Status">
+                <FilterMenuItem icon={Icons.Status} label={statusLabel}>
                   <div className="p-1 min-w-[180px]">
                     {statusOptions.map((option) => (
                       <DropdownMenuCheckboxItem
@@ -324,6 +326,7 @@ export function DataTableFilter({
         loading={isLoading}
         onRemove={handleRemoveFilter}
         statusFilters={statusOptions}
+        statusKey={statusKey}
       />
     </div>
   );

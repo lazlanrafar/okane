@@ -132,12 +132,9 @@ export const userColumns: ColumnDef<SystemAdminUser>[] = [
     accessorKey: "created_at",
     header: "Created At",
     size: 160,
-    minSize: 120,
-    maxSize: 260,
     enableResizing: true,
     meta: {
       headerLabel: "Created At",
-      className: "w-[160px] min-w-[120px]",
     },
     cell: ({ getValue }) => {
       const val = getValue<string>();

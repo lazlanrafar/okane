@@ -31,9 +31,12 @@ export interface UpdateWalletData {
   sortOrder?: number;
 }
 
-export const getWallets = async (): Promise<ActionResponse<Wallet[]>> => {
+export const getWallets = async (filters?: {
+  search?: string;
+  groupId?: string;
+}): Promise<ActionResponse<Wallet[]>> => {
   try {
-    const res = await api.get("/wallets");
+    const res = await api.get("/wallets", { params: filters });
     return { success: true, data: res.data?.data || [] };
   } catch (error: any) {
     return {
