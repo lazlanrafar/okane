@@ -41,6 +41,25 @@ export abstract class TransactionsRepository {
     } as unknown as Transaction;
   }
 
+  static async createMany(
+    data: (typeof transactions.$inferInsert)[],
+  ): Promise<Transaction[]> {
+    if (data.length === 0) return [];
+
+    const results = await db.insert(transactions).values(data).returning();
+
+    return results.map(
+      (transaction) =>
+        ({
+          ...transaction,
+          date: transaction.date,
+          createdAt: transaction.createdAt,
+          updatedAt: transaction.updatedAt,
+          deletedAt: transaction.deletedAt,
+        }) as unknown as Transaction,
+    );
+  }
+
   static async findById(
     workspaceId: string,
     id: string,

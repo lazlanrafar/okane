@@ -84,6 +84,38 @@ export const createTransaction = async (
   }
 };
 
+export const bulkCreateTransactions = async (
+  data: Partial<Transaction>[],
+): Promise<ActionResponse<{ imported: number; failed: number }>> => {
+  try {
+    const response = await api.post<
+      ApiResponse<{ imported: number; failed: number }>
+    >("/transactions/bulk", data);
+    const apiResponse = (response as any)._api_response as ApiResponse<{
+      imported: number;
+      failed: number;
+    }>;
+    const result = apiResponse?.data ?? response.data?.data;
+    if (!result) {
+      return {
+        success: false,
+        error: "Failed to bulk create transactions: No data returned",
+      };
+    }
+
+    return {
+      success: true,
+      data: result,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message || "Failed to bulk create transactions",
+    };
+  }
+};
+
 export const updateTransaction = async (
   id: string,
   data: Partial<Transaction>,

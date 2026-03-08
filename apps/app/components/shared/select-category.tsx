@@ -25,6 +25,7 @@ interface SelectCategoryProps {
   onChange: (categoryId: string) => void;
   className?: string;
   disabled?: boolean;
+  initialCategories?: Category[];
 }
 
 export function SelectCategory({
@@ -34,11 +35,20 @@ export function SelectCategory({
   onChange,
   className,
   disabled,
+  initialCategories,
 }: SelectCategoryProps) {
   const [open, setOpen] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>(
+    initialCategories || [],
+  );
   const [loading, setLoading] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+
+  useEffect(() => {
+    if (initialCategories) {
+      setCategories(initialCategories);
+    }
+  }, [initialCategories]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -50,10 +60,10 @@ export function SelectCategory({
       setLoading(false);
     }
 
-    if (open && categories.length === 0) {
+    if ((open || selectedCategoryId) && categories.length === 0) {
       fetchCategories();
     }
-  }, [open, type, categories.length]);
+  }, [open, type, categories.length, selectedCategoryId]);
 
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
 
@@ -76,7 +86,7 @@ export function SelectCategory({
           <span className="text-xs font-sans text-foreground truncate flex-1">
             {selectedCategory?.name ||
               selectedCategoryName ||
-              "Select category"}
+              (selectedCategoryId ? "Loading..." : "Select category")}
           </span>
           <ChevronsUpDown className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
         </button>
@@ -93,7 +103,10 @@ export function SelectCategory({
             onValueChange={setSearchValue}
             className="h-9"
           />
-          <CommandList className="max-h-[300px] overflow-y-auto no-scrollbar">
+          <CommandList
+            className="max-h-[300px] overflow-y-auto"
+            onWheel={(e) => e.stopPropagation()}
+          >
             <CommandEmpty>
               {loading ? (
                 <div className="flex items-center justify-center py-4">

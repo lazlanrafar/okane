@@ -44,7 +44,10 @@ import { toast } from "sonner";
 import * as z from "zod";
 
 import { getCategories } from "@workspace/modules/category/category.action";
-import { createTransaction, updateTransaction } from "@workspace/modules/transaction/transaction.action";
+import {
+  createTransaction,
+  updateTransaction,
+} from "@workspace/modules/transaction/transaction.action";
 import { getWallets } from "@workspace/modules/wallet/wallet.action";
 import { CurrencyInput } from "@workspace/ui";
 import { useCurrency } from "@workspace/ui/hooks";
@@ -56,7 +59,13 @@ const transactionSchema = z.object({
   date: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Invalid date",
   }),
-  type: z.enum(["income", "expense", "transfer"]),
+  type: z.enum([
+    "income",
+    "expense",
+    "transfer",
+    "transfer-in",
+    "transfer-out",
+  ]),
   walletId: z.string().min(1, "Wallet is required"),
   toWalletId: z.string().optional(),
   categoryId: z.string().optional(),
@@ -101,8 +110,8 @@ export function TransactionForm({
   transactionId,
 }: TransactionFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"income" | "expense" | "transfer">(
-    (defaultValues?.type as "income" | "expense" | "transfer") || "expense",
+  const [activeTab, setActiveTab] = useState<TransactionFormValues["type"]>(
+    (defaultValues?.type as TransactionFormValues["type"]) || "expense",
   );
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -112,7 +121,7 @@ export function TransactionForm({
   const { settings } = useCurrency();
 
   const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionSchema),
+    resolver: zodResolver(transactionSchema as any),
     defaultValues: {
       type: "expense",
       date: new Date().toISOString().split("T")[0],
@@ -229,7 +238,7 @@ export function TransactionForm({
         >
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="income">Income</TabsTrigger>
-            <TabsTrigger value="expense">Expense</TabsTrigger>
+            <TabsTrigger value="expense">Exp.</TabsTrigger>
             <TabsTrigger value="transfer">Transfer</TabsTrigger>
           </TabsList>
         </Tabs>

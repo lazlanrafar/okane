@@ -1,13 +1,13 @@
 import { createContext, useContext } from "react";
 import type { Control, UseFormSetValue, UseFormWatch } from "react-hook-form";
-import { z } from "zod";
+import { z, type ZodType } from "zod";
 
 export const mappableFields = {
   date: {
     label: "Date",
     required: true,
   },
-  description: {
+  name: {
     label: "Description",
     required: true,
   },
@@ -15,15 +15,30 @@ export const mappableFields = {
     label: "Amount",
     required: true,
   },
+  type: {
+    label: "Type",
+    required: false,
+  },
+  category: {
+    label: "Category",
+    required: false,
+  },
+  walletIdColumn: {
+    label: "Account",
+    required: false,
+  },
 } as const;
 
-export const importSchema = z.object({
-  file: z.instanceof(File).optional(),
-  currency: z.string().min(1, "Currency is required"),
-  walletId: z.string().min(1, "Account is required"),
-  amount: z.string().min(1, "Amount column is required"),
-  date: z.string().min(1, "Date column is required"),
-  description: z.string().min(1, "Description column is required"),
+export const importSchema: ZodType<any, any, any> = z.object({
+  file: z.any().optional(),
+  currency: z.string().default("USD"),
+  walletId: z.string().default(""),
+  amount: z.string().default(""),
+  date: z.string().default(""),
+  name: z.string().default(""),
+  type: z.string().default(""),
+  category: z.string().default(""),
+  walletIdColumn: z.string().default(""),
   inverted: z.boolean().default(false),
 });
 
@@ -37,6 +52,16 @@ export const ImportCsvContext = createContext<{
   control: Control<ImportCsvFormData>;
   watch: UseFormWatch<ImportCsvFormData>;
   setValue: UseFormSetValue<ImportCsvFormData>;
+  valueMappings: {
+    categories: Record<string, string>;
+    wallets: Record<string, string>;
+    types: Record<string, string>;
+  };
+  setValueMappings: (mappings: {
+    categories: Record<string, string>;
+    wallets: Record<string, string>;
+    types: Record<string, string>;
+  }) => void;
 } | null>(null);
 
 export function useCsvContext() {

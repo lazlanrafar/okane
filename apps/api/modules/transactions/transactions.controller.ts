@@ -47,6 +47,26 @@ export const transactions = new Elysia({
       },
     },
   )
+  .post(
+    "/bulk",
+    async ({ auth, body }) => {
+      if (!auth?.workspace_id) {
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      }
+      return TransactionsService.bulkCreate(
+        auth.workspace_id,
+        auth.user_id,
+        body,
+      );
+    },
+    {
+      body: TransactionModel.bulkCreate,
+      detail: {
+        summary: "Bulk create transactions",
+        tags: ["Transactions"],
+      },
+    },
+  )
   .put(
     "/:id",
     async ({ auth, params: { id }, body }) => {

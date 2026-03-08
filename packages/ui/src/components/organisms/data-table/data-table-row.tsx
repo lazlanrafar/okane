@@ -107,18 +107,27 @@ function DataTableRowInner<TData>({
             : ACTIONS_STICKY_CELL_CLASS
           : getStickyClassName(columnId, meta?.className);
 
+        const isClickable = !nonClickableColumns.has(columnId);
+
         return (
           <TableCell
             key={cell.id}
             className={cn(
-              "h-full flex items-center border-b border-border overflow-hidden bg-background",
+              "h-full flex items-center border-b border-border overflow-hidden bg-background transition-colors",
+              "group-hover:bg-[#F2F1EF] group-hover:dark:bg-[#0f0f0f]",
               cellClassName,
               isSticky && "z-10",
+              isClickable ? "cursor-pointer" : "cursor-default",
             )}
             style={cellStyle}
-            onClick={() => {
-              if (!nonClickableColumns.has(columnId)) {
+            onClick={(e) => {
+              if (isClickable) {
                 onCellClick?.(row.id, columnId);
+              } else {
+                // For non-clickable columns (like select or category),
+                // we want to ensure any internal clicks don't bubble up
+                // to table row click handlers if they exist elsewhere.
+                e.stopPropagation();
               }
             }}
           >
@@ -141,7 +150,9 @@ function arePropsEqual<TData>(
     prevProps.columnSizing === nextProps.columnSizing &&
     prevProps.columnOrder === nextProps.columnOrder &&
     prevProps.columnVisibility === nextProps.columnVisibility &&
-    prevProps.row.original === nextProps.row.original
+    prevProps.row.original === nextProps.row.original &&
+    prevProps.nonClickableColumns === nextProps.nonClickableColumns &&
+    prevProps.onCellClick === nextProps.onCellClick
   );
 }
 

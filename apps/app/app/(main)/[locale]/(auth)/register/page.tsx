@@ -9,7 +9,7 @@ export default function RegisterV2() {
       <div className="mx-auto flex w-full flex-col justify-center space-y-10 sm:w-[400px] p-4 sm:p-0">
         <div className="flex flex-col items-center justify-center text-center space-y-4">
           <div className="space-y-3">
-            <h1 className="text-2xl tracking-tight font-serif">
+            <h1 className="text-2xl tracking-tight font-sans">
               Welcome to Okane
             </h1>
           </div>

@@ -6,7 +6,7 @@ export interface Transaction {
   categoryId?: string | null;
   amount: string; // Decimal is string in JS
   date: string;
-  type: string; // 'income' | 'expense' | 'transfer'
+  type: string; // 'income' | 'expense' | 'transfer' | 'transfer-in' | 'transfer-out'
   name?: string | null;
   description?: string | null;
   createdAt: string;

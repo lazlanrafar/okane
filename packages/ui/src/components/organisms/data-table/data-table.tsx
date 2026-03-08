@@ -284,7 +284,7 @@ export function DataTable<TData extends { id: string | number }>({
                 ).current = el;
               }}
               className={cn(
-                "overflow-auto overscroll-none border-l border-r border-b border-border scrollbar-hide",
+                "overflow-auto border-l border-r border-b border-border",
                 hFull ? "flex-1" : "",
               )}
               style={hFull ? {} : { height: containerHeight }}

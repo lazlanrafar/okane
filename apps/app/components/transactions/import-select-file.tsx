@@ -72,7 +72,7 @@ export function SelectFile() {
               <div
                 {...getRootProps()}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-3 p-10 border-2 border-dashed rounded-xl cursor-pointer transition-colors min-h-[240px]",
+                  "flex flex-col items-center justify-center gap-3 p-10 border-2 border-dashed rounded cursor-pointer transition-colors min-h-[240px]",
                   isDragActive
                     ? "border-primary bg-primary/5"
                     : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30",

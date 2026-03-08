@@ -163,7 +163,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
         <>
           <div className="space-y-3">
             <Steps step={1} />
-            <h1 className="font-serif text-2xl tracking-tight">
+            <h1 className="font-sans text-2xl tracking-tight">
               Business details
             </h1>
             <p className="text-sm leading-relaxed text-muted-foreground">
@@ -234,9 +234,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                 Back
               </button>
             </div>
-            <h1 className="font-serif text-2xl tracking-tight">
-              Choose a plan
-            </h1>
+            <h1 className="font-sans text-2xl tracking-tight">Choose a plan</h1>
             <p className="text-sm leading-relaxed text-muted-foreground">
               {hasPaid
                 ? "Start with a 14-day free trial on paid plans. No credit card required."

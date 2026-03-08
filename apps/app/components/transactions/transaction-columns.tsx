@@ -76,7 +76,11 @@ export const transactionColumns = (
         transaction.name ||
         (isTransfer
           ? "Transfer"
-          : (transaction.category?.name ?? "Transaction"));
+          : transaction.type === "transfer-in"
+            ? "Transfer-In"
+            : transaction.type === "transfer-out"
+              ? "Transfer-Out"
+              : (transaction.category?.name ?? "Transaction"));
       const Icon = transaction.name ? Landmark : Receipt;
 
       return (
@@ -101,7 +105,11 @@ export const transactionColumns = (
                       ? "text-emerald-500"
                       : isExpense
                         ? "text-red-500"
-                        : "text-blue-500",
+                        : isTransfer
+                          ? "text-blue-500"
+                          : transaction.type === "transfer-in"
+                            ? "text-emerald-500"
+                            : "text-red-500",
                   )}
                 >
                   {label}
@@ -180,61 +188,58 @@ export const transactionColumns = (
     id: "category",
     accessorKey: "category.name",
     header: "Category",
-    cell: ({ row }) => {
-      const transaction = row.original;
-      const router = useRouter();
-      const [updating, setUpdating] = useState(false);
+    cell: ({ row }) => <CategoryCell transaction={row.original} />,
+    size: 250,
+    minSize: 150,
+    maxSize: 400,
+  },
+];
 
-      const handleCategoryChange = async (categoryId: string) => {
-        if (categoryId === transaction.categoryId) return;
+function CategoryCell({ transaction }: { transaction: Transaction }) {
+  const router = useRouter();
+  const [updating, setUpdating] = useState(false);
 
-        setUpdating(true);
-        const res = await updateTransaction(transaction.id, {
-          categoryId,
-        });
+  const handleCategoryChange = async (categoryId: string) => {
+    if (categoryId === transaction.categoryId) return;
 
-        if (res.success) {
-          toast.success("Category updated");
-          router.refresh();
-        } else {
-          toast.error(res.error || "Failed to update category");
-        }
-        setUpdating(false);
-      };
+    setUpdating(true);
+    const res = await updateTransaction(transaction.id, {
+      categoryId,
+    });
 
-      return (
-        <div className="relative group">
+    if (res.success) {
+      toast.success("Category updated");
+      router.refresh();
+    } else {
+      toast.error(res.error || "Failed to update category");
+    }
+    setUpdating(false);
+  };
+
+  const canHaveCategory =
+    transaction.type === "income" || transaction.type === "expense";
+
+  return (
+    <div className="relative group w-full h-full flex items-center">
+      {canHaveCategory ? (
+        <>
           <SelectCategory
             selectedCategoryId={transaction.categoryId ?? undefined}
             selectedCategoryName={transaction.category?.name ?? undefined}
             type={transaction.type as "income" | "expense"}
             onChange={handleCategoryChange}
             disabled={updating}
+            className="w-full justify-start px-3 h-full rounded-none border-none hover:bg-transparent focus-visible:ring-0"
           />
           {updating && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/50">
+            <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-20">
               <Loader2 className="h-3 w-3 animate-spin text-primary" />
             </div>
           )}
-        </div>
-      );
-    },
-    size: 250,
-    minSize: 150,
-    maxSize: 400,
-  },
-  {
-    id: "actions",
-    header: () => <div className="text-right">Actions</div>,
-    cell: ({ row }) => {
-      return (
-        <div className="flex justify-end">
-          <span className="text-muted-foreground text-xs">...</span>
-        </div>
-      );
-    },
-    enableResizing: false,
-    size: 100,
-    enableHiding: false,
-  },
-];
+        </>
+      ) : (
+        <span className="text-xs text-muted-foreground ml-3">-</span>
+      )}
+    </div>
+  );
+}

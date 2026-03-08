@@ -73,6 +73,86 @@ export abstract class TransactionsService {
     );
   }
 
+  static async bulkCreate(
+    workspaceId: string,
+    userId: string,
+    items: CreateTransactionInput[],
+  ) {
+    const results: any[] = [];
+    const errors: any[] = [];
+
+    // Process in a loop to ensure balance updates and audit logs are handled correctly
+    // We could optimize this later with bulk DB operations, but correctness
+    // of balances is priority.
+    for (const item of items) {
+      try {
+        const amount =
+          typeof item.amount === "number"
+            ? item.amount.toString()
+            : item.amount;
+        const toWalletId = item.toWalletId || undefined;
+        const categoryId = item.categoryId || undefined;
+        const { attachmentIds, ...dbBody } = item;
+
+        const transaction = await TransactionsRepository.create({
+          ...dbBody,
+          workspaceId,
+          amount,
+          toWalletId,
+          categoryId,
+        });
+
+        const val = Number(amount);
+        if (item.type === "expense") {
+          await walletsRepository.updateBalance(
+            item.walletId,
+            workspaceId,
+            -val,
+          );
+        } else if (item.type === "income") {
+          await walletsRepository.updateBalance(
+            item.walletId,
+            workspaceId,
+            val,
+          );
+        } else if (item.type === "transfer" && item.toWalletId) {
+          await walletsRepository.updateBalance(
+            item.walletId,
+            workspaceId,
+            -val,
+          );
+          await walletsRepository.updateBalance(
+            item.toWalletId,
+            workspaceId,
+            val,
+          );
+        }
+
+        await auditLogsService.log({
+          workspace_id: workspaceId,
+          user_id: userId,
+          action: "transaction.imported",
+          entity: "transaction",
+          entity_id: transaction.id,
+          after: transaction,
+        });
+
+        results.push(transaction);
+      } catch (err: any) {
+        errors.push({ item, error: err.message });
+      }
+    }
+
+    return buildSuccess(
+      {
+        imported: results.length,
+        failed: errors.length,
+        transactions: results,
+      },
+      `Successfully imported ${results.length} transactions`,
+    );
+  }
+
   static async list(workspaceId: string, query: GetTransactionsQueryInput) {
     const page = query.page ? Number(query.page) : 1;
     const limit = query.limit ? Number(query.limit) : 20;
