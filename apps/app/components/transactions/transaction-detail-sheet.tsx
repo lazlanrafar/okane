@@ -95,7 +95,7 @@ export function TransactionDetailSheet({
             {/* Category and Assign Grid */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[11px] text-muted-foreground uppercase tracking-wider font-sans ml-1">
+                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider ml-1">
                   Category
                 </Label>
                 <Select defaultValue={transaction.categoryId ?? "income"}>
@@ -122,7 +122,7 @@ export function TransactionDetailSheet({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-[11px] text-muted-foreground uppercase tracking-wider font-sans ml-1">
+                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider ml-1">
                   Assign
                 </Label>
                 <Select defaultValue={transaction.walletId ?? ""}>
@@ -140,7 +140,7 @@ export function TransactionDetailSheet({
 
             {/* Tags */}
             <div className="space-y-2">
-              <Label className="text-[11px] text-muted-foreground uppercase tracking-wider font-sans ml-1">
+              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider ml-1">
                 Tags
               </Label>
               <div className="min-h-[40px] p-2 rounded-md bg-muted/20 border border-border/50 flex items-center">

@@ -319,7 +319,7 @@ export function DataTable<TData extends { id: string | number }>({
                 ).current = el;
               }}
               className={cn(
-                "overflow-auto border-l border-r border-b border-border",
+                "overflow-auto border-l border-r border-b border-border scrollbar-hide",
                 hFull ? "flex-1" : "",
               )}
               style={hFull ? {} : { height: containerHeight }}

@@ -72,6 +72,7 @@ export const TransactionModel = {
     categoryId: t.Optional(t.String()),
     startDate: t.Optional(t.String()),
     endDate: t.Optional(t.String()),
+    uncategorized: t.Optional(t.Boolean()),
   }),
 } as const;
 

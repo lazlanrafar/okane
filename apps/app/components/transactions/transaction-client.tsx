@@ -95,7 +95,7 @@ export function TransactionsClient({
         categoryId: filters.categoryId || undefined,
         startDate: filters.startDate || undefined,
         endDate: filters.endDate || undefined,
-        // search: filters.q // Handled by search param in getTransactions
+        uncategorized: activeTab === "review",
       } as any);
       return res;
     },
@@ -128,6 +128,22 @@ export function TransactionsClient({
       pageParams: [1],
     },
   });
+
+  const { data: reviewCountData } = useInfiniteQuery({
+    queryKey: ["transactions", "review-count"],
+    queryFn: async () => {
+      const res = await getTransactions({
+        page: 1,
+        limit: 1,
+        uncategorized: true,
+      } as any);
+      return res;
+    },
+    initialPageParam: 1,
+    getNextPageParam: () => undefined,
+  });
+
+  const reviewCount = reviewCountData?.pages[0]?.meta?.pagination?.total ?? 0;
 
   const deleteMutation = useMutation({
     mutationFn: deleteTransaction,
@@ -260,7 +276,9 @@ export function TransactionsClient({
               )}
             >
               Review
-              <span className="text-[10px] opacity-60">(1)</span>
+              {reviewCount > 0 && (
+                <span className="text-[10px] opacity-60">({reviewCount})</span>
+              )}
             </button>
           </div>
         </div>

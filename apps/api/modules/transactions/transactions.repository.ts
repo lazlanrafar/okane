@@ -117,6 +117,7 @@ export abstract class TransactionsRepository {
       categoryId?: string;
       startDate?: string;
       endDate?: string;
+      uncategorized?: boolean;
     },
   ): Promise<{ data: Transaction[]; total: number }> {
     const fromWallet = aliasedTable(wallets, "fromWallet");
@@ -141,6 +142,9 @@ export abstract class TransactionsRepository {
     }
     if (params.endDate) {
       filters.push(lte(transactions.date, params.endDate));
+    }
+    if (params.uncategorized) {
+      filters.push(isNull(transactions.categoryId));
     }
 
     const [countResult] = await db

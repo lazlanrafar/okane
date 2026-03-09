@@ -16,6 +16,7 @@ export const getTransactions = async (params: {
   categoryId?: string;
   startDate?: string;
   endDate?: string;
+  uncategorized?: boolean;
 }): Promise<ApiResponse<Transaction[]>> => {
   try {
     const response = await api.get("/transactions", {

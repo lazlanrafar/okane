@@ -247,8 +247,8 @@ export function TransactionFormSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
-        <SheetHeader className="mb-8">
-          <SheetTitle className="text-2xl font-sans tracking-tight">
+        <SheetHeader className="mb-10">
+          <SheetTitle className="text-3xl font-sans tracking-tight font-bold">
             {transaction ? "Edit Transaction" : "New Transaction"}
           </SheetTitle>
         </SheetHeader>
@@ -260,12 +260,27 @@ export function TransactionFormSheet({
               <Tabs
                 value={activeTab}
                 onValueChange={handleTabChange}
-                className="w-full"
+                className="w-full mb-8"
               >
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="income">Income</TabsTrigger>
-                  <TabsTrigger value="expense">Exp.</TabsTrigger>
-                  <TabsTrigger value="transfer">Transfer</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3 bg-muted/30 h-11 p-1">
+                  <TabsTrigger
+                    value="income"
+                    className="rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  >
+                    Income
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="expense"
+                    className="rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  >
+                    Expense
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="transfer"
+                    className="rounded-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  >
+                    Transfer
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
 
@@ -274,11 +289,13 @@ export function TransactionFormSheet({
                 control={form.control}
                 name="amount"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Amount</FormLabel>
+                  <FormItem className="space-y-3 mb-8">
+                    <FormLabel className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      Amount
+                    </FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                      <div className="relative group">
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 text-3xl font-light text-muted-foreground/50 transition-colors group-focus-within:text-foreground">
                           {settings?.mainCurrencySymbol ?? "$"}
                         </span>
                         <CurrencyInput
@@ -286,14 +303,15 @@ export function TransactionFormSheet({
                           onChange={field.onChange}
                           currencySymbol={settings?.mainCurrencySymbol}
                           decimalPlaces={settings?.mainCurrencyDecimalPlaces}
-                          className={
-                            "pl-8 text-lg font-bold " +
-                            (activeTab === "expense"
-                              ? "text-red-600"
+                          className={cn(
+                            "pl-8 text-5xl font-bold bg-transparent border-none focus-visible:ring-0 transition-all",
+                            activeTab === "expense"
+                              ? "text-red-500"
                               : activeTab === "income"
-                                ? "text-green-600"
-                                : "text-blue-600")
-                          }
+                                ? "text-green-500"
+                                : "text-blue-500",
+                          )}
+                          autoFocus
                         />
                       </div>
                     </FormControl>
@@ -303,15 +321,21 @@ export function TransactionFormSheet({
               />
 
               {/* Date + Wallet */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-6 mb-6">
                 <FormField
                   control={form.control}
                   name="date"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date</FormLabel>
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Date
+                      </FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input
+                          type="date"
+                          {...field}
+                          className="bg-transparent border-muted/40 h-10 transition-colors focus:border-foreground"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -321,8 +345,10 @@ export function TransactionFormSheet({
                   control={form.control}
                   name="walletId"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>From Wallet</FormLabel>
+                    <FormItem className="flex flex-col space-y-2">
+                      <FormLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        From Wallet
+                      </FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -330,7 +356,7 @@ export function TransactionFormSheet({
                               variant="outline"
                               role="combobox"
                               className={cn(
-                                "w-full justify-between pl-3 text-left font-normal",
+                                "w-full justify-between pl-3 text-left font-normal bg-transparent border-muted/40 h-10 transition-colors hover:bg-muted/10",
                                 !field.value && "text-muted-foreground",
                               )}
                             >
@@ -388,7 +414,9 @@ export function TransactionFormSheet({
                   name="toWalletId"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>To Wallet</FormLabel>
+                      <FormLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        To Wallet
+                      </FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -396,7 +424,7 @@ export function TransactionFormSheet({
                               variant="outline"
                               role="combobox"
                               className={cn(
-                                "w-full justify-between pl-3 text-left font-normal",
+                                "w-full justify-between pl-3 text-left font-normal bg-transparent border-muted/40 h-10 transition-colors hover:bg-muted/10",
                                 !field.value && "text-muted-foreground",
                               )}
                             >
@@ -458,7 +486,9 @@ export function TransactionFormSheet({
                   name="categoryId"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Category</FormLabel>
+                      <FormLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Category
+                      </FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -466,7 +496,7 @@ export function TransactionFormSheet({
                               variant="outline"
                               role="combobox"
                               className={cn(
-                                "w-full justify-between pl-3 text-left font-normal",
+                                "w-full justify-between pl-3 text-left font-normal bg-transparent border-muted/40 h-10 transition-colors hover:bg-muted/10",
                                 !field.value && "text-muted-foreground",
                               )}
                             >
@@ -522,12 +552,15 @@ export function TransactionFormSheet({
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
+                  <FormItem className="space-y-2 mb-6">
+                    <FormLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Name
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="e.g. Grocery shopping, Salary…"
                         {...field}
+                        className="bg-transparent border-muted/40 h-10 transition-colors focus:border-foreground"
                       />
                     </FormControl>
                     <FormMessage />
@@ -540,10 +573,12 @@ export function TransactionFormSheet({
                 control={form.control}
                 name="description"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
+                  <FormItem className="space-y-2 mb-8">
+                    <FormLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Description
+                    </FormLabel>
                     <FormControl>
-                      <div className="min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                      <div className="min-h-[100px] rounded-md border border-muted/40 bg-transparent px-3 py-2 text-sm transition-colors focus-within:border-foreground focus-within:ring-0">
                         <Editor
                           initialContent={field.value || ""}
                           placeholder="Add notes, links, or any details…"
@@ -560,26 +595,29 @@ export function TransactionFormSheet({
               />
 
               {/* Attachments */}
-              <div className="space-y-2">
+              <div className="space-y-3 mb-10">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Attachments</span>
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Attachments
+                  </span>
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="link"
                     size="sm"
                     onClick={() => setVaultPickerOpen(true)}
+                    className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    <Paperclip className="w-3.5 h-3.5 mr-1.5" />
+                    <Paperclip className="w-3 h-3 mr-1.5" />
                     Attach from Vault
                   </Button>
                 </div>
 
                 {attachments.length > 0 && (
-                  <div className="space-y-1">
+                  <div className="grid grid-cols-1 gap-2">
                     {attachments.map((file) => (
                       <div
                         key={file.id}
-                        className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 text-sm"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-md border border-muted/20 bg-muted/5 text-sm group transition-colors hover:border-muted/40"
                       >
                         <FileIcon type={file.type} />
                         <span className="flex-1 truncate">{file.name}</span>
@@ -602,7 +640,11 @@ export function TransactionFormSheet({
                 )}
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full h-12 text-sm font-bold tracking-wide uppercase transition-all hover:scale-[1.01] active:scale-[0.99]"
+                disabled={isLoading}
+              >
                 {isLoading ? "Saving…" : "Save Transaction"}
               </Button>
             </form>
