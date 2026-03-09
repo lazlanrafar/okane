@@ -153,7 +153,7 @@ export function TransactionDetailSheet({
             {/* Accordion Sections */}
             <Accordion
               type="multiple"
-              defaultValue={["attachments", "general", "note"]}
+              defaultValue={["attachments"]}
               className="w-full"
             >
               <AccordionItem value="attachments" className="border-none">

@@ -10,9 +10,10 @@ export const STICKY_COLUMNS: Record<TableId, StickyColumnConfig[]> = {
   orders: [{ id: "code", width: 200 }],
   accounts: [{ id: "name", width: 200 }],
   transactions: [
-    { id: "select", width: 40 },
+    { id: "select", width: 50 },
     { id: "date", width: 110 },
     { id: "name", width: 320 },
+    { id: "actions", width: 100 },
   ],
 };
 

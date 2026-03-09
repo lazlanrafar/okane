@@ -23,6 +23,16 @@ import { useCurrency } from "@workspace/ui/hooks";
 import { ImportModal } from "./transaction-import-modal";
 import { useTransactionsStore } from "@/stores/transactions";
 import { BulkEditBar } from "./transaction-bulk-edit-bar";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
+  getTransactions,
+  deleteTransaction,
+} from "@workspace/modules/transaction/transaction.action";
+import { toast } from "sonner";
 
 interface Props {
   initialData: Transaction[];
@@ -54,19 +64,90 @@ export function TransactionsClient({
   const [activeTab, setActiveTab] = useState<"all" | "review">("all");
   const { rowSelection, setRowSelection } = useTransactionsStore();
 
-  const { filters, handleFilterChange, pagination, handlePaginationChange } =
-    useDataTableFilter({
-      initialFilters: {
-        q: "",
-        type: "",
-        walletId: "",
-        categoryId: "",
-        startDate: "",
-        endDate: "",
-      },
-      pageSize,
-      initialPage,
-    });
+  const queryClient = useQueryClient();
+  const { filters, handleFilterChange } = useDataTableFilter({
+    initialFilters: {
+      q: "",
+      type: "",
+      walletId: "",
+      categoryId: "",
+      startDate: "",
+      endDate: "",
+    },
+    debounceMs: 500,
+  });
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+    isLoading,
+  } = useInfiniteQuery({
+    queryKey: ["transactions", filters, activeTab],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await getTransactions({
+        page: pageParam,
+        limit: pageSize,
+        type: filters.type || undefined,
+        walletId: filters.walletId || undefined,
+        categoryId: filters.categoryId || undefined,
+        startDate: filters.startDate || undefined,
+        endDate: filters.endDate || undefined,
+        // search: filters.q // Handled by search param in getTransactions
+      } as any);
+      return res;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage.meta?.pagination;
+      if (!pagination) return undefined;
+      return pagination.page < pagination.total_pages
+        ? pagination.page + 1
+        : undefined;
+    },
+    initialData: {
+      pages: [
+        {
+          success: true,
+          data: initialData,
+          code: "OK",
+          message: "Initial data",
+          meta: {
+            pagination: {
+              total: rowCount,
+              page: initialPage + 1,
+              limit: pageSize,
+              total_pages: pageCount,
+            },
+            timestamp: Date.now(),
+          },
+        },
+      ],
+      pageParams: [1],
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteTransaction,
+    onSuccess: () => {
+      toast.success("Transaction deleted");
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      refetch();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete transaction");
+    },
+  });
+
+  const transactions = useMemo(
+    () =>
+      (data?.pages
+        .flatMap((page) => page.data)
+        .filter(Boolean) as Transaction[]) ?? [],
+    [data],
+  );
 
   const columnsWithActions = useMemo(
     () =>
@@ -187,27 +268,27 @@ export function TransactionsClient({
 
       <div className="flex-1 min-h-0 relative ">
         <DataTable
-          data={initialData}
+          data={transactions}
           columns={columnsWithActions}
           setColumns={setColumns}
           tableId="transactions"
           sticky={{
-            columns: ["select", "date", "name"],
+            columns: ["select", "date", "name", "actions"],
             startFromColumn: 0,
           }}
           nonClickableColumns={nonClickableColumns}
           emptyMessage="No transactions found."
-          manualPagination
-          pagination={pagination}
-          onPaginationChange={handlePaginationChange}
-          rowCount={rowCount}
-          pageCount={pageCount}
+          infiniteScroll
+          fetchNextPage={fetchNextPage}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
           hFull
           rowSelection={rowSelection}
           onRowSelectionChange={setRowSelection}
           meta={{
             settings,
             onRowClick: handleRowClick,
+            onDelete: (id: string) => deleteMutation.mutate(id),
           }}
         />
       </div>

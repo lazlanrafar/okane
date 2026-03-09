@@ -9,12 +9,15 @@ import { cn } from "../../../lib/utils";
 
 import { DataTableRow } from "./data-table-row";
 import { TableId, type TableSettings } from "./data-table-settings";
+import { useInfiniteScroll } from "../../../hooks/use-infinite-scroll";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   getCoreRowModel,
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { VirtualRow } from "./data-table-virtual-row";
 import type {
   Column,
   ColumnDef,
@@ -94,6 +97,14 @@ type Props<TData extends { id: string | number }> = {
   ) => void;
   /** Whether the table should fill its container's height. If true, containerHeight is ignored. */
   hFull?: boolean;
+  /** Whether to enable infinite scrolling. */
+  infiniteScroll?: boolean;
+  /** Function to fetch the next page of data. */
+  fetchNextPage?: () => void;
+  /** Whether there is a next page to fetch. */
+  hasNextPage?: boolean;
+  /** Whether the next page is currently being fetched. */
+  isFetchingNextPage?: boolean;
 };
 
 export function DataTable<TData extends { id: string | number }>({
@@ -116,6 +127,10 @@ export function DataTable<TData extends { id: string | number }>({
   hFull,
   rowSelection: rowSelectionProp,
   onRowSelectionChange: onRowSelectionChangeProp,
+  infiniteScroll,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
 }: Props<TData>) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -235,6 +250,26 @@ export function DataTable<TData extends { id: string | number }>({
 
   const rowHeight = ROW_HEIGHTS[tableId] ?? 45;
   const currentRows = table.getRowModel().rows;
+
+  // Row virtualizer for performance
+  const rowVirtualizer = useVirtualizer({
+    count: currentRows.length,
+    getScrollElement: () => scrollContainerRef.current,
+    estimateSize: () => rowHeight,
+    overscan: 10,
+  });
+
+  // Trigger infinite load when scrolling near the bottom
+  useInfiniteScroll({
+    scrollRef: scrollContainerRef as React.RefObject<HTMLDivElement>,
+    rowVirtualizer,
+    rowCount: currentRows.length,
+    hasNextPage: !!hasNextPage,
+    isFetchingNextPage: !!isFetchingNextPage,
+    fetchNextPage: fetchNextPage ?? (() => {}),
+    threshold: 20,
+  });
+
   const pageCount = table.getPageCount();
   const pageIndex = table.getState().pagination.pageIndex;
   const totalCount = rowCount ?? data.length;
@@ -292,14 +327,14 @@ export function DataTable<TData extends { id: string | number }>({
               {/* Block div carries minWidth so overflow:auto clips correctly.
                   Native <table> elements (display:table) can escape overflow:auto —
                   block divs cannot. Sidebar-state-agnostic — no magic numbers needed. */}
-              <div style={{ minWidth: table.getTotalSize() }}>
+              <div style={{ minWidth: table.getTotalSize(), width: "100%" }}>
                 <DndContext
                   id={`${tableId}-table-dnd`}
                   sensors={sensors}
                   collisionDetection={closestCenter}
                   onDragEnd={handleDragEnd}
                 >
-                  <Table className="w-full">
+                  <Table className="w-full block border-none">
                     <DataTableHeader
                       table={table}
                       tableScroll={tableScroll}
@@ -307,24 +342,63 @@ export function DataTable<TData extends { id: string | number }>({
                       sticky={sticky}
                     />
 
-                    <TableBody className="border-l-0 border-r-0 block">
-                      {currentRows.map((row) => (
-                        <DataTableRow
-                          key={row.id}
-                          row={row}
-                          rowHeight={rowHeight}
-                          getStickyStyle={getStickyStyle}
-                          getStickyClassName={getStickyClassName}
-                          nonClickableColumns={nonClickableColumns}
-                          onCellClick={handleCellClick}
-                          columnSizing={columnSizing}
-                          columnOrder={columnOrder}
-                          columnVisibility={columnVisibility}
-                          isSelected={
-                            !!(rowSelectionProp ?? internalRowSelection)[row.id]
-                          }
-                        />
-                      ))}
+                    <TableBody
+                      className={cn(
+                        "border-l-0 border-r-0 block w-full min-w-full",
+                        infiniteScroll && "relative",
+                      )}
+                      style={
+                        infiniteScroll
+                          ? {
+                              height: `${rowVirtualizer.getTotalSize()}px`,
+                            }
+                          : {}
+                      }
+                    >
+                      {infiniteScroll
+                        ? rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                            const row = currentRows[virtualRow.index];
+                            if (!row) return null;
+                            return (
+                              <VirtualRow
+                                key={row.id}
+                                row={row}
+                                virtualStart={virtualRow.start}
+                                rowHeight={rowHeight}
+                                getStickyStyle={getStickyStyle}
+                                getStickyClassName={getStickyClassName}
+                                nonClickableColumns={nonClickableColumns}
+                                onCellClick={handleCellClick}
+                                columnSizing={columnSizing}
+                                columnOrder={columnOrder}
+                                columnVisibility={columnVisibility}
+                                isSelected={
+                                  !!(rowSelectionProp ?? internalRowSelection)[
+                                    row.id
+                                  ]
+                                }
+                              />
+                            );
+                          })
+                        : currentRows.map((row) => (
+                            <DataTableRow
+                              key={row.id}
+                              row={row}
+                              rowHeight={rowHeight}
+                              getStickyStyle={getStickyStyle}
+                              getStickyClassName={getStickyClassName}
+                              nonClickableColumns={nonClickableColumns}
+                              onCellClick={handleCellClick}
+                              columnSizing={columnSizing}
+                              columnOrder={columnOrder}
+                              columnVisibility={columnVisibility}
+                              isSelected={
+                                !!(rowSelectionProp ?? internalRowSelection)[
+                                  row.id
+                                ]
+                              }
+                            />
+                          ))}
                     </TableBody>
                   </Table>
                 </DndContext>
@@ -335,7 +409,7 @@ export function DataTable<TData extends { id: string | number }>({
       </TooltipProvider>
 
       {/* Pagination summary and controls */}
-      {totalCount > 0 && (
+      {!infiniteScroll && totalCount > 0 && (
         <div className="flex items-center justify-between px-1 py-4">
           <p className="text-sm text-muted-foreground">
             Page{" "}

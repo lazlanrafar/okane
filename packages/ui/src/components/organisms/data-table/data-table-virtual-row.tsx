@@ -13,6 +13,7 @@ import type { CSSProperties } from "react";
 import { memo } from "react";
 import {
   ACTIONS_FULL_WIDTH_CELL_CLASS,
+  ACTIONS_STICKY_CELL_CLASS,
   TableColumnMeta,
 } from "./data-table-types";
 import { TableCell, TableRow } from "../../atoms";
@@ -99,21 +100,32 @@ function VirtualRowInner<TData>({
               ? cell.column.getSize()
               : cell.column.columnDef.minSize,
           flexShrink: shouldFlex ? 1 : 0,
+          maxWidth:
+            actionsFullWidth || shouldFlex
+              ? undefined
+              : isSticky
+                ? cell.column.getSize()
+                : (cell.column.columnDef.maxSize ?? 800),
           ...(!actionsFullWidth && getStickyStyle(columnId)),
-          ...(shouldFlex && { flex: 1 }),
+          ...(shouldFlex && { flex: 1, flexGrow: 1 }),
         };
 
-        const cellClassName = actionsFullWidth
-          ? ACTIONS_FULL_WIDTH_CELL_CLASS
+        const cellClassName = isActions
+          ? actionsFullWidth
+            ? ACTIONS_FULL_WIDTH_CELL_CLASS
+            : ACTIONS_STICKY_CELL_CLASS
           : getStickyClassName(columnId, meta?.className);
 
         return (
           <TableCell
             key={cell.id}
             className={cn(
-              "h-full flex items-center border-b border-border overflow-hidden",
+              "h-full flex items-center border-b border-border overflow-hidden bg-background transition-colors",
+              "group-hover:bg-[#F2F1EF] group-hover:dark:bg-[#0f0f0f]",
               cellClassName,
+              isSticky && "z-10",
               isActions && "justify-center",
+              shouldFlex && "border-r-0",
             )}
             style={cellStyle}
             onClick={() => {
@@ -122,7 +134,13 @@ function VirtualRowInner<TData>({
               }
             }}
           >
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            {columnId === "select" || columnId === "actions" ? (
+              flexRender(cell.column.columnDef.cell, cell.getContext())
+            ) : (
+              <div className="w-full overflow-hidden truncate">
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </div>
+            )}
           </TableCell>
         );
       })}

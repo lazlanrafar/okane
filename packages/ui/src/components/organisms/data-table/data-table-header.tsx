@@ -19,12 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from "../../atoms";
+import { cn } from "../../../lib/utils";
 import { HorizontalPagination } from "../../molecules";
 import { TableId } from "./data-table-settings";
 import {
   ACTIONS_FULL_WIDTH_HEADER_CLASS,
   ACTIONS_STICKY_HEADER_CLASS,
-  getHeaderLabel,
   TableScrollState,
 } from "./data-table-types";
 import type { StickyConfig } from "./data-table";
@@ -148,14 +148,15 @@ export function DataTableHeader<TData>({
                   : isSticky
                     ? header.getSize()
                     : header.column.columnDef.minSize,
-                maxWidth: actionsFullWidth
-                  ? undefined
-                  : isSticky
-                    ? header.getSize()
-                    : header.column.columnDef.maxSize,
+                maxWidth:
+                  actionsFullWidth || shouldFlex
+                    ? undefined
+                    : isSticky
+                      ? header.getSize()
+                      : header.column.columnDef.maxSize,
                 flexShrink: shouldFlex ? 1 : 0,
                 ...(!actionsFullWidth && getStickyStyle(columnId)),
-                ...(shouldFlex && { flex: 1 }),
+                ...(shouldFlex && { flex: 1, flexGrow: 1 }),
               };
 
               // Non-reorderable columns (sticky + actions)
@@ -168,7 +169,11 @@ export function DataTableHeader<TData>({
                   ? actionsFullWidth
                     ? ACTIONS_FULL_WIDTH_HEADER_CLASS
                     : ACTIONS_STICKY_HEADER_CLASS
-                  : `${stickyClass} bg-background z-20`;
+                  : cn(
+                      stickyClass,
+                      "bg-background z-20",
+                      shouldFlex && "border-r-0",
+                    );
 
                 return (
                   <TableHead
@@ -199,7 +204,10 @@ export function DataTableHeader<TData>({
                   id={columnId}
                   className={getStickyClassName(
                     columnId,
-                    "group/header relative h-full px-4 border-t border-border flex items-center",
+                    cn(
+                      "group/header relative h-full px-4 border-t border-border flex items-center",
+                      shouldFlex && "border-r-0",
+                    ),
                   )}
                   style={headerStyle}
                 >
@@ -356,4 +364,11 @@ function SortButton({
       )}
     </Button>
   );
+}
+
+function getHeaderLabel(columnDef: any): string {
+  const meta = columnDef.meta as any;
+  if (meta?.header) return meta.header;
+  if (typeof columnDef.header === "string") return columnDef.header;
+  return columnDef.id;
 }

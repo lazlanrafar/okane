@@ -91,14 +91,15 @@ function DataTableRowInner<TData>({
             : isSticky
               ? cell.column.getSize()
               : cell.column.columnDef.minSize,
-          maxWidth: actionsFullWidth
-            ? undefined
-            : isSticky
-              ? cell.column.getSize()
-              : cell.column.columnDef.maxSize,
+          maxWidth:
+            actionsFullWidth || shouldFlex
+              ? undefined
+              : isSticky
+                ? cell.column.getSize()
+                : cell.column.columnDef.maxSize,
           flexShrink: shouldFlex ? 1 : 0,
           ...(!actionsFullWidth && getStickyStyle(columnId)),
-          ...(shouldFlex && { flex: 1 }),
+          ...(shouldFlex && { flex: 1, flexGrow: 1 }),
         };
 
         const cellClassName = isActions
@@ -118,6 +119,7 @@ function DataTableRowInner<TData>({
               cellClassName,
               isSticky && "z-10",
               isClickable ? "cursor-pointer" : "cursor-default",
+              shouldFlex && "border-r-0",
             )}
             style={cellStyle}
             onClick={(e) => {
@@ -131,7 +133,13 @@ function DataTableRowInner<TData>({
               }
             }}
           >
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            {columnId === "select" || columnId === "actions" ? (
+              flexRender(cell.column.columnDef.cell, cell.getContext())
+            ) : (
+              <div className="w-full overflow-hidden truncate">
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </div>
+            )}
           </TableCell>
         );
       })}

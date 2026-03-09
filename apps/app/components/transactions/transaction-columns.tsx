@@ -10,10 +10,22 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@workspace/ui";
 import { format } from "date-fns";
 import { formatCurrency } from "@workspace/utils";
-import { Landmark, Receipt, Loader2 } from "lucide-react";
+import {
+  Landmark,
+  Receipt,
+  Loader2,
+  MoreHorizontal,
+  Trash,
+  Edit,
+} from "lucide-react";
 import { SelectCategory } from "../shared/select-category";
 import { updateTransaction } from "@workspace/modules/transaction/transaction.action";
 import { toast } from "sonner";
@@ -47,7 +59,11 @@ export const transactionColumns = (
     enableSorting: false,
     enableHiding: false,
     enableResizing: false,
-    size: 40,
+    size: 50,
+    meta: {
+      sticky: true,
+      className: "bg-background z-10",
+    },
   },
   {
     accessorKey: "date",
@@ -62,6 +78,10 @@ export const transactionColumns = (
     },
     enableResizing: false,
     size: 110,
+    meta: {
+      sticky: true,
+      className: "bg-background z-10",
+    },
   },
   {
     accessorKey: "name",
@@ -130,6 +150,10 @@ export const transactionColumns = (
     size: 320,
     minSize: 200,
     maxSize: 600,
+    meta: {
+      sticky: true,
+      className: "bg-background z-10",
+    },
   },
   {
     id: "tax_amount",
@@ -176,6 +200,50 @@ export const transactionColumns = (
     size: 250,
     minSize: 150,
     maxSize: 400,
+  },
+  {
+    id: "actions",
+    cell: ({ row, table }) => {
+      const transaction = row.original;
+      const meta = table.options.meta as any;
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="h-8 w-8 p-0 hover:bg-transparent"
+            >
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => onEdit(transaction)}
+              className="gap-2 cursor-pointer"
+            >
+              <Edit className="h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => meta?.onDelete?.(transaction.id)}
+              className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+            >
+              <Trash className="h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+    size: 100,
+    meta: {
+      sticky: true,
+      className: "bg-background z-10",
+    },
   },
 ];
 
