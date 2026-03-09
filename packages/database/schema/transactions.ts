@@ -1,4 +1,11 @@
-import { pgTable, text, timestamp, uuid, decimal } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  decimal,
+  boolean,
+} from "drizzle-orm/pg-core";
 import { workspaces } from "./workspaces";
 import { wallets } from "./wallets";
 import { categories } from "./categories";
@@ -24,5 +31,7 @@ export const transactions = pgTable("transactions", {
   name: text("name"),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+  isReady: boolean("is_ready").default(false).notNull(),
+  isExported: boolean("is_exported").default(false).notNull(),
   deletedAt: timestamp("deleted_at", { mode: "string" }),
 });

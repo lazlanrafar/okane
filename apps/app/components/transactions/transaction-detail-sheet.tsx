@@ -37,13 +37,17 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@workspace/utils";
 import { useCurrency } from "@workspace/ui/hooks";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { updateTransaction } from "@workspace/modules/transaction/transaction.action";
+import { toast } from "sonner";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transaction?: Transaction;
   onEdit?: () => void;
+  onNext?: () => void;
+  onPrevious?: () => void;
 }
 
 export function TransactionDetailSheet({
@@ -51,10 +55,36 @@ export function TransactionDetailSheet({
   onOpenChange,
   transaction,
   onEdit,
+  onNext,
+  onPrevious,
 }: Props) {
   const { settings } = useCurrency();
   const [excludeFromReports, setExcludeFromReports] = useState(false);
   const [markAsRecurring, setMarkAsRecurring] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!open || !transaction) return;
+
+      if ((e.metaKey || e.ctrlKey) && e.key === "m") {
+        e.preventDefault();
+        const toggleReady = async () => {
+          const res = await updateTransaction(transaction.id, {
+            isReady: !transaction.isReady,
+          });
+          if (res.success) {
+            toast.success(
+              transaction.isReady ? "Marked as pending" : "Marked as ready",
+            );
+          }
+        };
+        toggleReady();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, transaction]);
 
   if (!transaction) return null;
 
@@ -267,12 +297,26 @@ export function TransactionDetailSheet({
         {/* Footer Toolbar */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-4rem)] bg-background/80 backdrop-blur-md border border-border/50 rounded px-4 py-2 flex items-center justify-between z-50">
           <div className="flex items-center gap-4">
-            <button className="flex items-center gap-2 group">
+            <button
+              className="flex items-center gap-2 group"
+              onClick={async () => {
+                const res = await updateTransaction(transaction.id, {
+                  isReady: !transaction.isReady,
+                });
+                if (res.success) {
+                  toast.success(
+                    transaction.isReady
+                      ? "Marked as pending"
+                      : "Marked as ready",
+                  );
+                }
+              }}
+            >
               <Kbd className="bg-muted/30 border-none text-[10px] h-5 min-w-[20px]">
-                ⌘ M
+                {navigator.platform.includes("Mac") ? "⌘" : "Ctrl"} M
               </Kbd>
               <span className="text-xs font-sans text-muted-foreground group-hover:text-foreground transition-colors">
-                Mark ready
+                {transaction.isReady ? "Marked ready" : "Mark ready"}
               </span>
             </button>
           </div>
@@ -283,6 +327,8 @@ export function TransactionDetailSheet({
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 rounded-md hover:bg-background shadow-none"
+                onClick={onPrevious}
+                disabled={!onPrevious}
               >
                 <ChevronUp className="h-4 w-4" />
               </Button>
@@ -290,6 +336,8 @@ export function TransactionDetailSheet({
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 rounded-md hover:bg-background shadow-none"
+                onClick={onNext}
+                disabled={!onNext}
               >
                 <ChevronDown className="h-4 w-4" />
               </Button>

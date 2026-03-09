@@ -25,6 +25,10 @@ import {
   MoreHorizontal,
   Trash,
   Edit,
+  Copy,
+  Check,
+  FileCheck,
+  ExternalLink,
 } from "lucide-react";
 import { SelectCategory } from "../shared/select-category";
 import { updateTransaction } from "@workspace/modules/transaction/transaction.action";
@@ -218,7 +222,14 @@ export const transactionColumns = (
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-48 font-sans">
+            <DropdownMenuItem
+              onClick={() => meta?.onRowClick?.(transaction)}
+              className="gap-2 cursor-pointer"
+            >
+              <ExternalLink className="h-4 w-4" />
+              View details
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onEdit(transaction)}
               className="gap-2 cursor-pointer"
@@ -226,6 +237,59 @@ export const transactionColumns = (
               <Edit className="h-4 w-4" />
               Edit
             </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                const url = `${window.location.origin}${window.location.pathname}?transactionId=${transaction.id}`;
+                navigator.clipboard.writeText(url);
+                toast.success("Link copied to clipboard");
+              }}
+              className="gap-2 cursor-pointer"
+            >
+              <Copy className="h-4 w-4" />
+              Copy link
+            </DropdownMenuItem>
+
+            <div className="h-px bg-muted my-1" />
+
+            <DropdownMenuItem
+              onClick={async () => {
+                const res = await updateTransaction(transaction.id, {
+                  isReady: !transaction.isReady,
+                });
+                if (res.success) {
+                  toast.success(
+                    transaction.isReady
+                      ? "Marked as pending"
+                      : "Marked as ready",
+                  );
+                }
+              }}
+              className="gap-2 cursor-pointer"
+            >
+              <Check className="h-4 w-4" />
+              {transaction.isReady ? "Reset status" : "Mark ready"}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={async () => {
+                const res = await updateTransaction(transaction.id, {
+                  isExported: !transaction.isExported,
+                });
+                if (res.success) {
+                  toast.success(
+                    transaction.isExported
+                      ? "Unmarked as exported"
+                      : "Marked as exported",
+                  );
+                }
+              }}
+              className="gap-2 cursor-pointer"
+            >
+              <FileCheck className="h-4 w-4" />
+              {transaction.isExported ? "Reset export" : "Mark exported"}
+            </DropdownMenuItem>
+
+            <div className="h-px bg-muted my-1" />
+
             <DropdownMenuItem
               onClick={() => meta?.onDelete?.(transaction.id)}
               className="gap-2 cursor-pointer text-destructive focus:text-destructive"

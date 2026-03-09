@@ -11,6 +11,8 @@ export interface Transaction {
   description?: string | null;
   createdAt: string;
   updatedAt: string;
+  isReady: boolean;
+  isExported: boolean;
   deletedAt?: string | null;
   wallet?: { id: string; name: string };
   toWallet?: { id: string; name: string } | null;

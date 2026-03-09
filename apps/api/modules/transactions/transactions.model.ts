@@ -14,8 +14,9 @@ export const TransactionModel = {
       t.Literal("transfer-in"),
       t.Literal("transfer-out"),
     ]),
-    name: t.Optional(t.String()),
     description: t.Optional(t.String()),
+    isReady: t.Optional(t.Boolean()),
+    isExported: t.Optional(t.Boolean()),
     attachmentIds: t.Optional(t.Array(t.String())),
   }),
   bulkCreate: t.Array(
@@ -34,6 +35,8 @@ export const TransactionModel = {
       ]),
       name: t.Optional(t.String()),
       description: t.Optional(t.String()),
+      isReady: t.Optional(t.Boolean()),
+      isExported: t.Optional(t.Boolean()),
       attachmentIds: t.Optional(t.Array(t.String())),
     }),
   ),
@@ -54,6 +57,8 @@ export const TransactionModel = {
     ),
     name: t.Optional(t.String()),
     description: t.Optional(t.String()),
+    isReady: t.Optional(t.Boolean()),
+    isExported: t.Optional(t.Boolean()),
     attachmentIds: t.Optional(t.Array(t.String())),
   }),
   listQuery: t.Object({

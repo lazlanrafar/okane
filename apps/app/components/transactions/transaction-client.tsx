@@ -33,6 +33,8 @@ import {
   deleteTransaction,
 } from "@workspace/modules/transaction/transaction.action";
 import { toast } from "sonner";
+import { useQueryState, parseAsString } from "nuqs";
+import { useEffect as useReactEffect } from "react";
 
 interface Props {
   initialData: Transaction[];
@@ -63,6 +65,11 @@ export function TransactionsClient({
   const { settings } = useCurrency();
   const [activeTab, setActiveTab] = useState<"all" | "review">("all");
   const { rowSelection, setRowSelection } = useTransactionsStore();
+
+  const [transactionId, setTransactionId] = useQueryState(
+    "transactionId",
+    parseAsString.withDefault("").withOptions({ shallow: true }),
+  );
 
   const queryClient = useQueryClient();
   const { filters, handleFilterChange } = useDataTableFilter({
@@ -176,8 +183,52 @@ export function TransactionsClient({
 
   const handleRowClick = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
+    setTransactionId(transaction.id);
     setIsDetailOpen(true);
   };
+
+  // Sync state with transactionId from URL
+  useReactEffect(() => {
+    if (transactionId && !selectedTransaction) {
+      const found = transactions.find((t) => t.id === transactionId);
+      if (found) {
+        setSelectedTransaction(found);
+        setIsDetailOpen(true);
+      }
+    } else if (!transactionId && isDetailOpen) {
+      setIsDetailOpen(false);
+      setSelectedTransaction(undefined);
+    }
+  }, [transactionId, transactions, selectedTransaction, isDetailOpen]);
+
+  // Keyboard navigation
+  useReactEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isDetailOpen || !transactionId) return;
+
+      const currentIndex = transactions.findIndex(
+        (t) => t.id === transactionId,
+      );
+      if (currentIndex === -1) return;
+
+      if (e.key === "ArrowDown") {
+        const next = transactions[currentIndex + 1];
+        if (next) {
+          setTransactionId(next.id);
+          setSelectedTransaction(next);
+        }
+      } else if (e.key === "ArrowUp") {
+        const prev = transactions[currentIndex - 1];
+        if (prev) {
+          setTransactionId(prev.id);
+          setSelectedTransaction(prev);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isDetailOpen, transactionId, transactions, setTransactionId]);
 
   const handleCreate = () => {
     setSelectedTransaction(undefined);
@@ -321,11 +372,47 @@ export function TransactionsClient({
 
       <TransactionDetailSheet
         open={isDetailOpen}
-        onOpenChange={setIsDetailOpen}
+        onOpenChange={(open) => {
+          setIsDetailOpen(open);
+          if (!open) {
+            setTransactionId(null);
+            setSelectedTransaction(undefined);
+          }
+        }}
         transaction={selectedTransaction}
         onEdit={() => {
           setIsDetailOpen(false);
           setIsFormOpen(true);
+        }}
+        onNext={() => {
+          const currentIndex = transactions.findIndex(
+            (t) => t.id === transactionId,
+          );
+
+          // Trigger fetch next page if we are near the end
+          if (
+            currentIndex >= transactions.length - 2 &&
+            hasNextPage &&
+            !isFetchingNextPage
+          ) {
+            fetchNextPage();
+          }
+
+          const next = transactions[currentIndex + 1];
+          if (next) {
+            setTransactionId(next.id);
+            setSelectedTransaction(next);
+          }
+        }}
+        onPrevious={() => {
+          const currentIndex = transactions.findIndex(
+            (t) => t.id === transactionId,
+          );
+          const prev = transactions[currentIndex - 1];
+          if (prev) {
+            setTransactionId(prev.id);
+            setSelectedTransaction(prev);
+          }
         }}
       />
 

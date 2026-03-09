@@ -187,6 +187,12 @@ These serve as the fallback; there is no separate default.css file. */
     @apply border-border;
   }
 
+  *:focus,
+  *:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans), system-ui, sans-serif;

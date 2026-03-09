@@ -37,6 +37,8 @@ export abstract class TransactionsRepository {
       date: transaction.date,
       createdAt: transaction.createdAt,
       updatedAt: transaction.updatedAt,
+      isReady: transaction.isReady,
+      isExported: transaction.isExported,
       deletedAt: transaction.deletedAt,
     } as unknown as Transaction;
   }
@@ -99,6 +101,8 @@ export abstract class TransactionsRepository {
       date: result.transaction.date,
       createdAt: result.transaction.createdAt,
       updatedAt: result.transaction.updatedAt,
+      isReady: result.transaction.isReady,
+      isExported: result.transaction.isExported,
       deletedAt: result.transaction.deletedAt,
       wallet: result.wallet,
       toWallet: result.toWallet,
@@ -173,6 +177,8 @@ export abstract class TransactionsRepository {
       date: row.transaction.date,
       createdAt: row.transaction.createdAt,
       updatedAt: row.transaction.updatedAt,
+      isReady: row.transaction.isReady,
+      isExported: row.transaction.isExported,
       deletedAt: row.transaction.deletedAt,
       wallet: row.wallet,
       toWallet: row.toWallet,
