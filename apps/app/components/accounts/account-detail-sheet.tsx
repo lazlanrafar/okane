@@ -12,8 +12,7 @@ import {
 } from "@workspace/ui";
 import type { Wallet } from "@workspace/types";
 import { CheckCircle2, Pencil, XCircle } from "lucide-react";
-import { formatCurrency } from "@workspace/utils";
-import { useCurrency } from "@workspace/ui/hooks";
+import { useSettingsStore } from "@/stores/settings-store";
 
 interface AccountDetailSheetProps {
   open: boolean;
@@ -28,7 +27,7 @@ export function AccountDetailSheet({
   wallet,
   onEdit,
 }: AccountDetailSheetProps) {
-  const { settings } = useCurrency();
+  const { settings, formatCurrency } = useSettingsStore();
   if (!wallet) return null;
 
   return (
@@ -52,8 +51,8 @@ export function AccountDetailSheet({
 
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Current Balance</p>
-              <p className="text-3xl font-sans">
-                {formatCurrency(Number(wallet.balance), settings)}
+              <p className="text-3xl font-medium tracking-tight mb-2">
+                {formatCurrency(wallet.balance)}
               </p>
             </div>
 

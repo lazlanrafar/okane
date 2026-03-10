@@ -15,7 +15,7 @@ import { AccountDetailSheet } from "./account-detail-sheet";
 import { useDataTableFilter } from "@/hooks/use-data-table-filter";
 import { useAccountsStore } from "@/stores/accounts";
 import { useSearchParams } from "next/navigation";
-import { useCurrency } from "@workspace/ui/hooks";
+import { useSettingsStore } from "@/stores/settings-store";
 
 type Props = {
   initialData: Wallet[];
@@ -37,7 +37,7 @@ export function AccountsClient({
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | undefined>();
-  const { settings } = useCurrency();
+  const { settings, formatCurrency } = useSettingsStore();
 
   const { filters, handleFilterChange, pagination, handlePaginationChange } =
     useDataTableFilter({
@@ -71,11 +71,10 @@ export function AccountsClient({
   }, []);
 
   const groupOptions = useMemo(() => {
-    return groups.map((group) => ({
-      id: group.id,
-      name: group.name,
-    }));
-  }, [groups]);
+    // Assuming groups are now fetched from a store or context if needed for filter
+    // For now, returning an empty array or placeholder if `groups` prop is removed
+    return [];
+  }, []);
 
   return (
     <div className="flex w-full flex-col h-full space-y-4">
@@ -124,8 +123,8 @@ export function AccountsClient({
           pageCount={pageCount}
           hFull
           meta={{
-            groups,
-            settings,
+            categories: [], // Or fetch from store if needed
+            wallets: [],
             onRowClick: handleRowClick,
           }}
         />

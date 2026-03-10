@@ -1,6 +1,5 @@
 // Shared hooks — import from "@workspace/ui/hooks"
 export * from "../hooks/use-mobile";
-export * from "./use-currency";
 export * from "./use-localized-route";
 export * from "./use-data-table-instance";
 export * from "./use-infinite-scroll";

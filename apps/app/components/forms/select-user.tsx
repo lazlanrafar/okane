@@ -54,7 +54,7 @@ export function SelectUser({
       if (!res.success) throw new Error(res.error);
       return res.data || [];
     },
-    enabled: open,
+    enabled: open || !!value,
   });
 
   const selectedMember = useMemo(() => {
@@ -77,7 +77,9 @@ export function SelectUser({
           type="button"
           onClick={(e) => e.stopPropagation()}
           className={cn(
-            "flex items-center gap-2 min-w-0 hover:bg-accent/50 p-1 rounded transition-colors group text-left w-full",
+            "flex items-center gap-2 min-w-0 transition-colors group text-left w-full",
+            "border h-10 transition-colors hover:bg-muted/10 px-3",
+            "cursor-pointer",
             className,
           )}
         >

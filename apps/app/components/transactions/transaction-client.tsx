@@ -19,9 +19,9 @@ import { useDataTableFilter } from "@/hooks/use-data-table-filter";
 import { transactionColumns } from "./transaction-columns";
 import { TransactionFormSheet } from "./transaction-form-sheet";
 import { TransactionDetailSheet } from "./transaction-detail-sheet";
-import { useCurrency } from "@workspace/ui/hooks";
 import { ImportModal } from "./transaction-import-modal";
 import { useTransactionsStore } from "@/stores/transactions";
+import { useSettingsStore } from "@/stores/settings-store";
 import { BulkEditBar } from "./transaction-bulk-edit-bar";
 import {
   useInfiniteQuery,
@@ -62,7 +62,7 @@ export function TransactionsClient({
     Transaction | undefined
   >();
   const [columns, setColumns] = useState<any[]>([]);
-  const { settings } = useCurrency();
+  const { settings } = useSettingsStore();
   const [activeTab, setActiveTab] = useState<"all" | "review">("all");
   const { rowSelection, setRowSelection } = useTransactionsStore();
 
@@ -269,18 +269,12 @@ export function TransactionsClient({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="outline">
+              <Button variant="outline">
                 <Plus className="h-4 w-4" />
+                <span className="text-sm">Add</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 ">
-              <DropdownMenuItem
-                className="gap-2 cursor-pointer"
-                onClick={() => {}}
-              >
-                <Landmark className="h-4 w-4" />
-                <span>Connect account</span>
-              </DropdownMenuItem>
               <DropdownMenuItem
                 className="gap-2 cursor-pointer"
                 onClick={() => setIsImportOpen(true)}
@@ -305,7 +299,7 @@ export function TransactionsClient({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <div className="flex items-center bg-muted/20 p-1 rounded-md h-8 ml-2">
+          {/* <div className="flex items-center bg-muted/20 p-1 rounded-md h-8 ml-2">
             <button
               onClick={() => setActiveTab("all")}
               className={cn(
@@ -331,7 +325,7 @@ export function TransactionsClient({
                 <span className="text-[10px] opacity-60">({reviewCount})</span>
               )}
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -355,7 +349,6 @@ export function TransactionsClient({
           rowSelection={rowSelection}
           onRowSelectionChange={setRowSelection}
           meta={{
-            settings,
             categories,
             wallets,
             onRowClick: handleRowClick,

@@ -9,6 +9,11 @@ import {
 } from "@workspace/modules/transaction/transaction.action";
 import type { Transaction } from "@workspace/types";
 import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
   Button,
   Command,
   CommandEmpty,
@@ -42,7 +47,7 @@ import {
 import { SelectAccount } from "@/components/forms/select-account";
 import { SelectCategory } from "@/components/forms/select-category";
 import { SelectUser } from "@/components/forms/select-user";
-import { useCurrency } from "@workspace/ui/hooks";
+import { useSettingsStore } from "@/stores/settings-store";
 import {
   Check,
   ChevronsUpDown,
@@ -115,13 +120,14 @@ export function TransactionFormSheet({
   transaction,
   onSuccess,
 }: Props) {
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TransactionFormValues["type"]>(
     (transaction?.type as TransactionFormValues["type"]) || "expense",
   );
   const [attachments, setAttachments] = useState<VaultFileRef[]>([]);
   const [vaultPickerOpen, setVaultPickerOpen] = useState(false);
-  const { settings } = useCurrency();
+  const { settings, formatCurrency } = useSettingsStore();
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema as any),
@@ -201,6 +207,9 @@ export function TransactionFormSheet({
         await createTransaction(payload);
         toast.success("Transaction created");
       }
+
+      await queryClient.invalidateQueries({ queryKey: ["transactions"] });
+
       form.reset();
       onOpenChange(false);
       onSuccess?.();
@@ -360,7 +369,7 @@ export function TransactionFormSheet({
                 />
 
                 <div className="flex flex-col">
-                  <FormLabel className="text-sm font-medium mb-2 pr-4 pt-1">
+                  <FormLabel className="text-sm font-medium mb-1 pr-4 pt-1">
                     Currency
                   </FormLabel>
                   <Button
@@ -406,7 +415,7 @@ export function TransactionFormSheet({
                   control={form.control}
                   name="date"
                   render={({ field }) => (
-                    <FormItem className="space-y-2">
+                    <FormItem className="">
                       <FormLabel className="text-sm font-medium">
                         Date
                       </FormLabel>
@@ -442,7 +451,6 @@ export function TransactionFormSheet({
                             value={field.value ?? undefined}
                             type={activeTab === "income" ? "income" : "expense"}
                             onChange={(id) => form.setValue("categoryId", id)}
-                            className="w-full justify-start px-3 text-left font-normal bg-transparent h-10 transition-colors hover:bg-muted/10 hover:bg-transparent"
                           />
                         </FormControl>
                         <FormDescription className="text-[11px]">
@@ -466,7 +474,6 @@ export function TransactionFormSheet({
                             value={field.value ?? undefined}
                             onChange={(id) => form.setValue("toWalletId", id)}
                             placeholder="Select destination"
-                            className="w-full justify-start px-3 text-left font-normal bg-transparent h-10 transition-colors hover:bg-muted/10 hover:bg-transparent"
                           />
                         </FormControl>
                         <FormDescription className="text-[11px]">
@@ -491,7 +498,6 @@ export function TransactionFormSheet({
                           value={field.value ?? undefined}
                           onChange={(id) => form.setValue("assignedUserId", id)}
                           placeholder="Select member"
-                          className="w-full justify-start px-3 text-left font-normal bg-transparent h-10 transition-colors hover:bg-muted/10 hover:bg-transparent"
                         />
                       </FormControl>
                       <FormDescription className="text-[11px]">

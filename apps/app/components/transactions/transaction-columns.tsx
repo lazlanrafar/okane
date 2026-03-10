@@ -31,11 +31,13 @@ import { SelectCategory } from "@/components/forms/select-category";
 import { SelectAccount } from "@/components/forms/select-account";
 import { SelectUser } from "@/components/forms/select-user";
 import { format } from "date-fns";
-import { formatCurrency } from "@workspace/utils";
+import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
+import { useSettingsStore } from "../../stores/settings-store";
 import { updateTransaction } from "@workspace/modules/transaction/transaction.action";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const transactionColumns = (
   onEdit: (transaction: Transaction) => void,
@@ -169,19 +171,17 @@ export const transactionColumns = (
       const isExpense = transaction.type === "expense";
       const isIncome = transaction.type === "income";
 
-      const meta = table.options.meta as any;
-      const settings = meta?.settings;
+      const { getTransactionColor, formatCurrency } =
+        useSettingsStore.getState();
 
       return (
         <div
           className={cn(
             "text-xs font-medium text-right",
-            isExpense && "text-red-500",
-            isIncome && "text-emerald-500",
-            transaction.type === "transfer" && "text-blue-500",
+            getTransactionColor(transaction.type),
           )}
         >
-          {formatCurrency(amount, settings)}
+          {formatCurrency(amount)}
         </div>
       );
     },
@@ -226,6 +226,7 @@ export const transactionColumns = (
     cell: ({ row, table }) => {
       const transaction = row.original;
       const meta = table.options.meta as any;
+      const queryClient = useQueryClient();
 
       return (
         <DropdownMenu>
@@ -278,6 +279,7 @@ export const transactionColumns = (
                       ? "Marked as pending"
                       : "Marked as ready",
                   );
+                  queryClient.invalidateQueries({ queryKey: ["transactions"] });
                 }
               }}
               className="gap-2 cursor-pointer"
@@ -296,6 +298,7 @@ export const transactionColumns = (
                       ? "Unmarked as exported"
                       : "Marked as exported",
                   );
+                  queryClient.invalidateQueries({ queryKey: ["transactions"] });
                 }
               }}
               className="gap-2 cursor-pointer"
@@ -335,6 +338,7 @@ function CategoryCell({
   table: any;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
   const meta = table.options.meta as any;
 
@@ -348,6 +352,7 @@ function CategoryCell({
 
     if (res.success) {
       toast.success("Category updated");
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
       router.refresh();
     } else {
       toast.error(res.error || "Failed to update category");
@@ -390,6 +395,7 @@ function AccountCell({
   table: any;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
   const meta = table.options.meta as any;
 
@@ -403,6 +409,7 @@ function AccountCell({
 
     if (res.success) {
       toast.success("Account updated");
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
       router.refresh();
     } else {
       toast.error(res.error || "Failed to update account");
@@ -429,6 +436,7 @@ function AccountCell({
 
 function UserCell({ transaction }: { transaction: Transaction; table: any }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
 
   const handleUserChange = async (userId: string) => {
@@ -441,6 +449,7 @@ function UserCell({ transaction }: { transaction: Transaction; table: any }) {
 
     if (res.success) {
       toast.success("Assignee updated");
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
       router.refresh();
     } else {
       toast.error(res.error || "Failed to update assignee");

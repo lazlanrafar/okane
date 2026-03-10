@@ -23,14 +23,14 @@ export const INCOME_EXPENSES_COLOR_OPTIONS = [
   {
     label: "Income: Blue, Expenses: Red",
     value: "blue-red",
-    expensesColor: "text-red-500",
-    incomeColor: "text-blue-500",
+    expensesColor: "text-red-600 dark:text-red-400",
+    incomeColor: "text-blue-600 dark:text-blue-400",
   },
   {
     label: "Income: Red, Expenses: Blue",
     value: "red-blue",
-    expensesColor: "text-blue-500",
-    incomeColor: "text-red-500",
+    expensesColor: "text-blue-600 dark:text-blue-400",
+    incomeColor: "text-red-600 dark:text-red-400",
   },
 ] as const;
 

@@ -34,6 +34,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
+  Spinner,
   Table,
   TableBody,
   Tooltip,
@@ -182,7 +183,7 @@ export function DataTable<TData extends { id: string | number }>({
       rowSelection: rowSelectionProp ?? internalRowSelection,
       pagination: paginationProp ?? pagination,
     },
-    manualPagination,
+    manualPagination: manualPagination ?? infiniteScroll,
     pageCount: pageCountProp,
     onPaginationChange: onPaginationChange ?? setPagination,
     onRowSelectionChange: onRowSelectionChangeProp ?? setInternalRowSelection,
@@ -403,6 +404,14 @@ export function DataTable<TData extends { id: string | number }>({
                     </TableBody>
                   </Table>
                 </DndContext>
+                {infiniteScroll && isFetchingNextPage && (
+                  <div className="flex items-center justify-center py-4 border-t border-border bg-muted/5 w-full">
+                    <Spinner className="h-4 w-4 text-muted-foreground mr-2" />
+                    <span className="text-xs font-sans text-muted-foreground">
+                      Loading more...
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

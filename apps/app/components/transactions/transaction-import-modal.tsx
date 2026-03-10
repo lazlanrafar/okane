@@ -1,4 +1,5 @@
 "use client";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useMemo, useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -27,7 +28,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
-import { useCurrency } from "@workspace/ui/hooks";
+import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -39,7 +40,11 @@ import {
 import { SelectFile } from "./transaction-import-select-file";
 import { FieldMapping } from "./transaction-import-field-mapping";
 import { ValueMapping } from "./transaction-import-value-mapping";
-import { bulkCreateTransactions } from "@workspace/modules/transaction/transaction.action";
+import {
+  bulkCreateTransactions,
+  createTransaction,
+} from "@workspace/modules/transaction/transaction.action";
+import { useSettingsStore } from "@/stores/settings-store";
 
 interface ImportModalProps {
   open: boolean;
@@ -51,9 +56,10 @@ interface ImportModalProps {
 export function ImportModal({
   open,
   onOpenChange,
-  onSuccess,
   wallets,
+  onSuccess,
 }: ImportModalProps) {
+  const { settings, formatCurrency } = useSettingsStore();
   const [step, setStep] = useState<
     | "select"
     | "mapping"
@@ -80,15 +86,13 @@ export function ImportModal({
   const [errorMessage, setErrorMessage] = useState("");
 
   const router = useRouter();
-  const { settings } = useCurrency();
-
-  const currentSettings = settings as any;
+  const queryClient = useQueryClient();
 
   const form = useForm<ImportCsvFormData>({
     resolver: zodResolver(importSchema as any),
     defaultValues: {
       file: undefined,
-      currency: currentSettings?.currency || "USD",
+      currency: settings?.mainCurrencyCode || "USD",
       walletId: "",
       amount: "",
       date: "",
@@ -235,6 +239,7 @@ export function ImportModal({
       if (res.success && res.data) {
         setImportedCount(res.data.imported);
         setStep("success");
+        await queryClient.invalidateQueries({ queryKey: ["transactions"] });
         onSuccess();
         router.refresh();
       } else {

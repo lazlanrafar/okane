@@ -38,7 +38,7 @@ import {
   getWalletGroups,
   type WalletGroup,
 } from "@workspace/modules/wallet-group/wallet-group.action";
-import { useCurrency } from "@workspace/ui/hooks";
+import { useSettingsStore } from "@/stores/settings-store";
 
 const accountSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -63,7 +63,7 @@ export function AccountFormSheet({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [groups, setGroups] = useState<WalletGroup[]>([]);
-  const { settings } = useCurrency();
+  const { settings, formatCurrency } = useSettingsStore();
 
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountSchema as any),

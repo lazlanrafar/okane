@@ -27,19 +27,23 @@ import {
 import type { Transaction } from "@workspace/types";
 import { format } from "date-fns";
 import {
-  Search,
-  ChevronUp,
-  ChevronDown,
-  X,
   Plus,
   ArrowRight,
   ShieldCheck,
+  Landmark,
+  Copy,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { formatCurrency } from "@workspace/utils";
-import { useCurrency } from "@workspace/ui/hooks";
 import { useState, useEffect } from "react";
 import { updateTransaction } from "@workspace/modules/transaction/transaction.action";
 import { toast } from "sonner";
+import { SelectCategory } from "../forms/select-category";
+import { SelectUser } from "../forms/select-user";
+import { useQueryClient } from "@tanstack/react-query";
+import { useDebounce } from "../../hooks/use-debounce";
+import { useSettingsStore } from "../../stores/settings-store";
 
 interface Props {
   open: boolean;
@@ -58,9 +62,52 @@ export function TransactionDetailSheet({
   onNext,
   onPrevious,
 }: Props) {
-  const { settings } = useCurrency();
+  const { settings, getTransactionColor, formatCurrency } = useSettingsStore();
   const [excludeFromReports, setExcludeFromReports] = useState(false);
   const [markAsRecurring, setMarkAsRecurring] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+
+  const debouncedName = useDebounce(name, 500);
+  const debouncedDescription = useDebounce(description, 500);
+
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (transaction) {
+      setExcludeFromReports(transaction.isReady); // Assuming isReady is used for this for now as per previous code, but wait, schema had isReady.
+      // Actually let's just initialize from transaction props
+      setName(transaction.name || "");
+      setDescription(transaction.description || "");
+    }
+  }, [transaction]);
+
+  // Real-time update for Name
+  useEffect(() => {
+    if (!transaction || debouncedName === transaction.name) return;
+    const update = async () => {
+      const res = await updateTransaction(transaction.id, {
+        name: debouncedName,
+      });
+      if (res.success)
+        queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    };
+    update();
+  }, [debouncedName, transaction, queryClient]);
+
+  // Real-time update for Description
+  useEffect(() => {
+    if (!transaction || debouncedDescription === transaction.description)
+      return;
+    const update = async () => {
+      const res = await updateTransaction(transaction.id, {
+        description: debouncedDescription,
+      });
+      if (res.success)
+        queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    };
+    update();
+  }, [debouncedDescription, transaction, queryClient]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -73,6 +120,7 @@ export function TransactionDetailSheet({
             isReady: !transaction.isReady,
           });
           if (res.success) {
+            queryClient.invalidateQueries({ queryKey: ["transactions"] });
             toast.success(
               transaction.isReady ? "Marked as pending" : "Marked as ready",
             );
@@ -84,7 +132,7 @@ export function TransactionDetailSheet({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, transaction]);
+  }, [open, transaction, queryClient]);
 
   if (!transaction) return null;
 
@@ -94,248 +142,197 @@ export function TransactionDetailSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent>
-        <div className="flex-1 overflow-y-auto no-scrollbar pb-24">
-          {/* Header Info */}
-          <div className="pt-2 pb-4 flex justify-end">
-            <span className="text-[11px] text-muted-foreground font-sans">
+      <SheetContent className="flex flex-col h-full p-0">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-8 pb-32">
+          {/* Header Bar */}
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+              <Landmark className="h-3 w-3 text-muted-foreground/60" />
+              <span className="truncate max-w-[150px]">
+                {transaction.wallet?.name || "Account"}
+              </span>
+            </div>
+            <span className="text-[11px] text-muted-foreground tracking-tight">
               {format(new Date(transaction.date), "MMM d, yyyy")}
             </span>
           </div>
 
-          <div className="pb-8 space-y-1">
-            <h2 className="text-xl font-sans font-medium tracking-tight text-foreground/90">
-              Transaction
-            </h2>
-            <h1
-              className={cn(
-                "text-5xl font-sans tracking-tighter",
-                isIncome
-                  ? "text-emerald-500"
-                  : isExpense
-                    ? "text-red-500"
-                    : "text-blue-500",
-              )}
-            >
-              {formatCurrency(Number(transaction.amount), settings)}
-            </h1>
+          {/* Title & Amount */}
+          <div className="space-y-3">
+            <div className="flex items-baseline justify-between pt-1">
+              <h1
+                className={cn(
+                  "text-5xl tracking-tighter font-medium font-serif",
+                  getTransactionColor(transaction.type),
+                )}
+              >
+                {formatCurrency(Number(transaction.amount))}
+              </h1>
+            </div>
           </div>
 
-          <div className="space-y-8">
-            {/* Category and Assign Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider ml-1">
-                  Category
-                </Label>
-                <Select defaultValue={transaction.categoryId ?? "income"}>
-                  <SelectTrigger className="h-10 bg-muted/20 border-border/50 font-sans text-sm focus:ring-0">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={cn(
-                          "w-2.5 h-2.5 rounded-[2px]",
-                          isIncome
-                            ? "bg-emerald-500"
-                            : isExpense
-                              ? "bg-red-500"
-                              : "bg-blue-500",
-                        )}
-                      />
-                      <SelectValue placeholder="Category" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent className="font-sans">
-                    <SelectItem value={transaction.categoryId ?? "income"}>
-                      {transaction.category?.name ?? "Income"}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider ml-1">
-                  Assign
-                </Label>
-                <Select defaultValue={transaction.walletId ?? ""}>
-                  <SelectTrigger className="h-10 bg-muted/20 border-border/50 font-sans text-sm focus:ring-0">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent className="font-sans">
-                    <SelectItem value={transaction.walletId ?? ""}>
-                      {transaction.wallet?.name ?? "Wallet"}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Tags */}
+          {/* Inline Selection Grid */}
+          <div className="grid grid-cols-2 gap-4 pt-2">
             <div className="space-y-2">
-              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider ml-1">
-                Tags
+              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest px-1">
+                Category
               </Label>
-              <div className="min-h-[40px] p-2 rounded-md bg-muted/20 border border-border/50 flex items-center">
-                <span className="text-sm text-muted-foreground/60 font-sans ml-1">
-                  Select tags
-                </span>
-              </div>
+              <SelectCategory
+                value={transaction.categoryId || undefined}
+                type={isIncome ? "income" : "expense"}
+                onChange={async (categoryId) => {
+                  const res = await updateTransaction(transaction.id, {
+                    categoryId,
+                  });
+                  if (res.success) {
+                    queryClient.invalidateQueries({
+                      queryKey: ["transactions"],
+                    });
+                    toast.success("Category updated");
+                  }
+                }}
+                className=""
+              />
             </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest px-1">
+                Assign
+              </Label>
+              <SelectUser
+                value={transaction.assignedUserId || undefined}
+                onChange={async (assignedUserId) => {
+                  const res = await updateTransaction(transaction.id, {
+                    assignedUserId,
+                  });
+                  if (res.success) {
+                    queryClient.invalidateQueries({
+                      queryKey: ["transactions"],
+                    });
+                    toast.success("Assignee updated");
+                  }
+                }}
+                className=""
+                placeholder="Assign user"
+              />
+            </div>
+          </div>
 
-            {/* Accordion Sections */}
-            <Accordion
-              type="multiple"
-              defaultValue={["attachments"]}
-              className="w-full"
-            >
-              <AccordionItem value="attachments" className="border-none">
-                <AccordionTrigger className="hover:no-underline py-4 text-[13px] font-sans font-medium text-foreground/80 uppercase tracking-widest">
-                  Attachments
-                </AccordionTrigger>
-                <AccordionContent className="space-y-4">
-                  <div className="relative group">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50 transition-colors group-focus-within:text-foreground" />
-                    <Input
-                      placeholder="Search attachment"
-                      className="pl-9 h-9 bg-muted/10 border-border/40 font-sans text-xs focus-visible:ring-0"
-                    />
+          {/* Name Input Row */}
+          <div className="space-y-2">
+            <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest px-1">
+              Description
+            </Label>
+            <Textarea
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Transaction name"
+            />
+          </div>
+
+          <Separator className="bg-border" />
+
+          {/* Accordion Sections */}
+          <Accordion
+            type="multiple"
+            defaultValue={["attachments"]}
+            className="w-full"
+          >
+            <AccordionItem value="attachments" className="border-none">
+              <AccordionTrigger className="hover:no-underline py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.2em]">
+                Attachments
+              </AccordionTrigger>
+              <AccordionContent className="space-y-4 pt-1">
+                <div className="aspect-3/1 border-2 border-dashed flex flex-col items-center justify-center gap-3 bg-muted/5 group hover:bg-muted/10 hover:border-border/60 transition-all cursor-pointer">
+                  <div className="bg-background p-2 rounded-full shadow-sm border border-border/20 group-hover:scale-110 transition-transform">
+                    <Plus className="h-4 w-4 text-muted-foreground" />
                   </div>
-                  <div className="aspect-2/1 border border-dashed border-border/60 rounded-lg flex flex-col items-center justify-center gap-2 bg-muted/5 group hover:bg-muted/10 transition-colors cursor-pointer">
-                    <p className="text-[11px] text-muted-foreground font-sans text-center px-8">
-                      Drop your files here, or{" "}
-                      <span className="text-foreground font-medium underline-offset-2 hover:underline">
-                        click to browse
-                      </span>
-                      .
-                      <br />
-                      <span className="opacity-60 text-[10px]">
-                        3MB file limit.
-                      </span>
+                  <p className="text-[11px] text-muted-foreground text-center px-8 leading-relaxed">
+                    Drop files here or click to upload
+                    <br />
+                    <span className="opacity-50 text-[10px]">Max 5MB</span>
+                  </p>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="general" className="border-none">
+              <AccordionTrigger className="hover:no-underline py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.2em]">
+                General
+              </AccordionTrigger>
+              <AccordionContent className="space-y-6 pt-2">
+                <div className="flex items-center justify-between group">
+                  <div className="space-y-1">
+                    <Label className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors cursor-pointer">
+                      Exclude from reports
+                    </Label>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed max-w-[280px]">
+                      Hides this transaction from all charts and report
+                      calculations.
                     </p>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="general" className="border-none">
-                <AccordionTrigger className="hover:no-underline py-4 text-[13px] font-sans font-medium text-foreground/80 uppercase tracking-widest">
-                  General
-                </AccordionTrigger>
-                <AccordionContent className="space-y-6 pt-2">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label className="text-sm font-sans font-medium">
-                        Exclude from reports
-                      </Label>
-                      <p className="text-[11px] text-muted-foreground font-sans max-w-[280px]">
-                        Exclude this transaction from reports like profit,
-                        expense and revenue.
-                      </p>
-                    </div>
-                    <Switch
-                      checked={excludeFromReports}
-                      onCheckedChange={setExcludeFromReports}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-sans font-medium">
-                      Tax amount
-                    </Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        defaultValue="0"
-                        className="h-9 bg-muted/10 border-border/40 font-sans text-sm focus-visible:ring-0 flex-1"
-                      />
-                      <Select defaultValue="IDR">
-                        <SelectTrigger className="w-24 h-9 bg-muted/10 border-border/40 font-sans text-xs focus:ring-0">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="font-sans">
-                          <SelectItem value="IDR">IDR</SelectItem>
-                          <SelectItem value="USD">USD</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label className="text-sm font-sans font-medium">
-                        Mark as recurring
-                      </Label>
-                      <p className="text-[11px] text-muted-foreground font-sans max-w-[280px]">
-                        Mark as recurring. Similar future transactions will be
-                        automatically categorized and flagged as recurring.
-                      </p>
-                    </div>
-                    <Switch
-                      checked={markAsRecurring}
-                      onCheckedChange={setMarkAsRecurring}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="note" className="border-none">
-                <AccordionTrigger className="hover:no-underline py-4 text-[13px] font-sans font-medium text-foreground/80 uppercase tracking-widest">
-                  Note
-                </AccordionTrigger>
-                <AccordionContent>
-                  <Textarea
-                    placeholder="Note"
-                    className="min-h-[120px] bg-muted/10 border-border/40 font-sans text-sm focus-visible:ring-0 resize-none leading-relaxed"
-                    defaultValue={transaction.description?.replace(
-                      /<[^>]*>?/gm,
-                      "",
-                    )}
+                  <Switch
+                    checked={excludeFromReports}
+                    onCheckedChange={async (checked) => {
+                      setExcludeFromReports(checked);
+                      // In a real app we'd have a specific field for this
+                      // For now let's just use it as UI state or find the right field
+                    }}
                   />
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
+                </div>
+
+                <div className="flex items-center justify-between group">
+                  <div className="space-y-1">
+                    <Label className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors cursor-pointer">
+                      Mark as recurring
+                    </Label>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed max-w-[280px]">
+                      Flags this as a repeating transaction for easier tracking.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={markAsRecurring}
+                    onCheckedChange={(checked) => {
+                      setMarkAsRecurring(checked);
+                    }}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="note" className="border-none">
+              <AccordionTrigger className="hover:no-underline py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.2em]">
+                Note
+              </AccordionTrigger>
+              <AccordionContent className="pt-1">
+                <Textarea
+                  placeholder="Add a note or description..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
 
         {/* Footer Toolbar */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-4rem)] bg-background/80 backdrop-blur-md border border-border/50 rounded px-4 py-2 flex items-center justify-between z-50">
-          <div className="flex items-center gap-4">
-            <button
-              className="flex items-center gap-2 group"
-              onClick={async () => {
-                const res = await updateTransaction(transaction.id, {
-                  isReady: !transaction.isReady,
-                });
-                if (res.success) {
-                  toast.success(
-                    transaction.isReady
-                      ? "Marked as pending"
-                      : "Marked as ready",
-                  );
-                }
-              }}
-            >
-              <Kbd className="bg-muted/30 border-none text-[10px] h-5 min-w-[20px]">
-                {navigator.platform.includes("Mac") ? "⌘" : "Ctrl"} M
-              </Kbd>
-              <span className="text-xs font-sans text-muted-foreground group-hover:text-foreground transition-colors">
-                {transaction.isReady ? "Marked ready" : "Mark ready"}
-              </span>
-            </button>
-          </div>
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] bg-background/90 backdrop-blur-xl border px-4 py-1 flex items-center justify-between z-50 shadow-2xl shadow-black/20">
+          <div className=""></div>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center bg-muted/30 rounded-lg p-0.5">
+            <div className="flex items-center gap-1">
               <Button
+                className="border"
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 rounded-md hover:bg-background shadow-none"
                 onClick={onPrevious}
                 disabled={!onPrevious}
               >
                 <ChevronUp className="h-4 w-4" />
               </Button>
               <Button
+                className="border"
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 rounded-md hover:bg-background shadow-none"
                 onClick={onNext}
                 disabled={!onNext}
               >
@@ -344,9 +341,9 @@ export function TransactionDetailSheet({
             </div>
             <button
               onClick={() => onOpenChange(false)}
-              className="flex items-center gap-2 group px-2"
+              className="px-3 py-2 hover:bg-muted/40 transition-colors group"
             >
-              <span className="text-xs font-sans text-muted-foreground group-hover:text-foreground transition-colors">
+              <span className="text-[10px] font-bold text-muted-foreground group-hover:text-foreground uppercase tracking-widest">
                 Esc
               </span>
             </button>

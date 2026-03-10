@@ -14,7 +14,7 @@ import { GripVertical, Pencil, Trash2 } from "lucide-react";
 
 import type { Wallet } from "@workspace/types";
 import type { WalletGroup } from "@workspace/modules/wallet-group/wallet-group.action";
-import { useCurrency } from "@workspace/ui/hooks";
+import { useSettingsStore } from "@/stores/settings-store";
 
 export type { Wallet, WalletGroup };
 
@@ -37,7 +37,7 @@ export function WalletItem({
   dragListeners,
   cellsOnly = false,
 }: WalletItemProps) {
-  const { formatAmount } = useCurrency();
+  const { formatCurrency } = useSettingsStore();
 
   const cells = (
     <>
@@ -67,7 +67,7 @@ export function WalletItem({
             wallet.balance < 0 && "text-destructive",
           )}
         >
-          {formatAmount(wallet.balance)}
+          {formatCurrency(wallet.balance)}
         </span>
       </TableCell>
       {mode === "manage" && (
