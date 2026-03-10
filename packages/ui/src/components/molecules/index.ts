@@ -3,6 +3,7 @@
  */
 
 export * from "./ai-chart";
+export * from "./bar-metric-chart";
 export * from "./button-group";
 export * from "./date-range-picker";
 export * from "./donut-chart";

@@ -1,6 +1,6 @@
 "use client";
 
-import { DonutChart, LineMetricChart } from "@workspace/ui";
+import { BarMetricChart, LineMetricChart } from "@workspace/ui";
 
 import type {
   CategoryBreakdownPoint,
@@ -10,72 +10,75 @@ import { formatCurrency } from "@workspace/utils";
 import type { TransactionSettings } from "@workspace/types";
 
 export function OverviewMetrics({
-  revenueData,
+  incomeData,
   expenseData,
   burnRateData,
-  categoryData,
+  incomeCategoryData,
+  expenseCategoryData,
   settings,
 }: {
-  revenueData: ChartDataPoint[];
+  incomeData: ChartDataPoint[];
   expenseData: ChartDataPoint[];
   burnRateData: ChartDataPoint[];
-  categoryData: CategoryBreakdownPoint[];
+  incomeCategoryData: CategoryBreakdownPoint[];
+  expenseCategoryData: CategoryBreakdownPoint[];
   settings?: TransactionSettings | null;
 }) {
   const fmt = (v: number) => formatCurrency(v, settings);
+  const fmtCompact = (v: number) =>
+    formatCurrency(v, settings, { compact: true });
 
-  const latestRevenue = revenueData[revenueData.length - 1]?.current ?? 0;
-  const latestBurnRate = burnRateData[burnRateData.length - 1]?.current ?? 0;
+  const latestIncome = incomeData[incomeData.length - 1]?.current ?? 0;
   const latestExpense = expenseData[expenseData.length - 1]?.current ?? 0;
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        {/* Left column — two stacked line charts */}
-        <div className="lg:col-span-2 flex flex-col gap-3">
-          <LineMetricChart
-            title="Revenue"
-            description="Revenue"
-            value={fmt(latestRevenue)}
-            data={revenueData}
-            chartHeight={140}
-            formatTooltip={fmt}
-          />
+      {/* Top: Income and Expense Line Charts side-by-side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <LineMetricChart
+          title="Total Income"
+          description="Income over time"
+          value={fmt(latestIncome)}
+          data={incomeData}
+          chartHeight={140}
+          formatTooltip={fmt}
+          formatYTick={fmtCompact}
+        />
+        <LineMetricChart
+          title="Total Expenses"
+          description="Expenses over time"
+          value={fmt(latestExpense)}
+          data={expenseData}
+          chartHeight={140}
+          formatTooltip={fmt}
+          formatYTick={fmtCompact}
+        />
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <LineMetricChart
-              title="Average Monthly Burn Rate"
-              description="Burn Rate"
-              value={fmt(latestBurnRate)}
-              data={burnRateData}
-              chartHeight={110}
-              formatTooltip={fmt}
-            />
-            <LineMetricChart
-              title="Total Expenses"
-              description="Expenses"
-              value={fmt(latestExpense)}
-              data={expenseData}
-              chartHeight={110}
-              formatTooltip={fmt}
-            />
-          </div>
-        </div>
-
-        {/* Right column — donut chart */}
-        <div className="lg:col-span-1 relative">
-          <div className="h-[420px] lg:h-auto lg:absolute lg:inset-0 w-full">
-            <DonutChart
-              title="Expense Breakdown"
-              description="Current Month"
-              data={categoryData}
-              maxSlices={7}
-              formatValue={fmt}
-              footerLabel="Total Expenses"
-              chartHeight={300}
-            />
-          </div>
-        </div>
+      {/* Bottom: Income and Expense Breakdown Bar Charts side-by-side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <BarMetricChart
+          title="Income Breakdown"
+          description="Current Month"
+          data={incomeCategoryData.map((c) => ({
+            name: c.name,
+            value: c.value,
+          }))}
+          chartHeight={250}
+          formatTooltip={fmt}
+          formatYTick={fmtCompact}
+        />
+        <BarMetricChart
+          title="Expense Breakdown"
+          description="Current Month"
+          data={expenseCategoryData.map((c) => ({
+            name: c.name,
+            value: c.value,
+          }))}
+          chartHeight={250}
+          formatTooltip={fmt}
+          formatYTick={fmtCompact}
+        />
       </div>
     </div>
   );

@@ -1,9 +1,32 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Icons } from "@workspace/ui";
-import { LineChart, PieChart, Receipt, TrendingUp, Wallet } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  cn,
+  Icons,
+} from "@workspace/ui";
+import {
+  LineChart,
+  PieChart,
+  Receipt,
+  TrendingUp,
+  Wallet,
+  ArrowDownRight,
+  ArrowUpRight,
+  Minus,
+} from "lucide-react";
 
 import { useAiChatStore } from "@/stores/ai-chat-store";
+import type {
+  ChartDataPoint,
+  CategoryBreakdownPoint,
+} from "@workspace/modules/metrics/metrics.action";
+import type { TransactionSettings } from "@workspace/types";
+import { formatCurrency } from "@workspace/utils";
 
 const SUGGESTION_CHIPS = [
   {
@@ -24,7 +47,8 @@ const SUGGESTION_CHIPS = [
   {
     icon: <TrendingUp className="w-3.5 h-3.5" />,
     label: "Monthly summary",
-    message: "Give me a summary of my income vs expenses over the last 3 months.",
+    message:
+      "Give me a summary of my income vs expenses over the last 3 months.",
   },
   {
     icon: <PieChart className="w-3.5 h-3.5" />,
@@ -33,248 +57,208 @@ const SUGGESTION_CHIPS = [
   },
 ];
 
-export function OverviewCards({ onCardClick }: { onCardClick?: (message: string) => void }) {
+export function OverviewCards({
+  onCardClick,
+  revenueData,
+  expenseData,
+  categoryData,
+  settings,
+}: {
+  onCardClick?: (message: string) => void;
+  revenueData?: ChartDataPoint[];
+  expenseData?: ChartDataPoint[];
+  categoryData?: CategoryBreakdownPoint[];
+  settings?: TransactionSettings | null;
+}) {
   const sendMessageFn = useAiChatStore((state) => state.sendMessageFn);
 
   const handleCardClick = (message: string) => {
-    if (onCardClick) {
-      onCardClick(message);
+    if (onCardClick) onCardClick(message);
+    if (sendMessageFn) sendMessageFn(message);
+  };
+
+  const fmt = (v: number) => formatCurrency(v, settings);
+
+  // Extract current month metrics (last item in the array)
+  const currentRevenue = revenueData?.[revenueData.length - 1]?.current ?? 0;
+  const previousRevenue =
+    revenueData?.[revenueData.length - 1]?.previous ??
+    revenueData?.[revenueData.length - 2]?.current ??
+    0;
+
+  const currentExpense = expenseData?.[expenseData.length - 1]?.current ?? 0;
+  const previousExpense =
+    expenseData?.[expenseData.length - 1]?.previous ??
+    expenseData?.[expenseData.length - 2]?.current ??
+    0;
+
+  const currentNetIncome = currentRevenue - currentExpense;
+  const previousNetIncome = previousRevenue - previousExpense;
+
+  // Find the top expense category
+  const topCategory = categoryData?.length
+    ? categoryData.reduce((prev, current) =>
+        prev.value > current.value ? prev : current,
+      )
+    : null;
+
+  // Helper to render growth indicator
+  const renderTrend = (
+    current: number,
+    previous: number,
+    reverseColors = false,
+  ) => {
+    if (!previous && !current) return null;
+    if (!previous)
+      return (
+        <span className="text-xs text-muted-foreground ml-2">
+          No prior data
+        </span>
+      );
+
+    const percentage = ((current - previous) / previous) * 100;
+    const isPositive = percentage > 0;
+    const isNeutral = percentage === 0;
+
+    let colorClass = isNeutral
+      ? "text-muted-foreground"
+      : isPositive
+        ? "text-emerald-500"
+        : "text-red-500";
+    if (reverseColors && !isNeutral) {
+      colorClass = isPositive ? "text-red-500" : "text-emerald-500";
     }
-    if (sendMessageFn) {
-      sendMessageFn(message);
-    }
+
+    return (
+      <span
+        className={cn(
+          "text-xs flex items-center ml-2 font-medium tracking-tight",
+          colorClass,
+        )}
+      >
+        {isPositive ? (
+          <ArrowUpRight className="h-3 w-3 mr-0.5" />
+        ) : isNeutral ? (
+          <Minus className="h-3 w-3 mr-0.5" />
+        ) : (
+          <ArrowDownRight className="h-3 w-3 mr-0.5" />
+        )}
+        {Math.abs(percentage).toFixed(1)}% vs last month
+      </span>
+    );
   };
 
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
-          onClick={() => handleCardClick("Show weekly insights")}
-        >
-          <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Weekly Insights</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-xs text-muted-foreground">
-              No new insights available. Every Monday you'll receive a summary of the previous week's performance.
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
-          onClick={() => handleCardClick("Show cash runway")}
-        >
-          <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 2v20" />
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-              </svg>
-              Cash Runway
-            </CardTitle>
-            <CardDescription>Based on last 6 months</CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-xl font-bold">0 months</div>
-            <div className="text-xs text-muted-foreground mt-1 hover:underline">View runway</div>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
-          onClick={() => handleCardClick("Show cash flow analysis")}
-        >
-          <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 3v18h18" />
-                <path d="m19 9-5 5-4-4-3 3" />
-              </svg>
-              Cash Flow
-            </CardTitle>
-            <CardDescription>Net cash position &middot; 1 year</CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-xl font-bold">+IDR 0</div>
-            <div className="text-xs text-muted-foreground mt-1 hover:underline">View cash flow analysis</div>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
-          onClick={() => handleCardClick("Show account balances")}
-        >
-          <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect width="20" height="14" x="2" y="5" rx="2" />
-                <line x1="2" x2="22" y1="10" y2="10" />
-              </svg>
-              Account Balances
-            </CardTitle>
-            <CardDescription>No accounts connected</CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-xl font-bold">IDR 0</div>
-            <div className="text-xs text-muted-foreground mt-1 hover:underline">View account balances</div>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
-          onClick={() => handleCardClick("Show detailed profit and loss analysis")}
-        >
-          <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="12" x2="12" y1="20" y2="10" />
-                <line x1="18" x2="18" y1="20" y2="4" />
-                <line x1="6" x2="6" y1="20" y2="16" />
-              </svg>
-              Profit &amp; Loss
-            </CardTitle>
-            <CardDescription>IDR 0 &middot; 1 year &middot; Net</CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 pt-0 h-full flex flex-col justify-end">
-            <div className="text-xs text-muted-foreground mt-6 pt-4 border-t border-border hover:underline">
-              See detailed analysis
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
-          onClick={() => handleCardClick("Show forecast details")}
-        >
-          <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-              </svg>
-              Forecast
-            </CardTitle>
-            <CardDescription>Revenue projection</CardDescription>
-          </CardHeader>
-          <CardContent className="p-4 pt-0 h-full flex flex-col justify-end">
-            <div className="w-full h-px bg-foreground mb-4" />
-            <div className="text-xs mb-1">
-              Next month projection <b>+IDR 0.00</b>
-            </div>
-            <div className="text-xs text-muted-foreground hover:underline">View forecast details</div>
-          </CardContent>
-        </Card>
-
+        {/* Total Income */}
         <Card
           className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
           onClick={() => handleCardClick("Show revenue trends")}
         >
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-              Revenue Summary
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center justify-between">
+              Total Income
+              <TrendingUp className="h-4 w-4 text-emerald-500" />
             </CardTitle>
-            <CardDescription>Net revenue &middot; 1 year</CardDescription>
+            <CardDescription className="sr-only">
+              Current month total income
+            </CardDescription>
           </CardHeader>
-          <CardContent className="p-4 pt-0 h-full flex flex-col justify-end">
-            <div className="text-xl font-bold">IDR 0.00</div>
-            <div className="text-xs text-muted-foreground mt-1 hover:underline">View revenue trends</div>
+          <CardContent className="p-4 pt-0">
+            <div className="text-2xl font-serif tracking-tight font-medium">
+              {fmt(currentRevenue)}
+            </div>
+            <div className="flex items-center mt-1">
+              <span className="text-xs text-muted-foreground">This month</span>
+              {renderTrend(currentRevenue, previousRevenue)}
+            </div>
           </CardContent>
         </Card>
 
+        {/* Total Expenses */}
         <Card
           className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
-          onClick={() => handleCardClick("Show growth analysis")}
+          onClick={() => handleCardClick("Show spending analysis")}
         >
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M2 20h.01" />
-                <path d="M7 20v-4" />
-                <path d="M12 20v-8" />
-                <path d="M17 20V8" />
-                <path d="M22 4v16" />
-              </svg>
-              Growth Rate
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center justify-between">
+              Total Expenses
+              <Receipt className="h-4 w-4 text-red-500" />
             </CardTitle>
-            <CardDescription>Net revenue growth &middot; 1 year</CardDescription>
+            <CardDescription className="sr-only">
+              Current month total expenses
+            </CardDescription>
           </CardHeader>
-          <CardContent className="p-4 pt-0 h-full flex flex-col justify-end">
-            <div className="text-xl font-bold">0.0%</div>
-            <div className="text-xs text-muted-foreground mt-1 hover:underline">View growth analysis</div>
+          <CardContent className="p-4 pt-0">
+            <div className="text-2xl font-serif tracking-tight font-medium">
+              {fmt(currentExpense)}
+            </div>
+            <div className="flex items-center mt-1">
+              <span className="text-xs text-muted-foreground">This month</span>
+              {renderTrend(currentExpense, previousExpense, true)}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Net Income */}
+        <Card
+          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
+          onClick={() =>
+            handleCardClick("Give me a summary of my income vs expenses")
+          }
+        >
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center justify-between">
+              Net Income
+              <Wallet className="h-4 w-4 text-blue-500" />
+            </CardTitle>
+            <CardDescription className="sr-only">
+              Current month net income
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="text-2xl font-serif tracking-tight font-medium">
+              {fmt(currentNetIncome)}
+            </div>
+            <div className="flex items-center mt-1">
+              <span className="text-xs text-muted-foreground">This month</span>
+              {renderTrend(currentNetIncome, previousNetIncome)}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Top Expense Category */}
+        <Card
+          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none flex flex-col justify-between"
+          onClick={() =>
+            handleCardClick("What categories am I spending the most on?")
+          }
+        >
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center justify-between">
+              Top Expense
+              <PieChart className="h-4 w-4 text-amber-500" />
+            </CardTitle>
+            <CardDescription className="sr-only">
+              Highest expense category this month
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            {topCategory ? (
+              <>
+                <div className="text-lg font-medium truncate">
+                  {topCategory.name}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {fmt(topCategory.value)} this month
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-muted-foreground mt-2">
+                No expenses recorded
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

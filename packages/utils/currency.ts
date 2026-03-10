@@ -5,12 +5,15 @@ export function formatCurrency(
     mainCurrencySymbolPosition?: string;
     mainCurrencyDecimalPlaces?: number;
   } | null,
+  options?: {
+    compact?: boolean;
+  },
 ) {
   if (!settings) {
-    // Fallback to a basic formatter if settings aren't loaded yet
     return amount.toLocaleString("en-US", {
       style: "currency",
       currency: "USD",
+      notation: options?.compact ? "compact" : "standard",
     });
   }
 
@@ -21,8 +24,9 @@ export function formatCurrency(
   } = settings;
 
   const formattedAmount = Math.abs(amount).toLocaleString(undefined, {
-    minimumFractionDigits: mainCurrencyDecimalPlaces,
-    maximumFractionDigits: mainCurrencyDecimalPlaces,
+    minimumFractionDigits: options?.compact ? 0 : mainCurrencyDecimalPlaces,
+    maximumFractionDigits: options?.compact ? 1 : mainCurrencyDecimalPlaces,
+    notation: options?.compact ? "compact" : "standard",
   });
 
   const sign = amount < 0 ? "-" : "";
