@@ -25,6 +25,7 @@ export * from "./form";
 export * from "./hover-card";
 export * from "./icons";
 export * from "./input-otp";
+export * from "./input-date";
 export * from "./input";
 export * from "./kbd";
 export * from "./label";

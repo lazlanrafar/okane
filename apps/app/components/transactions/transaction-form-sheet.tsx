@@ -32,6 +32,7 @@ import {
   FormLabel,
   FormMessage,
   Input,
+  InputDate,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -350,7 +351,7 @@ export function TransactionFormSheet({
                             currencySymbol={settings?.mainCurrencySymbol}
                             decimalPlaces={settings?.mainCurrencyDecimalPlaces}
                             className={cn(
-                              "pl-8 text-sm bg-transparent h-10 transition-colors focus:border-foreground",
+                              "pl-8 text-sm bg-transparent h-10 transition-colors focus:border-foreground font-medium",
                               activeTab === "expense"
                                 ? "text-red-500"
                                 : activeTab === "income"
@@ -420,9 +421,9 @@ export function TransactionFormSheet({
                         Date
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          {...field}
+                        <InputDate
+                          value={field.value}
+                          onChange={field.onChange}
                           className="bg-transparent h-10 transition-colors focus:border-foreground"
                         />
                       </FormControl>

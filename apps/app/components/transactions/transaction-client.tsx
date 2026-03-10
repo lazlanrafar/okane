@@ -114,7 +114,7 @@ export function TransactionsClient({
         ? pagination.page + 1
         : undefined;
     },
-    staleTime: 10000,
+    staleTime: 300000,
     refetchOnWindowFocus: false,
     initialData: {
       pages: [
@@ -179,8 +179,7 @@ export function TransactionsClient({
   const columnsWithActions = useMemo(
     () =>
       transactionColumns((transaction) => {
-        setSelectedTransaction(transaction);
-        setIsFormOpen(true);
+        handleRowClick(transaction);
       }),
     [],
   );
@@ -191,13 +190,11 @@ export function TransactionsClient({
     setIsDetailOpen(true);
   };
 
-  // Sync state with transactionId from URL
   useReactEffect(() => {
     if (transactionId) {
       const found = transactions.find((t) => t.id === transactionId);
       if (found) {
-        // Only update if it's different to avoid infinite loops if shallow comparison fails
-        if (JSON.stringify(found) !== JSON.stringify(selectedTransaction)) {
+        if (selectedTransaction !== found) {
           setSelectedTransaction(found);
         }
         setIsDetailOpen(true);
@@ -206,7 +203,7 @@ export function TransactionsClient({
       setIsDetailOpen(false);
       setSelectedTransaction(undefined);
     }
-  }, [transactionId, transactions, selectedTransaction, isDetailOpen]);
+  }, [transactionId, transactions, isDetailOpen]);
 
   // Keyboard navigation
   useReactEffect(() => {
@@ -367,9 +364,9 @@ export function TransactionsClient({
       <BulkEditBar />
 
       <TransactionFormSheet
-        open={isFormOpen}
+        open={isFormOpen && !selectedTransaction}
         onOpenChange={setIsFormOpen}
-        transaction={selectedTransaction}
+        transaction={undefined}
       />
 
       <TransactionDetailSheet
@@ -382,10 +379,6 @@ export function TransactionsClient({
           }
         }}
         transaction={selectedTransaction}
-        onEdit={() => {
-          setIsDetailOpen(false);
-          setIsFormOpen(true);
-        }}
         onNext={() => {
           const currentIndex = transactions.findIndex(
             (t) => t.id === transactionId,

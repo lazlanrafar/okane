@@ -3,35 +3,23 @@
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   Button,
-  Badge,
   cn,
   Separator,
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  Input,
   Label,
   Switch,
   Textarea,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Kbd,
+  InputDate,
+  CurrencyInput,
 } from "@workspace/ui";
 import type { Transaction } from "@workspace/types";
 import { format } from "date-fns";
 import {
-  Plus,
-  ArrowRight,
-  ShieldCheck,
   Landmark,
-  Copy,
   ChevronUp,
   ChevronDown,
   Paperclip,
@@ -41,13 +29,13 @@ import {
   Image,
   X,
 } from "lucide-react";
-import { formatCurrency } from "@workspace/utils";
 import { useState, useEffect } from "react";
 import { updateTransaction } from "@workspace/modules/transaction/transaction.action";
 import { getVaultDownloadUrl } from "@workspace/modules/vault/vault.action";
 import { toast } from "sonner";
 import { SelectCategory } from "../forms/select-category";
 import { SelectUser } from "../forms/select-user";
+import { SelectAccount } from "../forms/select-account";
 import { useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "../../hooks/use-debounce";
 import { useSettingsStore } from "../../stores/settings-store";
@@ -85,7 +73,6 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transaction?: Transaction;
-  onEdit?: () => void;
   onNext?: () => void;
   onPrevious?: () => void;
 }
@@ -94,19 +81,22 @@ export function TransactionDetailSheet({
   open,
   onOpenChange,
   transaction,
-  onEdit,
   onNext,
   onPrevious,
 }: Props) {
   const { settings, getTransactionColor, formatCurrency } = useSettingsStore();
   const [excludeFromReports, setExcludeFromReports] = useState(false);
-  const [markAsRecurring, setMarkAsRecurring] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [attachments, setAttachments] = useState<VaultFileRef[]>([]);
   const [vaultPickerOpen, setVaultPickerOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<FilePreview | null>(null);
+
+  const [isEditingAmount, setIsEditingAmount] = useState(false);
+  const [amount, setAmount] = useState(0);
+  const [isEditingDate, setIsEditingDate] = useState(false);
+  const [date, setDate] = useState("");
 
   const debouncedName = useDebounce(name, 500);
   const debouncedDescription = useDebounce(description, 500);
@@ -115,13 +105,34 @@ export function TransactionDetailSheet({
 
   useEffect(() => {
     if (transaction) {
-      setExcludeFromReports(transaction.isReady); // Assuming isReady is used for this for now as per previous code, but wait, schema had isReady.
-      // Actually let's just initialize from transaction props
+      setExcludeFromReports(transaction.isExported);
       setName(transaction.name || "");
       setDescription(transaction.description || "");
       setAttachments(transaction.attachments || []);
+      setAmount(Number(transaction.amount));
+      setDate(
+        typeof transaction.date === "string"
+          ? transaction.date.slice(0, 10)
+          : new Date(transaction.date).toISOString().slice(0, 10),
+      );
     }
-  }, [transaction]);
+  }, [transaction?.id]); // Only re-run when ID changes, not when props update from list
+
+  const updateTransactionInCache = (updatedData: Partial<Transaction>) => {
+    if (!transaction?.id) return;
+    queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        pages: old.pages.map((page: any) => ({
+          ...page,
+          data: page.data.map((t: any) =>
+            t.id === transaction.id ? { ...t, ...updatedData } : t,
+          ),
+        })),
+      };
+    });
+  };
 
   // Real-time update for Name and Description
   useEffect(() => {
@@ -135,17 +146,21 @@ export function TransactionDetailSheet({
     if (!hasChanged) return;
 
     const update = async () => {
+      if (!transaction?.id) return;
       const res = await updateTransaction(transaction.id, {
         name: debouncedName,
         description: debouncedDescription,
       });
       if (res.success) {
-        queryClient.invalidateQueries({ queryKey: ["transactions"] });
+        updateTransactionInCache({
+          name: debouncedName,
+          description: debouncedDescription,
+        });
       }
     };
 
     update();
-  }, [debouncedName, debouncedDescription, transaction, queryClient]);
+  }, [debouncedName, debouncedDescription, transaction?.id, queryClient]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -153,18 +168,18 @@ export function TransactionDetailSheet({
 
       if ((e.metaKey || e.ctrlKey) && e.key === "m") {
         e.preventDefault();
-        const toggleReady = async () => {
+        if (!transaction?.id) return;
+        (async () => {
           const res = await updateTransaction(transaction.id, {
             isReady: !transaction.isReady,
           });
           if (res.success) {
-            queryClient.invalidateQueries({ queryKey: ["transactions"] });
+            updateTransactionInCache({ isReady: !transaction.isReady });
             toast.success(
               transaction.isReady ? "Marked as pending" : "Marked as ready",
             );
           }
-        };
-        toggleReady();
+        })();
       }
     };
 
@@ -185,7 +200,10 @@ export function TransactionDetailSheet({
 
     if (res.success && res.data) {
       setAttachments(res.data.attachments || []);
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      updateTransactionInCache({
+        attachmentIds: ids,
+        attachments: res.data.attachments,
+      });
       toast.success("Attachments updated");
     }
   };
@@ -200,7 +218,10 @@ export function TransactionDetailSheet({
 
     if (res.success && res.data) {
       setAttachments(res.data.attachments || []);
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      updateTransactionInCache({
+        attachmentIds: newIds,
+        attachments: res.data.attachments,
+      });
       toast.success("Attachment removed");
     }
   };
@@ -234,27 +255,105 @@ export function TransactionDetailSheet({
           {/* Header Bar */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-              <Landmark className="h-3 w-3 text-muted-foreground/60" />
-              <span className="truncate max-w-[150px]">
-                {transaction.wallet?.name || "Account"}
-              </span>
+              {/* <Landmark className="h-3 w-3 text-muted-foreground/60" /> */}
+              <SelectAccount
+                value={transaction.walletId ?? undefined}
+                onChange={async (walletId) => {
+                  const res = await updateTransaction(transaction.id, {
+                    walletId,
+                  });
+                  if (res.success && res.data) {
+                    updateTransactionInCache(res.data);
+                    toast.success("Account updated");
+                  }
+                }}
+                className="h-auto p-0 border-none bg-transparent hover:bg-transparent text-[10px] font-medium text-muted-foreground uppercase tracking-widest min-w-0"
+              />
             </div>
-            <span className="text-[11px] text-muted-foreground tracking-tight">
-              {format(new Date(transaction.date), "MMM d, yyyy")}
-            </span>
+            {isEditingDate ? (
+              <InputDate
+                value={date}
+                className="h-8 w-40 text-[11px] bg-transparent"
+                onChange={async (newDate) => {
+                  setDate(newDate);
+                  setIsEditingDate(false);
+                  const currentDateStr =
+                    typeof transaction.date === "string"
+                      ? transaction.date.slice(0, 10)
+                      : new Date(transaction.date).toISOString().slice(0, 10);
+
+                  if (newDate !== currentDateStr) {
+                    const res = await updateTransaction(transaction.id, {
+                      date: newDate,
+                    });
+                    if (res.success && res.data) {
+                      updateTransactionInCache(res.data);
+                      toast.success("Date updated");
+                    }
+                  }
+                }}
+              />
+            ) : (
+              <span
+                className="text-[11px] text-muted-foreground tracking-tight cursor-pointer hover:text-foreground transition-colors"
+                onClick={() => setIsEditingDate(true)}
+              >
+                {format(new Date(transaction.date), "MMM d, yyyy")}
+              </span>
+            )}
           </div>
 
-          {/* Title & Amount */}
+          {/* Type & Title & Amount */}
           <div className="space-y-3">
-            <div className="flex items-baseline justify-between pt-1">
-              <h1
-                className={cn(
-                  "text-5xl tracking-tighter font-medium font-serif",
-                  getTransactionColor(transaction.type),
-                )}
-              >
-                {formatCurrency(Number(transaction.amount))}
-              </h1>
+            <div className="flex items-baseline justify-start gap-3 pt-1">
+              {isEditingAmount ? (
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "text-3xl font-serif font-medium",
+                      getTransactionColor(transaction.type),
+                    )}
+                  >
+                    {settings?.mainCurrencySymbol}
+                  </span>
+                  <CurrencyInput
+                    value={amount}
+                    onChange={(val) => setAmount(val)}
+                    currencySymbol={settings?.mainCurrencySymbol}
+                    decimalPlaces={settings?.mainCurrencyDecimalPlaces}
+                    className={cn(
+                      "text-5xl tracking-tighter font-medium font-serif bg-transparent border-none p-0 h-auto focus:ring-0 w-full",
+                      getTransactionColor(transaction.type),
+                    )}
+                    autoFocus
+                    onBlur={async () => {
+                      setIsEditingAmount(false);
+                      if (amount !== Number(transaction.amount)) {
+                        const res = await updateTransaction(transaction.id, {
+                          amount: amount.toString(),
+                        });
+                        if (res.success && res.data) {
+                          updateTransactionInCache(res.data);
+                          toast.success("Amount updated");
+                        }
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.currentTarget.blur();
+                    }}
+                  />
+                </div>
+              ) : (
+                <h1
+                  className={cn(
+                    "text-5xl tracking-tighter font-medium font-serif cursor-pointer hover:opacity-80 transition-opacity",
+                    getTransactionColor(transaction.type),
+                  )}
+                  onClick={() => setIsEditingAmount(true)}
+                >
+                  {formatCurrency(Number(transaction.amount))}
+                </h1>
+              )}
             </div>
           </div>
 
@@ -271,9 +370,10 @@ export function TransactionDetailSheet({
                   const res = await updateTransaction(transaction.id, {
                     categoryId,
                   });
-                  if (res.success) {
-                    queryClient.invalidateQueries({
-                      queryKey: ["transactions"],
+                  if (res.success && res.data) {
+                    updateTransactionInCache({
+                      categoryId,
+                      category: res.data.category,
                     });
                     toast.success("Category updated");
                   }
@@ -291,9 +391,10 @@ export function TransactionDetailSheet({
                   const res = await updateTransaction(transaction.id, {
                     assignedUserId,
                   });
-                  if (res.success) {
-                    queryClient.invalidateQueries({
-                      queryKey: ["transactions"],
+                  if (res.success && res.data) {
+                    updateTransactionInCache({
+                      assignedUserId,
+                      user: res.data.user,
                     });
                     toast.success("Assignee updated");
                   }
@@ -397,27 +498,19 @@ export function TransactionDetailSheet({
                   </div>
                   <Switch
                     checked={excludeFromReports}
-                    onCheckedChange={async (checked) => {
+                    onCheckedChange={async (checked: boolean) => {
                       setExcludeFromReports(checked);
-                      // In a real app we'd have a specific field for this
-                      // For now let's just use it as UI state or find the right field
-                    }}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between group">
-                  <div className="space-y-1">
-                    <Label className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors cursor-pointer">
-                      Mark as recurring
-                    </Label>
-                    <p className="text-[11px] text-muted-foreground leading-relaxed max-w-[280px]">
-                      Flags this as a repeating transaction for easier tracking.
-                    </p>
-                  </div>
-                  <Switch
-                    checked={markAsRecurring}
-                    onCheckedChange={(checked) => {
-                      setMarkAsRecurring(checked);
+                      const res = await updateTransaction(transaction.id, {
+                        isExported: checked,
+                      });
+                      if (res.success) {
+                        updateTransactionInCache({ isExported: checked });
+                        toast.success(
+                          checked
+                            ? "Excluded from reports"
+                            : "Included in reports",
+                        );
+                      }
                     }}
                   />
                 </div>
@@ -440,8 +533,33 @@ export function TransactionDetailSheet({
         </div>
 
         {/* Footer Toolbar */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] bg-background/90 backdrop-blur-xl border px-4 py-1 flex items-center justify-between z-50 shadow-2xl shadow-black/20">
-          <div className=""></div>
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] bg-background/70 backdrop-blur-xl border px-4 py-1 flex items-center justify-between z-50 shadow-2xl shadow-black/20">
+          <div className="flex items-center gap-4">
+            {transaction.type === "transfer" && (
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  To:
+                </span>
+                <SelectAccount
+                  value={transaction.toWalletId ?? undefined}
+                  onChange={async (toWalletId) => {
+                    const res = await updateTransaction(transaction.id, {
+                      toWalletId,
+                    });
+                    if (res.success && res.data) {
+                      updateTransactionInCache({
+                        toWalletId,
+                        toWallet: res.data.toWallet,
+                      });
+                      toast.success("Destination updated");
+                    }
+                  }}
+                  className="h-7 p-0 border-none bg-transparent hover:bg-transparent text-[10px] font-bold uppercase tracking-widest min-w-0"
+                  placeholder="Target Account"
+                />
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
