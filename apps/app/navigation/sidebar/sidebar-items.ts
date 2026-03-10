@@ -53,7 +53,7 @@ export const sidebarItems: NavGroup[] = [
       },
       {
         title: "Invoices",
-        url: "/coming-soon",
+        url: "/invoices",
         icon: FileText,
       },
       {

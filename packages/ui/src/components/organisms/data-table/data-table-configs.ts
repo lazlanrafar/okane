@@ -10,6 +10,7 @@ export const STICKY_COLUMNS: Record<TableId, StickyColumnConfig[]> = {
   orders: [{ id: "code", width: 200 }],
   accounts: [{ id: "name", width: 200 }],
   customers: [{ id: "name", width: 200 }],
+  invoices: [{ id: "invoiceNumber", width: 180 }],
   transactions: [
     { id: "select", width: 50 },
     { id: "date", width: 110 },
@@ -51,6 +52,13 @@ export const SORT_FIELD_MAPS: Record<TableId, Record<string, string>> = {
     email: "email",
     createdAt: "createdAt",
   },
+  invoices: {
+    invoiceNumber: "invoiceNumber",
+    status: "status",
+    amount: "amount",
+    dueDate: "dueDate",
+    issueDate: "issueDate",
+  },
   transactions: {
     name: "name",
     "category.name": "categoryId",
@@ -70,6 +78,7 @@ export const NON_REORDERABLE_COLUMNS: Record<TableId, Set<string>> = {
   orders: new Set(["code", "actions"]),
   accounts: new Set(["name", "actions"]),
   customers: new Set(["name", "actions"]),
+  invoices: new Set(["invoiceNumber", "actions"]),
   transactions: new Set(["select", "date", "name", "actions"]),
 };
 
@@ -82,6 +91,7 @@ export const ROW_HEIGHTS: Record<TableId, number> = {
   orders: 45,
   accounts: 45,
   customers: 45,
+  invoices: 45,
   transactions: 45,
 };
 
@@ -128,6 +138,13 @@ export const TABLE_CONFIGS: Record<TableId, TableConfig> = {
     sortFieldMap: SORT_FIELD_MAPS.customers,
     nonReorderableColumns: NON_REORDERABLE_COLUMNS.customers,
     rowHeight: ROW_HEIGHTS.customers,
+  },
+  invoices: {
+    tableId: "invoices",
+    stickyColumns: STICKY_COLUMNS.invoices,
+    sortFieldMap: SORT_FIELD_MAPS.invoices,
+    nonReorderableColumns: NON_REORDERABLE_COLUMNS.invoices,
+    rowHeight: ROW_HEIGHTS.invoices,
   },
   transactions: {
     tableId: "transactions",

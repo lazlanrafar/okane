@@ -20,5 +20,6 @@ export * from "./stripe/stripe.action";
 export * from "./orders/orders.action";
 export * from "./system-metrics/system-metrics.action";
 export * from "./customer/customer.action";
+export * from "./invoice/invoice.action";
 
 export * from "./lib/axios.server";

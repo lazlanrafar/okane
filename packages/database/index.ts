@@ -20,3 +20,4 @@ export * from "./schema/workspace-integrations";
 export * from "./schema/pricing";
 export * from "./schema/orders";
 export * from "./schema/customers";
+export * from "./schema/invoices";

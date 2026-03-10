@@ -34,6 +34,7 @@ import { stripeController } from "./modules/stripe/stripe.controller";
 import { ordersController } from "./modules/orders/orders.controller";
 import { systemMetricsController } from "./modules/system-metrics/system-metrics.controller";
 import { customersController } from "./modules/customers/customers.controller";
+import { invoicesController } from "./modules/invoices/invoices.controller";
 import { Env } from "@workspace/constants";
 
 const log = createLogger("api");
@@ -78,7 +79,8 @@ const app = new Elysia()
       .use(stripeController)
       .use(ordersController)
       .use(systemMetricsController)
-      .use(customersController),
+      .use(customersController)
+      .use(invoicesController),
   )
   .onError(({ error, code }) => {
     if (code === "NOT_FOUND") return;

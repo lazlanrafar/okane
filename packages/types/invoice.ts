@@ -1,0 +1,25 @@
+export interface InvoiceLineItem {
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+export interface Invoice {
+  id: string;
+  workspaceId: string;
+  customerId: string;
+  invoiceNumber: string;
+  status: "draft" | "unpaid" | "paid" | "overdue" | "canceled";
+  issueDate: string | null;
+  dueDate: string | null;
+  amount: number;
+  vat: number;
+  tax: number;
+  currency: string;
+  internalNote: string | null;
+  noteDetails: string | null;
+  lineItems: InvoiceLineItem[];
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}

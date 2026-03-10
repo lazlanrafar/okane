@@ -22,3 +22,4 @@ export * from "./pricing/pricing.action";
 export * from "./stripe/stripe.action";
 export * from "./orders/orders.action";
 export * from "./customer/customer.action";
+export * from "./invoice/invoice.action";
