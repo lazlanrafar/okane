@@ -28,8 +28,8 @@ export default async function AccountsPage(props: {
   const pageCount = Math.ceil(rowCount / limit);
 
   return (
-    <ScrollableContent className="h-full">
-      <div className="flex flex-col h-full bg-background no-scrollbar">
+    <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col bg-background no-scrollbar">
+      <div className="flex-1 min-h-0 no-scrollbar">
         <AccountsClient
           initialData={wallets}
           rowCount={rowCount}
@@ -39,6 +39,6 @@ export default async function AccountsPage(props: {
           groups={groups}
         />
       </div>
-    </ScrollableContent>
+    </div>
   );
 }

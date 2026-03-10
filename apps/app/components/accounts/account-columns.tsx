@@ -12,10 +12,11 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { deleteWallet } from "@workspace/modules/wallet/wallet.action";
+import { deleteWallet, updateWallet } from "@workspace/modules/client";
 import { formatCurrency } from "@workspace/utils";
+import { SelectAccountGroup } from "../forms/select-account-group";
+import { useQueryClient } from "@tanstack/react-query";
 
 const CellActions = ({
   row,
@@ -25,7 +26,7 @@ const CellActions = ({
   onEdit: (wallet: Wallet) => void;
 }) => {
   const wallet = row.original;
-  const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this account?")) return;
@@ -34,7 +35,7 @@ const CellActions = ({
       const result = await deleteWallet(wallet.id);
       if (result.success) {
         toast.success("Account deleted successfully");
-        router.refresh();
+        queryClient.invalidateQueries({ queryKey: ["wallets"] });
       } else {
         toast.error(result.error || "Failed to delete account");
       }
@@ -56,19 +57,51 @@ const CellActions = ({
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => onEdit(wallet)}>
           <Pencil className="mr-2 h-4 w-4" />
-          <span>Edit Account</span>
+          <span>Edit</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleDelete} className="text-destructive">
           <Trash2 className="mr-2 h-4 w-4" />
-          <span>Delete Account</span>
+          <span>Delete</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
 
+const GroupCell = ({
+  wallet,
+  updateWalletInCache,
+}: {
+  wallet: Wallet;
+  updateWalletInCache: (updatedWallet: Wallet) => void;
+}) => {
+  const handleGroupChange = async (groupId: string) => {
+    try {
+      const res = await updateWallet(wallet.id, { groupId });
+      if (res.success && res.data) {
+        updateWalletInCache(res.data);
+        toast.success("Account group updated");
+      } else {
+        toast.error(res.error || "Failed to update account group");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    }
+  };
+
+  return (
+    <SelectAccountGroup
+      value={wallet.groupId || undefined}
+      onChange={handleGroupChange}
+      variant="ghost"
+      className="h-8 w-full justify-start font-normal"
+    />
+  );
+};
+
 export const accountColumns = (
   onEdit: (wallet: Wallet) => void,
+  updateWalletInCache: (updatedWallet: Wallet) => void,
 ): ColumnDef<Wallet>[] => [
   {
     accessorKey: "name",
@@ -85,7 +118,7 @@ export const accountColumns = (
         "w-[200px] min-w-[120px] md:sticky md:left-[var(--stick-left)] bg-background group-hover:bg-[#F2F1EF] group-hover:dark:bg-[#0f0f0f] z-10",
     },
     cell: ({ getValue }) => (
-      <span className="truncate font-medium font-sans">
+      <span className="truncate font-medium font-sans px-2">
         {getValue<string>() || "N/A"}
       </span>
     ),
@@ -101,16 +134,12 @@ export const accountColumns = (
       headerLabel: "Group",
       className: "w-[150px] min-w-[100px]",
     },
-    cell: ({ getValue, table }) => {
-      const groupId = getValue<string>();
-      const groups = (table.options.meta as any)?.groups || [];
-      const group = groups.find((g: any) => g.id === groupId);
-      return (
-        <span className="truncate text-muted-foreground font-sans">
-          {group?.name || "No Group"}
-        </span>
-      );
-    },
+    cell: ({ row }) => (
+      <GroupCell
+        wallet={row.original}
+        updateWalletInCache={updateWalletInCache}
+      />
+    ),
   },
   {
     accessorKey: "balance",
@@ -127,7 +156,7 @@ export const accountColumns = (
       const balance = getValue<number>();
       const settings = (table.options.meta as any)?.settings;
       return (
-        <span className="font-sans font-medium text-right block w-full text-sm">
+        <span className="font-sans font-medium text-right block w-full text-sm px-2">
           {formatCurrency(balance, settings)}
         </span>
       );
@@ -148,7 +177,7 @@ export const accountColumns = (
       const val = getValue<string>();
       if (!val) return "N/A";
       return (
-        <span className="font-sans text-muted-foreground">
+        <span className="font-sans text-muted-foreground px-2">
           {new Date(val).toLocaleDateString("en-US", {
             year: "numeric",
             month: "short",

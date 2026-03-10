@@ -2,20 +2,21 @@
 
 import { accountColumns } from "./account-columns";
 import type { Wallet } from "@workspace/types";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   Button,
   DataTable,
   DataTableColumnsVisibility,
   DataTableFilter,
-  TableSkeleton,
 } from "@workspace/ui";
 import { AccountFormSheet } from "./account-form-sheet";
 import { AccountDetailSheet } from "./account-detail-sheet";
 import { useDataTableFilter } from "@/hooks/use-data-table-filter";
+import { Plus } from "lucide-react";
 import { useAccountsStore } from "@/stores/accounts";
-import { useSearchParams } from "next/navigation";
 import { useSettingsStore } from "@/stores/settings-store";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { getWallets } from "@workspace/modules/client";
 
 type Props = {
   initialData: Wallet[];
@@ -28,16 +29,19 @@ type Props = {
 
 export function AccountsClient({
   initialData,
-  rowCount,
-  pageCount,
+  rowCount: initialRowCount,
+  pageCount: initialPageCount,
   initialPage,
   pageSize,
-  groups,
+  groups: initialGroups,
 }: Props) {
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
-  const [selectedWallet, setSelectedWallet] = useState<Wallet | undefined>();
+  const [selectedWalletId, setSelectedWalletId] = useState<
+    string | undefined
+  >();
   const { settings, formatCurrency } = useSettingsStore();
+  const queryClient = useQueryClient();
 
   const { filters, handleFilterChange, pagination, handlePaginationChange } =
     useDataTableFilter({
@@ -51,63 +55,149 @@ export function AccountsClient({
 
   const { columns, setColumns } = useAccountsStore();
 
+  const { data, isLoading, isFetching } = useInfiniteQuery({
+    queryKey: ["wallets", filters.q, filters.groupId],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await getWallets({
+        search: filters.q as string,
+        groupId: filters.groupId as string,
+      });
+      if (!res.success) throw new Error(res.error);
+      return res;
+    },
+    initialPageParam: 1,
+    getNextPageParam: () => null,
+    initialData: {
+      pages: [
+        {
+          success: true,
+          data: initialData,
+        },
+      ],
+      pageParams: [1],
+    },
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
+  });
+
+  const wallets = useMemo(() => {
+    return data?.pages.flatMap((page) => page.data || []) || [];
+  }, [data]);
+
+  const selectedWallet = useMemo(() => {
+    return wallets.find((w) => w.id === selectedWalletId);
+  }, [wallets, selectedWalletId]);
+
+  const totalBalance = useMemo(() => {
+    return wallets.reduce((acc, w) => acc + Number(w.balance), 0);
+  }, [wallets]);
+
+  const activeAccounts = useMemo(() => {
+    return wallets.filter((w) => Number(w.balance) > 0).length;
+  }, [wallets]);
+
+  const updateWalletInCache = useCallback(
+    (updatedWallet: Wallet) => {
+      queryClient.setQueriesData({ queryKey: ["wallets"] }, (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            data: page.data?.map((wallet: Wallet) =>
+              wallet.id === updatedWallet.id ? updatedWallet : wallet,
+            ),
+          })),
+        };
+      });
+    },
+    [queryClient],
+  );
+
   const handleCreate = () => {
-    setSelectedWallet(undefined);
+    setSelectedWalletId(undefined);
     setIsFormSheetOpen(true);
   };
 
   const handleEdit = (wallet: Wallet) => {
-    setSelectedWallet(wallet);
+    setSelectedWalletId(wallet.id);
     setIsFormSheetOpen(true);
   };
 
   const handleRowClick = (wallet: Wallet) => {
-    setSelectedWallet(wallet);
+    setSelectedWalletId(wallet.id);
     setIsDetailSheetOpen(true);
   };
 
   const columnsWithActions = useMemo(() => {
-    return accountColumns(handleEdit);
-  }, []);
+    return accountColumns(handleEdit, updateWalletInCache);
+  }, [handleEdit, updateWalletInCache]);
 
   const groupOptions = useMemo(() => {
-    // Assuming groups are now fetched from a store or context if needed for filter
-    // For now, returning an empty array or placeholder if `groups` prop is removed
-    return [];
-  }, []);
+    return initialGroups.map((g) => ({
+      name: g.name,
+      id: g.id,
+    }));
+  }, [initialGroups]);
 
   return (
     <div className="flex w-full flex-col h-full space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
-        <div>
-          <h1 className="text-2xl tracking-tight font-sans">Accounts</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            View and manage your financial accounts.
-          </p>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 border-b border-border shadow-sm">
+        <div className="p-6 flex flex-col gap-1 border-r border-border bg-muted/5">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+            Total Balance
+          </span>
+          <span className="text-3xl font-serif font-medium tracking-tight">
+            {formatCurrency(totalBalance)}
+          </span>
         </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={handleCreate}>Add Account</Button>
+        <div className="p-6 flex flex-col gap-1 border-r border-border">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+            Accounts
+          </span>
+          <span className="text-3xl font-serif font-medium tracking-tight">
+            {wallets.length}
+          </span>
+        </div>
+        <div className="p-6 flex flex-col gap-1 bg-muted/5">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+            Active
+          </span>
+          <span className="text-3xl font-serif font-medium tracking-tight text-emerald-600 dark:text-emerald-400">
+            {activeAccounts}
+          </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <DataTableFilter
-          filters={filters}
-          onFilterChange={handleFilterChange as any}
-          placeholder="Search accounts..."
-          showDateFilter={false}
-          showAmountFilter={false}
-          statusOptions={groupOptions}
-          statusKey="groupId"
-          statusLabel="Category"
-        />
+      {/* Toolbar */}
+      <div className="flex items-center justify-between gap-4 shrink-0 px-1">
+        <div className="flex items-center flex-1 max-w-sm">
+          <DataTableFilter
+            filters={filters}
+            onFilterChange={handleFilterChange as any}
+            placeholder="Search accounts..."
+            showDateFilter={false}
+            showAmountFilter={false}
+            statusOptions={groupOptions}
+            statusKey="groupId"
+            statusLabel="Group"
+            className="w-full bg-transparent border-none p-0 focus-visible:ring-0"
+          />
+        </div>
 
-        <DataTableColumnsVisibility columns={columns} />
+        <div className="flex items-center gap-2">
+          <DataTableColumnsVisibility columns={columns} />
+          <Button onClick={handleCreate} variant="outline" size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Account
+          </Button>
+        </div>
       </div>
 
       <div className="flex-1 min-h-0 relative">
         <DataTable
-          data={initialData}
+          data={wallets}
           columns={columnsWithActions}
           setColumns={setColumns}
           tableId="accounts"
@@ -119,12 +209,12 @@ export function AccountsClient({
           manualPagination
           pagination={pagination}
           onPaginationChange={handlePaginationChange}
-          rowCount={rowCount}
-          pageCount={pageCount}
+          rowCount={wallets.length}
+          pageCount={1}
           hFull
           meta={{
-            categories: [], // Or fetch from store if needed
-            wallets: [],
+            groups: initialGroups,
+            settings,
             onRowClick: handleRowClick,
           }}
         />
@@ -134,12 +224,20 @@ export function AccountsClient({
         open={isFormSheetOpen}
         onOpenChange={setIsFormSheetOpen}
         wallet={selectedWallet as any}
+        onSuccess={(wallet) => {
+          if (selectedWalletId) {
+            updateWalletInCache(wallet);
+          } else {
+            queryClient.invalidateQueries({ queryKey: ["wallets"] });
+          }
+        }}
       />
 
       <AccountDetailSheet
         open={isDetailSheetOpen}
         onOpenChange={setIsDetailSheetOpen}
         wallet={selectedWallet}
+        groups={initialGroups}
         onEdit={() => {
           setIsDetailSheetOpen(false);
           setIsFormSheetOpen(true);

@@ -14,11 +14,6 @@ import {
   FormLabel,
   FormMessage,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Switch,
   CurrencyInput,
   Sheet,
@@ -28,17 +23,10 @@ import {
   SheetTitle,
   ScrollArea,
 } from "@workspace/ui";
-import { useRouter } from "next/navigation";
-import {
-  createWallet,
-  updateWallet,
-  type Wallet,
-} from "@workspace/modules/wallet/wallet.action";
-import {
-  getWalletGroups,
-  type WalletGroup,
-} from "@workspace/modules/wallet-group/wallet-group.action";
+import { createWallet, updateWallet } from "@workspace/modules/client";
+import type { Wallet } from "@workspace/types";
 import { useSettingsStore } from "@/stores/settings-store";
+import { SelectAccountGroup } from "../forms/select-account-group";
 
 const accountSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -53,17 +41,17 @@ interface AccountSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   wallet?: Wallet;
+  onSuccess?: (wallet: Wallet) => void;
 }
 
 export function AccountFormSheet({
   open,
   onOpenChange,
   wallet,
+  onSuccess,
 }: AccountSheetProps) {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [groups, setGroups] = useState<WalletGroup[]>([]);
-  const { settings, formatCurrency } = useSettingsStore();
+  const { settings } = useSettingsStore();
 
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountSchema as any),
@@ -87,42 +75,38 @@ export function AccountFormSheet({
     }
   }, [open, wallet, form]);
 
-  useEffect(() => {
-    const loadGroups = async () => {
-      try {
-        const response = await getWalletGroups();
-        if (response.success && response.data) {
-          setGroups(response.data);
-        }
-      } catch (error) {
-        console.error("Failed to load wallet groups", error);
-      }
-    };
-    loadGroups();
-  }, []);
-
   async function onSubmit(data: AccountFormValues) {
     setIsLoading(true);
     try {
       const payload = {
         ...data,
         balance: data.balance.toString(),
-        groupId: data.groupId === "none" ? null : data.groupId,
       };
 
       if (wallet?.id) {
-        await updateWallet(wallet.id, payload);
-        toast.success("Account updated successfully");
+        const res = await updateWallet(wallet.id, payload);
+        if (res.success && res.data) {
+          toast.success("Account updated successfully");
+          onSuccess?.(res.data);
+          onOpenChange(false);
+        } else {
+          toast.error(res.error || "Failed to update account");
+        }
       } else {
-        await createWallet(payload);
-        toast.success("Account created successfully");
+        const res = await createWallet(payload);
+        if (res.success && res.data) {
+          toast.success("Account created successfully");
+          // For creation, we might want to invalidate the whole query instead of just surgical update if it's a new item
+          // But AccountsClient can also handle it via onSuccess if we want to prepend/append
+          onSuccess?.(res.data);
+          onOpenChange(false);
+        } else {
+          toast.error(res.error || "Failed to create account");
+        }
       }
-
-      router.refresh();
-      onOpenChange(false);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to save account");
+      toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -170,24 +154,13 @@ export function AccountFormSheet({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Group</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value || "none"}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a group" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">No Group</SelectItem>
-                          {groups.map((group) => (
-                            <SelectItem key={group.id} value={group.id}>
-                              {group.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <SelectAccountGroup
+                          value={field.value || undefined}
+                          onChange={field.onChange}
+                          placeholder="Select account group"
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -243,7 +216,7 @@ export function AccountFormSheet({
               </div>
             </ScrollArea>
 
-            <div className="mt-8">
+            <div className="mt-8 shrink-0">
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading
                   ? "Saving..."

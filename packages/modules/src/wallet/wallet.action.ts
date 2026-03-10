@@ -1,20 +1,7 @@
 "use server";
 
-import type { ActionResponse } from "@workspace/types";
-
+import type { ActionResponse, Wallet } from "@workspace/types";
 import { axiosInstance as api } from "../lib/axios.server";
-
-export interface Wallet {
-  id: string;
-  workspaceId: string;
-  groupId: string | null;
-  name: string;
-  balance: number;
-  isIncludedInTotals: boolean;
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface CreateWalletData {
   name: string;
