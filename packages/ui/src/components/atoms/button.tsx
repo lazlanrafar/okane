@@ -1,12 +1,12 @@
-import { cva, type VariantProps } from "class-variance-authority";
+import { Slot } from "@radix-ui/react-slot";
+import { type VariantProps, cva } from "class-variance-authority";
 import { Loader2Icon } from "lucide-react";
-import { Slot as SlotPrimitive } from "radix-ui";
-import type * as React from "react";
+import * as React from "react";
 
 import { cn } from "../../lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none aria-invalid:border-destructive",
+  "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none aria-invalid:border-destructive",
   {
     variants: {
       variant: {
@@ -34,54 +34,64 @@ const buttonVariants = cva(
   },
 );
 
-function Button({
-  className,
-  variant = "default",
-  size = "default",
-  asChild = false,
-  loading = false,
-  children,
-  onClick,
-  onMouseDown,
-  onPointerDown,
-  ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
-    loading?: boolean;
-  }) {
-  const Comp = asChild ? SlotPrimitive.Slot : "button";
-
-  // Treat the button as interactive if any click/pointer handler is attached
-  const isInteractive = !!(onClick ?? onMouseDown ?? onPointerDown);
-
-  return (
-    <Comp
-      data-slot="button"
-      data-variant={variant}
-      data-size={size}
-      disabled={loading || props.disabled}
-      aria-busy={loading || undefined}
-      onClick={onClick}
-      onMouseDown={onMouseDown}
-      onPointerDown={onPointerDown}
-      className={cn(
-        buttonVariants({ variant, size, className }),
-        isInteractive && "cursor-pointer",
-        loading && "cursor-wait",
-      )}
-      {...props}
-    >
-      {loading ? (
-        <>
-          <Loader2Icon className="animate-spin" aria-hidden="true" />
-          {children}
-        </>
-      ) : (
-        children
-      )}
-    </Comp>
-  );
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+  loading?: boolean;
 }
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      className,
+      variant = "default",
+      size = "default",
+      asChild = false,
+      loading = false,
+      children,
+      onClick,
+      onMouseDown,
+      onPointerDown,
+      ...props
+    },
+    ref,
+  ) => {
+    const Comp = asChild ? Slot : "button";
+
+    // Treat the button as interactive if any click/pointer handler is attached
+    const isInteractive = !!(onClick ?? onMouseDown ?? onPointerDown);
+
+    return (
+      <Comp
+        data-slot="button"
+        data-variant={variant}
+        data-size={size}
+        disabled={loading || props.disabled}
+        aria-busy={loading || undefined}
+        onClick={onClick}
+        onMouseDown={onMouseDown}
+        onPointerDown={onPointerDown}
+        className={cn(
+          buttonVariants({ variant, size, className }),
+          isInteractive && "cursor-pointer",
+          loading && "cursor-wait",
+        )}
+        ref={ref}
+        {...props}
+      >
+        {loading ? (
+          <>
+            <Loader2Icon className="animate-spin" aria-hidden="true" />
+            {children}
+          </>
+        ) : (
+          children
+        )}
+      </Comp>
+    );
+  },
+);
+Button.displayName = "Button";
 
 export { Button, buttonVariants };

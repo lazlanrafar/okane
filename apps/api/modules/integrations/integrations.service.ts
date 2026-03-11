@@ -25,6 +25,11 @@ export abstract class IntegrationsService {
     return buildSuccess(integration, "WhatsApp connected successfully");
   }
 
+  static async getAll(workspace_id: string) {
+    const integrations = await IntegrationsRepository.findAll(workspace_id);
+    return buildSuccess(integrations, "Integrations retrieved successfully");
+  }
+
   static async handleWhatsAppWebhook(payload: Record<string, any>) {
     const from = payload.From || ""; // 'whatsapp:+123456789'
     const cleanPhone = from.replace("whatsapp:", "");

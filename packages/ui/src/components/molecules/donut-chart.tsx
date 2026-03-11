@@ -10,7 +10,11 @@ import {
   CardTitle,
   CardDescription,
 } from "../atoms/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../atoms/chart";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "../atoms/chart";
 import type { ChartConfig } from "../atoms/chart";
 import { cn } from "../../lib/utils";
 

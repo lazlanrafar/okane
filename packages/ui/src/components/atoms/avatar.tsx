@@ -1,58 +1,81 @@
-"use client";
-
-import { Avatar as AvatarPrimitive } from "radix-ui";
-import type * as React from "react";
+import * as AvatarPrimitive from "@radix-ui/react-avatar";
+import Image from "next/image";
+import * as React from "react";
 
 import { cn } from "../../lib/utils";
 
-function Avatar({
-  className,
-  size = "default",
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Root> & {
-  size?: "default" | "sm" | "lg";
-}) {
-  return (
-    <AvatarPrimitive.Root
-      data-slot="avatar"
-      data-size={size}
-      className={cn(
-        "group/avatar relative flex size-8 shrink-0 overflow-hidden rounded-full select-none data-[size=lg]:size-10 data-[size=sm]:size-6",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+const Avatar = React.forwardRef<
+  React.ComponentRef<typeof AvatarPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> & {
+    size?: "default" | "sm" | "lg";
+  }
+>(({ className, size = "default", ...props }, ref) => (
+  <AvatarPrimitive.Root
+    ref={ref}
+    data-slot="avatar"
+    data-size={size}
+    className={cn(
+      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full data-[size=lg]:size-10 data-[size=sm]:size-6",
+      className,
+    )}
+    {...props}
+  />
+));
+Avatar.displayName = AvatarPrimitive.Root.displayName;
 
-function AvatarImage({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
-  return (
-    <AvatarPrimitive.Image
-      data-slot="avatar-image"
-      className={cn("aspect-square size-full", className)}
-      {...props}
-    />
-  );
-}
+const AvatarImageNext = React.forwardRef<
+  React.ComponentRef<typeof Image>,
+  React.ComponentPropsWithoutRef<typeof Image>
+>(({ className, onError, onLoad, ...props }, ref) => {
+  const [hasError, setHasError] = React.useState(false);
 
-function AvatarFallback({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+  if (hasError || !props.src) {
+    return null;
+  }
+
   return (
-    <AvatarPrimitive.Fallback
-      data-slot="avatar-fallback"
-      className={cn(
-        "bg-muted text-muted-foreground flex size-full items-center justify-center rounded-full text-sm group-data-[size=sm]/avatar:text-xs",
-        className,
-      )}
+    <Image
+      ref={ref}
+      className={cn("aspect-square h-full w-full absolute z-10", className)}
+      onError={(e) => {
+        setHasError(true);
+        onError?.(e);
+      }}
+      onLoad={onLoad}
       {...props}
     />
   );
-}
+});
+AvatarImageNext.displayName = "AvatarImageNext";
+
+const AvatarImage = React.forwardRef<
+  React.ComponentRef<typeof AvatarPrimitive.Image>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    data-slot="avatar-image"
+    className={cn("aspect-square size-full", className)}
+    {...props}
+  />
+));
+AvatarImage.displayName = AvatarPrimitive.Image.displayName;
+
+const AvatarFallback = React.forwardRef<
+  React.ComponentRef<typeof AvatarPrimitive.Fallback>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Fallback
+    ref={ref}
+    data-slot="avatar-fallback"
+    className={cn(
+      "bg-accent flex size-full items-center justify-center rounded-full text-sm",
+      className,
+    )}
+    {...props}
+  />
+));
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
 
 function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
   return (
@@ -102,6 +125,7 @@ function AvatarGroupCount({
 export {
   Avatar,
   AvatarImage,
+  AvatarImageNext,
   AvatarFallback,
   AvatarBadge,
   AvatarGroup,

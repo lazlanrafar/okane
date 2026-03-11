@@ -1,0 +1,25 @@
+{
+  "name": "@workspace/integrations",
+  "version": "1.0.0",
+  "private": true,
+  "sideEffects": false,
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.10",
+    "typescript": "catalog:"
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./types": "./types.ts",
+    "./logos": "./logos.ts"
+  }
+}

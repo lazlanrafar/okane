@@ -25,28 +25,22 @@ export const integrationsController = new Elysia({ prefix: "/integrations" })
   .get(
     "/",
     async ({ auth }) => {
-      if (!auth?.workspace_id) {
-        throw Error("Unauthorized");
-      }
-      const integrations = await IntegrationsRepository.findAll(
+      if (!auth?.workspace_id) throw Error("Unauthorized");
+      return await IntegrationsService.getAll(
         auth.workspace_id,
       );
-      return { success: true, data: integrations, code: "OK" };
     },
     { detail: { summary: "List Integrations", tags: ["Integrations"] } },
   )
   .post(
     "/whatsapp/connect",
     async ({ body, auth }) => {
-      if (!auth?.workspace_id || !auth?.user_id) {
-        throw Error("Unauthorized");
-      }
-      const result = await IntegrationsService.connectWhatsApp(
+      if (!auth?.workspace_id || !auth?.user_id) throw Error("Unauthorized");
+      return await IntegrationsService.connectWhatsApp(
         auth.workspace_id,
         auth.user_id,
         body.phoneNumber,
       );
-      return result;
     },
     {
       body: ConnectWhatsAppDto,

@@ -7,10 +7,10 @@ export async function connectWhatsAppAction(
   phoneNumber: string,
 ): Promise<ActionResponse<any>> {
   try {
-    const { data } = await api.post("/integrations/whatsapp/connect", {
+    const res = await api.post("/integrations/whatsapp/connect", {
       phoneNumber,
     });
-    return { success: true, data };
+    return { success: true, data: res.data?.data };
   } catch (error: any) {
     return {
       success: false,
@@ -21,8 +21,8 @@ export async function connectWhatsAppAction(
 
 export async function getIntegrationsAction(): Promise<ActionResponse<any[]>> {
   try {
-    const { data } = await api.get("/integrations");
-    return { success: true, data };
+    const res = await api.get("/integrations");
+    return { success: true, data: res.data?.data || [] };
   } catch (error: any) {
     return {
       success: false,

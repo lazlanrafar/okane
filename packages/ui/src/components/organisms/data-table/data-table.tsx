@@ -426,9 +426,7 @@ export function DataTable<TData extends { id: string | number }>({
             <span className="font-medium text-foreground">{pageIndex + 1}</span>{" "}
             of <span className="font-medium text-foreground">{pageCount}</span>
             {" · "}
-            <span className="font-medium text-foreground">
-              {totalCount}
-            </span>{" "}
+            <span className="font-medium text-foreground">{totalCount}</span>{" "}
             total
           </p>
 
