@@ -19,6 +19,8 @@ axiosInstance.interceptors.request.use(async (config) => {
 
   // Server-side: Try to get token from Next.js cookies
   try {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore — next/headers is available at runtime in Next.js server context
     const { cookies } = await import("next/headers");
     const cookieStore = await cookies();
     token = cookieStore.get(cookieName)?.value;

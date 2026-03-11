@@ -7,8 +7,8 @@
     "build": "bun build index.ts --outdir dist --target bun",
     "start": "bun run dist/index.js",
     "lint": "biome lint",
-    "check-types": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",

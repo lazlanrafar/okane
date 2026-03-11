@@ -25,5 +25,8 @@
     "@types/node": "^22.16.4",
     "next": "catalog:",
     "typescript": "catalog:"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
   }
 }

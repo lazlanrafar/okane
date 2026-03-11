@@ -1,11 +1,5 @@
 {
   "extends": "../../packages/typescript-config/react-library.json",
-  // "compilerOptions": {
-  //   "baseUrl": ".",
-  //   "paths": {
-  //     "@workspace/ui/*": ["./src/*"],
-  //     "@/*": ["./src/*"]
-  //   }
-  // },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules", "../modules/src/lib/axios.server.ts"]
 }

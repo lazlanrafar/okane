@@ -1,5 +1,5 @@
-import { db } from "./client.ts";
-import { users } from "./schema/users.ts";
+import { db } from "./client";
+import { users } from "./schema/users";
 import { eq } from "drizzle-orm";
 
 async function main() {

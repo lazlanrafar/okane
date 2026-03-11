@@ -35,7 +35,9 @@ import { useLocalizedRoute } from "@/utils/localized-route";
 import { i18n } from "@/i18n-config";
 
 const IsComingSoon = () => (
-  <span className="ml-auto rounded-md bg-gray-200 px-2 py-1 text-xs dark:text-gray-800">Soon</span>
+  <span className="ml-auto rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+    Coming Soon
+  </span>
 );
 
 const NavItemExpanded = ({
@@ -67,11 +69,17 @@ const NavItemExpanded = ({
           ) : (
             <SidebarMenuButton
               asChild
-              aria-disabled={item.comingSoon}
+              disabled={item.comingSoon}
               isActive={isActive(item.url)}
               tooltip={item.title}
             >
-              <Link prefetch={false} href={getLocalizedUrl(item.url)} target={item.newTab ? "_blank" : undefined}>
+              <Link 
+                prefetch={false} 
+                href={item.comingSoon ? "#" : getLocalizedUrl(item.url)} 
+                target={item.newTab ? "_blank" : undefined}
+                className={item.comingSoon ? "pointer-events-none opacity-50" : ""}
+                tabIndex={item.comingSoon ? -1 : undefined}
+              >
                 {item.icon && <item.icon />}
                 <span>{item.title}</span>
                 {item.comingSoon && <IsComingSoon />}
@@ -194,14 +202,16 @@ export function NavMain({ items }: NavMainProps) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                           asChild
-                          aria-disabled={item.comingSoon}
+                          disabled={item.comingSoon}
                           tooltip={item.title}
                           isActive={isItemActive(item.url)}
                         >
                           <Link
                             prefetch={false}
-                            href={getLocalizedUrl(item.url)}
+                            href={item.comingSoon ? "#" : getLocalizedUrl(item.url)}
                             target={item.newTab ? "_blank" : undefined}
+                            className={item.comingSoon ? "pointer-events-none opacity-50" : ""}
+                            tabIndex={item.comingSoon ? -1 : undefined}
                           >
                             {item.icon && <item.icon />}
                             <span>{item.title}</span>

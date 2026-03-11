@@ -77,19 +77,13 @@ export default async function OverviewPage(props: {
 
       <OverviewTabs defaultTab={initialTab}>
         <div className="flex justify-end mb-4">
-          <TabsList className="flex border border-border bg-muted/30 rounded-md overflow-hidden p-0 h-10 w-[240px]">
-            <TabsTrigger
-              value="overview"
-              className="flex-1 rounded-none text-xs border-r border-border last:border-r-0 h-full data-[state=active]:bg-muted data-[state=active]:font-medium data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:text-muted-foreground hover:data-[state=inactive]:bg-muted/50 transition-none"
-            >
-              <Grid2X2 className="w-4 h-4 mr-2" />
+          <TabsList className="flex border border-border bg-muted/30 overflow-hidden p-0 w-[240px]">
+            <TabsTrigger value="overview">
+              <Grid2X2 className="w-4 h-4" />
               Overview
             </TabsTrigger>
-            <TabsTrigger
-              value="metrics"
-              className="flex-1 rounded-none text-xs h-full data-[state=active]:bg-muted data-[state=active]:font-medium data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:text-muted-foreground hover:data-[state=inactive]:bg-muted/50 transition-none"
-            >
-              <LineChart className="w-4 h-4 mr-2" />
+            <TabsTrigger value="metrics">
+              <LineChart className="w-4 h-4" />
               Metrics
             </TabsTrigger>
           </TabsList>

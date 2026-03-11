@@ -10,5 +10,8 @@
   "devDependencies": {
     "@workspace/typescript-config": "workspace:*",
     "typescript": "catalog:"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
   }
 }

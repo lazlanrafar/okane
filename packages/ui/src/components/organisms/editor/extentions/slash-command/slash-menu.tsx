@@ -7,7 +7,7 @@ import {
   useImperativeHandle,
   useState,
 } from "react";
-import { cn } from "../../../../utils/cn";
+import { cn } from "../../../../../lib/utils";
 import type { SlashCommandItem, SlashCommandSubItem } from "./types";
 
 export type SlashMenuRef = {

@@ -6,7 +6,7 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types",
+    "typecheck": "turbo run typecheck",
     "migrate": "turbo run migrate",
     "mcp": "bun run --cwd apps/api mcp.ts",
     "setup:stripe": "bun run --cwd packages/database setup:stripe"

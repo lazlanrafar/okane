@@ -6,17 +6,21 @@
   "types": "./index.ts",
   "exports": {
     ".": "./index.ts",
+    "./cn": "./cn.ts",
     "./load-env": "./load-env.ts",
     "./env": "./env.ts"
   },
   "scripts": {
     "lint": "biome lint",
     "format": "biome format --write",
-    "check": "biome check"
+    "check": "biome check",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@workspace/types": "workspace:*",
+    "clsx": "^2.1.1",
     "dotenv": "^16.4.7",
+    "tailwind-merge": "^3.5.0",
     "zod": "catalog:"
   },
   "devDependencies": {

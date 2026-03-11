@@ -76,11 +76,13 @@ export const sidebarItems: NavGroup[] = [
         title: "Tracker",
         url: "/coming-soon",
         icon: Clock,
+        comingSoon: true,
       },
       {
         title: "Inbox",
         url: "/coming-soon",
         icon: Inbox,
+        comingSoon: true,
       },
     ],
   },

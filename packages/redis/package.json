@@ -15,5 +15,8 @@
     "@workspace/typescript-config": "workspace:*",
     "typescript": "catalog:",
     "@types/node": "^22.10.2"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
   }
 }
