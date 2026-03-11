@@ -2,7 +2,10 @@ export interface TransactionSettings {
   id: string;
   workspaceId: string;
   monthlyStartDate: number;
-  monthlyStartDateWeekendHandling: "no-changes" | "previous-friday" | "following-monday";
+  monthlyStartDateWeekendHandling:
+    | "no-changes"
+    | "previous-friday"
+    | "following-monday";
   weeklyStartDay: string;
   carryOver: boolean;
   period: string;
@@ -22,6 +25,7 @@ export interface TransactionSettings {
   r2AccessKeyId?: string | null;
   r2SecretAccessKey?: string | null;
   r2BucketName?: string | null;
+  invoiceLogoUrl?: string | null;
 }
 
 export interface SubCurrency {

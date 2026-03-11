@@ -14,6 +14,8 @@ export interface CreateInvoiceData {
   currency: string;
   internalNote?: string;
   noteDetails?: string;
+  paymentDetails?: string;
+  logoUrl?: string;
   lineItems: Array<{ name: string; quantity: number; price: number }>;
 }
 

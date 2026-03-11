@@ -121,7 +121,7 @@ export function buildInvoiceColumns({
     {
       id: "actions",
       header: "Actions",
-      size: 60,
+      size: 100,
       enableHiding: false,
       cell: ({ row }) => (
         <DropdownMenu>

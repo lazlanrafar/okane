@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { workspaces } from "./workspaces";
 
 export const customers = pgTable("customers", {
@@ -19,6 +19,7 @@ export const customers = pgTable("customers", {
   zip: text("zip"),
   note: text("note"),
   vatNumber: text("vat_number"),
+  billingEmails: jsonb("billing_emails").$type<string[]>().default([]),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
   deletedAt: timestamp("deleted_at", { mode: "string" }),

@@ -30,8 +30,23 @@ export const invoices = pgTable("invoices", {
 
   internalNote: text("internal_note"),
   noteDetails: text("note_details"),
+  paymentDetails: text("payment_details"),
+  logoUrl: text("logo_url"),
 
   lineItems: jsonb("line_items").notNull().default([]), // Array of { name: string, quantity: number, price: number }
+  invoiceSize: text("invoice_size").notNull().default("A4"),
+  dateFormat: text("date_format").notNull().default("DD/MM/YYYY"),
+  paymentTerms: text("payment_terms").notNull().default("Due on Receipt"),
+  templateName: text("template_name").notNull().default("Default"),
+  invoiceSettings: jsonb("invoice_settings").notNull().default({
+    salesTax: false,
+    vat: false,
+    lineItemTax: false,
+    discount: false,
+    decimals: false,
+    units: false,
+    qrCode: true,
+  }),
 
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),

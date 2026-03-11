@@ -108,10 +108,17 @@ export class VaultService {
       type: file.type,
     });
 
+    if (!vaultEntry) {
+      throw status(500, buildError(ErrorCode.INTERNAL_ERROR, "Failed to save file entry to database"));
+    }
+
     // Increment vault size safely in DB
     await vaultRepository.updateVaultSize(workspaceId, usedBytes + file.size);
 
-    return vaultEntry;
+    return {
+      ...vaultEntry,
+      url: await bucket.getSignedUrl(vaultEntry.key),
+    };
   }
 
   async listFiles(workspaceId: string, query: PaginationQuery) {

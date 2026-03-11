@@ -143,8 +143,8 @@ export function AccountsClient({
   return (
     <div className="flex w-full flex-col h-full space-y-4">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 border-b border-border shadow-sm">
-        <div className="p-6 flex flex-col gap-1 border-r border-border bg-muted/5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-6 flex flex-col gap-1 border border-border">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
             Total Balance
           </span>
@@ -152,7 +152,7 @@ export function AccountsClient({
             {formatCurrency(totalBalance)}
           </span>
         </div>
-        <div className="p-6 flex flex-col gap-1 border-r border-border">
+        <div className="p-6 flex flex-col gap-1 border border-border">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
             Accounts
           </span>
@@ -160,7 +160,7 @@ export function AccountsClient({
             {wallets.length}
           </span>
         </div>
-        <div className="p-6 flex flex-col gap-1 bg-muted/5">
+        <div className="p-6 flex flex-col gap-1 border border-border">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
             Active
           </span>

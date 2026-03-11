@@ -18,6 +18,8 @@ export interface Invoice {
   currency: string;
   internalNote: string | null;
   noteDetails: string | null;
+  paymentDetails: string | null;
+  logoUrl: string | null;
   lineItems: InvoiceLineItem[];
   createdAt: string;
   updatedAt: string;

@@ -14,6 +14,7 @@ export const CreateCustomerDto = t.Object({
   zip: t.Optional(t.Nullable(t.String({ maxLength: 20 }))),
   note: t.Optional(t.Nullable(t.String())),
   vatNumber: t.Optional(t.Nullable(t.String({ maxLength: 50 }))),
+  billingEmails: t.Optional(t.Array(t.String())),
 });
 
 export const UpdateCustomerDto = t.Object({
@@ -30,6 +31,7 @@ export const UpdateCustomerDto = t.Object({
   zip: t.Optional(t.Nullable(t.String({ maxLength: 20 }))),
   note: t.Optional(t.Nullable(t.String())),
   vatNumber: t.Optional(t.Nullable(t.String({ maxLength: 50 }))),
+  billingEmails: t.Optional(t.Array(t.String())),
 });
 
 export const CustomerListQuery = t.Object({

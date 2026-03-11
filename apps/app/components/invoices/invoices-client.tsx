@@ -1,12 +1,17 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Button, DataTable, DataTableFilter } from "@workspace/ui";
+import {
+  Button,
+  DataTable,
+  DataTableColumnsVisibility,
+  DataTableFilter,
+} from "@workspace/ui";
 import { InvoiceFormSheet } from "./invoice-form-sheet";
 import { InvoiceDetailSheet } from "./invoice-detail-sheet";
 import { buildInvoiceColumns } from "./invoice-columns";
 import type { Invoice } from "@workspace/types";
-import { Plus, FileText, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getInvoices,
@@ -23,40 +28,11 @@ type InvoiceRow = Invoice & {
   customer?: { name?: string; email?: string } | null;
 };
 
-interface SummaryCardProps {
-  title: string;
-  value: number;
-  icon: React.ElementType;
-  className?: string;
-}
-
-function SummaryCard({
-  title,
-  value,
-  icon: Icon,
-  className,
-}: SummaryCardProps) {
-  return (
-    <div
-      className={`border border-border rounded-lg p-4 bg-card flex items-center gap-4 ${className ?? ""}`}
-    >
-      <div className="p-2 rounded-md bg-muted">
-        <Icon className="h-5 w-5 text-muted-foreground" />
-      </div>
-      <div>
-        <p className="text-xs text-muted-foreground">{title}</p>
-        <p className="text-2xl font-semibold">{value}</p>
-      </div>
-    </div>
-  );
-}
-
 interface Props {
   initialData?: any;
-  customers?: Array<{ id: string; name: string }>;
 }
 
-export function InvoicesClient({ initialData, customers = [] }: Props) {
+export function InvoicesClient({ initialData }: Props) {
   const queryClient = useQueryClient();
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
@@ -101,13 +77,24 @@ export function InvoicesClient({ initialData, customers = [] }: Props) {
     data?.pages.flatMap((p: any) => {
       const items = p.data;
       if (!items) return [];
-      if (Array.isArray(items)) return items;
-      // Handles { data: item[], customer: ... } format from joined query
-      if (typeof items === "object" && "invoice" in items) return [items];
+      if (Array.isArray(items)) {
+        return items.map((item: any) => {
+          if (item.invoice) {
+            return {
+              ...item.invoice,
+              customer: item.customer,
+            };
+          }
+          return item;
+        });
+      }
+      if (typeof items === "object" && "invoice" in items) {
+        return [{ ...items.invoice, customer: (items as any).customer }];
+      }
       return [];
     }) ?? [];
 
-  // Derive summary counts
+  // Derived counts
   const openCount = allInvoices.filter(
     (i) => i.status === "unpaid" || i.status === "draft",
   ).length;
@@ -154,81 +141,125 @@ export function InvoicesClient({ initialData, customers = [] }: Props) {
   );
 
   const handleFormSubmit = useCallback(
-    async (formData: CreateInvoiceData) => {
+    async (formData: CreateInvoiceData, isSilent?: boolean) => {
+      let result: any;
       if (editInvoice?.id) {
         const res = await updateInvoice(editInvoice.id, formData as any);
         if (!res.success) {
-          toast.error("Failed to update invoice");
+          if (!isSilent) toast.error("Failed to update invoice");
           return false;
         }
+        result = res.data;
       } else {
         const res = await createInvoice(formData);
         if (!res.success) {
-          toast.error("Failed to create invoice");
+          if (!isSilent) toast.error("Failed to create invoice");
           return false;
+        }
+        result = res.data;
+        if (isSilent) {
+          setEditInvoice(result);
         }
       }
       refresh();
-      return true;
+      return result || true;
     },
-    [editInvoice, refresh],
+    [editInvoice, refresh, setEditInvoice],
   );
 
   const tableColumns = buildInvoiceColumns({
     onEdit: handleEdit,
-    onDelete: handleDelete,
+    onDelete: (invoice) => handleDelete(invoice.id),
   });
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 px-4 pt-4">
-        <SummaryCard title="Open" value={openCount} icon={FileText} />
-        <SummaryCard title="Overdue" value={overdueCount} icon={AlertCircle} />
-        <SummaryCard title="Paid" value={paidCount} icon={CheckCircle} />
-        <SummaryCard title="Total" value={allInvoices.length} icon={Clock} />
+    <div className="flex w-full flex-col h-full space-y-4">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-6 flex flex-col gap-1 border border-border">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+            Total Invoices
+          </span>
+          <span className="text-3xl font-serif font-medium tracking-tight">
+            {allInvoices.length}
+          </span>
+        </div>
+        <div className="p-6 flex flex-col gap-1 border border-border">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+            Open
+          </span>
+          <span className="text-3xl font-serif font-medium tracking-tight text-yellow-600 dark:text-yellow-400">
+            {openCount}
+          </span>
+          <span className="text-[10px] text-muted-foreground">
+            Draft + Unpaid
+          </span>
+        </div>
+        <div className="p-6 flex flex-col gap-1 border border-border">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+            Overdue
+          </span>
+          <span className="text-3xl font-serif font-medium tracking-tight text-red-600 dark:text-red-400">
+            {overdueCount}
+          </span>
+          <span className="text-[10px] text-muted-foreground">
+            Past due date
+          </span>
+        </div>
+        <div className="p-6 flex flex-col gap-1 border border-border">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+            Paid
+          </span>
+          <span className="text-3xl font-serif font-medium tracking-tight text-emerald-600 dark:text-emerald-400">
+            {paidCount}
+          </span>
+          <span className="text-[10px] text-muted-foreground">Completed</span>
+        </div>
       </div>
 
-      {/* Controls */}
-      <div className="px-4 pb-3 flex items-center justify-between gap-3">
-        <DataTableFilter
-          filters={filters}
-          onFilterChange={handleFilterChange as any}
-          placeholder="Search invoices..."
-          showDateFilter={false}
-          showAmountFilter={false}
-          className="max-w-sm"
-        />
-        <Button
-          size="sm"
-          onClick={() => {
-            setEditInvoice(null);
-            setIsFormSheetOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          New Invoice
-        </Button>
+      {/* Toolbar */}
+      <div className="flex items-center justify-between gap-4 shrink-0 px-1">
+        <div className="flex items-center flex-1 max-w-sm">
+          <DataTableFilter
+            filters={filters}
+            onFilterChange={handleFilterChange as any}
+            placeholder="Search invoices..."
+            showDateFilter={false}
+            showAmountFilter={false}
+            className="w-full bg-transparent border-none p-0 focus-visible:ring-0"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <DataTableColumnsVisibility columns={columns} />
+          <Button
+            variant="outline"
+            onClick={() => {
+              setEditInvoice(null);
+              setIsFormSheetOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            New Invoice
+          </Button>
+        </div>
       </div>
 
       {/* Table */}
-      <div className="flex-1 min-h-0 px-4 pb-4">
+      <div className="flex-1 min-h-0 relative">
         <DataTable
           data={allInvoices}
           columns={tableColumns as any}
           setColumns={setColumns}
           tableId="invoices"
           hFull
-          isLoading={isLoading}
           emptyMessage="No invoices yet. Create your first invoice to get started."
           meta={{
             onRowClick: handleRowClick,
           }}
-          onLoadMore={() => {
-            if (hasNextPage && !isFetchingNextPage) {
-              fetchNextPage();
-            }
-          }}
+          infiniteScroll
+          fetchNextPage={fetchNextPage}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
         />
       </div>
 
@@ -239,7 +270,6 @@ export function InvoicesClient({ initialData, customers = [] }: Props) {
           if (!open) setEditInvoice(null);
         }}
         invoice={editInvoice}
-        customers={customers}
         onSubmit={handleFormSubmit}
         onSuccess={refresh}
       />

@@ -40,6 +40,7 @@ export const workspaceSettings = pgTable("workspace_settings", {
   r2AccessKeyId: text("r2_access_key_id"),
   r2SecretAccessKey: text("r2_secret_access_key"),
   r2BucketName: text("r2_bucket_name"),
+  invoiceLogoUrl: text("invoice_logo_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   deletedAt: timestamp("deleted_at"),

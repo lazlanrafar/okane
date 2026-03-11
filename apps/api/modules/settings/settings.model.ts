@@ -23,6 +23,7 @@ export const SettingsModel = {
     r2AccessKeyId: t.Optional(t.Nullable(t.String())),
     r2SecretAccessKey: t.Optional(t.Nullable(t.String())),
     r2BucketName: t.Optional(t.Nullable(t.String())),
+    invoiceLogoUrl: t.Optional(t.Nullable(t.String())),
   }),
 } as const;
 

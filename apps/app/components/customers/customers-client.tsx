@@ -1,36 +1,21 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Button, DataTable, DataTableFilter } from "@workspace/ui";
+import {
+  Button,
+  DataTable,
+  DataTableColumnsVisibility,
+  DataTableFilter,
+} from "@workspace/ui";
 import { CustomerFormSheet } from "./customer-form-sheet";
 import { CustomerDetailSheet } from "./customer-detail-sheet";
 import { getCustomerColumns } from "./customer-columns";
 import type { Customer } from "@workspace/types";
-import { Plus, Users } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { getCustomers } from "@workspace/modules/client";
 import { useDataTableFilter } from "@/hooks/use-data-table-filter";
 import { useCustomersStore } from "@/stores/customers";
-
-interface SummaryCardProps {
-  title: string;
-  value: number;
-  icon: React.ElementType;
-}
-
-function SummaryCard({ title, value, icon: Icon }: SummaryCardProps) {
-  return (
-    <div className="border border-border rounded-lg p-4 bg-card flex items-center gap-4">
-      <div className="p-2 rounded-md bg-muted">
-        <Icon className="h-5 w-5 text-muted-foreground" />
-      </div>
-      <div>
-        <p className="text-xs text-muted-foreground">{title}</p>
-        <p className="text-2xl font-semibold">{value}</p>
-      </div>
-    </div>
-  );
-}
 
 interface Props {
   initialData: Customer[];
@@ -94,52 +79,88 @@ export function CustomersClient({ initialData }: Props) {
   const tableColumns = getCustomerColumns(handleEdit);
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 gap-3 mb-4 px-4 pt-4">
-        <SummaryCard
-          title="Total Customers"
-          value={allCustomers.length}
-          icon={Users}
-        />
-        <SummaryCard
-          title="Added This Month"
-          value={addedThisMonth}
-          icon={Users}
-        />
+    <div className="flex w-full flex-col h-full space-y-4">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-6 flex flex-col gap-1 border border-border bg-muted/5">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+            Total Customers
+          </span>
+          <span className="text-3xl font-serif font-medium tracking-tight">
+            {allCustomers.length}
+          </span>
+        </div>
+
+        <div className="p-6 flex flex-col gap-1 border border-border">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+            Added This Month
+          </span>
+          <span className="text-3xl font-serif font-medium tracking-tight text-emerald-600 dark:text-emerald-400">
+            {addedThisMonth}
+          </span>
+        </div>
+
+        <div className="p-6 flex flex-col gap-1 border border-border bg-muted/5">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+            Most Active Client
+          </span>
+          <span className="text-lg font-serif font-medium tracking-tight truncate">
+            {allCustomers.length > 0 ? (allCustomers[0]?.name ?? "–") : "–"}
+          </span>
+          <span className="text-[10px] text-muted-foreground">
+            No activity data
+          </span>
+        </div>
+
+        <div className="p-6 flex flex-col gap-1 border border-border bg-muted/5">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+            Top Revenue Client
+          </span>
+          <span className="text-lg font-serif font-medium tracking-tight truncate">
+            {allCustomers.length > 0 ? (allCustomers[0]?.name ?? "–") : "–"}
+          </span>
+          <span className="text-[10px] text-muted-foreground">
+            No revenue data
+          </span>
+        </div>
       </div>
 
-      {/* Controls */}
-      <div className="px-4 pb-3 flex items-center justify-between gap-3">
-        <DataTableFilter
-          filters={filters}
-          onFilterChange={handleFilterChange as any}
-          placeholder="Search customers..."
-          showDateFilter={false}
-          showAmountFilter={false}
-          className="max-w-sm"
-        />
-        <Button
-          size="sm"
-          onClick={() => {
-            setEditCustomer(null);
-            setIsFormSheetOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          New Customer
-        </Button>
+      {/* Toolbar */}
+      <div className="flex items-center justify-between gap-4 shrink-0 px-1">
+        <div className="flex items-center flex-1 max-w-sm">
+          <DataTableFilter
+            filters={filters}
+            onFilterChange={handleFilterChange as any}
+            placeholder="Search customers..."
+            showDateFilter={false}
+            showAmountFilter={false}
+            className="w-full bg-transparent border-none p-0 focus-visible:ring-0"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <DataTableColumnsVisibility columns={columns} />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              setEditCustomer(null);
+              setIsFormSheetOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Customer
+          </Button>
+        </div>
       </div>
 
       {/* Table */}
-      <div className="flex-1 min-h-0 px-4 pb-4">
+      <div className="flex-1 min-h-0 relative">
         <DataTable
           data={allCustomers}
           columns={tableColumns as any}
           setColumns={setColumns}
           tableId="customers"
           hFull
-          isLoading={isLoading}
           emptyMessage="No customers yet. Add your first customer to get started."
           meta={{
             onRowClick: handleRowClick,
