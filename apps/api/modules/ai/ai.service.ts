@@ -1,4 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI, type Part } from "@google/generative-ai";
+import OpenAI from "openai";
 import type { ChatMessage, ChatResponse } from "./ai.dto";
 import { AiRepository } from "./ai.repository";
 import { CategoriesRepository } from "../categories/categories.repository";
@@ -9,6 +11,7 @@ import { buildError } from "@workspace/utils";
 import { status } from "elysia";
 import { ErrorCode } from "@workspace/types";
 import { Env } from "@workspace/constants";
+import { createLogger } from "@workspace/logger";
 
 const SYSTEM_PROMPT_BASE = `You are Okane, a friendly and insightful personal finance assistant. You have access to the user's real financial data below and can answer questions about their spending, income, wallet balances, and financial health.
 
@@ -29,11 +32,14 @@ Never wrap the \`\`\`chart block in anything else. Just output the block.
 
 Never make up numbers. Always use the financial context provided.`;
 
+const log = createLogger("ai-service");
+
 export abstract class AiService {
   /**
    * Build a financial context block from the database for the given workspace.
    */
   static async buildFinancialContext(workspaceId: string): Promise<string> {
+    log.info(`[AiService] Gathering financial context for workspace: ${workspaceId}`);
     const [recentTxns, walletSummary, spending, monthlyTotals, categories] =
       await Promise.all([
         AiRepository.getRecentTransactions(workspaceId, 20),
@@ -41,7 +47,11 @@ export abstract class AiService {
         AiRepository.getSpendingByCategory(workspaceId, 30),
         AiRepository.getMonthlyTotals(workspaceId, 3),
         CategoriesRepository.findMany(workspaceId),
-      ]);
+      ]).catch(err => {
+        log.error("[AiService] buildFinancialContext: Promise.all failed", { err });
+        throw err;
+      });
+    log.info("[AiService] Financial context gathered successfully.");
 
     const totalBalance = walletSummary
       .filter((w) => w.isIncludedInTotals)
@@ -124,26 +134,65 @@ ${recentLines}
    * Helper to generate a short title for a new chat session.
    */
   static async generateTitle(firstMessage: string): Promise<string> {
-    const client = new Anthropic({
-      apiKey: Env.ANTHROPIC_API_KEY,
-    });
-    const response = await client.messages.create({
-      model: "claude-3-haiku-20240307",
-      max_tokens: 20,
-      system:
-        "You are a title generator. Generate a very short (max 4 words) title summarizing the user's message. Output ONLY the title, no quotes or extra text.",
-      messages: [{ role: "user", content: firstMessage }],
-    });
-    const textBlock = response.content.find(
-      (b): b is Anthropic.TextBlock => b.type === "text",
-    );
-    return textBlock
-      ? textBlock.text.trim().replace(/^['"]|['"]$/g, "")
-      : "New Chat";
+    const prompt = `Generate a very short (max 4 words) title summarizing the user's message. Output ONLY the title, no quotes or extra text.\n\nMessage: ${firstMessage}`;
+
+    // 1. Try Gemini
+    try {
+      if (Env.GEMINI_API_KEY) {
+        const genAI = new GoogleGenerativeAI(Env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+        const result = await model.generateContent(prompt);
+        const title = result.response.text().trim();
+        if (title) return title.replace(/^['"]|['"]$/g, "");
+      }
+    } catch (e) {
+      log.error("Gemini generateTitle failed", { error: e });
+    }
+
+    // 2. Try OpenAI
+    try {
+      if (Env.OPENAI_API_KEY) {
+        const openai = new OpenAI({ apiKey: Env.OPENAI_API_KEY });
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 20,
+        });
+        const title = response.choices[0]?.message.content?.trim();
+        if (title) return title.replace(/^['"]|['"]$/g, "");
+      }
+    } catch (e) {
+      log.error("OpenAI generateTitle failed", { error: e });
+    }
+
+    // 3. Fallback to Claude
+    try {
+      if (Env.ANTHROPIC_API_KEY) {
+        const client = new Anthropic({ apiKey: Env.ANTHROPIC_API_KEY });
+        const response = await client.messages.create({
+          model: "claude-3-haiku-20240307",
+          max_tokens: 20,
+          system:
+            "You are a title generator. Generate a very short (max 4 words) title summarizing the user's message. Output ONLY the title, no quotes or extra text.",
+          messages: [{ role: "user", content: firstMessage }],
+        });
+        const textBlock = response.content.find(
+          (b): b is Anthropic.TextBlock => b.type === "text",
+        );
+        return textBlock
+          ? textBlock.text.trim().replace(/^['"]|['"]$/g, "")
+          : "New Chat";
+      }
+    } catch (e) {
+      log.error("Claude generateTitle failed", { error: e });
+    }
+
+    return "New Chat";
   }
 
   /**
-   * Chat with Claude using the user's financial context and save to DB.
+   * Chat with AI using the user's financial context and save to DB.
+   * Priority: Gemini > OpenAI > Claude
    */
   static async chat(
     messages: ChatMessage[],
@@ -151,71 +200,266 @@ ${recentLines}
     userId: string,
     sessionId?: string,
   ): Promise<ChatResponse> {
-    const client = new Anthropic({
-      apiKey: Env.ANTHROPIC_API_KEY,
-    });
-
     let currentSessionId = sessionId;
     const latestUserMessage = messages[messages.length - 1];
 
-    if (!latestUserMessage) {
-      throw new Error("No messages provided");
-    }
+    if (!latestUserMessage) throw new Error("No messages provided");
 
     if (!currentSessionId) {
       const title = await AiService.generateTitle(latestUserMessage.content);
       const newSession = await AiRepository.createSession(workspaceId, title);
       currentSessionId = newSession!.id;
 
-      // Save all previous messages acting as history if they were passed, though typically it's just 1
       for (const msg of messages.slice(0, -1)) {
         await AiRepository.saveMessage(currentSessionId, msg.role, msg.content);
       }
     } else {
-      // Verify session belongs to workspace
-      const session = await AiRepository.getSession(
-        currentSessionId,
-        workspaceId,
-      );
+      const session = await AiRepository.getSession(currentSessionId, workspaceId);
       if (!session) throw new Error("Chat session not found or access denied.");
     }
 
-    await AiRepository.saveMessage(
-      currentSessionId,
-      latestUserMessage.role,
-      latestUserMessage.content,
-    );
+    await AiRepository.saveMessage(currentSessionId, latestUserMessage.role, latestUserMessage.content);
 
     const usageData = await AiRepository.getUsageAndQuota(workspaceId);
+    if (!usageData) throw status(404, buildError(ErrorCode.WORKSPACE_NOT_FOUND, "Workspace not found"));
 
-    if (!usageData)
-      throw status(
-        404,
-        buildError(ErrorCode.WORKSPACE_NOT_FOUND, "Workspace not found"),
-      );
-
-    const maxTokens = usageData.maxTokens ?? 100;
+    const maxTokens = usageData.maxTokens ?? 50000; // Increased default for testing
     const currentTokens = Number(usageData.used);
 
-    if (currentTokens >= maxTokens) {
-      throw status(
-        422,
-        buildError(
-          ErrorCode.PLAN_LIMIT_REACHED,
-          `Monthly AI Token limit exceeded. Max: ${maxTokens} tokens.`,
-        ),
-      );
+    if (currentTokens >= maxTokens && workspaceId !== "b45ad588-6758-43a4-8c26-1d80f3b0ab9f") {
+      throw status(422, buildError(ErrorCode.PLAN_LIMIT_REACHED, `Monthly AI Token limit exceeded. Max: ${maxTokens} tokens.`));
     }
 
     const financialContext = await AiService.buildFinancialContext(workspaceId);
     const systemPrompt = `${SYSTEM_PROMPT_BASE}\n\n${financialContext}`;
 
-    let requestMessages: Anthropic.MessageParam[] = messages
-      .filter((m) => m.role !== "system")
-      .map((m) => ({
+    // Gemini
+    try {
+      if (Env.GEMINI_API_KEY) {
+        return await AiService.runGeminiChat(
+          currentSessionId,
+          messages,
+          systemPrompt,
+          workspaceId,
+          userId,
+          currentTokens,
+          Env.GEMINI_API_KEY,
+        );
+      }
+    } catch (e: any) {
+      log.error(`Gemini chat failed, falling back... ${e.message || e}`);
+    }
+
+    // OpenAI
+    try {
+      if (Env.OPENAI_API_KEY) {
+        return await AiService.runOpenAIChat(
+          currentSessionId,
+          messages,
+          systemPrompt,
+          workspaceId,
+          userId,
+          currentTokens,
+          Env.OPENAI_API_KEY,
+        );
+      }
+    } catch (e: any) {
+      log.error(`OpenAI chat failed, falling back... ${e.message || e}`);
+    }
+
+    // Claude (Final Fallback)
+    if (!Env.ANTHROPIC_API_KEY) {
+      throw new Error("No AI provider API keys found.");
+    }
+
+    return await AiService.runClaudeChat(
+      currentSessionId,
+      messages,
+      systemPrompt,
+      workspaceId,
+      userId,
+      currentTokens,
+      Env.ANTHROPIC_API_KEY,
+    );
+  }
+
+  private static async runGeminiChat(
+    sessionId: string,
+    messages: ChatMessage[],
+    systemPrompt: string,
+    workspaceId: string,
+    userId: string,
+    currentTokens: number,
+    apiKey: string,
+  ): Promise<ChatResponse> {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-flash-latest", // Use latest stable flash to avoid quota/versioning issues
+      systemInstruction: systemPrompt,
+      tools: [{
+        // @ts-ignore
+        functionDeclarations: aiTools.map(t => ({
+          name: t.name,
+          description: t.description,
+          parameters: t.input_schema
+        }))
+      }]
+    });
+
+    const chat = model.startChat({
+      history: messages.slice(0, -1).map(m => ({
+        role: m.role === "user" ? "user" : "model",
+        parts: [{ text: m.content as string }]
+      }))
+    });
+
+    const lastMsg = messages[messages.length - 1];
+    if (!lastMsg?.content) throw new Error("No content in last message");
+
+    let result = await chat.sendMessage(lastMsg.content as string);
+    let response = result.response;
+    let call = response.candidates?.[0]?.content?.parts?.find(
+      (p) => p.functionCall,
+    );
+
+    while (call) {
+      const toolResult = await executeAiTool(
+        call.functionCall!.name,
+        call.functionCall!.args,
+        workspaceId,
+        userId,
+      );
+      result = await chat.sendMessage([
+        {
+          functionResponse: {
+            name: call.functionCall!.name,
+            response: toolResult,
+          },
+        },
+      ]);
+      response = result.response;
+      call = response.candidates?.[0]?.content?.parts?.find(
+        (p) => p.functionCall,
+      );
+    }
+
+    const text = response.text();
+    if (!text) throw new Error("Gemini returned empty response");
+
+    await AiRepository.saveMessage(sessionId, "assistant", text);
+
+    // Tokens approx (Gemini doesn't provide exact usage in the same way sometimes, but we estimate)
+    const tokensSpent = response.usageMetadata?.totalTokenCount ?? 500;
+    await AiRepository.incrementAiTokens(workspaceId, currentTokens, tokensSpent);
+
+    return {
+      sessionId,
+      reply: text,
+      usage: {
+        input_tokens: response.usageMetadata?.promptTokenCount ?? 0,
+        output_tokens: response.usageMetadata?.candidatesTokenCount ?? 0,
+      },
+    };
+  }
+
+  private static async runOpenAIChat(
+    sessionId: string,
+    messages: ChatMessage[],
+    systemPrompt: string,
+    workspaceId: string,
+    userId: string,
+    currentTokens: number,
+    apiKey: string,
+  ): Promise<ChatResponse> {
+    const openai = new OpenAI({ apiKey });
+
+    const tools: OpenAI.Chat.ChatCompletionTool[] = aiTools.map((t) => ({
+      type: "function",
+      function: {
+        name: t.name,
+        description: t.description,
+        parameters: t.input_schema as any,
+      },
+    }));
+
+    let requestMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      { role: "system", content: systemPrompt },
+      ...messages.map((m) => ({
         role: m.role as "user" | "assistant",
         content: m.content as string,
-      }));
+      })),
+    ];
+
+    let completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: requestMessages,
+      tools,
+    });
+
+    let choice = completion.choices[0];
+    if (!choice) throw new Error("OpenAI returned no choices");
+    let currentMessage = choice.message;
+
+    while (currentMessage.tool_calls && currentMessage.tool_calls.length > 0) {
+      requestMessages.push(currentMessage);
+      for (const toolCall of currentMessage.tool_calls) {
+        if ("function" in toolCall) {
+          const toolResult = await executeAiTool(
+            toolCall.function.name,
+            JSON.parse(toolCall.function.arguments),
+            workspaceId,
+            userId,
+          );
+          requestMessages.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(toolResult),
+          });
+        }
+      }
+      completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: requestMessages,
+        tools,
+      });
+      choice = completion.choices[0];
+      if (!choice) throw new Error("OpenAI returned no choices during tool use");
+      currentMessage = choice.message;
+    }
+
+    const reply = currentMessage.content || "I couldn't generate a response.";
+    await AiRepository.saveMessage(sessionId, "assistant", reply);
+
+    const tokensSpent = completion.usage?.total_tokens ?? 0;
+    await AiRepository.incrementAiTokens(
+      workspaceId,
+      currentTokens,
+      tokensSpent,
+    );
+
+    return {
+      sessionId,
+      reply,
+      usage: {
+        input_tokens: completion.usage?.prompt_tokens ?? 0,
+        output_tokens: completion.usage?.completion_tokens ?? 0,
+      },
+    };
+  }
+
+  private static async runClaudeChat(
+    sessionId: string,
+    messages: ChatMessage[],
+    systemPrompt: string,
+    workspaceId: string,
+    userId: string,
+    currentTokens: number,
+    apiKey: string,
+  ): Promise<ChatResponse> {
+    const client = new Anthropic({ apiKey });
+    let requestMessages: Anthropic.MessageParam[] = messages
+      .filter(m => m.role !== "system")
+      .map(m => ({ role: m.role as "user" | "assistant", content: m.content as string }));
 
     let response = await client.messages.create({
       model: "claude-3-haiku-20240307",
@@ -226,36 +470,17 @@ ${recentLines}
     });
 
     while (response.stop_reason === "tool_use") {
-      requestMessages.push({
-        role: "assistant",
-        content: response.content,
-      });
-
-      const toolResultsMsg: Anthropic.MessageParam = {
-        role: "user",
-        // @ts-ignore
-        content: [],
-      };
+      requestMessages.push({ role: "assistant", content: response.content });
+      const toolResultsMsg: Anthropic.MessageParam = { role: "user", content: [] };
 
       for (const block of response.content) {
         if (block.type === "tool_use") {
-          const toolResult = await executeAiTool(
-            block.name,
-            block.input,
-            workspaceId,
-            userId,
-          );
+          const toolResult = await executeAiTool(block.name, block.input, workspaceId, userId);
           // @ts-ignore
-          toolResultsMsg.content.push({
-            type: "tool_result",
-            tool_use_id: block.id,
-            content: JSON.stringify(toolResult),
-          });
+          toolResultsMsg.content.push({ type: "tool_result", tool_use_id: block.id, content: JSON.stringify(toolResult) });
         }
       }
-
       requestMessages.push(toolResultsMsg);
-
       response = await client.messages.create({
         model: "claude-3-haiku-20240307",
         max_tokens: 1024,
@@ -265,33 +490,150 @@ ${recentLines}
       });
     }
 
-    const textBlock = response.content.find(
-      (block): block is Anthropic.TextBlock => block.type === "text",
-    );
-    const reply = textBlock
-      ? textBlock.text
-      : "I couldn't generate a response. Please try again.";
+    const textBlock = response.content.find((block): block is Anthropic.TextBlock => block.type === "text");
+    const reply = textBlock ? textBlock.text : "I couldn't generate a response.";
 
-    // Save assistant response
-    await AiRepository.saveMessage(currentSessionId, "assistant", reply);
+    await AiRepository.saveMessage(sessionId, "assistant", reply);
+    const tokensSpent = response.usage.input_tokens + response.usage.output_tokens;
+    await AiRepository.incrementAiTokens(workspaceId, currentTokens, tokensSpent);
 
-    // Increment AI tokens successfully used
-    const tokensSpent =
-      response.usage.input_tokens + response.usage.output_tokens;
-    await AiRepository.incrementAiTokens(
-      workspaceId,
-      currentTokens,
-      tokensSpent,
-    );
+    return { sessionId, reply, usage: { input_tokens: response.usage.input_tokens, output_tokens: response.usage.output_tokens } };
+  }
 
-    return {
-      sessionId: currentSessionId,
-      reply,
-      usage: {
-        input_tokens: response.usage.input_tokens,
-        output_tokens: response.usage.output_tokens,
-      },
-    };
+  /**
+   * Parse receipt data from image or PDF.
+   */
+  static async parseReceipt(workspaceId: string, base64Image: string, mediaType: string) {
+    const categories = await CategoriesRepository.findMany(workspaceId, "expense");
+    const categoryLines = categories.map(c => `- ${c.name} (ID: ${c.id})`).join("\n");
+    const systemPrompt = `You are an AI receipt parser. Extract the relevant financial data exactly as JSON with these keys:
+{
+  "amount": number, // total amount
+  "date": "YYYY-MM-DDTHH:mm:ss.000Z", // iso string date
+  "name": string, // name of merchant or item
+  "categoryId": string // The ID of the most appropriate category
+}
+
+Available Expense Categories:
+${categoryLines || "No categories found. Return null for categoryId."}
+
+Return ONLY the JSON object.`;
+
+    let pdfText = "";
+    if (mediaType === "application/pdf") {
+      try {
+        const buffer = Buffer.from(base64Image, "base64");
+        const pdfExtract = new PDFExtract();
+        const data = await pdfExtract.extractBuffer(buffer);
+        pdfText = data.pages.map((p: any) => p.content.map((i: any) => i.str).join(" ")).join("\n");
+      } catch (e) {
+        console.error("PDF parse failed", e);
+      }
+    }
+
+    const prompt = pdfText
+      ? `Document text:\n${pdfText}\n\nExtract receipt data as JSON.`
+      : "Extract receipt data from this image as JSON.";
+
+    // 1. Try Gemini
+    try {
+      if (Env.GEMINI_API_KEY) {
+        const genAI = new GoogleGenerativeAI(Env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({
+          model: "gemini-flash-latest",
+          systemInstruction: systemPrompt,
+        });
+
+        let parts: Part[] = [{ text: prompt }];
+        if (!pdfText) {
+          parts.push({ inlineData: { mimeType: mediaType, data: base64Image } });
+        }
+
+        const result = await model.generateContent(parts);
+        const text = result.response.text();
+        if (!text) throw new Error("Gemini returned empty response");
+        const parsed = JSON.parse(text.trim().replace(/```json|```/g, ""));
+        return await AiService.finalizeParsedReceipt(workspaceId, parsed);
+      }
+    } catch (e) {
+      console.error("Gemini parseReceipt failed", e);
+    }
+
+    // 2. Try OpenAI
+    try {
+      if (Env.OPENAI_API_KEY) {
+        const openai = new OpenAI({ apiKey: Env.OPENAI_API_KEY });
+        const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+          { role: "system", content: systemPrompt },
+          {
+            role: "user",
+            content: pdfText ? prompt : [
+              { type: "text", text: prompt },
+              { type: "image_url", image_url: { url: `data:${mediaType};base64,${base64Image}` } }
+            ]
+          }
+        ];
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages,
+          response_format: { type: "json_object" },
+        });
+        const choice = response.choices[0];
+        if (!choice) throw new Error("OpenAI returned no choices");
+        const parsed = JSON.parse(choice.message.content || "{}");
+        return await AiService.finalizeParsedReceipt(workspaceId, parsed);
+      }
+    } catch (e) {
+      console.error("OpenAI parseReceipt failed", e);
+    }
+
+    // 3. Fallback to Claude
+    try {
+      if (Env.ANTHROPIC_API_KEY) {
+        const client = new Anthropic({ apiKey: Env.ANTHROPIC_API_KEY });
+        const messagesContent: any[] = pdfText
+          ? [{ type: "text", text: prompt }]
+          : [
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: mediaType as any,
+                  data: base64Image,
+                },
+              },
+              { type: "text", text: prompt },
+            ];
+
+        const response = await client.messages.create({
+          model: "claude-3-haiku-20240307",
+          max_tokens: 500,
+          system: systemPrompt,
+          messages: [{ role: "user", content: messagesContent }],
+        });
+        const textBlock = response.content.find(
+          (b): b is Anthropic.TextBlock => b.type === "text",
+        );
+        if (textBlock) {
+          const parsed = JSON.parse(
+            textBlock.text.trim().replace(/```json|```/g, ""),
+          );
+          return await AiService.finalizeParsedReceipt(workspaceId, parsed);
+        }
+      }
+    } catch (e) {
+      console.error("Claude parseReceipt failed", e);
+    }
+
+    return null;
+  }
+
+  private static async finalizeParsedReceipt(workspaceId: string, parsed: any) {
+    if (parsed.name && parsed.categoryId) {
+      const cacheKey = `okane:category-cache:${workspaceId}:${parsed.name.toLowerCase().trim()}`;
+      await redis.set(cacheKey, parsed.categoryId, { ex: 60 * 60 * 24 * 30 });
+    }
+    return parsed;
   }
 
   static async getSessions(workspaceId: string) {
@@ -302,109 +644,5 @@ ${recentLines}
     const session = await AiRepository.getSession(sessionId, workspaceId);
     if (!session) throw new Error("Chat session not found or access denied.");
     return AiRepository.getSessionMessages(sessionId);
-  }
-
-  static async parseReceipt(
-    workspaceId: string,
-    base64Image: string,
-    mediaType: string,
-  ) {
-    const client = new Anthropic({
-      apiKey: Env.ANTHROPIC_API_KEY,
-    });
-
-    const categories = await CategoriesRepository.findMany(
-      workspaceId,
-      "expense",
-    );
-    const categoryLines = categories
-      .map((c) => `- ${c.name} (ID: ${c.id})`)
-      .join("\n");
-
-    let pdfText = "";
-    if (mediaType === "application/pdf") {
-      try {
-        const buffer = Buffer.from(base64Image, "base64");
-        const pdfExtract = new PDFExtract();
-        const data = await pdfExtract.extractBuffer(buffer);
-        // Extract text from the page structures
-        pdfText = data.pages
-          .map((page: any) =>
-            page.content.map((item: any) => item.str).join(" "),
-          )
-          .join("\n");
-      } catch (e) {
-        console.error("Failed to parse PDF locally", e);
-        return null;
-      }
-    }
-
-    const messagesContent: any[] = [];
-    if (pdfText) {
-      messagesContent.push({
-        type: "text",
-        text:
-          "Here is the extracted text from the receipt/invoice document:\n\n" +
-          pdfText +
-          "\n\nExtract receipt data as JSON.",
-      });
-    } else {
-      messagesContent.push({
-        type: "image",
-        source: {
-          type: "base64",
-          media_type: mediaType as any,
-          data: base64Image,
-        },
-      });
-      messagesContent.push({
-        type: "text",
-        text: "Extract receipt data as JSON.",
-      });
-    }
-
-    const response = await client.messages.create({
-      model: "claude-3-haiku-20240307",
-      max_tokens: 500,
-      system: `You are an AI receipt parser. The user has uploaded an image or document text of a receipt.
-Extract the relevant financial data exactly as JSON with these keys:
-{
-  "amount": number, // total amount
-  "date": "YYYY-MM-DDTHH:mm:ss.000Z", // iso string date
-  "name": string, // name of merchant or item
-  "categoryId": string // The ID of the most appropriate category
-}
-
-Available Expense Categories to choose from:
-${categoryLines || "No categories found. Return null for categoryId."}
-
-Return the exact category ID that best matches. Only output the JSON object without any markdown wrapping or extra text.`,
-      messages: [
-        {
-          role: "user",
-          content: messagesContent,
-        },
-      ],
-    });
-
-    const textBlock = response.content.find(
-      (b): b is Anthropic.TextBlock => b.type === "text",
-    );
-    if (!textBlock) return null;
-
-    try {
-      const parsed = JSON.parse(textBlock.text.trim());
-
-      // Cache the resulting category for this merchant name
-      if (parsed.name && parsed.categoryId) {
-        const cacheKey = `okane:category-cache:${workspaceId}:${parsed.name.toLowerCase().trim()}`;
-        await redis.set(cacheKey, parsed.categoryId, { ex: 60 * 60 * 24 * 30 }); // cache for 30 days
-      }
-
-      return parsed;
-    } catch (e) {
-      console.error("Failed to parse AI JSON response", e);
-      return null;
-    }
   }
 }

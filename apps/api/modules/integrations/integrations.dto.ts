@@ -11,6 +11,14 @@ export const TwilioWebhookDto = t.Object(
   { additionalProperties: true },
 );
 
+export const MetaWhatsAppWebhookDto = t.Object(
+  {
+    object: t.String(),
+    entry: t.Array(t.Any()),
+  },
+  { additionalProperties: true },
+);
+
 export const ConnectWhatsAppDto = t.Object({
   phoneNumber: t.String(), // e.g., "+123456789"
 });

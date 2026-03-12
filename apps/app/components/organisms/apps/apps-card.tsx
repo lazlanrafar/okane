@@ -40,7 +40,6 @@ export function AppsCard({
   isInstalling,
   isDisconnecting,
 }: AppsCardProps) {
-  console.log(app);
   return (
     <Card className="w-full flex flex-col">
       <Sheet open={isExpanded} onOpenChange={(open) => !open && onClose()}>

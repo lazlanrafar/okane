@@ -105,11 +105,6 @@ export default function PublicInvoicePage() {
     );
   }
 
-  console.log(
-    "==== PUBLIC INVOICE RESPONSE ====",
-    JSON.stringify(response, null, 2),
-  );
-
   if (response?.data?.needsCode) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">

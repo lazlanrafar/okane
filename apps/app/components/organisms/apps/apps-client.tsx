@@ -8,6 +8,7 @@ import { apps as appStoreApps } from "@workspace/integrations";
 import { useQuery } from "@tanstack/react-query";
 import { getIntegrationsAction } from "@workspace/modules/integrations/integrations.action";
 import { AppsCard } from "./apps-card";
+import { ConnectWhatsApp } from "./connect-whatsapp";
 
 export function AppsClient() {
   const router = useRouter();
@@ -55,7 +56,10 @@ export function AppsClient() {
               accessToken: string;
               onComplete?: () => void;
             }) => {
-              const result = (app as any).onInitialize({ accessToken, onComplete });
+              const result = (app as any).onInitialize({
+                accessToken,
+                onComplete,
+              });
               return result instanceof Promise
                 ? result
                 : Promise.resolve(result);
@@ -93,7 +97,7 @@ export function AppsClient() {
   const activeApp = allApps.find((a) => a.id === expandedApp);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-12 w-full">
+    <div className="space-y-8 w-full">
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
           <h1 className="text-2xl font-bold">Integrations</h1>
@@ -130,9 +134,15 @@ export function AppsClient() {
             isExpanded={expandedApp === app.id}
             onExpand={() => setExpandedApp(app.id)}
             onClose={() => setExpandedApp(null)}
-            onInstall={() => {
-              // placeholder
-              console.log("Install", app.id);
+            onInstall={async () => {
+              if (app.onInitialize) {
+                await app.onInitialize({
+                  accessToken: "",
+                  onComplete: () => {
+                    // queryClient.invalidateQueries({ queryKey: ["integrations"] });
+                  },
+                });
+              }
             }}
             onDisconnect={() => {
               // placeholder
@@ -154,6 +164,7 @@ export function AppsClient() {
           </div>
         )}
       </div>
+      <ConnectWhatsApp />
     </div>
   );
 }

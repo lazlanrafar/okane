@@ -1,22 +1,48 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { authPlugin } from "../../plugins/auth";
 import { encryptionPlugin } from "../../plugins/encryption";
 import { IntegrationsService } from "./integrations.service";
 import { IntegrationsRepository } from "./integrations.repository";
-import { ConnectWhatsAppDto, TwilioWebhookDto } from "./integrations.dto";
+import { ConnectWhatsAppDto, MetaWhatsAppWebhookDto } from "./integrations.dto";
 
 export const integrationsController = new Elysia({ prefix: "/integrations" })
   .use(encryptionPlugin)
   // Public webhook route for Twilio
+  // Webhook for Meta WhatsApp Business API
+  .get(
+    "/whatsapp/webhook",
+    ({ query }) => {
+      const mode = query["hub.mode"];
+      const token = query["hub.verify_token"];
+      const challenge = query["hub.challenge"];
+
+      console.log(mode, token, challenge);
+
+      if (
+        mode === "subscribe" &&
+        token === IntegrationsService.getVerifyToken()
+      ) {
+        return challenge;
+      }
+      throw Error("Forbidden");
+    },
+    {
+      query: t.Object({
+        "hub.mode": t.Optional(t.String()),
+        "hub.verify_token": t.Optional(t.String()),
+        "hub.challenge": t.Optional(t.String()),
+      }),
+    },
+  )
   .post(
     "/whatsapp/webhook",
     async ({ body }) => {
-      // Background process the webhook so we can return OK instantly to Twilio
-      IntegrationsService.handleWhatsAppWebhook(body).catch(console.error);
-      // return "OK";
+      // Meta payload is deeply nested under entry > changes > value
+      IntegrationsService.handleMetaWhatsAppWebhook(body).catch(console.error);
+      return "OK";
     },
     {
-      body: TwilioWebhookDto,
+      body: MetaWhatsAppWebhookDto,
       detail: { summary: "WhatsApp Webhook", tags: ["Integrations"] },
     },
   )
@@ -26,9 +52,7 @@ export const integrationsController = new Elysia({ prefix: "/integrations" })
     "/",
     async ({ auth }) => {
       if (!auth?.workspace_id) throw Error("Unauthorized");
-      return await IntegrationsService.getAll(
-        auth.workspace_id,
-      );
+      return await IntegrationsService.getAll(auth.workspace_id);
     },
     { detail: { summary: "List Integrations", tags: ["Integrations"] } },
   )

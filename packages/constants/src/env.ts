@@ -34,8 +34,9 @@ const serverSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
 
   // AI
-  OPENAI_API_KEY: z.string().optional(),
-  ANTHROPIC_API_KEY: z.string().optional(),
+  OPENAI_API_KEY: z.string().min(1).optional().or(z.literal("")),
+  GEMINI_API_KEY: z.string().min(1).optional().or(z.literal("")),
+  ANTHROPIC_API_KEY: z.string().min(1).optional().or(z.literal("")),
 
   // Encryption
   ENCRYPTION_KEY: z.string().length(32),
@@ -48,8 +49,9 @@ const serverSchema = z.object({
   // External Services
   CURRENCYFREAKS_API_KEY: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
-  TWILIO_ACCOUNT_SID: z.string().optional(),
-  TWILIO_AUTH_TOKEN: z.string().optional(),
+  WHATSAPP_ACCESS_TOKEN: z.string().optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
+  WHATSAPP_VERIFY_TOKEN: z.string().optional(),
 
   // R2 Storage
   R2_ENDPOINT: z.string().url().optional(),
@@ -87,6 +89,7 @@ const clientSchema = z.object({
     .optional()
     .default("okane-session"),
   NEXT_PUBLIC_SUPABASE_COOKIE_NAME: z.string().optional(),
+  NEXT_PUBLIC_WHATSAPP_NUMBER: z.string().optional().default("+1234567890"),
 });
 
 // Create the combined env object manually for Next.js bundle resolution.
@@ -104,6 +107,7 @@ const clientEnv = {
   NEXT_PUBLIC_SESSION_COOKIE_NAME: process.env.NEXT_PUBLIC_SESSION_COOKIE_NAME,
   NEXT_PUBLIC_SUPABASE_COOKIE_NAME:
     process.env.NEXT_PUBLIC_SUPABASE_COOKIE_NAME,
+  NEXT_PUBLIC_WHATSAPP_NUMBER: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER,
 };
 
 let _env: z.infer<typeof serverSchema> & z.infer<typeof clientSchema>;

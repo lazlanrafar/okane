@@ -45,6 +45,14 @@ export const aiController = new Elysia({ prefix: "/ai" })
         );
         return buildSuccess(response, "Chat response generated");
       } catch (error: any) {
+        // If it's a custom status response (e.g. from Elysia's status() helper), propagate it
+        if (error.code && error.response) {
+          set.status = error.code;
+          return error.response;
+        }
+
+        console.log("[AI Chat] Error generating AI response", error);
+
         set.status = 500;
         return buildError(
           ErrorCode.INTERNAL_ERROR,
