@@ -10,3 +10,4 @@ export * from "./settings";
 export * from "./orders";
 export * from "./customer";
 export * from "./invoice";
+export * from "./agents";

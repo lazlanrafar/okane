@@ -9,10 +9,12 @@ import {
 } from "@workspace/modules/server";
 import { getTransactionSettings } from "@workspace/modules/server";
 import { getMe } from "@workspace/modules/server";
-import { AiChat } from "@/components/organisms/overview/ai-chat";
 import { OverviewCards } from "@/components/organisms/overview/overview-cards";
 import { OverviewMetrics } from "@/components/organisms/overview/overview-metrics";
 import { OverviewTabs } from "@/components/organisms/overview/overview-tabs";
+
+import { ChatProviderWrapper } from "@/components/organisms/chat/chat-provider-wrapper";
+import ChatInterface from "@/components/organisms/chat/chat-interface";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -63,53 +65,55 @@ export default async function OverviewPage(props: {
   const settings = settingsResult.success ? settingsResult.data! : null;
 
   return (
-    <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col relative overflow-y-auto no-scrollbar pb-10">
-      <div className="dashboard-greeting bg-background pt-0 pb-4 flex flex-col md:flex-row items-start md:items-center justify-between mb-4 border-b border-border/40">
-        <div>
-          <h1 className="text-2xl font-regular tracking-tight text-foreground">
-            {getGreeting()} {displayName},
-          </h1>
-          <p className="mt-1 text-xm text-muted-foreground">
-            here's a quick look at how things are going.
-          </p>
+    <ChatProviderWrapper>
+      <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col relative overflow-y-auto no-scrollbar pb-10">
+        <div className="dashboard-greeting bg-background pt-0 pb-4 flex flex-col md:flex-row items-start md:items-center justify-between mb-4 border-b border-border/40">
+          <div>
+            <h1 className="text-2xl font-regular tracking-tight text-foreground">
+              {getGreeting()} {displayName},
+            </h1>
+            <p className="mt-1 text-xm text-muted-foreground">
+              here's a quick look at how things are going.
+            </p>
+          </div>
         </div>
+
+        <OverviewTabs defaultTab={initialTab}>
+          <div className="flex justify-end mb-4">
+            <TabsList className="overflow-hidden p-0 w-[240px]">
+              <TabsTrigger value="overview">
+                <Grid2X2 className="w-4 h-4" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="metrics">
+                <LineChart className="w-4 h-4" />
+                Metrics
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="overview" className="flex-1 mt-0">
+            <OverviewCards
+              revenueData={incomeData}
+              expenseData={expenseData}
+              categoryData={expenseCategoryData}
+              settings={settings}
+            />
+          </TabsContent>
+          <TabsContent value="metrics" className="flex-1 mt-0">
+            <OverviewMetrics
+              incomeData={incomeData}
+              expenseData={expenseData}
+              burnRateData={burnRateData}
+              expenseCategoryData={expenseCategoryData}
+              incomeCategoryData={incomeCategoryData}
+              settings={settings}
+            />
+          </TabsContent>
+        </OverviewTabs>
+
+        <ChatInterface />
       </div>
-
-      <OverviewTabs defaultTab={initialTab}>
-        <div className="flex justify-end mb-4">
-          <TabsList className="flex border border-border bg-muted/30 overflow-hidden p-0 w-[240px]">
-            <TabsTrigger value="overview">
-              <Grid2X2 className="w-4 h-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="metrics">
-              <LineChart className="w-4 h-4" />
-              Metrics
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="overview" className="flex-1 mt-0">
-          <OverviewCards
-            revenueData={incomeData}
-            expenseData={expenseData}
-            categoryData={expenseCategoryData}
-            settings={settings}
-          />
-        </TabsContent>
-        <TabsContent value="metrics" className="flex-1 mt-0">
-          <OverviewMetrics
-            incomeData={incomeData}
-            expenseData={expenseData}
-            burnRateData={burnRateData}
-            expenseCategoryData={expenseCategoryData}
-            incomeCategoryData={incomeCategoryData}
-            settings={settings}
-          />
-        </TabsContent>
-      </OverviewTabs>
-
-      <AiChat />
-    </div>
+    </ChatProviderWrapper>
   );
 }

@@ -31,9 +31,14 @@ export interface ChatSession {
 export async function sendChatMessage(
   messages: ChatMessage[],
   sessionId?: string,
+  attachments?: { name: string; type: string; data: string }[],
 ): Promise<AiChatResponse> {
   try {
-    const response = await api.post("/ai/chat", { messages, sessionId });
+    const response = await api.post("/ai/chat", {
+      messages,
+      sessionId,
+      attachments,
+    });
     const apiResponse = (response as any)._api_response;
     const data = (apiResponse?.data ??
       response.data?.data ??

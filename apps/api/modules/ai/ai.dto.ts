@@ -7,6 +7,11 @@ export const ChatMessageDto = t.Object({
     t.Literal("system"),
   ]),
   content: t.String({ minLength: 1 }),
+  attachments: t.Optional(t.Array(t.Object({
+    name: t.String(),
+    type: t.String(),
+    data: t.String(), // Base64
+  }))),
 });
 
 export const ChatRequestDto = t.Object({
@@ -17,6 +22,11 @@ export const ChatRequestDto = t.Object({
 export type ChatMessage = {
   role: "user" | "assistant" | "system";
   content: string;
+  attachments?: {
+    name: string;
+    type: string;
+    data: string;
+  }[];
 };
 
 export type ChatRequest = {

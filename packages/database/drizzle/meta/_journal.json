@@ -71,6 +71,13 @@
       "when": 1773209354116,
       "tag": "0009_massive_strong_guy",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1773364476496,
+      "tag": "0010_normal_sugar_man",
+      "breakpoints": true
     }
   ]
 }

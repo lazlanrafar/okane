@@ -13,5 +13,11 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk-tools/agents": "^1.2.0",
+    "@ai-sdk-tools/memory": "^1.2.0",
+    "ai": "^6.0.116",
+    "zod": "^4.3.6"
   }
 }

@@ -73,12 +73,14 @@ export abstract class AiRepository {
     sessionId: string,
     role: "user" | "assistant" | "system",
     content: string,
+    attachments?: any,
   ) {
     await db.transaction(async (tx) => {
       await tx.insert(aiMessages).values({
         session_id: sessionId,
         role,
         content,
+        attachments,
       });
       await tx
         .update(aiSessions)
@@ -96,6 +98,7 @@ export abstract class AiRepository {
         id: aiMessages.id,
         role: aiMessages.role,
         content: aiMessages.content,
+        attachments: aiMessages.attachments,
         createdAt: aiMessages.created_at,
       })
       .from(aiMessages)

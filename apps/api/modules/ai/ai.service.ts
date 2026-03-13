@@ -214,11 +214,19 @@ ${recentLines}
         await AiRepository.saveMessage(currentSessionId, msg.role, msg.content);
       }
     } else {
-      const session = await AiRepository.getSession(currentSessionId, workspaceId);
+      const session = await AiRepository.getSession(
+        currentSessionId,
+        workspaceId,
+      );
       if (!session) throw new Error("Chat session not found or access denied.");
     }
 
-    await AiRepository.saveMessage(currentSessionId, latestUserMessage.role, latestUserMessage.content);
+    await AiRepository.saveMessage(
+      currentSessionId,
+      latestUserMessage.role,
+      latestUserMessage.content,
+      latestUserMessage.attachments,
+    );
 
     const usageData = await AiRepository.getUsageAndQuota(workspaceId);
     if (!usageData) throw status(404, buildError(ErrorCode.WORKSPACE_NOT_FOUND, "Workspace not found"));
@@ -316,7 +324,21 @@ ${recentLines}
     const lastMsg = messages[messages.length - 1];
     if (!lastMsg?.content) throw new Error("No content in last message");
 
-    let result = await chat.sendMessage(lastMsg.content as string);
+    let parts: Part[] = [{ text: lastMsg.content as string }];
+    if (lastMsg.attachments && lastMsg.attachments.length > 0) {
+      for (const attachment of lastMsg.attachments) {
+        if (attachment.type.startsWith("image/")) {
+          parts.push({
+            inlineData: {
+              mimeType: attachment.type,
+              data: attachment.data,
+            },
+          });
+        }
+      }
+    }
+
+    let result = await chat.sendMessage(parts);
     let response = result.response;
     let call = response.candidates?.[0]?.content?.parts?.find(
       (p) => p.functionCall,
@@ -384,10 +406,28 @@ ${recentLines}
 
     let requestMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       { role: "system", content: systemPrompt },
-      ...messages.map((m) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content as string,
-      })),
+      ...messages.map((m) => {
+        if (m.attachments && m.attachments.length > 0) {
+          const content: OpenAI.Chat.ChatCompletionContentPart[] = [
+            { type: "text", text: m.content as string },
+          ];
+          for (const attachment of m.attachments) {
+            if (attachment.type.startsWith("image/")) {
+              content.push({
+                type: "image_url",
+                image_url: {
+                  url: `data:${attachment.type};base64,${attachment.data}`,
+                },
+              });
+            }
+          }
+          return { role: m.role as "user", content };
+        }
+        return {
+          role: m.role as "user" | "assistant",
+          content: m.content as string,
+        } as OpenAI.Chat.ChatCompletionMessageParam;
+      }),
     ];
 
     let completion = await openai.chat.completions.create({
@@ -458,8 +498,31 @@ ${recentLines}
   ): Promise<ChatResponse> {
     const client = new Anthropic({ apiKey });
     let requestMessages: Anthropic.MessageParam[] = messages
-      .filter(m => m.role !== "system")
-      .map(m => ({ role: m.role as "user" | "assistant", content: m.content as string }));
+      .filter((m) => m.role !== "system")
+      .map((m) => {
+        if (m.attachments && m.attachments.length > 0) {
+          const content: Anthropic.ContentBlockParam[] = [
+            { type: "text", text: m.content as string },
+          ];
+          for (const attachment of m.attachments) {
+            if (attachment.type.startsWith("image/")) {
+              content.push({
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: attachment.type as any,
+                  data: attachment.data,
+                },
+              });
+            }
+          }
+          return { role: "user", content };
+        }
+        return {
+          role: m.role as "user" | "assistant",
+          content: m.content as string,
+        } as Anthropic.MessageParam;
+      });
 
     let response = await client.messages.create({
       model: "claude-3-haiku-20240307",

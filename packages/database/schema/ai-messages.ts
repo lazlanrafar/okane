@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { aiSessions } from "./ai-sessions";
 
 export const aiMessages = pgTable("ai_messages", {
@@ -8,6 +8,7 @@ export const aiMessages = pgTable("ai_messages", {
     .notNull(),
   role: text("role", { enum: ["user", "assistant", "system"] }).notNull(),
   content: text("content").notNull(),
+  attachments: jsonb("attachments"),
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
 

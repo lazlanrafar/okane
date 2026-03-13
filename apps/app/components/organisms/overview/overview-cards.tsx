@@ -20,7 +20,7 @@ import {
   Minus,
 } from "lucide-react";
 
-import { useAiChatStore } from "@/stores/ai-chat-store";
+import { useChatStore } from "@/stores/chat";
 import type {
   ChartDataPoint,
   CategoryBreakdownPoint,
@@ -70,7 +70,7 @@ export function OverviewCards({
   categoryData?: CategoryBreakdownPoint[];
   settings?: TransactionSettings | null;
 }) {
-  const sendMessageFn = useAiChatStore((state) => state.sendMessageFn);
+  const sendMessageFn = useChatStore((state) => state.sendMessageFn);
 
   const handleCardClick = (message: string) => {
     if (onCardClick) onCardClick(message);
