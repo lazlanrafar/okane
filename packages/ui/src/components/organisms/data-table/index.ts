@@ -10,3 +10,4 @@ export * from "./data-table-skeleton-cell";
 export * from "./data-table-types";
 export * from "./data-table-virtual-row";
 export * from "./data-table-columns-visibility";
+export * from "./data-table-row";

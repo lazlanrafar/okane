@@ -32,6 +32,7 @@ interface VirtualRowProps<TData> {
   columnVisibility?: VisibilityState;
   isSelected?: boolean;
   isExporting?: boolean;
+  strategy?: "absolute" | "flow";
 }
 
 function VirtualRowInner<TData>({
@@ -42,17 +43,17 @@ function VirtualRowInner<TData>({
   getStickyStyle,
   getStickyClassName,
   nonClickableColumns = new Set(["select", "actions"]),
+  strategy = "absolute",
 }: VirtualRowProps<TData>) {
   const cells = row.getVisibleCells();
-  const lastCellId = cells[cells.length - 1]?.column.id ?? "";
-  const lastNonStickyIndex = (() => {
+  const lastNonStickyColumnId = (() => {
     for (let i = cells.length - 1; i >= 0; i--) {
       const c = cells[i];
       if (!c) continue;
       const m = c.column.columnDef.meta as TableColumnMeta | undefined;
-      if (!m?.sticky && c.column.id !== "actions") return i;
+      if (!m?.sticky && c.column.id !== "actions") return c.column.id;
     }
-    return -1;
+    return null;
   })();
 
   // Check if there are any non-sticky columns visible before actions
@@ -69,27 +70,24 @@ function VirtualRowInner<TData>({
         "group cursor-pointer select-text",
         "hover:bg-[#F2F1EF] hover:dark:bg-[#0f0f0f]",
         "flex items-center border-0",
-        "absolute top-0 left-0 w-full min-w-full",
+        strategy === "absolute" ? "absolute top-0 left-0 w-full min-w-full" : "w-full min-w-full relative",
       )}
       style={{
         height: rowHeight,
-        transform: `translateY(${virtualStart}px)`,
-        contain: "layout style paint",
+        ...(strategy === "absolute" && {
+          transform: `translateY(${virtualStart}px)`,
+          contain: "layout style paint",
+        }),
       }}
     >
-      {cells.map((cell: Cell<TData, unknown>, cellIndex: number) => {
+      {cells.map((cell: Cell<TData, unknown>) => {
         const columnId = cell.column.id;
         const meta = cell.column.columnDef.meta as TableColumnMeta | undefined;
         const isSticky = meta?.sticky ?? false;
         const isActions = columnId === "actions";
-        const isLastBeforeActions =
-          cellIndex === cells.length - 2 && lastCellId === "actions";
         const actionsFullWidth = isActions && !hasNonStickyBeforeActions;
-        const isLastNonSticky = cellIndex === lastNonStickyIndex;
-        const shouldFlex =
-          isLastNonSticky ||
-          (isLastBeforeActions && !isSticky) ||
-          actionsFullWidth;
+        const isLastNonSticky = columnId === lastNonStickyColumnId;
+        const shouldFlex = isLastNonSticky || actionsFullWidth;
 
         const cellStyle: CSSProperties = {
           width:

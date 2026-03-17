@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { startOfMonth, endOfMonth } from "date-fns";
 
 import type { Category, Transaction, Wallet } from "@workspace/types";
 
@@ -6,6 +7,7 @@ import { getCategories } from "@workspace/modules/server";
 import { getTransactions } from "@workspace/modules/server";
 import { getWallets } from "@workspace/modules/server";
 import { TransactionsClient } from "@/components/organisms/transactions/transaction-client";
+import { TransactionTableSkeleton } from "@/components/organisms/transactions/transaction-table-skeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +20,30 @@ export default async function TransactionPage(props: {
   const page = Number(searchParams.page) || 1;
   const limit = Number(searchParams.limit) || PAGE_LIMIT;
 
-  const search =
-    typeof searchParams.search === "string" ? searchParams.search : undefined;
+  return (
+    <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col bg-background no-scrollbar">
+      <div className="flex-1 min-h-0 no-scrollbar">
+        <Suspense fallback={<TransactionTableSkeleton />}>
+          <TransactionPageContent
+            searchParams={searchParams}
+            page={page}
+            limit={limit}
+          />
+        </Suspense>
+      </div>
+    </div>
+  );
+}
+
+async function TransactionPageContent({
+  searchParams,
+  page,
+  limit,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+  page: number;
+  limit: number;
+}) {
   const type =
     typeof searchParams.type === "string" ? searchParams.type : undefined;
   const walletId =
@@ -33,9 +57,11 @@ export default async function TransactionPage(props: {
   const startDate =
     typeof searchParams.startDate === "string"
       ? searchParams.startDate
-      : undefined;
+      : startOfMonth(new Date()).toISOString();
   const endDate =
-    typeof searchParams.endDate === "string" ? searchParams.endDate : undefined;
+    typeof searchParams.endDate === "string"
+      ? searchParams.endDate
+      : endOfMonth(new Date()).toISOString();
 
   let initialTransactions: Transaction[] = [];
   let rowCount = 0;
@@ -52,7 +78,6 @@ export default async function TransactionPage(props: {
         categoryId,
         startDate,
         endDate,
-        // search: search // Note: search/q handling in backend? Assuming yes or handled by generic repository filters
       } as any),
       getWallets(),
       getCategories(),
@@ -77,26 +102,14 @@ export default async function TransactionPage(props: {
   const pageCount = Math.ceil(rowCount / limit);
 
   return (
-    <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col bg-background no-scrollbar">
-      <div className="flex-1 min-h-0 no-scrollbar">
-        <Suspense
-          fallback={
-            <div className="p-8 text-center text-muted-foreground font-sans">
-              Loading transactions...
-            </div>
-          }
-        >
-          <TransactionsClient
-            initialData={initialTransactions}
-            rowCount={rowCount}
-            pageCount={pageCount}
-            initialPage={page - 1}
-            pageSize={limit}
-            wallets={initialWallets}
-            categories={initialCategories}
-          />
-        </Suspense>
-      </div>
-    </div>
+    <TransactionsClient
+      initialData={initialTransactions}
+      rowCount={rowCount}
+      pageCount={pageCount}
+      initialPage={page - 1}
+      pageSize={limit}
+      wallets={initialWallets}
+      categories={initialCategories}
+    />
   );
 }

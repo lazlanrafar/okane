@@ -1,21 +1,7 @@
-"use client";
-
-import * as React from "react";
-import { Check, ChevronsUpDown, Loader2, Plus, User } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  cn,
-} from "@workspace/ui";
+import { Combobox, Spinner, cn } from "@workspace/ui";
+import { User } from "lucide-react";
 import { getCustomers, createCustomer } from "@workspace/modules/client";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -25,6 +11,9 @@ export interface SelectCustomerProps {
   className?: string;
   disabled?: boolean;
   placeholder?: string;
+  headless?: boolean;
+  hideLoading?: boolean;
+  variant?: React.ComponentProps<typeof Combobox>["variant"];
 }
 
 export function SelectCustomer({
@@ -33,9 +22,10 @@ export function SelectCustomer({
   className,
   disabled,
   placeholder = "Select customer",
+  headless,
+  hideLoading,
+  variant,
 }: SelectCustomerProps) {
-  const [open, setOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
   const queryClient = useQueryClient();
 
   // Handle internal fetching
@@ -46,7 +36,6 @@ export function SelectCustomer({
       if (!res.success) throw new Error(res.error);
       return res.data || [];
     },
-    enabled: open || !!value,
   });
 
   const createMutation = useMutation({
@@ -61,8 +50,6 @@ export function SelectCustomer({
     onSuccess: (data) => {
       if (data) {
         onChange(data.id);
-        setOpen(false);
-        setSearchValue("");
         queryClient.invalidateQueries({ queryKey: ["customers"] });
         toast.success(`Customer "${data.name}" created`);
       }
@@ -73,127 +60,77 @@ export function SelectCustomer({
   });
 
   const selectedCustomer = customers.find((c) => c.id === value);
+  const selectedValue = selectedCustomer
+    ? {
+        id: selectedCustomer.id,
+        label: selectedCustomer.name,
+        email: selectedCustomer.email,
+      }
+    : undefined;
 
-  const filteredCustomers = useMemo(() => {
-    if (!searchValue) return customers;
-    return customers.filter(
-      (c) =>
-        c.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-        c.email?.toLowerCase().includes(searchValue.toLowerCase()),
-    );
-  }, [customers, searchValue]);
+  const items = customers.map((c) => ({
+    id: c.id,
+    label: c.name,
+    email: c.email,
+  }));
 
-  const showCreateOption =
-    searchValue.length > 0 &&
-    !filteredCustomers.some(
-      (c) => c.name.toLowerCase() === searchValue.toLowerCase(),
+  if (!selectedValue && isLoading && !hideLoading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center min-h-[40px]">
+        <Spinner />
+      </div>
     );
+  }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild disabled={disabled || createMutation.isPending}>
-        <button
-          type="button"
-          onClick={(e) => e.stopPropagation()}
-          className={cn(
-            "flex items-center gap-2 min-w-0 transition-colors group text-left w-full h-9",
-            "border-b border-transparent hover:bg-muted/10 transition-colors px-0",
-            "cursor-pointer",
-            className,
-          )}
-        >
-          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-            <User className="h-4 w-4 text-muted-foreground" />
+    <Combobox
+      variant={variant}
+      headless={headless}
+      disabled={disabled || createMutation.isPending}
+      placeholder={placeholder}
+      searchPlaceholder="Search customer"
+      items={items}
+      selectedItem={selectedValue}
+      onSelect={(item) => {
+        onChange(item.id);
+      }}
+      className={className}
+      onCreate={(value) => {
+        createMutation.mutate(value);
+      }}
+      renderSelectedItem={(item: any) => (
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
+            <User className="h-3 w-3 text-muted-foreground" />
           </div>
-          <span className="text-xs font-sans text-foreground truncate flex-1 uppercase tracking-wider font-medium">
-            {selectedCustomer?.name || (isLoading ? "Loading..." : placeholder)}
+          <span className="text-left truncate max-w-[90%] font-medium">
+            {item.label}
           </span>
-          <ChevronsUpDown className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="p-0 w-[240px]"
-        align="end"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Command className="font-sans" shouldFilter={false}>
-          <CommandInput
-            placeholder="Search customer..."
-            value={searchValue}
-            onValueChange={setSearchValue}
-            className="h-9"
-          />
-          <CommandList
-            className="max-h-[300px] overflow-y-auto"
-            onWheel={(e) => e.stopPropagation()}
-          >
-            {isLoading && (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              </div>
+        </div>
+      )}
+      renderOnCreate={(value) => (
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
+            <User className="h-3 w-3 text-muted-foreground" />
+          </div>
+          <span>{`Create "${value}"`}</span>
+        </div>
+      )}
+      renderListItem={({ item }: { item: any }) => (
+        <div className="flex items-center gap-2 overflow-hidden">
+          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
+            <User className="h-3 w-3 text-muted-foreground" />
+          </div>
+          <div className="flex flex-col truncate">
+            <span className="font-medium truncate text-xs">{item.label}</span>
+            {item.email && (
+              <span className="text-[10px] text-muted-foreground truncate">
+                {item.email}
+              </span>
             )}
-
-            {!isLoading &&
-              filteredCustomers.length === 0 &&
-              !showCreateOption && (
-                <CommandEmpty className="py-4 text-xs text-center text-muted-foreground">
-                  No customer found.
-                </CommandEmpty>
-              )}
-
-            {!isLoading && (
-              <CommandGroup>
-                {filteredCustomers.map((customer) => (
-                  <CommandItem
-                    key={customer.id}
-                    value={customer.name}
-                    onSelect={() => {
-                      onChange(customer.id);
-                      setOpen(false);
-                    }}
-                    className="text-xs py-2 flex items-center justify-between cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
-                        <User className="h-3 w-3 text-muted-foreground" />
-                      </div>
-                      <div className="flex flex-col truncate">
-                        <span className="font-medium truncate">
-                          {customer.name}
-                        </span>
-                        {customer.email && (
-                          <span className="text-[10px] text-muted-foreground truncate">
-                            {customer.email}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    {value === customer.id && (
-                      <Check className="h-3.5 w-3.5 text-primary ml-2 shrink-0" />
-                    )}
-                  </CommandItem>
-                ))}
-
-                {showCreateOption && (
-                  <CommandItem
-                    value={searchValue}
-                    onSelect={() => createMutation.mutate(searchValue)}
-                    className="text-xs py-2 flex items-center gap-2 text-primary font-medium cursor-pointer"
-                    disabled={createMutation.isPending}
-                  >
-                    {createMutation.isPending ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Plus className="h-3.5 w-3.5" />
-                    )}
-                    <span>Create "{searchValue}"</span>
-                  </CommandItem>
-                )}
-              </CommandGroup>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+          </div>
+        </div>
+      )}
+    />
   );
 }

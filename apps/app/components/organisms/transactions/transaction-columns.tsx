@@ -70,6 +70,10 @@ export const transactionColumns = (
     meta: {
       sticky: true,
       className: "bg-background z-10",
+      skeleton: {
+        type: "checkbox",
+        width: "w-5",
+      },
     },
   },
   {
@@ -77,6 +81,15 @@ export const transactionColumns = (
     header: "Date",
     cell: ({ row }) => {
       const date = row.getValue("date") as string;
+      
+      if (!date || isNaN(new Date(date).getTime())) {
+        return (
+          <p className="text-xs font-sans text-muted-foreground whitespace-nowrap">
+            -
+          </p>
+        );
+      }
+
       return (
         <p className="text-xs font-sans text-muted-foreground whitespace-nowrap">
           {format(new Date(date), "dd/MM/yyyy")}
@@ -88,6 +101,10 @@ export const transactionColumns = (
     meta: {
       sticky: true,
       className: "bg-background z-10",
+      skeleton: {
+        type: "text",
+        width: "w-20",
+      },
     },
   },
   {
@@ -160,6 +177,10 @@ export const transactionColumns = (
     meta: {
       sticky: true,
       className: "bg-background z-10",
+      skeleton: {
+        type: "icon-text",
+        width: "w-40",
+      },
     },
   },
   {
@@ -188,8 +209,15 @@ export const transactionColumns = (
     size: 170,
     minSize: 100,
     maxSize: 400,
+    meta: {
+      skeleton: {
+        type: "text",
+        width: "w-24",
+      },
+    },
   },
   {
+    id: "account",
     accessorKey: "wallet.name",
     header: "Account",
     cell: ({ row, table }) => (
@@ -198,6 +226,12 @@ export const transactionColumns = (
     size: 200,
     minSize: 120,
     maxSize: 300,
+    meta: {
+      skeleton: {
+        type: "text",
+        width: "w-32",
+      },
+    },
   },
   {
     id: "category",
@@ -209,6 +243,12 @@ export const transactionColumns = (
     size: 250,
     minSize: 150,
     maxSize: 400,
+    meta: {
+      skeleton: {
+        type: "text",
+        width: "w-40",
+      },
+    },
   },
   {
     id: "assignee",
@@ -220,6 +260,12 @@ export const transactionColumns = (
     size: 200,
     minSize: 120,
     maxSize: 300,
+    meta: {
+      skeleton: {
+        type: "text",
+        width: "w-28",
+      },
+    },
   },
   {
     id: "actions",
@@ -326,6 +372,10 @@ export const transactionColumns = (
     meta: {
       sticky: true,
       className: "bg-background z-10",
+      skeleton: {
+        type: "text",
+        width: "w-10",
+      },
     },
   },
 ];
@@ -372,6 +422,7 @@ function CategoryCell({
             type={transaction.type as "income" | "expense"}
             onChange={handleCategoryChange}
             disabled={updating}
+            variant="ghost"
             className="w-full justify-start px-3 h-full rounded-none border-none hover:bg-transparent focus-visible:ring-0"
           />
           {updating && (
@@ -423,6 +474,7 @@ function AccountCell({
         value={transaction.walletId}
         onChange={handleAccountChange}
         disabled={updating}
+        variant="ghost"
         className="w-full justify-start px-3 h-full rounded-none border-none hover:bg-transparent focus-visible:ring-0"
       />
       {updating && (
@@ -463,6 +515,7 @@ function UserCell({ transaction }: { transaction: Transaction; table: any }) {
         value={transaction.assignedUserId ?? undefined}
         onChange={handleUserChange}
         disabled={updating}
+        variant="ghost"
         className="w-full justify-start px-3 h-full rounded-none border-none hover:bg-transparent focus-visible:ring-0"
       />
       {updating && (

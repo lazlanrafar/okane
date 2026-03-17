@@ -52,11 +52,11 @@ export function DataTableHeaderDraggable({
       )}
       style={dragStyle}
     >
-      <div className="flex-1 min-w-0 overflow-hidden">{children}</div>
+      <div className="w-full flex-1 min-w-0 overflow-hidden">{children}</div>
       {!disabled && (
         <GripVertical
           size={14}
-          className="ml-1 text-muted-foreground opacity-0 group-hover/header:opacity-100 flex-shrink-0 cursor-grab active:cursor-grabbing"
+          className="absolute right-1 text-muted-foreground opacity-0 group-hover/header:opacity-100 flex-shrink-0 cursor-grab active:cursor-grabbing z-30"
           {...attributes}
           {...listeners}
         />

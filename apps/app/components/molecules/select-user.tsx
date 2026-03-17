@@ -1,31 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, Loader2, User as UserIcon } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  cn,
-  Avatar,
-  AvatarImage,
-  AvatarFallback,
-} from "@workspace/ui";
+import { Combobox, Spinner, cn } from "@workspace/ui";
+import { User } from "lucide-react";
 import { getWorkspaceMembers } from "@workspace/modules/client";
-import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 interface Member {
-  userId: string;
+  id: string;
   name: string | null;
   email: string;
-  profilePicture: string | null;
+  image: string | null;
   role: string;
 }
 
@@ -35,6 +20,9 @@ export interface SelectUserProps {
   className?: string;
   disabled?: boolean;
   placeholder?: string;
+  headless?: boolean;
+  hideLoading?: boolean;
+  variant?: React.ComponentProps<typeof Combobox>["variant"];
 }
 
 export function SelectUser({
@@ -43,129 +31,104 @@ export function SelectUser({
   className,
   disabled,
   placeholder = "Select user",
+  headless,
+  hideLoading,
+  variant,
 }: SelectUserProps) {
-  const [open, setOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-
-  const { data: members, isLoading } = useQuery({
-    queryKey: ["workspace_members"],
+  // Handle internal fetching
+  const { data: members = [], isLoading } = useQuery<Member[]>({
+    queryKey: ["workspace-members"],
     queryFn: async () => {
       const res = await getWorkspaceMembers();
       if (!res.success) throw new Error(res.error);
-      return res.data || [];
+      // Map old structure to new structure expected by Combobox
+      return (res.data || []).map((member: any) => ({
+        id: member.userId,
+        name: member.name,
+        email: member.email,
+        image: member.profilePicture,
+        role: member.role,
+      }));
     },
-    enabled: open || !!value,
   });
 
-  const selectedMember = useMemo(() => {
-    return members?.find((m: any) => m.userId === value);
-  }, [members, value]);
+  const selectedMember = members.find((m) => m.id === value);
+  const selectedValue = selectedMember
+    ? {
+        id: selectedMember.id,
+        label: selectedMember.name || selectedMember.email,
+        email: selectedMember.email,
+        image: selectedMember.image,
+      }
+    : undefined;
 
-  const filteredMembers = useMemo(() => {
-    if (!searchValue || !members) return members || [];
-    return members.filter(
-      (m: any) =>
-        m.name?.toLowerCase().includes(searchValue.toLowerCase()) ||
-        m.email.toLowerCase().includes(searchValue.toLowerCase()),
+  const items = members.map((m) => ({
+    id: m.id,
+    label: m.name || m.email,
+    email: m.email,
+    image: m.image,
+  }));
+
+  if (!selectedValue && isLoading && !hideLoading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center min-h-[40px]">
+        <Spinner />
+      </div>
     );
-  }, [members, searchValue]);
+  }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild disabled={disabled}>
-        <button
-          type="button"
-          onClick={(e) => e.stopPropagation()}
-          className={cn(
-            "flex items-center gap-2 min-w-0 transition-colors group text-left w-full",
-            "border h-10 transition-colors hover:bg-muted/10 px-3",
-            "cursor-pointer",
-            className,
-          )}
-        >
-          {selectedMember ? (
-            <Avatar className="h-4 w-4 shrink-0">
-              <AvatarImage src={selectedMember.profilePicture || undefined} />
-              <AvatarFallback className="text-[8px]">
-                {selectedMember.name?.slice(0, 2).toUpperCase() ||
-                  selectedMember.email.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+    <Combobox
+      variant={variant}
+      headless={headless}
+      disabled={disabled}
+      placeholder={placeholder}
+      searchPlaceholder="Search user"
+      items={items}
+      selectedItem={selectedValue}
+      onSelect={(item) => {
+        onChange(item.id);
+      }}
+      className={className}
+      renderSelectedItem={(item: any) => (
+        <div className="flex items-center space-x-2">
+          {item.image ? (
+            <img
+              src={item.image}
+              alt={item.label}
+              className="w-6 h-6 rounded-full shrink-0 object-cover"
+            />
           ) : (
-            <UserIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
+              <User className="h-3 w-3 text-muted-foreground" />
+            </div>
           )}
-          <span className="text-xs font-sans text-foreground truncate flex-1">
-            {selectedMember?.name ||
-              selectedMember?.email ||
-              (isLoading ? "Loading..." : placeholder)}
+          <span className="text-left truncate max-w-[90%] font-medium">
+            {item.label}
           </span>
-          <ChevronsUpDown className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="p-0 w-[240px]"
-        align="start"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Command className="font-sans" shouldFilter={false}>
-          <CommandInput
-            placeholder="Search member..."
-            value={searchValue}
-            onValueChange={setSearchValue}
-            className="h-9"
-          />
-          <CommandList className="max-h-[300px] overflow-y-auto">
-            {isLoading && (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              </div>
-            )}
-
-            {!isLoading && filteredMembers.length === 0 && (
-              <CommandEmpty>No member found.</CommandEmpty>
-            )}
-
-            {!isLoading && (
-              <CommandGroup>
-                {filteredMembers.map((member: any) => (
-                  <CommandItem
-                    key={member.userId}
-                    value={member.email}
-                    onSelect={() => {
-                      onChange(member.userId);
-                      setOpen(false);
-                    }}
-                    className="text-xs py-2 flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-5 w-5 shrink-0">
-                        <AvatarImage src={member.profilePicture || undefined} />
-                        <AvatarFallback className="text-[10px]">
-                          {member.name?.slice(0, 2).toUpperCase() ||
-                            member.email.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-medium truncate">
-                          {member.name || member.email}
-                        </span>
-                        {member.name && (
-                          <span className="text-[10px] text-muted-foreground truncate">
-                            {member.email}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    {value === member.userId && (
-                      <Check className="h-3.5 w-3.5 text-primary" />
-                    )}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+        </div>
+      )}
+      renderListItem={({ item }: { item: any }) => (
+        <div className="flex items-center gap-2 overflow-hidden">
+          {item.image ? (
+            <img
+              src={item.image}
+              alt={item.label}
+              className="w-6 h-6 rounded-full shrink-0 object-cover"
+            />
+          ) : (
+            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
+              <User className="h-3 w-3 text-muted-foreground" />
+            </div>
+          )}
+          <div className="flex flex-col truncate">
+            <span className="font-medium truncate text-xs">{item.label}</span>
+            <span className="text-[10px] text-muted-foreground truncate">
+              {item.email}
+            </span>
+          </div>
+        </div>
+      )}
+    />
   );
 }

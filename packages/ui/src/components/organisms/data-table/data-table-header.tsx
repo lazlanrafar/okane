@@ -11,6 +11,7 @@ import {
 } from "@dnd-kit/sortable";
 import type { Header, Table } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp } from "lucide-react";
+import type { CSSProperties, ReactNode } from "react";
 import { useMemo } from "react";
 import {
   Button,
@@ -39,6 +40,7 @@ interface Props<TData> {
   tableScroll?: TableScrollState;
   tableId: TableId;
   sticky?: StickyConfig;
+  stickyOffset?: number;
 }
 
 export function DataTableHeader<TData>({
@@ -47,6 +49,7 @@ export function DataTableHeader<TData>({
   tableScroll,
   tableId,
   sticky,
+  stickyOffset,
 }: Props<TData>) {
   const { sortColumn, sortValue, createSortQuery } = useSortQuery();
 
@@ -67,19 +70,27 @@ export function DataTableHeader<TData>({
       .map((col) => col.id);
   }, [table, tableId]);
 
-  // Find the index of the last visible non-sticky non-actions column
-  const lastNonStickyHeaderIndex = useMemo(() => {
-    if (!table) return -1;
-    const visibleHeaders = table.getHeaderGroups()[0]?.headers ?? [];
-    for (let i = visibleHeaders.length - 1; i >= 0; i--) {
-      const h = visibleHeaders[i];
-      if (!h) continue;
-      if (h.column.id === "actions") continue;
-      const m = h.column.columnDef.meta as { sticky?: boolean } | undefined;
-      if (!m?.sticky && isVisible(h.column.id)) return i;
+  // Find the ID of the last visible non-sticky non-actions column
+  const lastNonStickyColumnId = useMemo(() => {
+    if (!table) return null;
+    const visibleColumns = table.getVisibleLeafColumns();
+    for (let i = visibleColumns.length - 1; i >= 0; i--) {
+      const col = visibleColumns[i];
+      if (!col) continue;
+      if (col.id === "actions") continue;
+      const m = col.columnDef.meta as { sticky?: boolean } | undefined;
+      if (!m?.sticky) return col.id;
     }
-    return -1;
-  }, [table, isVisible]);
+    return null;
+  }, [table]);
+
+  // Find the ID of the last visible column overall
+  const lastVisibleColumnId = useMemo(() => {
+    if (!table) return null;
+    const visibleColumns = table.getVisibleLeafColumns();
+    const lastCol = visibleColumns[visibleColumns.length - 1];
+    return lastCol?.id ?? null;
+  }, [table]);
 
   // The last sticky column gets the horizontal pagination arrows
   const lastStickyColumnId = useMemo(() => {
@@ -97,11 +108,15 @@ export function DataTableHeader<TData>({
   const headerGroups = table.getHeaderGroups();
 
   return (
-    <TableHeader className="border-0 block sticky top-0 z-20 bg-background w-full">
+    <TableHeader
+      className="border-0 block sticky z-45 bg-background w-full shadow-sm"
+      style={{ top: stickyOffset ?? 0, width: "100%", display: "block", minWidth: "100%" }}
+    >
       {headerGroups.map((headerGroup) => (
         <TableRow
           key={headerGroup.id}
-          className="h-[45px] hover:bg-transparent flex items-center border-b-0! min-w-full"
+          className="h-[45px] hover:bg-transparent flex items-center border-b-0! w-full min-w-full"
+          style={{ display: "flex", width: "100%", minWidth: "100%" }}
         >
           <SortableContext
             items={sortableColumnIds}
@@ -131,20 +146,14 @@ export function DataTableHeader<TData>({
               const actionsFullWidth = isActions && !hasNonStickyVisible;
 
               // Check if this column should flex (last before actions, or full-width actions, or true last non-sticky)
-              const isLastBeforeActions =
-                headerIndex === headers.length - 2 &&
-                headers[headers.length - 1]?.column.id === "actions";
-              const isLastNonSticky = headerIndex === lastNonStickyHeaderIndex;
-              const shouldFlex =
-                isLastNonSticky ||
-                (isLastBeforeActions && !isSticky) ||
-                actionsFullWidth;
+              const isLastNonSticky = columnId === lastNonStickyColumnId;
+              const shouldFlex = isLastNonSticky || actionsFullWidth;
 
-              const headerStyle = {
+              const headerStyle: CSSProperties = {
                 width:
-                  actionsFullWidth || shouldFlex ? undefined : header.getSize(),
+                  actionsFullWidth || shouldFlex ? "100%" : header.getSize(),
                 minWidth: actionsFullWidth
-                  ? undefined
+                  ? 0
                   : isSticky
                     ? header.getSize()
                     : header.column.columnDef.minSize,
@@ -156,7 +165,7 @@ export function DataTableHeader<TData>({
                       : header.column.columnDef.maxSize,
                 flexShrink: shouldFlex ? 1 : 0,
                 ...(!actionsFullWidth && getStickyStyle(columnId)),
-                ...(shouldFlex && { flex: 1, flexGrow: 1 }),
+                ...(shouldFlex && { flex: "1 1 0%", flexGrow: 1, width: "100%" }),
               };
 
               // Non-reorderable columns (sticky + actions)

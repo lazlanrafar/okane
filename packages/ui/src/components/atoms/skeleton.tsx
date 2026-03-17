@@ -10,9 +10,9 @@ const Skeleton = React.forwardRef<
     data-slot="skeleton"
     className={cn(
       "relative overflow-hidden",
-      "bg-linear-to-r from-transparent via-primary/10 to-transparent dark:via-primary/10",
+      "bg-muted",
+      "bg-linear-to-r from-transparent via-white/10 to-transparent",
       "bg-size-[200%_100%]",
-      "rounded-none",
       animate && "animate-shimmer",
       className,
     )}

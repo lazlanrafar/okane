@@ -36,6 +36,7 @@ interface DataTableFilterProps {
   showSource?: boolean;
   isLoading?: boolean;
   className?: string;
+  excludeKeys?: string[];
 }
 
 function FilterMenuItem({
@@ -82,6 +83,7 @@ export function DataTableFilter({
   className,
   showAttachments,
   showSource,
+  excludeKeys,
 }: DataTableFilterProps) {
   const [searchValue, setSearchValue] = useState(filters.q || "");
   const [isOpen, setIsOpen] = useState(false);
@@ -150,7 +152,7 @@ export function DataTableFilter({
   return (
     <div className={cn("flex flex-row items-center gap-3 w-full", className)}>
       <form
-        className="relative flex-1 max-w-sm group"
+        className="relative flex-1 w-full max-w-sm group shrink-0"
         ref={containerRef}
         onSubmit={(e) => {
           e.preventDefault();
@@ -327,6 +329,7 @@ export function DataTableFilter({
         onRemove={handleRemoveFilter}
         statusFilters={statusOptions}
         statusKey={statusKey}
+        excludeKeys={excludeKeys}
       />
     </div>
   );

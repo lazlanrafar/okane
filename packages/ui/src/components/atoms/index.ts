@@ -65,3 +65,4 @@ export * from "./loader";
 export * from "./animated-status";
 export * from "./text-shimmer";
 export * from "./canvas";
+export * from "./combobox";

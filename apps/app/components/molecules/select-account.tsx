@@ -1,21 +1,11 @@
-"use client";
-
-import * as React from "react";
-import { Check, ChevronsUpDown, Loader2, Plus, Landmark } from "lucide-react";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
+  Combobox,
+  Spinner,
   cn,
 } from "@workspace/ui";
+import { Landmark } from "lucide-react";
 import { getWallets, createWallet } from "@workspace/modules/client";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -25,6 +15,9 @@ export interface SelectAccountProps {
   className?: string;
   disabled?: boolean;
   placeholder?: string;
+  headless?: boolean;
+  hideLoading?: boolean;
+  variant?: React.ComponentProps<typeof Combobox>["variant"];
 }
 
 export function SelectAccount({
@@ -33,9 +26,10 @@ export function SelectAccount({
   className,
   disabled,
   placeholder = "Select account",
+  headless,
+  hideLoading,
+  variant,
 }: SelectAccountProps) {
-  const [open, setOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
   const queryClient = useQueryClient();
 
   // Handle internal fetching
@@ -46,7 +40,6 @@ export function SelectAccount({
       if (!res.success) throw new Error(res.error);
       return res.data || [];
     },
-    enabled: open || !!value,
   });
 
   const createMutation = useMutation({
@@ -58,8 +51,6 @@ export function SelectAccount({
     onSuccess: (data) => {
       if (data) {
         onChange(data.id);
-        setOpen(false);
-        setSearchValue("");
         queryClient.invalidateQueries({ queryKey: ["wallets"] });
         toast.success(`Account "${data.name}" created`);
       }
@@ -70,110 +61,62 @@ export function SelectAccount({
   });
 
   const selectedAccount = accounts.find((a) => a.id === value);
+  const selectedValue = selectedAccount
+    ? {
+        id: selectedAccount.id,
+        label: selectedAccount.name,
+      }
+    : undefined;
 
-  const filteredAccounts = useMemo(() => {
-    if (!searchValue) return accounts;
-    return accounts.filter((a) =>
-      a.name.toLowerCase().includes(searchValue.toLowerCase()),
-    );
-  }, [accounts, searchValue]);
+  const items = accounts.map((a) => ({
+    id: a.id,
+    label: a.name,
+  }));
 
-  const showCreateOption =
-    searchValue.length > 0 &&
-    !filteredAccounts.some(
-      (a) => a.name.toLowerCase() === searchValue.toLowerCase(),
+  if (!selectedValue && isLoading && !hideLoading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center min-h-[40px]">
+        <Spinner />
+      </div>
     );
+  }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild disabled={disabled || createMutation.isPending}>
-        <button
-          type="button"
-          onClick={(e) => e.stopPropagation()}
-          className={cn(
-            "flex items-center gap-2 min-w-0 transition-colors group text-left w-full",
-            "border h-10 transition-colors hover:bg-muted/10 px-3",
-            "cursor-pointer",
-            className,
-          )}
-        >
+    <Combobox
+      variant={variant}
+      headless={headless}
+      disabled={disabled || createMutation.isPending}
+      placeholder={placeholder}
+      searchPlaceholder="Search account"
+      items={items}
+      selectedItem={selectedValue}
+      onSelect={(item) => {
+        onChange(item.id);
+      }}
+      className={className}
+      onCreate={(value) => {
+        createMutation.mutate(value);
+      }}
+      renderSelectedItem={(item) => (
+        <div className="flex items-center space-x-2">
           <Landmark className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <span className="text-xs font-sans text-foreground truncate flex-1">
-            {selectedAccount?.name || (isLoading ? "Loading..." : placeholder)}
+          <span className="text-left truncate max-w-[90%]">
+            {item.label}
           </span>
-          <ChevronsUpDown className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="p-0 w-[200px]"
-        align="start"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Command className="font-sans" shouldFilter={false}>
-          <CommandInput
-            placeholder="Search account..."
-            value={searchValue}
-            onValueChange={setSearchValue}
-            className="h-9"
-          />
-          <CommandList
-            className="max-h-[300px] overflow-y-auto"
-            onWheel={(e) => e.stopPropagation()}
-          >
-            {isLoading && (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              </div>
-            )}
-
-            {!isLoading &&
-              filteredAccounts.length === 0 &&
-              !showCreateOption && (
-                <CommandEmpty>No account found.</CommandEmpty>
-              )}
-
-            {!isLoading && (
-              <CommandGroup>
-                {filteredAccounts.map((account) => (
-                  <CommandItem
-                    key={account.id}
-                    value={account.name}
-                    onSelect={() => {
-                      onChange(account.id);
-                      setOpen(false);
-                    }}
-                    className="text-xs py-2 flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Landmark className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                      {account.name}
-                    </div>
-                    {value === account.id && (
-                      <Check className="h-3.5 w-3.5 text-primary" />
-                    )}
-                  </CommandItem>
-                ))}
-
-                {showCreateOption && (
-                  <CommandItem
-                    value={searchValue}
-                    onSelect={() => createMutation.mutate(searchValue)}
-                    className="text-xs py-2 flex items-center gap-2 text-primary font-medium"
-                    disabled={createMutation.isPending}
-                  >
-                    {createMutation.isPending ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Plus className="h-3.5 w-3.5" />
-                    )}
-                    <span>Create "{searchValue}"</span>
-                  </CommandItem>
-                )}
-              </CommandGroup>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+        </div>
+      )}
+      renderOnCreate={(value) => (
+        <div className="flex items-center space-x-2">
+          <Landmark className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <span>{`Create "${value}"`}</span>
+        </div>
+      )}
+      renderListItem={({ item }) => (
+        <div className="flex items-center space-x-2">
+          <Landmark className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <span className="line-clamp-1">{item.label}</span>
+        </div>
+      )}
+    />
   );
 }

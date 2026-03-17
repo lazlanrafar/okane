@@ -1,20 +1,31 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useCallback, useEffect } from "react";
 import type { Category, Transaction, Wallet } from "@workspace/types";
 import {
   Button,
   DataTable,
   DataTableColumnsVisibility,
   DataTableFilter,
+  VirtualRow,
+  DataTableRow,
   Icons,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DateRangePicker,
   cn,
 } from "@workspace/ui";
-import { Plus, Upload, Landmark, Receipt, FileUp } from "lucide-react";
+import {
+  Plus,
+  Upload,
+  Landmark,
+  Receipt,
+  FileUp,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react";
 import { useDataTableFilter } from "@/hooks/use-data-table-filter";
 import { transactionColumns } from "./transaction-columns";
 import { TransactionFormSheet } from "./transaction-form-sheet";
@@ -23,11 +34,13 @@ import { ImportModal } from "./transaction-import-modal";
 import { useTransactionsStore } from "@/stores/transactions";
 import { useSettingsStore } from "@/stores/settings-store";
 import { BulkEditBar } from "./transaction-bulk-edit-bar";
+import { TransactionTableSkeleton } from "./transaction-table-skeleton";
 import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import type { Row } from "@tanstack/react-table";
 import {
   getTransactions,
   deleteTransaction,
@@ -35,6 +48,21 @@ import {
 import { toast } from "sonner";
 import { useQueryState, parseAsString } from "nuqs";
 import { useEffect as useReactEffect } from "react";
+import {
+  startOfMonth,
+  endOfMonth,
+  parseISO,
+  format,
+  startOfWeek,
+  endOfWeek,
+  startOfDay,
+  endOfDay,
+} from "date-fns";
+import {
+  TransactionGroupingSelector,
+  type GroupByInterval,
+} from "./transaction-grouping-selector";
+import { formatCurrency } from "@workspace/utils";
 
 interface Props {
   initialData: Transaction[];
@@ -71,15 +99,23 @@ export function TransactionsClient({
     parseAsString.withDefault("").withOptions({ shallow: true }),
   );
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeGroupIndex, setActiveGroupIndex] = useState<number | null>(null);
+
   const queryClient = useQueryClient();
+  const [groupBy, setGroupBy] = useQueryState(
+    "groupBy",
+    parseAsString.withDefault("daily"),
+  );
+
   const { filters, handleFilterChange } = useDataTableFilter({
     initialFilters: {
       q: "",
       type: "",
       walletId: "",
       categoryId: "",
-      startDate: "",
-      endDate: "",
+      startDate: startOfMonth(new Date()).toISOString(),
+      endDate: endOfMonth(new Date()).toISOString(),
     },
     debounceMs: 500,
   });
@@ -168,6 +204,20 @@ export function TransactionsClient({
     },
   });
 
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  const toggleGroup = useCallback((key: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }, []);
+
   const transactions = useMemo(
     () =>
       (data?.pages
@@ -175,6 +225,78 @@ export function TransactionsClient({
         .filter(Boolean) as Transaction[]) ?? [],
     [data],
   );
+
+  const processedRows = useMemo(() => {
+    if (groupBy === "none" || !transactions.length) return transactions;
+
+    const groups = new Map<
+      string,
+      {
+        transactions: Transaction[];
+        income: number;
+        expense: number;
+        label: string;
+      }
+    >();
+
+    for (const tx of transactions) {
+      if (!tx.date) continue;
+      const date = parseISO(tx.date);
+      if (isNaN(date.getTime())) continue;
+
+      let key = "";
+      let label = "";
+
+      if (groupBy === "daily") {
+        key = format(date, "yyyy-MM-dd");
+        label = format(date, "EEEE, dd MMM yyyy");
+      } else if (groupBy === "weekly") {
+        const start = startOfWeek(date);
+        const end = endOfWeek(date);
+        key = format(start, "yyyy-ww");
+        label = `${format(start, "dd MMM")} - ${format(end, "dd MMM yyyy")}`;
+      } else if (groupBy === "monthly") {
+        key = format(date, "yyyy-MM");
+        label = format(date, "MMMM yyyy");
+      }
+
+      const group = groups.get(key) || {
+        transactions: [],
+        income: 0,
+        expense: 0,
+        label,
+      };
+      group.transactions.push(tx);
+
+      const amount = Number.parseFloat(tx.amount || "0");
+      if (!isNaN(amount)) {
+        if (tx.type === "income" || tx.type === "transfer-in") {
+          group.income += amount;
+        } else if (tx.type === "expense" || tx.type === "transfer-out") {
+          group.expense += amount;
+        }
+      }
+
+      groups.set(key, group);
+    }
+
+    const result: any[] = [];
+    groups.forEach((group, key) => {
+      const isCollapsed = expandedGroups.has(key);
+      result.push({
+        id: `group-${key}`,
+        groupKey: key,
+        _isGroup: true,
+        label: group.label,
+        income: group.income,
+        expense: group.expense,
+        isExpanded: !isCollapsed,
+        transactions: group.transactions,
+      });
+    });
+
+    return result;
+  }, [transactions, groupBy, expandedGroups]);
 
   const columnsWithActions = useMemo(
     () =>
@@ -204,6 +326,10 @@ export function TransactionsClient({
       setSelectedTransaction(undefined);
     }
   }, [transactionId, transactions, isDetailOpen]);
+
+  useReactEffect(() => {
+    // Scroll handling is now managed by DataTable scrollTop prop.
+  }, [groupBy]);
 
   // Keyboard navigation
   useReactEffect(() => {
@@ -246,29 +372,47 @@ export function TransactionsClient({
   ];
 
   const nonClickableColumns = useMemo(
-    () => new Set(["select", "actions", "category", "assignee"]),
+    () => new Set(["select", "actions", "category", "assignee", "account"]),
     [],
   );
 
   return (
-    <div className="flex w-full flex-col h-full space-y-4">
+    <div className="flex w-full flex-col h-full gap-4">
       {/* Search and Actions Header */}
       <div className="flex items-center justify-between gap-4 shrink-0">
-        <div className="flex items-center flex-1 max-w-sm">
+        <div className="flex items-center flex-1">
           <DataTableFilter
             filters={filters}
             onFilterChange={handleFilterChange as any}
             placeholder="Search transactions..."
-            showDateFilter={true}
+            showDateFilter={false}
             showAmountFilter={false}
             statusOptions={typeOptions}
             statusKey="type"
             statusLabel="Type"
+            excludeKeys={["startDate", "endDate"]}
             className="w-full bg-transparent border-none p-0 focus-visible:ring-0"
           />
         </div>
 
         <div className="flex items-center gap-2">
+          <TransactionGroupingSelector
+            value={groupBy as GroupByInterval}
+            onValueChange={(v) => setGroupBy(v)}
+          />
+          <DateRangePicker
+            range={{
+              from: filters.startDate ? parseISO(filters.startDate) : undefined,
+              to: filters.endDate ? parseISO(filters.endDate) : undefined,
+            }}
+            onSelect={(range) => {
+              handleFilterChange({
+                ...filters,
+                startDate: range?.from?.toISOString() ?? "",
+                endDate: range?.to?.toISOString() ?? "",
+              });
+            }}
+          />
           <DataTableColumnsVisibility columns={columns} />
 
           <DropdownMenu>
@@ -333,32 +477,193 @@ export function TransactionsClient({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 relative ">
-        <DataTable
-          data={transactions}
-          columns={columnsWithActions}
-          setColumns={setColumns}
-          tableId="transactions"
-          sticky={{
-            columns: ["select", "date", "name", "actions"],
-            startFromColumn: 0,
-          }}
-          nonClickableColumns={nonClickableColumns}
-          emptyMessage="No transactions found."
-          infiniteScroll
-          fetchNextPage={fetchNextPage}
-          hasNextPage={hasNextPage}
-          isFetchingNextPage={isFetchingNextPage}
-          hFull
-          rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
-          meta={{
-            categories,
-            wallets,
-            onRowClick: handleRowClick,
-            onDelete: (id: string) => deleteMutation.mutate(id),
-          }}
-        />
+      <div className="flex-1 min-h-0 relative">
+        {isLoading ? (
+          <TransactionTableSkeleton hideHeader />
+        ) : (
+          <DataTable
+            data={processedRows as any}
+            columns={columnsWithActions}
+            setColumns={setColumns}
+            tableId="transactions"
+            externalScrollContainerRef={containerRef}
+            stickyOffset={0}
+            sticky={{
+              columns: ["select", "date", "name", "actions"],
+              startFromColumn: 0,
+            }}
+            nonClickableColumns={nonClickableColumns}
+            emptyMessage="No transactions found."
+            infiniteScroll={true}
+            fetchNextPage={fetchNextPage}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            hFull
+            virtualizationStrategy="flow"
+            getRowHeight={(index) => {
+              const item = processedRows[index] as any;
+              if (item?._isGroup) {
+                const headerHeight = 40;
+                const rowHeight = 45;
+                return item.isExpanded
+                  ? headerHeight + item.transactions.length * rowHeight
+                  : headerHeight;
+              }
+              return 45;
+            }}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            meta={{
+              categories,
+              wallets,
+              onRowClick: handleRowClick,
+              onDelete: (id: string) => deleteMutation.mutate(id),
+            }}
+            renderRow={({ row, getStickyStyle, getStickyClassName, table }) => {
+              const item = row.original as any;
+
+              if (item._isGroup) {
+                return (
+                  <tbody key={item.id} className="w-full block group-container">
+                    <tr
+                      className="sticky w-full min-w-full flex border-b border-border bg-[#FBFBFA] dark:bg-[#0A0A0A] hover:bg-[#F2F1EF] hover:dark:bg-[#151515] transition-colors cursor-pointer group/header select-none z-30"
+                      style={{
+                        height: 40,
+                        top: 44, // Sticky under the main header
+                        width: "100%",
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGroup(item.groupKey);
+                      }}
+                    >
+                      <td
+                        className="flex items-center px-4 shrink-0 h-full"
+                        style={{ width: "100%" }}
+                      >
+                        <div className="flex items-center gap-3 w-full">
+                          <div className="flex h-4 w-4 shrink-0 items-center justify-center transition-transform duration-200">
+                            {item.isExpanded ? (
+                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground text-nowrap">
+                            {item.label}
+                          </span>
+
+                          <div className="ml-auto flex items-center gap-4">
+                            <span className="text-[10px] font-bold text-emerald-500">
+                              {formatCurrency(item.income, settings)}
+                            </span>
+                            <span className="text-[10px] font-bold text-rose-500">
+                              {formatCurrency(item.expense, settings)}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+
+                    {item.isExpanded &&
+                      item.transactions.map((tx: any) => {
+                        // We need to create a "proxy row" for the transaction because it's not actually
+                        // in the table's internal row model (which only sees the groups).
+                        // This ensures that table.column hooks (date, formatCurrency, etc.) get the right data.
+                        const baseRow = table.getRowModel().flatRows[0] || row; // Fallback to avoid crash
+
+                        const txRow = {
+                          ...baseRow,
+                          id: tx.id,
+                          original: tx,
+                          getValue: (columnId: string) => {
+                            if (columnId in tx) return (tx as any)[columnId];
+                            // Handle nested access (e.g. wallet.name)
+                            if (columnId === "wallet.name")
+                              return tx.wallet?.name;
+                            if (columnId === "category.name")
+                              return tx.category?.name;
+                            return "";
+                          },
+                          getVisibleCells: () =>
+                            baseRow.getVisibleCells().map((cell) => ({
+                              ...cell,
+                              id: `${tx.id}-${cell.column.id}`,
+                              row: {
+                                ...baseRow,
+                                id: tx.id,
+                                original: tx,
+                                getValue: (colId: string) =>
+                                  (tx as any)[colId] ||
+                                  (tx.wallet && colId === "wallet.name"
+                                    ? tx.wallet.name
+                                    : ""),
+                              },
+                              getContext: () => ({
+                                ...cell.getContext(),
+                                row: {
+                                  ...baseRow,
+                                  id: tx.id,
+                                  original: tx,
+                                  getValue: (colId: string) =>
+                                    (tx as any)[colId] ||
+                                    (tx.wallet && colId === "wallet.name"
+                                      ? tx.wallet.name
+                                      : ""),
+                                },
+                              }),
+                            })),
+                        } as unknown as Row<Transaction>;
+
+                        return (
+                          <DataTableRow
+                            key={tx.id}
+                            row={txRow}
+                            rowHeight={45}
+                            getStickyStyle={getStickyStyle}
+                            getStickyClassName={getStickyClassName}
+                            nonClickableColumns={nonClickableColumns}
+                            onCellClick={(rowId, colId) => {
+                              if (!nonClickableColumns.has(colId)) {
+                                handleRowClick(tx);
+                              }
+                            }}
+                            isSelected={!!rowSelection[tx.id]}
+                            columnSizing={table.getState().columnSizing}
+                            columnOrder={table.getState().columnOrder}
+                            columnVisibility={table.getState().columnVisibility}
+                          />
+                        );
+                      })}
+                  </tbody>
+                );
+              }
+
+              // This case happens if groupBy === "none"
+              return (
+                <tbody key={row.id} className="w-full block">
+                  <DataTableRow
+                    key={row.id}
+                    row={row}
+                    rowHeight={45}
+                    getStickyStyle={getStickyStyle}
+                    getStickyClassName={getStickyClassName}
+                    nonClickableColumns={nonClickableColumns}
+                    onCellClick={(rowId, colId) => {
+                      if (!nonClickableColumns.has(colId)) {
+                        handleRowClick(item as Transaction);
+                      }
+                    }}
+                    isSelected={!!rowSelection[item.id]}
+                    columnSizing={table.getState().columnSizing}
+                    columnOrder={table.getState().columnOrder}
+                    columnVisibility={table.getState().columnVisibility}
+                  />
+                </tbody>
+              );
+            }}
+          />
+        )}
       </div>
 
       <BulkEditBar />

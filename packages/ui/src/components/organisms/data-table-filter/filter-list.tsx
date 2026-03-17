@@ -17,6 +17,7 @@ interface Props {
   onRemove: (key: string) => void;
   statusFilters?: FilterOption[];
   statusKey?: string;
+  excludeKeys?: string[];
 }
 
 export function FilterList({
@@ -25,6 +26,7 @@ export function FilterList({
   onRemove,
   statusFilters,
   statusKey = "status",
+  excludeKeys,
 }: Props) {
   const renderFilterValue = (key: string, value: any) => {
     switch (key) {
@@ -46,8 +48,16 @@ export function FilterList({
     const list: [string, any][] = [];
     const processedKeys = new Set<string>();
 
+    if (excludeKeys) {
+      for (const key of excludeKeys) {
+        processedKeys.add(key);
+      }
+    }
+
     if (filters.start || filters.end) {
-      list.push(["date", { from: filters.start, to: filters.end }]);
+      if (!processedKeys.has("start") && !processedKeys.has("end")) {
+        list.push(["date", { from: filters.start, to: filters.end }]);
+      }
       processedKeys.add("start");
       processedKeys.add("end");
     }
@@ -67,7 +77,7 @@ export function FilterList({
     });
 
     return list;
-  }, [filters]);
+  }, [filters, excludeKeys]);
 
   if (activeFilters.length === 0 && !loading) return null;
 

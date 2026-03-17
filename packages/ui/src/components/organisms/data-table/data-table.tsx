@@ -1,4 +1,5 @@
 "use client";
+import * as React from "react";
 
 import { useSortParams } from "../../../hooks/use-sort-params";
 import { useStickyColumns } from "../../../hooks/use-sticky-columns";
@@ -22,9 +23,17 @@ import type {
   Column,
   ColumnDef,
   PaginationState,
+  Row,
   RowSelectionState,
 } from "@tanstack/react-table";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { DataTableHeader } from "./data-table-header";
 import {
   Pagination,
@@ -100,12 +109,33 @@ type Props<TData extends { id: string | number }> = {
   hFull?: boolean;
   /** Whether to enable infinite scrolling. */
   infiniteScroll?: boolean;
+  /** Optional external ref for the scroll container. */
+  externalScrollContainerRef?: React.RefObject<HTMLDivElement | null>;
+  /** Optional offset for the sticky header. */
+  stickyOffset?: number;
   /** Function to fetch the next page of data. */
   fetchNextPage?: () => void;
   /** Whether there is a next page to fetch. */
   hasNextPage?: boolean;
   /** Whether the next page is currently being fetched. */
   isFetchingNextPage?: boolean;
+  /** Custom row renderer. If provided, overrides default rendering. */
+  renderRow?: (props: {
+    row: Row<TData>;
+    virtualRow?: { start: number; index: number };
+    rowHeight: number;
+    getStickyStyle: (columnId: string) => CSSProperties;
+    getStickyClassName: (columnId: string, baseClassName?: string) => string;
+    table: import("@tanstack/react-table").Table<TData>;
+    scrollTop?: number;
+  }) => React.ReactNode;
+  /** Custom row height function. */
+  getRowHeight?: (index: number) => number;
+  hideHeader?: boolean;
+  /** Content to render at the top of the scroll container. */
+  topContent?: React.ReactNode;
+  /** Virtualization strategy. 'absolute' uses translateY (default), 'flow' uses spacers. */
+  virtualizationStrategy?: "absolute" | "flow";
 };
 
 export function DataTable<TData extends { id: string | number }>({
@@ -132,8 +162,16 @@ export function DataTable<TData extends { id: string | number }>({
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
+  renderRow,
+  getRowHeight,
+  externalScrollContainerRef,
+  stickyOffset,
+  hideHeader,
+  topContent,
+  virtualizationStrategy = "absolute",
 }: Props<TData>) {
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const internalScrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = externalScrollContainerRef || internalScrollContainerRef;
 
   const {
     columnVisibility,
@@ -146,6 +184,8 @@ export function DataTable<TData extends { id: string | number }>({
 
   const [internalRowSelection, setInternalRowSelection] =
     useState<RowSelectionState>({});
+  const [scrollTopState, setScrollTopState] = useState(0);
+  const scrollTopRef = useRef(0);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: pageSizeProp,
@@ -257,9 +297,15 @@ export function DataTable<TData extends { id: string | number }>({
   const rowVirtualizer = useVirtualizer({
     count: currentRows.length,
     getScrollElement: () => scrollContainerRef.current,
-    estimateSize: () => rowHeight,
+    estimateSize: (index) => getRowHeight?.(index) ?? rowHeight,
     overscan: 10,
   });
+
+  // Force re-measure when data count changes to ensure correct scroll size
+  // and real-time updates for collapsible groups
+  React.useLayoutEffect(() => {
+    rowVirtualizer.measure();
+  }, [currentRows.length, rowVirtualizer]);
 
   // Trigger infinite load when scrolling near the bottom
   useInfiniteScroll({
@@ -319,17 +365,37 @@ export function DataTable<TData extends { id: string | number }>({
                 (
                   tableScroll.containerRef as React.MutableRefObject<HTMLDivElement | null>
                 ).current = el;
+                if (externalScrollContainerRef) {
+                  (externalScrollContainerRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+                }
               }}
               className={cn(
-                "overflow-auto border-l border-r border-b border-border scrollbar-hide",
+                "overflow-auto",
+                "border-l border-r border-b border-border scrollbar-hide",
                 hFull ? "flex-1" : "",
               )}
-              style={hFull ? {} : { height: containerHeight }}
+              style={{
+                ...(hFull ? {} : { height: containerHeight }),
+                "--scroll-top": `${scrollTopRef.current}px`,
+              } as React.CSSProperties}
+              onScroll={(e) => {
+                const target = e.currentTarget;
+                const top = target.scrollTop;
+                scrollTopRef.current = top;
+                target.style.setProperty("--scroll-top", `${top}px`);
+                // We keep a throttled/state update for things that might need it,
+                // but by using a Ref and direct DOM update, we decouple the 
+                // visual "sticking" from the React render cycle.
+                setScrollTopState(top);
+              }}
             >
               {/* Block div carries minWidth so overflow:auto clips correctly.
                   Native <table> elements (display:table) can escape overflow:auto —
                   block divs cannot. Sidebar-state-agnostic — no magic numbers needed. */}
-              <div style={{ minWidth: table.getTotalSize(), width: "100%" }}>
+              <div style={{ minWidth: "100%", width: "max-content" }}>
+                <div className="h-0 relative z-40 overflow-visible">
+                  {topContent}
+                </div>
                 <DndContext
                   id={`${tableId}-table-dnd`}
                   sensors={sensors}
@@ -337,35 +403,157 @@ export function DataTable<TData extends { id: string | number }>({
                   onDragEnd={handleDragEnd}
                 >
                   <Table className="w-full block border-none">
-                    <DataTableHeader
-                      table={table}
-                      tableScroll={tableScroll}
-                      tableId={tableId}
-                      sticky={sticky}
-                    />
+                    {!hideHeader && (
+                      <DataTableHeader
+                        table={table}
+                        tableScroll={tableScroll}
+                        tableId={tableId}
+                        sticky={sticky}
+                        stickyOffset={stickyOffset}
+                      />
+                    )}
 
-                    <TableBody
-                      className={cn(
-                        "border-l-0 border-r-0 block w-full min-w-full",
-                        infiniteScroll && "relative",
-                      )}
-                      style={
-                        infiniteScroll
-                          ? {
-                              height: `${rowVirtualizer.getTotalSize()}px`,
-                            }
-                          : {}
-                      }
-                    >
-                      {infiniteScroll
-                        ? rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                            const row = currentRows[virtualRow.index];
-                            if (!row) return null;
+                    {infiniteScroll
+                      ? (() => {
+                          const virtualItems = rowVirtualizer.getVirtualItems();
+                          const totalSize = rowVirtualizer.getTotalSize();
+                          const strategy = virtualizationStrategy;
+
+                          if (strategy === "flow") {
+                            const paddingTop = virtualItems.length > 0 ? (virtualItems[0]?.start ?? 0) : 0;
+                            const paddingBottom = virtualItems.length > 0 
+                              ? totalSize - (virtualItems[virtualItems.length - 1]?.end ?? 0) 
+                              : 0;
+
                             return (
-                              <VirtualRow
+                              <>
+                                {paddingTop > 0 && (
+                                  <tbody className="block">
+                                    <tr style={{ height: `${paddingTop}px` }} className="border-none" />
+                                  </tbody>
+                                )}
+                                {virtualItems.map((virtualRow) => {
+                                  const row = currentRows[virtualRow.index];
+                                  if (!row) return null;
+
+                                  if (renderRow) {
+                                    return (
+                                      <React.Fragment key={row.id}>
+                                        {renderRow({
+                                          row,
+                                          virtualRow: {
+                                            start: virtualRow.start,
+                                            index: virtualRow.index,
+                                          },
+                                          rowHeight: virtualRow.size,
+                                          getStickyStyle,
+                                          getStickyClassName,
+                                          table,
+                                          scrollTop: scrollTopState,
+                                        })}
+                                      </React.Fragment>
+                                    );
+                                  }
+
+                                  return (
+                                    <TableBody
+                                      key={row.id}
+                                      className="border-l-0 border-r-0 block w-full min-w-full"
+                                    >
+                                      <VirtualRow
+                                        row={row}
+                                        virtualStart={virtualRow.start}
+                                        rowHeight={rowHeight}
+                                        getStickyStyle={getStickyStyle}
+                                        getStickyClassName={getStickyClassName}
+                                        nonClickableColumns={nonClickableColumns}
+                                        onCellClick={handleCellClick}
+                                        columnSizing={columnSizing}
+                                        columnOrder={columnOrder}
+                                        columnVisibility={columnVisibility}
+                                        strategy="flow"
+                                        isSelected={
+                                          !!(rowSelectionProp ?? internalRowSelection)[
+                                            row.id
+                                          ]
+                                        }
+                                      />
+                                    </TableBody>
+                                  );
+                                })}
+                                {paddingBottom > 0 && (
+                                  <tbody className="block">
+                                    <tr style={{ height: `${paddingBottom}px` }} className="border-none" />
+                                  </tbody>
+                                )}
+                              </>
+                            );
+                          }
+
+                          // Default 'absolute' strategy (requires relative container)
+                          return (
+                            <TableBody
+                              className={cn(
+                                "border-l-0 border-r-0 block w-full min-w-full relative",
+                              )}
+                              style={{
+                                height: `${rowVirtualizer.getTotalSize()}px`,
+                              }}
+                            >
+                              {virtualItems.map((virtualRow) => {
+                                const row = currentRows[virtualRow.index];
+                                if (!row) return null;
+
+                                if (renderRow) {
+                                  return (
+                                    <React.Fragment key={row.id}>
+                                      {renderRow({
+                                        row,
+                                        virtualRow: {
+                                          start: virtualRow.start,
+                                          index: virtualRow.index,
+                                        },
+                                        rowHeight: virtualRow.size,
+                                        getStickyStyle,
+                                        getStickyClassName,
+                                        table,
+                                        scrollTop: scrollTopState,
+                                      })}
+                                    </React.Fragment>
+                                  );
+                                }
+
+                                return (
+                                  <VirtualRow
+                                    key={row.id}
+                                    row={row}
+                                    virtualStart={virtualRow.start}
+                                    rowHeight={rowHeight}
+                                    getStickyStyle={getStickyStyle}
+                                    getStickyClassName={getStickyClassName}
+                                    nonClickableColumns={nonClickableColumns}
+                                    onCellClick={handleCellClick}
+                                    columnSizing={columnSizing}
+                                    columnOrder={columnOrder}
+                                    columnVisibility={columnVisibility}
+                                    strategy="absolute"
+                                    isSelected={
+                                      !!(rowSelectionProp ?? internalRowSelection)[
+                                        row.id
+                                      ]
+                                    }
+                                  />
+                                );
+                              })}
+                            </TableBody>
+                          );
+                        })()
+                      : (
+                          <TableBody className="border-l-0 border-r-0 block w-full min-w-full">
+                            {currentRows.map((row) => (
+                              <DataTableRow
                                 key={row.id}
                                 row={row}
-                                virtualStart={virtualRow.start}
                                 rowHeight={rowHeight}
                                 getStickyStyle={getStickyStyle}
                                 getStickyClassName={getStickyClassName}
@@ -380,28 +568,9 @@ export function DataTable<TData extends { id: string | number }>({
                                   ]
                                 }
                               />
-                            );
-                          })
-                        : currentRows.map((row) => (
-                            <DataTableRow
-                              key={row.id}
-                              row={row}
-                              rowHeight={rowHeight}
-                              getStickyStyle={getStickyStyle}
-                              getStickyClassName={getStickyClassName}
-                              nonClickableColumns={nonClickableColumns}
-                              onCellClick={handleCellClick}
-                              columnSizing={columnSizing}
-                              columnOrder={columnOrder}
-                              columnVisibility={columnVisibility}
-                              isSelected={
-                                !!(rowSelectionProp ?? internalRowSelection)[
-                                  row.id
-                                ]
-                              }
-                            />
-                          ))}
-                    </TableBody>
+                            ))}
+                          </TableBody>
+                        )}
                   </Table>
                 </DndContext>
                 {infiniteScroll && isFetchingNextPage && (
