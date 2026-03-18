@@ -51,11 +51,11 @@ export const sidebarItems: NavGroup[] = [
         url: "/transactions",
         icon: Banknote,
       },
-      {
-        title: "Invoices",
-        url: "/invoices",
-        icon: FileText,
-      },
+      // {
+      //   title: "Invoices",
+      //   url: "/invoices",
+      //   icon: FileText,
+      // },
       {
         title: "Accounts",
         url: "/accounts",

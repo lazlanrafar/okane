@@ -146,6 +146,7 @@ export function TransactionsClient({
         categoryId: filters.categoryId || undefined,
         startDate: filters.startDate || undefined,
         endDate: filters.endDate || undefined,
+        search: filters.q || undefined,
         uncategorized: activeTab === "review",
       } as any);
       return res;
@@ -190,6 +191,7 @@ export function TransactionsClient({
       const res = await getTransactions({
         page: 1,
         limit: 1,
+        search: filters.q || undefined,
         uncategorized: true,
       } as any);
       return res;

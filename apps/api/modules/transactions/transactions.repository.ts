@@ -18,6 +18,8 @@ import {
   aliasedTable,
   isNull,
   inArray,
+  or,
+  ilike,
 } from "drizzle-orm";
 
 export abstract class TransactionsRepository {
@@ -130,6 +132,7 @@ export abstract class TransactionsRepository {
       categoryId?: string;
       startDate?: string;
       endDate?: string;
+      search?: string;
       uncategorized?: boolean;
     },
   ): Promise<{ data: Transaction[]; total: number }> {
@@ -155,6 +158,14 @@ export abstract class TransactionsRepository {
     }
     if (params.endDate) {
       filters.push(lte(transactions.date, params.endDate));
+    }
+    if (params.search) {
+      filters.push(
+        or(
+          ilike(transactions.name, `%${params.search}%`),
+          ilike(transactions.description, `%${params.search}%`),
+        ) as any,
+      );
     }
     if (params.uncategorized) {
       filters.push(isNull(transactions.categoryId));

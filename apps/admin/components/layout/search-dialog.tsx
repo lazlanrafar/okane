@@ -103,7 +103,7 @@ export function SearchDialog() {
     <>
       <Button
         variant="link"
-        className="!px-0 font-normal text-muted-foreground hover:no-underline"
+        className="px-0! font-normal text-muted-foreground hover:no-underline flex-1"
         onClick={() => setOpen(true)}
       >
         <Search className="size-4" />
@@ -133,7 +133,7 @@ export function SearchDialog() {
                     .filter((item) => item.group === group)
                     .map((item) => (
                       <CommandItem
-                        className="!py-1.5"
+                        className="py-1.5!"
                         key={item.label}
                         onSelect={() => {
                           setOpen(false);
@@ -157,7 +157,7 @@ export function SearchDialog() {
                 {orders.map((order) => (
                   <CommandItem
                     key={order.id}
-                    className="!py-2 flex items-center justify-between"
+                    className="py-2! flex items-center justify-between"
                     onSelect={() => {
                       setOpen(false);
                       router.push(`/orders?search=${order.code}`);

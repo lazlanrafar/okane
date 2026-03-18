@@ -125,8 +125,13 @@ export class VaultService {
     const { limit, offset, page } = parsePaginationQuery(query);
 
     const [files, total] = await Promise.all([
-      vaultRepository.findMany(workspaceId, limit, offset),
-      vaultRepository.count(workspaceId),
+      vaultRepository.findMany(
+        workspaceId,
+        limit,
+        offset,
+        (query as any).search,
+      ),
+      vaultRepository.count(workspaceId, { search: (query as any).search }),
     ]);
 
     const bucket = await this.getBucketClient(workspaceId);

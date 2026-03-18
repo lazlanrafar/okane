@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 
 import { cookies } from "next/headers";
-
-import { createClient } from "@workspace/supabase/server";
 import {
   cn,
   Separator,
@@ -14,14 +12,12 @@ import {
 import { getMe } from "@workspace/modules/server";
 import { AccountSwitcher } from "@/components/organisms/layout/account-switcher";
 import { AppSidebar } from "@/components/organisms/layout/app-sidebar";
-import { LayoutControls } from "@/components/organisms/layout/layout-controls";
-import { SearchDialog } from "@/components/organisms/layout/search-dialog";
-import { ThemeSwitcher } from "@/components/organisms/layout/theme-switcher";
 import {
   SIDEBAR_COLLAPSIBLE_VALUES,
   SIDEBAR_VARIANT_VALUES,
 } from "@workspace/ui";
 import { getPreference } from "@/server/server-actions";
+import { SearchDialog } from "@/components/organisms/search/search-dialog";
 
 async function getUserAndWorkspaces() {
   const result = await getMe();

@@ -25,6 +25,7 @@ type WorkspaceData = {
   name: string;
   slug: string;
   role?: string;
+  plan_name?: string | null;
 };
 
 export function WorkspaceSwitcher({
@@ -99,7 +100,7 @@ export function WorkspaceSwitcher({
                   {activeWorkspace.name}
                 </span>
                 <span className="truncate text-xs capitalize">
-                  {activeWorkspace.role || "member"}
+                  {activeWorkspace.plan_name || "Free"}
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto" />

@@ -9,10 +9,11 @@ import {
   sql,
   pricing,
   workspaces,
+  ilike,
 } from "@workspace/database";
 
 export const vaultRepository = {
-  async count(workspaceId: string) {
+  async count(workspaceId: string, data?: { search?: string }) {
     const [result] = await db
       .select({ value: count() })
       .from(vaultFiles)
@@ -20,6 +21,9 @@ export const vaultRepository = {
         and(
           eq(vaultFiles.workspaceId, workspaceId),
           isNull(vaultFiles.deletedAt),
+          ...(data?.search
+            ? [ilike(vaultFiles.name, `%${data.search}%`)]
+            : []),
         ),
       );
     return result?.value ?? 0;
@@ -54,7 +58,12 @@ export const vaultRepository = {
     return file ?? null;
   },
 
-  async findMany(workspaceId: string, limit: number = 20, offset: number = 0) {
+  async findMany(
+    workspaceId: string,
+    limit: number = 20,
+    offset: number = 0,
+    search?: string,
+  ) {
     return db
       .select()
       .from(vaultFiles)
@@ -62,6 +71,7 @@ export const vaultRepository = {
         and(
           eq(vaultFiles.workspaceId, workspaceId),
           isNull(vaultFiles.deletedAt),
+          ...(search ? [ilike(vaultFiles.name, `%${search}%`)] : []),
         ),
       )
       .orderBy(desc(vaultFiles.createdAt))

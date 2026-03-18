@@ -4,6 +4,7 @@ import {
   users,
   user_workspaces,
   workspaces,
+  pricing,
 } from "@workspace/database";
 
 /**
@@ -96,9 +97,11 @@ export const usersRepository = {
         name: workspaces.name,
         slug: workspaces.slug,
         role: user_workspaces.role,
+        plan_name: pricing.name,
       })
       .from(user_workspaces)
       .innerJoin(workspaces, eq(user_workspaces.workspace_id, workspaces.id))
+      .leftJoin(pricing, eq(workspaces.plan_id, pricing.id))
       .where(eq(user_workspaces.user_id, user_id));
   },
 };

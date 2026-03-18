@@ -15,6 +15,7 @@ type WorkspaceData = {
   name: string;
   slug: string;
   role?: string;
+  plan_name?: string | null;
 };
 
 type UserData = {

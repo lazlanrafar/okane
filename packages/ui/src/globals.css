@@ -70,6 +70,17 @@
       background-position: -200% 0;
     }
   }
+
+  --animate-slide-effect: slide-effect 2s linear infinite;
+
+  @keyframes slide-effect {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(500%);
+    }
+  }
 }
 
 /* Default theme styles (used when no data-theme-preset is set or when 'default' is selected).

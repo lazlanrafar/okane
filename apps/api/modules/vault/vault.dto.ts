@@ -27,4 +27,5 @@ export const updateTagsBody = t.Object({
 export const getVaultFilesQuery = t.Object({
   page: t.Optional(t.Numeric()),
   limit: t.Optional(t.Numeric()),
+  search: t.Optional(t.String()),
 });

@@ -26,10 +26,11 @@ export type PaginatedVaultFiles = {
 export const getVaultFiles = async (
   page = 1,
   limit = 20,
+  search?: string,
 ): Promise<ActionResponse<PaginatedVaultFiles>> => {
   try {
     const res = await api.get("/vault", {
-      params: { page, limit },
+      params: { page, limit, search },
     });
     return {
       success: true,
