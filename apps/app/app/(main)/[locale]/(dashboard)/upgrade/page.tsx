@@ -1,5 +1,5 @@
-import { getDictionary } from "@/get-dictionary";
-import { UpgradeClient } from "@/components/organisms/upgrade/upgrade-client";
+import { redirect } from "next/navigation";
+import type { Locale } from "@/i18n-config";
 
 export default async function UpgradePage({
   params,
@@ -7,11 +7,5 @@ export default async function UpgradePage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const dictionary = await getDictionary(locale as any);
-
-  return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
-      <UpgradeClient dictionary={dictionary} />
-    </div>
-  );
+  redirect(`/${locale}/settings/billing`);
 }

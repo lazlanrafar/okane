@@ -1,30 +1,35 @@
 import type { Pricing } from "@workspace/types";
-import { formatCurrency, CURRENCY_CONFIG } from "./currency";
+import { formatCurrency, CURRENCY_CONFIG, formatPrice } from "./currency";
 
 export function isFree(plan: Pricing) {
-  return !plan.prices || plan.prices.every(p => p.monthly === 0 && p.yearly === 0);
+  return (
+    !plan.prices || plan.prices.every((p) => p.monthly === 0 && p.yearly === 0)
+  );
 }
 
-export function annualSavingsPct(plan: Pricing, currency: string = "usd"): number | null {
-  const price = plan.prices?.find(p => p.currency === currency);
+export function annualSavingsPct(
+  plan: Pricing,
+  currency: string = "usd",
+): number | null {
+  const price = plan.prices?.find((p) => p.currency === currency);
   if (!price || !price.monthly || !price.yearly) return null;
   return Math.round(
-    ((price.monthly * 12 - price.yearly) /
-      (price.monthly * 12)) *
-      100,
+    ((price.monthly * 12 - price.yearly) / (price.monthly * 12)) * 100,
   );
 }
 
 export function getStripePrice(
   plan: Pricing,
   billing: "monthly" | "annual",
-  currency: string = "usd"
+  currency: string = "usd",
 ): string | null {
   if (isFree(plan)) return null;
-  const price = plan.prices?.find(p => p.currency === currency);
+  const price = plan.prices?.find((p) => p.currency === currency);
   if (!price) return null;
-  if (billing === "annual" && price.stripe_yearly_id) return price.stripe_yearly_id;
-  if (billing === "monthly" && price.stripe_monthly_id) return price.stripe_monthly_id;
+  if (billing === "annual" && price.stripe_yearly_id)
+    return price.stripe_yearly_id;
+  if (billing === "monthly" && price.stripe_monthly_id)
+    return price.stripe_monthly_id;
   return null;
 }
 
@@ -35,46 +40,30 @@ export function displayPrice(
     showCents?: boolean;
     currencySymbol?: string;
     currency?: string;
+    compact?: boolean;
   },
 ): {
   label: string;
   note?: string;
 } {
-  const { showCents = false, currencySymbol = "$", currency = "usd" } = opts ?? {};
+  const { currency = "usd", compact = false } = opts ?? {};
 
   if (isFree(plan)) return { label: "Free" };
 
-  const price = plan.prices?.find(p => p.currency === currency);
+  const price = plan.prices?.find((p) => p.currency === currency);
   if (!price) return { label: "N/A" };
-
-  const config = CURRENCY_CONFIG[currency.toLowerCase()] || {
-    divisor: 100,
-    decimals: 2,
-    symbol: currencySymbol,
-    position: "Front",
-  };
-
-  const currentSymbol = opts?.currencySymbol || config.symbol;
-  const currentDecimals = opts?.showCents !== undefined ? (opts.showCents ? 2 : 0) : config.decimals;
 
   if (billing === "annual" && price.yearly != null && price.yearly > 0) {
     const perMonth = Math.round(price.yearly / 12);
     return {
-      label: formatCurrency(perMonth / config.divisor, {
-        mainCurrencySymbol: currentSymbol,
-        mainCurrencyDecimalPlaces: currentDecimals,
-        mainCurrencySymbolPosition: config.position,
-      }),
+      label: formatPrice(perMonth, currency, { compact }),
       note: "/ mo, billed annually",
     };
   }
+
   if (price.monthly != null && price.monthly > 0) {
     return {
-      label: formatCurrency(price.monthly / config.divisor, {
-        mainCurrencySymbol: currentSymbol,
-        mainCurrencyDecimalPlaces: currentDecimals,
-        mainCurrencySymbolPosition: config.position,
-      }),
+      label: formatPrice(price.monthly, currency, { compact }),
       note: "/ month",
     };
   }

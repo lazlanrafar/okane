@@ -11,3 +11,10 @@ export const SyncUserBody = t.Object({
   profile_picture: t.Optional(t.Nullable(t.String())),
   providers: t.Optional(t.Nullable(t.Any())),
 });
+
+export const UpdateAvatarBody = t.Object({
+  file: t.File({
+    type: ["image/jpeg", "image/png", "image/gif", "image/webp"],
+    maxSize: "10m",
+  }),
+});

@@ -112,12 +112,6 @@ export const sidebarItems: NavGroup[] = [
         url: "/settings",
         icon: Settings,
       },
-      {
-        title: "Upgrade",
-        url: "/upgrade",
-        icon: Zap,
-        isNew: true,
-      },
     ],
   },
 ];

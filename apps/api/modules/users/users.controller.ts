@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import { ErrorCode } from "@workspace/types";
 import { buildSuccess, buildError } from "@workspace/utils";
 import { usersService } from "./users.service";
-import { SyncUserBody } from "./users.model";
+import { SyncUserBody, UpdateAvatarBody } from "./users.model";
 import { authPlugin } from "../../plugins/auth";
 
 /**
@@ -163,6 +163,39 @@ export const usersController = new Elysia({ prefix: "/users" })
         summary: "Disconnect Provider",
         description:
           "Unlinks an authentication provider from the user account.",
+        tags: ["Users"],
+      },
+    },
+  )
+  .post(
+    "/me/avatar",
+    async ({ body: { file }, set, auth }: any) => {
+      if (!auth) {
+        set.status = 401;
+        return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
+      }
+
+      try {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const url = await usersService.updateAvatar(auth.user_id, {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          buffer,
+        });
+
+        return buildSuccess({ url }, "Profile picture updated successfully");
+      } catch (error: any) {
+        console.error("Error in updateAvatar:", error);
+        set.status = 500;
+        return buildError(ErrorCode.INTERNAL_ERROR, error.message || "Failed to update profile picture");
+      }
+    },
+    {
+      body: UpdateAvatarBody,
+      detail: {
+        summary: "Update Profile Picture",
+        description: "Uploads and automatically updates the authenticated user's profile picture. Deletes old avatar from storage.",
         tags: ["Users"],
       },
     },

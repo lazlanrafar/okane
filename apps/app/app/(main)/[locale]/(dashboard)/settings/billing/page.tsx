@@ -1,8 +1,7 @@
 import { getDictionary } from "@/get-dictionary";
 import type { Locale } from "@/i18n-config";
 import { BillingView } from "@/components/organisms/setting/billing/billing-view";
-import { getActiveWorkspace } from "@workspace/modules/server";
-import { unauthorized } from "next/navigation";
+import { getPricing } from "@workspace/modules/pricing/pricing.action";
 
 export default async function BillingPage({
   params,
@@ -12,17 +11,19 @@ export default async function BillingPage({
   const { locale } = await params;
   const dictionary = await getDictionary(locale as Locale);
 
-  const workspaceResult = await getActiveWorkspace();
-  if (!workspaceResult.success || !workspaceResult.data) {
-    unauthorized();
-  }
+  const pricingResult = await getPricing();
+
+  const plans = pricingResult.success
+    ? (pricingResult.data?.pricingList ?? [])
+    : [];
 
   return (
     <div className="space-y-6">
       <BillingView
         dictionary={dictionary.settings}
-        workspace={workspaceResult.data}
+        initialPlans={plans}
       />
     </div>
   );
 }
+

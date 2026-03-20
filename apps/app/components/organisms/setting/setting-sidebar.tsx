@@ -81,6 +81,11 @@ export function SettingSidebar({
     //   icon: Settings,
     // },
     {
+      title: "Billing",
+      href: "/settings/billing",
+      icon: CreditCard,
+    },
+    {
       title: sidebar.appearance,
       href: "/settings/appearance",
       icon: Palette,
@@ -201,12 +206,16 @@ export function SettingSidebar({
                       normalizedPath === subItem.href
                         ? "bg-muted hover:bg-muted"
                         : "hover:bg-transparent hover:underline",
-                      "justify-start w-full",
+                      "justify-start w-full overflow-hidden",
                       subItem.comingSoon && "opacity-60 pointer-events-none",
                     )}
                   >
-                    {subItem.icon && <subItem.icon className="mr-2 size-4" />}
-                    <span className="flex-1 text-left">{subItem.title}</span>
+                    {subItem.icon && (
+                      <subItem.icon className="mr-2 size-4 shrink-0" />
+                    )}
+                    <span className="flex-1 min-w-0 text-left truncate">
+                      {subItem.title}
+                    </span>
                     {subItem.comingSoon && (
                       <span className="ml-auto text-[10px] font-medium text-muted-foreground border px-1.5 py-0.5 rounded-md bg-muted/50">
                         {sidebar.soon}
@@ -232,12 +241,16 @@ export function SettingSidebar({
               normalizedPath === flatItem.href
                 ? "bg-muted hover:bg-muted"
                 : "hover:bg-transparent hover:underline",
-              "justify-start w-full",
+              "justify-start w-full overflow-hidden",
               flatItem.comingSoon && "opacity-60 pointer-events-none",
             )}
           >
-            {flatItem.icon && <flatItem.icon className="mr-2 size-4" />}
-            <span className="flex-1 text-left">{flatItem.title}</span>
+            {flatItem.icon && (
+              <flatItem.icon className="mr-2 size-4 shrink-0" />
+            )}
+            <span className="flex-1 min-w-0 text-left truncate">
+              {flatItem.title}
+            </span>
             {flatItem.comingSoon && (
               <span className="ml-auto text-[10px] font-medium text-muted-foreground border px-1.5 py-0.5 rounded-md bg-muted/50">
                 {sidebar.soon}

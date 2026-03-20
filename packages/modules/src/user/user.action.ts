@@ -113,7 +113,7 @@ export const switchWorkspaceAction = async (
 
 export const updateProfileAction = async (data: {
   name: string;
-  bio?: string;
+  profile_picture?: string;
 }): Promise<ActionResponse<void>> => {
   try {
     await axiosInstance.patch("users/me", data);
@@ -152,6 +152,39 @@ export const disconnectProviderAction = async (
     return {
       success: false,
       error: error.response?.data?.message || "Failed to disconnect provider",
+    };
+  }
+};
+
+export const uploadAvatarAction = async (
+  formData: FormData,
+): Promise<ActionResponse<{ url: string }>> => {
+  try {
+    const response = await axiosInstance.post("/vault/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return { success: true, data: { url: response.data.data.url } };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to upload avatar",
+    };
+  }
+};
+
+export const updateAvatarAction = async (
+  formData: FormData,
+): Promise<ActionResponse<{ url: string }>> => {
+  try {
+    const response = await axiosInstance.post("users/me/avatar", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return { success: true, data: { url: response.data.data.url } };
+  } catch (error: any) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message || "Failed to update profile picture",
     };
   }
 };

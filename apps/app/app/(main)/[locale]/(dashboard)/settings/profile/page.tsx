@@ -17,11 +17,6 @@ export default async function SettingsProfilePage({ params }: Props) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">{profile.title}</h3>
-        <p className="text-muted-foreground text-sm">{profile.description}</p>
-      </div>
-      <Separator />
       <SettingProfileForm dictionary={dictionary} />
     </div>
   );

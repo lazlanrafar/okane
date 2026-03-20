@@ -1,6 +1,8 @@
 import { usersRepository } from "./users.repository";
 import { auditLogsService } from "../audit-logs/audit-logs.service";
 import { createClient } from "@workspace/supabase/server";
+import { BucketClient } from "@workspace/bucket";
+import { Env } from "@workspace/constants";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -10,6 +12,26 @@ import * as path from "node:path";
  * No HTTP logic. No DB access.
  */
 export const usersService = {
+  private: {
+    async getBucketClient() {
+      if (
+        !Env.R2_ENDPOINT ||
+        !Env.R2_ACCESS_KEY_ID ||
+        !Env.R2_SECRET_ACCESS_KEY ||
+        !Env.R2_BUCKET_NAME
+      ) {
+        throw new Error("R2 storage not configured for avatars");
+      }
+
+      return new BucketClient({
+        endpoint: Env.R2_ENDPOINT,
+        accessKeyId: Env.R2_ACCESS_KEY_ID,
+        secretAccessKey: Env.R2_SECRET_ACCESS_KEY,
+        bucketName: Env.R2_BUCKET_NAME,
+      });
+    },
+  },
+
   /**
    * Sync a user from Supabase Auth to the internal database.
    * Returns workspace status.
@@ -87,12 +109,22 @@ export const usersService = {
 
     const workspaces = await usersRepository.getWorkspacesWithRole(user_id);
 
+    let profile_picture = user.profile_picture;
+    if (profile_picture && profile_picture.startsWith("avatars/")) {
+      try {
+        const bucket = await this.private.getBucketClient();
+        profile_picture = await bucket.getSignedUrl(profile_picture);
+      } catch (error) {
+        console.error("Failed to sign avatar URL:", error);
+      }
+    }
+
     return {
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
-        profile_picture: user.profile_picture,
+        profile_picture,
         workspace_id: user.workspace_id,
       },
       workspaces,
@@ -126,8 +158,42 @@ export const usersService = {
   /**
    * Update user profile.
    */
-  async updateProfile(user_id: string, data: { name?: string; bio?: string }) {
+  async updateProfile(user_id: string, data: { name?: string; profile_picture?: string }) {
     await usersRepository.update(user_id, data);
+  },
+
+  /**
+   * Update user avatar (photo profile).
+   * Automatically deletes the old avatar from storage.
+   */
+  async updateAvatar(user_id: string, file: { name: string; type: string; size: number; buffer: Buffer }) {
+    const user = await usersRepository.findById(user_id);
+    if (!user) throw new Error("User not found");
+
+    const bucket = await this.private.getBucketClient();
+
+    // 1. Storage Cleanup: Delete old avatar if it exists and is an internal key
+    if (user.profile_picture && user.profile_picture.startsWith("avatars/")) {
+      try {
+        await bucket.delete(user.profile_picture);
+      } catch (error) {
+        console.error("Failed to delete old avatar:", error);
+        // Continue anyway, we don't want to block the new upload
+      }
+    }
+
+    // 2. Upload new avatar
+    const timestamp = Date.now();
+    const extension = path.extname(file.name) || ".png";
+    const key = `avatars/${user_id}/${timestamp}${extension}`;
+
+    await bucket.upload(key, file.buffer, file.type);
+
+    // 3. Update user record with the new key
+    await usersRepository.update(user_id, { profile_picture: key });
+
+    // 4. Return the signed URL for immediate UI update
+    return bucket.getSignedUrl(key);
   },
 
   /**
