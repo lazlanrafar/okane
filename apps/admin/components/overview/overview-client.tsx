@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { formatCurrency } from "@workspace/utils";
+import { formatSubunits } from "@workspace/utils";
 import {
   StatCard,
   LineMetricChart,
@@ -66,7 +66,7 @@ export function OverviewClient({ data }: Props) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl font-semibold tracking-tight">Overview</h2>
+        <div></div>
         <div className="flex items-center gap-2">
           {isPending && (
             <Loader2 className="w-4 h-4 animate-spin text-muted-foreground mr-2" />
@@ -83,12 +83,12 @@ export function OverviewClient({ data }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Total Revenue"
-          value={formatCurrency(data.metrics.totalRevenue, {
-            mainCurrencySymbol: "$",
+          title="Total Revenue (All Currencies)"
+          value={formatSubunits(data.metrics.totalRevenue, "usd", {
+            compact: true,
           })}
           icon={<DollarSign className="w-4 h-4" />}
-          description="Total net revenue from paid orders"
+          description="Total revenue (sum of all currencies)"
         />
         <StatCard
           title="Total Users"
@@ -114,16 +114,12 @@ export function OverviewClient({ data }: Props) {
         <LineMetricChart
           title="Revenue Over Time"
           data={chartDataTransform}
-          value={formatCurrency(data.metrics.totalRevenue, {
-            mainCurrencySymbol: "$",
-          })}
+          value={formatSubunits(data.metrics.totalRevenue, "usd")}
           description="Revenue trend"
           currentKey="current"
           currentColor="var(--primary)"
-          formatYTick={(val) => `$${(val / 1000).toFixed(1)}k`}
-          formatTooltip={(val) =>
-            formatCurrency(val * 100, { mainCurrencySymbol: "$" })
-          }
+          formatYTick={(val) => `$${(val / 10).toFixed(1)}k`}
+          formatTooltip={(val) => formatSubunits(val * 100, "usd")}
           chartHeight={300}
         />
       ) : (

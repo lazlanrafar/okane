@@ -39,6 +39,7 @@ async function main() {
     "workspace_sub_currencies",
     "users",
     "workspaces",
+    "pricing",
   ];
 
   try {

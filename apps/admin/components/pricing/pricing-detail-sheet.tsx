@@ -14,7 +14,7 @@ import {
   SheetTitle,
   cn,
 } from "@workspace/ui";
-import { formatCurrency } from "@workspace/utils";
+import { formatPrice } from "@workspace/utils";
 import { format } from "date-fns";
 import { Copy, ShieldCheck, Zap, Bot, Cloud } from "lucide-react";
 import { toast } from "sonner";
@@ -84,12 +84,7 @@ export function PricingDetailSheet() {
                           Monthly
                         </span>
                         <span>
-                          {formatCurrency(price.monthly / 100, {
-                            mainCurrencySymbol:
-                              price.currency.toUpperCase() === "USD"
-                                ? "$"
-                                : price.currency.toUpperCase(),
-                          })}
+                          {formatPrice(price.monthly, price.currency)}
                         </span>
                       </div>
                       <div className="flex flex-col">
@@ -97,12 +92,7 @@ export function PricingDetailSheet() {
                           Yearly
                         </span>
                         <span>
-                          {formatCurrency(price.yearly / 100, {
-                            mainCurrencySymbol:
-                              price.currency.toUpperCase() === "USD"
-                                ? "$"
-                                : price.currency.toUpperCase(),
-                          })}
+                          {formatPrice(price.yearly, price.currency)}
                         </span>
                       </div>
                     </div>

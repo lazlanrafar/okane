@@ -3,7 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { AdminOrderListing } from "@workspace/types";
 import { Badge } from "@workspace/ui";
-import { formatCurrency } from "@workspace/utils";
+import { formatSubunits } from "@workspace/utils";
 import { format } from "date-fns";
 
 export const columns: ColumnDef<AdminOrderListing>[] = [
@@ -79,12 +79,7 @@ export const columns: ColumnDef<AdminOrderListing>[] = [
     },
     cell: ({ row }) => (
       <span className="font-medium text-sm">
-        {formatCurrency(row.original.amount / 100, {
-          mainCurrencySymbol:
-            row.original.currency.toUpperCase() === "USD"
-              ? "$"
-              : row.original.currency.toUpperCase(),
-        })}
+        {formatSubunits(row.original.amount, row.original.currency)}
       </span>
     ),
   },

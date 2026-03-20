@@ -30,6 +30,7 @@ import {
 } from "@workspace/modules/pricing/pricing.action";
 import type { Pricing } from "@workspace/types";
 import { PRICING_FEATURES } from "@workspace/constants";
+import { CURRENCY_CONFIG } from "@workspace/utils";
 
 const pricingSchema = z.object({
   name: z.string().min(1, "Name is required").max(255),
@@ -69,11 +70,16 @@ export function PricingForm({ initialData, onSuccess }: PricingFormProps) {
       description: initialData?.description ?? "",
       prices:
         initialData?.prices && initialData.prices.length > 0
-          ? initialData.prices.map((p) => ({
-              ...p,
-              monthly: p.monthly / 100,
-              yearly: p.yearly / 100,
-            }))
+          ? initialData.prices.map((p) => {
+              const config = CURRENCY_CONFIG[p.currency.toLowerCase()] || {
+                divisor: 100,
+              };
+              return {
+                ...p,
+                monthly: p.monthly / config.divisor,
+                yearly: p.yearly / config.divisor,
+              };
+            })
           : [
               {
                 currency: "usd",
@@ -114,11 +120,16 @@ export function PricingForm({ initialData, onSuccess }: PricingFormProps) {
     try {
       const payload = {
         ...values,
-        prices: values.prices.map((p) => ({
-          ...p,
-          monthly: Math.round(p.monthly * 100),
-          yearly: Math.round(p.yearly * 100),
-        })),
+        prices: values.prices.map((p) => {
+          const config = CURRENCY_CONFIG[p.currency.toLowerCase()] || {
+            divisor: 100,
+          };
+          return {
+            ...p,
+            monthly: Math.round(p.monthly * config.divisor),
+            yearly: Math.round(p.yearly * config.divisor),
+          };
+        }),
       };
 
       if (initialData?.id) {

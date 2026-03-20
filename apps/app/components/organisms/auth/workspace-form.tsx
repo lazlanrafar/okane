@@ -62,6 +62,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
 
   // Step 2 fields
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
+  const [billingCurrency, setBillingCurrency] = useState<"usd" | "eur" | "idr">("idr");
   const defaultPlanId = (plans.find(isFree) ?? plans[0])?.id ?? null;
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(
     defaultPlanId,
@@ -73,6 +74,26 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
 
   const params = useParams();
   const locale = params.locale as string;
+
+  // Handle country change to auto-update currency
+  const handleCountryChange = (countryName: string) => {
+    setCountry(countryName);
+    const countryData = (require("@workspace/constants").COUNTRIES as any[]).find(
+      (c) => c.name === countryName,
+    );
+    if (countryData?.currency) {
+      setCurrency({
+        code: countryData.currency.code,
+        symbol: countryData.currency.symbol,
+      });
+      
+      // Also update billing currency if it's one of the supported ones
+      const code = countryData.currency.code.toLowerCase();
+      if (["usd", "eur", "idr"].includes(code)) {
+        setBillingCurrency(code as any);
+      }
+    }
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -120,7 +141,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
     }
 
     // Step 3: Paid plan — get the Stripe price ID and open checkout
-    const stripePrice = getStripePrice(selectedPlan, billing);
+    const stripePrice = getStripePrice(selectedPlan, billing, billingCurrency);
 
     if (!stripePrice) {
       // Plan chosen but no Stripe price ID configured yet — skip checkout gracefully
@@ -150,7 +171,9 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
   };
 
   const selected = plans.find((p) => p.id === selectedPlanId);
-  const hasAnnual = plans.some((p) => p.prices?.some((pr) => pr.yearly > 0) && !isFree(p));
+  const hasAnnual = plans.some(
+    (p) => p.prices?.some((pr) => pr.yearly > 0) && !isFree(p),
+  );
   const hasPaid = plans.some((p) => !isFree(p));
   const bestSavings = Math.max(...plans.map((p) => annualSavingsPct(p) ?? 0));
 
@@ -189,7 +212,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
 
             <div className="space-y-2">
               <Label>Country</Label>
-              <CountrySelector value={country} onSelect={setCountry} />
+              <CountrySelector value={country} onSelect={handleCountryChange} />
             </div>
 
             <div className="space-y-2">
@@ -243,49 +266,76 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
           </div>
 
           <div className="space-y-5">
-            {/* Billing toggle */}
-            {hasAnnual && (
-              <div className="flex items-center gap-1 rounded-lg border border-border/60 p-1">
-                <button
-                  type="button"
-                  onClick={() => setBilling("monthly")}
-                  className={cn(
-                    "flex-1 rounded-md py-1.5 text-xs font-medium transition-all",
-                    billing === "monthly"
-                      ? "bg-foreground text-background shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  Monthly
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setBilling("annual")}
-                  className={cn(
-                    "flex-1 rounded-md py-1.5 text-xs font-medium transition-all",
-                    billing === "annual"
-                      ? "bg-foreground text-background shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  Annual
-                  {billing === "monthly" && bestSavings > 0 && (
-                    <span className="ml-1.5 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] text-emerald-500">
-                      Save {bestSavings}%
-                    </span>
-                  )}
-                </button>
+            {/* Billing toggles */}
+            <div className="grid grid-cols-2 gap-3">
+              {hasAnnual && (
+                <div className="flex items-center gap-1 border border-border/60 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setBilling("monthly")}
+                    className={cn(
+                      "flex-1 py-1.5 text-xs font-medium transition-all",
+                      billing === "monthly"
+                        ? "bg-foreground text-background shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBilling("annual")}
+                    className={cn(
+                      "flex-1 py-1.5 text-xs font-medium transition-all",
+                      billing === "annual"
+                        ? "bg-foreground text-background shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    Annual
+                  </button>
+                </div>
+              )}
+
+              <div className="flex items-center gap-1 border border-border/60 p-1">
+                {(["usd", "eur", "idr"] as const).map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setBillingCurrency(c)}
+                    className={cn(
+                      "flex-1 py-1.5 text-[10px] font-bold uppercase transition-all",
+                      billingCurrency === c
+                        ? "bg-foreground text-background shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {c}
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
 
             {/* Plan cards */}
             <div className="space-y-2">
               {plans.map((plan) => {
                 const isSelected = selectedPlanId === plan.id;
                 const free = isFree(plan);
-                const price = displayPrice(plan, billing);
-                const savings = annualSavingsPct(plan);
-                const hasPriceId = !!getStripePrice(plan, billing);
+                const price = displayPrice(plan, billing, {
+                  currency: billingCurrency,
+                  currencySymbol:
+                    billingCurrency === "usd"
+                      ? "$"
+                      : billingCurrency === "eur"
+                        ? "€"
+                        : "Rp",
+                });
+                const savings = annualSavingsPct(plan, billingCurrency);
+                const hasPriceId = !!getStripePrice(
+                  plan,
+                  billing,
+                  billingCurrency,
+                );
 
                 return (
                   <button
@@ -293,7 +343,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                     type="button"
                     onClick={() => setSelectedPlanId(plan.id)}
                     className={cn(
-                      "w-full rounded-lg border px-4 py-3 text-left transition-all",
+                      "w-full  border px-4 py-3 text-left transition-all",
                       isSelected
                         ? "border-foreground bg-foreground/5"
                         : "border-border/60 hover:border-border hover:bg-muted/20",
@@ -381,7 +431,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
             </div>
 
             {error && (
-              <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <div className=" border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {error}
               </div>
             )}
@@ -406,8 +456,30 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
 
             {selected && !isFree(selected) && (
               <p className="text-center text-xs text-muted-foreground">
-                14-day free trial, then {displayPrice(selected, billing).label}{" "}
-                {displayPrice(selected, billing).note}. Cancel anytime.
+                14-day free trial, then{" "}
+                {
+                  displayPrice(selected, billing, {
+                    currency: billingCurrency,
+                    currencySymbol:
+                      billingCurrency === "usd"
+                        ? "$"
+                        : billingCurrency === "eur"
+                          ? "€"
+                          : "Rp",
+                  }).label
+                }{" "}
+                {
+                  displayPrice(selected, billing, {
+                    currency: billingCurrency,
+                    currencySymbol:
+                      billingCurrency === "usd"
+                        ? "$"
+                        : billingCurrency === "eur"
+                          ? "€"
+                          : "Rp",
+                  }).note
+                }
+                . Cancel anytime.
               </p>
             )}
           </div>

@@ -3,6 +3,7 @@ import { pricing } from "../schema/pricing";
 import { eq } from "drizzle-orm";
 import Stripe from "stripe";
 import "dotenv/config";
+import { CURRENCY_CONFIG } from "../../utils/currency";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-12-18.acacia" as any, // Bypass TS error for unknown API versions
@@ -48,29 +49,35 @@ async function main() {
 
       // Create Monthly Price
       if (monthly > 0 && !stripe_monthly_id) {
+        const config = CURRENCY_CONFIG[currency.toLowerCase()] || { divisor: 100 };
+        const stripeAmount = Math.round(monthly * (100 / config.divisor));
+
         const price = await stripe.prices.create({
           product: productId,
-          unit_amount: monthly,
+          unit_amount: stripeAmount,
           currency: currency.toLowerCase(),
           recurring: { interval: "month" },
         });
         stripe_monthly_id = price.id;
         console.log(
-          `  ✅ Created Monthly Price (${currency.toUpperCase()}): ${stripe_monthly_id} ($${(monthly / 100).toFixed(2)})`,
+          `  ✅ Created Monthly Price (${currency.toUpperCase()}): ${stripe_monthly_id} (${stripeAmount})`,
         );
       }
 
       // Create Yearly Price
       if (yearly > 0 && !stripe_yearly_id) {
+        const config = CURRENCY_CONFIG[currency.toLowerCase()] || { divisor: 100 };
+        const stripeAmount = Math.round(yearly * (100 / config.divisor));
+
         const price = await stripe.prices.create({
           product: productId,
-          unit_amount: yearly,
+          unit_amount: stripeAmount,
           currency: currency.toLowerCase(),
           recurring: { interval: "year" },
         });
         stripe_yearly_id = price.id;
         console.log(
-          `  ✅ Created Yearly Price (${currency.toUpperCase()}): ${stripe_yearly_id} ($${(yearly / 100).toFixed(2)})`,
+          `  ✅ Created Yearly Price (${currency.toUpperCase()}): ${stripe_yearly_id} (${stripeAmount})`,
         );
       }
 

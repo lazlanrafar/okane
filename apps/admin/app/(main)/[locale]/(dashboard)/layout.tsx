@@ -12,8 +12,6 @@ import {
 
 import { getMe } from "@workspace/modules/user/user.action";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { SearchDialog } from "@/components/layout/search-dialog";
-import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 import {
   SIDEBAR_COLLAPSIBLE_VALUES,
   SIDEBAR_VARIANT_VALUES,
@@ -74,7 +72,6 @@ export default async function Layout({
                 orientation="vertical"
                 className="mx-2 data-[orientation=vertical]:h-4"
               />
-              <SearchDialog />
             </div>
             <div className="flex items-center gap-2">
               {/* <LayoutControls /> */}

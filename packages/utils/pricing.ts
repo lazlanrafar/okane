@@ -1,5 +1,5 @@
 import type { Pricing } from "@workspace/types";
-import { formatCurrency } from "./currency";
+import { formatCurrency, CURRENCY_CONFIG } from "./currency";
 
 export function isFree(plan: Pricing) {
   return !plan.prices || plan.prices.every(p => p.monthly === 0 && p.yearly === 0);
@@ -47,21 +47,33 @@ export function displayPrice(
   const price = plan.prices?.find(p => p.currency === currency);
   if (!price) return { label: "N/A" };
 
+  const config = CURRENCY_CONFIG[currency.toLowerCase()] || {
+    divisor: 100,
+    decimals: 2,
+    symbol: currencySymbol,
+    position: "Front",
+  };
+
+  const currentSymbol = opts?.currencySymbol || config.symbol;
+  const currentDecimals = opts?.showCents !== undefined ? (opts.showCents ? 2 : 0) : config.decimals;
+
   if (billing === "annual" && price.yearly != null && price.yearly > 0) {
     const perMonth = Math.round(price.yearly / 12);
     return {
-      label: formatCurrency(perMonth / 100, {
-        mainCurrencySymbol: currencySymbol,
-        mainCurrencyDecimalPlaces: showCents ? 2 : 0,
+      label: formatCurrency(perMonth / config.divisor, {
+        mainCurrencySymbol: currentSymbol,
+        mainCurrencyDecimalPlaces: currentDecimals,
+        mainCurrencySymbolPosition: config.position,
       }),
       note: "/ mo, billed annually",
     };
   }
   if (price.monthly != null && price.monthly > 0) {
     return {
-      label: formatCurrency(price.monthly / 100, {
-        mainCurrencySymbol: currencySymbol,
-        mainCurrencyDecimalPlaces: showCents ? 2 : 0,
+      label: formatCurrency(price.monthly / config.divisor, {
+        mainCurrencySymbol: currentSymbol,
+        mainCurrencyDecimalPlaces: currentDecimals,
+        mainCurrencySymbolPosition: config.position,
       }),
       note: "/ month",
     };

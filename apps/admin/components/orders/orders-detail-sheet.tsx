@@ -10,7 +10,7 @@ import {
   SheetTitle,
   cn,
 } from "@workspace/ui";
-import { formatCurrency } from "@workspace/utils";
+import { formatSubunits } from "@workspace/utils";
 import { format } from "date-fns";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
@@ -71,12 +71,10 @@ export function OrdersDetailSheet() {
                         selectedOrder.status === "paid" && "text-green",
                       )}
                     >
-                      {formatCurrency(selectedOrder.amount / 100, {
-                        mainCurrencySymbol:
-                          selectedOrder.currency.toUpperCase() === "USD"
-                            ? "$"
-                            : selectedOrder.currency.toUpperCase(),
-                      })}
+                      {formatSubunits(
+                        selectedOrder.amount,
+                        selectedOrder.currency,
+                      )}
                     </span>
                     <div className="h-3">
                       <span className="text-[#606060] text-xs select-text">

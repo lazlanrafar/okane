@@ -26,6 +26,7 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { usePricingStore } from "@/stores/pricing";
+import { formatPrice } from "@workspace/utils";
 import React from "react";
 
 const CellActions = ({ row }: { row: { original: Pricing } }) => {
@@ -196,10 +197,10 @@ export const pricingColumns: ColumnDef<Pricing>[] = [
       return (
         <span className="flex flex-col gap-0.5">
           <span className="text-sm">
-            ${(basePrice.monthly / 100).toFixed(2)} / mo
+            {formatPrice(basePrice.monthly, basePrice.currency)} / mo
           </span>
           <span className="text-xs text-muted-foreground">
-            ${(basePrice.yearly / 100).toFixed(2)} / yr
+            {formatPrice(basePrice.yearly, basePrice.currency)} / yr
           </span>
         </span>
       );
