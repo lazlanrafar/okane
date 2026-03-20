@@ -1,9 +1,24 @@
-import { db } from "../client";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { sql } from "drizzle-orm";
-import * as schema from "../index";
+import * as dotenv from "dotenv";
+import * as path from "path";
 
-async function resetDb() {
+// Load .env from root
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+
+const DATABASE_URL = process.env.DATABASE_URL;
+
+if (!DATABASE_URL) {
+  console.error("❌ DATABASE_URL is not set in .env");
+  process.exit(1);
+}
+
+async function main() {
   console.log("🚀 Starting database reset...");
+  
+  const client = postgres(DATABASE_URL!, { prepare: false });
+  const db = drizzle(client);
 
   const tablesToClear = [
     "ai_messages",
@@ -29,19 +44,17 @@ async function resetDb() {
   try {
     for (const table of tablesToClear) {
       console.log(`🧹 Clearing table: ${table}...`);
-      // We use CASCADE to handle foreign key dependencies automatically
       await db.execute(
         sql.raw(`TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE`),
       );
     }
-
     console.log("✅ Database reset complete (pricing preserved).");
   } catch (error) {
     console.error("❌ Database reset failed:", error);
-    process.exit(1);
   } finally {
+    await client.end();
     process.exit(0);
   }
 }
 
-resetDb();
+main();

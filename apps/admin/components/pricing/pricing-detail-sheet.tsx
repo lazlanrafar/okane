@@ -16,7 +16,7 @@ import {
 } from "@workspace/ui";
 import { formatCurrency } from "@workspace/utils";
 import { format } from "date-fns";
-import { Copy, ShieldCheck } from "lucide-react";
+import { Copy, ShieldCheck, Zap, Bot, Cloud } from "lucide-react";
 import { toast } from "sonner";
 
 export function PricingDetailSheet() {
@@ -37,24 +37,12 @@ export function PricingDetailSheet() {
         <SheetHeader className="sr-only">
           <SheetTitle>Pricing Details</SheetTitle>
         </SheetHeader>
-        <ScrollArea className="h-full p-0 py-4">
-          <div className="px-6 pt-6 pb-12">
+        <ScrollArea className="h-full">
+          <div className="">
             <div className="flex justify-between mb-8">
               <div className="flex-1 flex-col">
                 <div className="flex items-center justify-between">
-                  <span className="text-[#606060] text-xs select-text flex items-center gap-2">
-                    <div
-                      className={cn(
-                        "w-2 h-2 rounded-full",
-                        selectedPricing.is_active
-                          ? "bg-green"
-                          : "bg-muted-foreground",
-                      )}
-                    />
-                    {selectedPricing.is_active
-                      ? "Active Plan"
-                      : "Inactive Plan"}
-                  </span>
+                  <div></div>
                   <span className="text-[#606060] text-xs select-text">
                     {selectedPricing.created_at
                       ? format(new Date(selectedPricing.created_at), "MMM d, y")
@@ -62,7 +50,7 @@ export function PricingDetailSheet() {
                   </span>
                 </div>
 
-                <h2 className="mt-6 mb-3 select-text text-xl font-medium">
+                <h2 className="mt-6 select-text text-xl font-medium">
                   {selectedPricing.name}
                 </h2>
               </div>
@@ -73,26 +61,49 @@ export function PricingDetailSheet() {
                 {selectedPricing.description}
               </div>
             )}
-            
+
             <Label className="mb-2 mt-6 block font-medium text-md text-foreground">
               Pricing Options
             </Label>
-            
+
             {selectedPricing.prices && selectedPricing.prices.length > 0 ? (
               <div className="grid gap-3 mb-6">
                 {selectedPricing.prices.map((price, i) => (
-                  <div key={i} className="border border-border/60 rounded-md p-3 bg-muted/10">
+                  <div
+                    key={i}
+                    className="border border-border/60 rounded-md p-3 bg-muted/10"
+                  >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold uppercase tracking-wider text-sm">{price.currency}</span>
+                      <span className="font-semibold uppercase tracking-wider text-sm">
+                        {price.currency}
+                      </span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="flex flex-col">
-                        <span className="text-muted-foreground text-xs">Monthly</span>
-                        <span>{formatCurrency(price.monthly / 100, { mainCurrencySymbol: price.currency.toUpperCase() === "USD" ? "$" : price.currency.toUpperCase() })}</span>
+                        <span className="text-muted-foreground text-xs">
+                          Monthly
+                        </span>
+                        <span>
+                          {formatCurrency(price.monthly / 100, {
+                            mainCurrencySymbol:
+                              price.currency.toUpperCase() === "USD"
+                                ? "$"
+                                : price.currency.toUpperCase(),
+                          })}
+                        </span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-muted-foreground text-xs">Yearly</span>
-                        <span>{formatCurrency(price.yearly / 100, { mainCurrencySymbol: price.currency.toUpperCase() === "USD" ? "$" : price.currency.toUpperCase() })}</span>
+                        <span className="text-muted-foreground text-xs">
+                          Yearly
+                        </span>
+                        <span>
+                          {formatCurrency(price.yearly / 100, {
+                            mainCurrencySymbol:
+                              price.currency.toUpperCase() === "USD"
+                                ? "$"
+                                : price.currency.toUpperCase(),
+                          })}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -104,26 +115,30 @@ export function PricingDetailSheet() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4 mt-6 mb-2">
-              <div>
-                <Label
-                  className="mb-2 block text-muted-foreground"
-                >
-                  Max Storage
-                </Label>
-                <div className="h-[36px] flex items-center border border-border/60 rounded-md px-3 text-sm bg-muted/10 font-mono">
-                  {selectedPricing.max_vault_size_mb} MB
+            <div className="mt-8 mb-4">
+              <Label className="block font-medium text-md text-foreground">
+                Quotas & Limits
+              </Label>
+              <div className="mt-3 grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2 p-3 bg-muted/10 border border-border/60 rounded-md">
+                  <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider font-semibold">
+                    <Cloud className="h-3 w-3" />
+                    Vault Storage
+                  </div>
+                  <div className="text-lg font-mono">
+                    {selectedPricing.max_vault_size_mb >= 1024
+                      ? `${(selectedPricing.max_vault_size_mb / 1024).toFixed(1)} GB`
+                      : `${selectedPricing.max_vault_size_mb} MB`}
+                  </div>
                 </div>
-              </div>
-
-              <div>
-                <Label
-                  className="mb-2 block text-muted-foreground"
-                >
-                  Max AI Tokens
-                </Label>
-                <div className="h-[36px] flex items-center border border-border/60 rounded-md px-3 text-sm bg-muted/10 font-mono">
-                  {selectedPricing.max_ai_tokens} Tokens
+                <div className="flex flex-col gap-2 p-3 bg-muted/10 border border-border/60 rounded-md">
+                  <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider font-semibold">
+                    <Bot className="h-3 w-3" />
+                    AI Tokens
+                  </div>
+                  <div className="text-lg font-mono">
+                    {selectedPricing.max_ai_tokens.toLocaleString()}
+                  </div>
                 </div>
               </div>
             </div>

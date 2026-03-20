@@ -27,7 +27,7 @@ import {
 import type { Transaction } from "@workspace/types";
 import { formatCurrency, formatBytes } from "@workspace/utils";
 import { format } from "date-fns";
-import { useSettingsStore } from "@/stores/settings-store";
+import { useWorkspaceStore } from "@/stores/workspace-store";
 
 const SHORTCUTS = [
   { label: "Overview", icon: Icons.Overview, href: "/en/overview" },
@@ -55,7 +55,7 @@ export function SearchDialog() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [debounceDelay, setDebounceDelay] = useState(200);
   const [isFetching, setIsFetching] = useState(false);
-  const { settings } = useSettingsStore();
+  const { settings } = useWorkspaceStore();
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {

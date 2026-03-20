@@ -10,7 +10,7 @@ const ScrollArea = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> & {
     hideScrollbar?: boolean;
   }
->(({ className, children, hideScrollbar, ...props }, ref) => (
+>(({ className, children, hideScrollbar = true, ...props }, ref) => (
   <ScrollAreaPrimitive.Root
     data-slot="scroll-area"
     className={cn("relative overflow-hidden", className)}

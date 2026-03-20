@@ -32,11 +32,6 @@ export async function GET(request: Request) {
             providers: user.app_metadata?.providers,
           });
 
-          // If user has no workspace, redirect to create-workspace
-          if (syncResult.success && syncResult.data?.has_workspace === false) {
-            return NextResponse.redirect(`${origin}/create-workspace`);
-          }
-
           // 2. Exchange for app JWT
           const { data: session_data } = await supabase.auth.getSession();
           if (session_data.session?.access_token) {

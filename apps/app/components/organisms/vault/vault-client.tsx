@@ -12,10 +12,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   Input,
+  Progress,
   ScrollArea,
   Separator,
   Skeleton,
 } from "@workspace/ui";
+import { useWorkspaceStore } from "@/stores/workspace-store";
 import {
   ChevronDown,
   ChevronLeft,
@@ -128,6 +130,7 @@ export function VaultClient() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["vault-files"] });
+      queryClient.invalidateQueries({ queryKey: ["workspace", "active"] });
       setSelectedFile(data);
     },
     onError: (error: any) => {
@@ -197,6 +200,7 @@ export function VaultClient() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vault-files"] });
+      queryClient.invalidateQueries({ queryKey: ["workspace", "active"] });
       setSelectedFile(null);
       toast.success("File deleted");
     },
@@ -258,10 +262,18 @@ export function VaultClient() {
 
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
           <div>
-            <h1 className="text-2xl tracking-tight">Vaults</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl tracking-tight">Vaults</h1>
+              <div className="hidden sm:block mt-1">
+                <HeaderStorageUsage />
+              </div>
+            </div>
             <p className="text-muted-foreground text-sm">
               Manage your documents and invoices securely.
             </p>
+            <div className="sm:hidden mt-2">
+              <HeaderStorageUsage />
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -635,6 +647,34 @@ export function VaultClient() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function HeaderStorageUsage() {
+  const { workspace, checkLimit } = useWorkspaceStore();
+  
+  if (!workspace) return null;
+
+  const usage = workspace.vault_size_used_bytes || 0;
+  const { limit, percent } = checkLimit("vault_size", usage / (1024 * 1024)); // checkLimit expects MB
+
+  return (
+    <div className="flex flex-col gap-1 min-w-[120px]">
+      <div className="flex justify-between items-center text-[10px]">
+        <span className="text-muted-foreground">
+          {formatBytes(usage)} / {limit} MB
+        </span>
+        <span className={cn(
+          "font-bold",
+          percent > 90 ? "text-destructive" : 
+          percent > 70 ? "text-amber-600" : 
+          "text-primary"
+        )}>
+          {Math.round(percent)}%
+        </span>
+      </div>
+      <Progress value={percent} className="h-1 w-full" />
     </div>
   );
 }

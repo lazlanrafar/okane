@@ -10,6 +10,7 @@ import {
   type LucideIcon,
   Settings,
   Users,
+  Zap,
 } from "lucide-react";
 
 export interface NavSubItem {
@@ -110,6 +111,12 @@ export const sidebarItems: NavGroup[] = [
         title: "Settings",
         url: "/settings",
         icon: Settings,
+      },
+      {
+        title: "Upgrade",
+        url: "/upgrade",
+        icon: Zap,
+        isNew: true,
       },
     ],
   },

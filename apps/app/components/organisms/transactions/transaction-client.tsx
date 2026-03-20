@@ -32,7 +32,7 @@ import { TransactionFormSheet } from "./transaction-form-sheet";
 import { TransactionDetailSheet } from "./transaction-detail-sheet";
 import { ImportModal } from "./transaction-import-modal";
 import { useTransactionsStore } from "@/stores/transactions";
-import { useSettingsStore } from "@/stores/settings-store";
+import { useWorkspaceStore } from "@/stores/workspace-store";
 import { TransactionBulkEditBar } from "./transaction-bulk-edit-bar";
 import { TransactionTableSkeleton } from "./transaction-table-skeleton";
 import {
@@ -90,7 +90,7 @@ export function TransactionsClient({
     Transaction | undefined
   >();
   const [columns, setColumns] = useState<any[]>([]);
-  const { settings } = useSettingsStore();
+  const { settings } = useWorkspaceStore();
   const [activeTab, setActiveTab] = useState<"all" | "review">("all");
   const { rowSelection, setRowSelection } = useTransactionsStore();
 

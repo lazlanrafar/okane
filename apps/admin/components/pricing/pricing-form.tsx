@@ -358,7 +358,7 @@ export function PricingForm({ initialData, onSuccess }: PricingFormProps) {
           </div>
         </ScrollArea>
 
-        <div className="absolute bottom-0 w-full sm:max-w-[455px] right-0 p-4 bg-background border-t">
+        <div className="absolute bottom-0 w-full sm:max-w-[455px] right-0 p-4 border-t bg-background">
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading
               ? "Saving..."

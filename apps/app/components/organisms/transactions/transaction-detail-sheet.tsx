@@ -38,7 +38,7 @@ import { SelectUser } from "@/components/molecules/select-user";
 import { SelectAccount } from "@/components/molecules/select-account";
 import { useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/use-debounce";
-import { useSettingsStore } from "@/stores/settings-store";
+import { useWorkspaceStore } from "@/stores/workspace-store";
 import { VaultPickerModal } from "@/components/organisms/vault-picker-modal";
 import { FilePreviewSheet } from "@/components/organisms/file-preview-sheet";
 
@@ -84,7 +84,7 @@ export function TransactionDetailSheet({
   onNext,
   onPrevious,
 }: Props) {
-  const { settings, getTransactionColor, formatCurrency } = useSettingsStore();
+  const { settings, getTransactionColor, formatCurrency } = useWorkspaceStore();
   const [excludeFromReports, setExcludeFromReports] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");

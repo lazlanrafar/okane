@@ -51,7 +51,8 @@ const sheetVariants = cva(
 );
 
 interface SheetContentProps
-  extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
+  extends
+    React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
     VariantProps<typeof sheetVariants> {
   stack?: boolean;
   title?: string;
@@ -77,17 +78,17 @@ const SheetContent = React.forwardRef<
       >
         <div
           className={cn(
-            "border w-full h-full bg-[#FAFAF9] dark:bg-[#0C0C0C] p-6 relative overflow-hidden flex flex-col",
+            "border w-full h-full bg-background p-6 relative overflow-hidden flex flex-col",
             className,
           )}
         >
           <SheetTitle className="sr-only">{title}</SheetTitle>
           {children}
         </div>
-        <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-8 right-8 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none z-50">
+        {/* <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-8 right-8 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none z-50">
           <XIcon className="size-4" />
           <span className="sr-only">Close</span>
-        </SheetPrimitive.Close>
+        </SheetPrimitive.Close> */}
       </SheetPrimitive.Content>
     </SheetPortal>
   ),

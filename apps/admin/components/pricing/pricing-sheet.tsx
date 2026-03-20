@@ -16,13 +16,13 @@ export function PricingSheet() {
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
       <SheetContent className="flex flex-col">
-        <SheetHeader className="p-6 mb-0">
+        <SheetHeader className="mb-3">
           <SheetTitle>
             {mode === "create" ? "Create Pricing Plan" : "Edit Pricing Plan"}
           </SheetTitle>
         </SheetHeader>
 
-        <ScrollArea className="h-full p-0 pb-[130px]">
+        <ScrollArea className="h-full">
           <PricingForm
             key={selectedPricing?.id ?? "create"}
             initialData={selectedPricing}

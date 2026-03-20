@@ -92,12 +92,6 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // Protect create-workspace (must be logged in)
-  // Protect create-workspace (must be logged in)
-  if (pathAfterLocale.startsWith("/create-workspace") && !session) {
-    return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
-  }
-
   // Redirect to dashboard if logged in and on login/register pages
   if (
     (pathAfterLocale === "/login" || pathAfterLocale === "/register") &&

@@ -19,7 +19,10 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-import { deletePricingAction, updatePricingAction } from "@workspace/modules/pricing/pricing.action";
+import {
+  deletePricingAction,
+  updatePricingAction,
+} from "@workspace/modules/pricing/pricing.action";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { usePricingStore } from "@/stores/pricing";
@@ -132,6 +135,41 @@ export const pricingColumns: ColumnDef<Pricing>[] = [
     ),
   },
   {
+    accessorKey: "max_vault_size_mb",
+    header: "Vault Limit",
+    size: 130,
+    minSize: 100,
+    maxSize: 200,
+    enableResizing: true,
+    meta: {
+      headerLabel: "Vault Limit",
+      className: "w-[130px] min-w-[100px]",
+    },
+    cell: ({ getValue }) => {
+      const mb = getValue<number>();
+      if (mb >= 1024) {
+        return <span>{(mb / 1024).toFixed(1)} GB</span>;
+      }
+      return <span>{mb} MB</span>;
+    },
+  },
+  {
+    accessorKey: "max_ai_tokens",
+    header: "AI Tokens",
+    size: 130,
+    minSize: 100,
+    maxSize: 200,
+    enableResizing: true,
+    meta: {
+      headerLabel: "AI Tokens",
+      className: "w-[130px] min-w-[100px]",
+    },
+    cell: ({ getValue }) => {
+      const tokens = getValue<number>();
+      return <span>{tokens.toLocaleString()}</span>;
+    },
+  },
+  {
     id: "prices_summary",
     accessorFn: (row) => row.prices,
     header: "Pricing (Base USD)",
@@ -145,18 +183,24 @@ export const pricingColumns: ColumnDef<Pricing>[] = [
     },
     cell: ({ getValue }) => {
       const prices = getValue<Pricing["prices"]>();
-      if (!prices || prices.length === 0) return <span className="text-muted-foreground italic">Free</span>;
-      
-      const basePrice = prices.find((p) => p.currency.toLowerCase() === "usd") || prices[0];
-      
+      if (!prices || prices.length === 0)
+        return <span className="text-muted-foreground italic">Free</span>;
+
+      const basePrice =
+        prices.find((p) => p.currency.toLowerCase() === "usd") || prices[0];
+
       if (!basePrice || (basePrice.monthly === 0 && basePrice.yearly === 0)) {
         return <span className="text-muted-foreground italic">Free</span>;
       }
 
       return (
         <span className="flex flex-col gap-0.5">
-          <span className="text-sm">${(basePrice.monthly / 100).toFixed(2)} / mo</span>
-          <span className="text-xs text-muted-foreground">${(basePrice.yearly / 100).toFixed(2)} / yr</span>
+          <span className="text-sm">
+            ${(basePrice.monthly / 100).toFixed(2)} / mo
+          </span>
+          <span className="text-xs text-muted-foreground">
+            ${(basePrice.yearly / 100).toFixed(2)} / yr
+          </span>
         </span>
       );
     },
@@ -204,6 +248,7 @@ export const pricingColumns: ColumnDef<Pricing>[] = [
   },
   {
     id: "actions",
+    header: "Actions",
     size: 90,
     enableHiding: false,
     meta: {

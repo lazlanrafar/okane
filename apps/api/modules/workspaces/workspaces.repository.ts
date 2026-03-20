@@ -6,6 +6,7 @@ import {
   user_workspaces,
   workspaceInvitations,
   users,
+  pricing,
 } from "@workspace/database";
 
 /**
@@ -28,14 +29,22 @@ export const workspacesRepository = {
   },
 
   async findById(workspace_id: string) {
-    const [workspace] = await db
-      .select()
+    const [result] = await db
+      .select({
+        workspace: workspaces,
+        plan: pricing,
+      })
       .from(workspaces)
+      .leftJoin(pricing, eq(workspaces.plan_id, pricing.id))
       .where(eq(workspaces.id, workspace_id))
       .limit(1);
 
-    if (workspace?.deleted_at) return null;
-    return workspace ?? null;
+    if (!result || result.workspace.deleted_at) return null;
+
+    return {
+      ...result.workspace,
+      plan: result.plan,
+    };
   },
 
   async addMember(

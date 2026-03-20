@@ -44,7 +44,7 @@ import {
   bulkCreateTransactions,
   createTransaction,
 } from "@workspace/modules/transaction/transaction.action";
-import { useSettingsStore } from "@/stores/settings-store";
+import { useWorkspaceStore } from "@/stores/workspace-store";
 
 interface ImportModalProps {
   open: boolean;
@@ -59,7 +59,7 @@ export function ImportModal({
   wallets,
   onSuccess,
 }: ImportModalProps) {
-  const { settings, formatCurrency } = useSettingsStore();
+  const { settings, formatCurrency } = useWorkspaceStore();
   const [step, setStep] = useState<
     | "select"
     | "mapping"
