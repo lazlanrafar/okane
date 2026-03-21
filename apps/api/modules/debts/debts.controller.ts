@@ -25,13 +25,13 @@ export const debtsController = new Elysia({ prefix: "/debts" })
       const data = await DebtsService.getDebts(
         workspaceId!,
         query.contactId,
+        query.startDate,
+        query.endDate,
       );
       return data;
     },
     {
-      query: t.Object({
-        contactId: t.Optional(t.String()),
-      }),
+      query: DebtsModel.listQuery,
     },
   )
 

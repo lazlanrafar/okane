@@ -120,8 +120,8 @@ export abstract class DebtsService {
     return buildSuccess(null, "Debt deleted successfully");
   }
 
-  static async getDebts(workspaceId: string, contactId?: string) {
-    const debts = await DebtsRepository.findMany(workspaceId, contactId);
+  static async getDebts(workspaceId: string, contactId?: string, startDate?: string, endDate?: string) {
+    const debts = await DebtsRepository.findMany(workspaceId, contactId, startDate, endDate);
     return buildSuccess(debts, "Debts retrieved successfully");
   }
 

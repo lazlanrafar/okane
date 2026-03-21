@@ -1,3 +1,4 @@
+import { Calendar } from "lucide-react";
 import {
   Banknote,
   Box,
@@ -42,6 +43,7 @@ export interface NavGroup {
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
+    // label: "Dashboard",
     items: [
       {
         title: "Overview",
@@ -53,49 +55,43 @@ export const sidebarItems: NavGroup[] = [
         url: "/transactions",
         icon: Banknote,
       },
-      // {
-      //   title: "Invoices",
-      //   url: "/invoices",
-      //   icon: FileText,
-      // },
       {
-        title: "Accounts",
-        url: "/accounts",
-        icon: IdCard,
+        title: "Calendar",
+        url: "/calendar",
+        icon: Calendar,
       },
     ],
   },
   {
     id: 2,
-    label: "Management",
+    label: "Finance",
     items: [
       {
-        title: "Contacts",
-        url: "/contacts",
-        icon: Users,
+        title: "Accounts",
+        url: "/accounts",
+        icon: IdCard,
       },
       {
         title: "Debts",
         url: "/debts",
         icon: HandCoins,
       },
-      {
-        title: "Tracker",
-        url: "/coming-soon",
-        icon: Clock,
-        comingSoon: true,
-      },
-      {
-        title: "Inbox",
-        url: "/coming-soon",
-        icon: Inbox,
-        comingSoon: true,
-      },
     ],
   },
   {
     id: 3,
-    label: "Storage",
+    label: "People",
+    items: [
+      {
+        title: "Contacts",
+        url: "/contacts",
+        icon: Users,
+      },
+    ],
+  },
+  {
+    id: 4,
+    label: "Workspace",
     items: [
       {
         title: "Vault",
@@ -110,8 +106,8 @@ export const sidebarItems: NavGroup[] = [
     ],
   },
   {
-    id: 4,
-    label: "Others",
+    id: 5,
+    label: "System",
     items: [
       {
         title: "Settings",

@@ -1,6 +1,11 @@
 import { t, type UnwrapSchema } from "elysia";
 
 export const DebtsModel = {
+  listQuery: t.Object({
+    contactId: t.Optional(t.String()),
+    startDate: t.Optional(t.String()),
+    endDate: t.Optional(t.String()),
+  }),
   create: t.Object({
     contactId: t.String(),
     type: t.Union([t.Literal("payable"), t.Literal("receivable")]),

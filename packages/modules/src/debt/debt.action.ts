@@ -12,6 +12,8 @@ export interface DebtWithContact extends Debt {
 
 export const getDebts = async (filters?: {
   contactId?: string;
+  startDate?: string;
+  endDate?: string;
 }): Promise<ActionResponse<DebtWithContact[]>> => {
   try {
     const res = await api.get("/debts", { params: filters });

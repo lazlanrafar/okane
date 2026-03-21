@@ -2,6 +2,9 @@ import {
   db,
   eq,
   and,
+  or,
+  gte,
+  lte,
   desc,
   isNull,
   debts,
@@ -97,6 +100,8 @@ export abstract class DebtsRepository {
   static async findMany(
     workspaceId: string,
     contactId?: string,
+    startDate?: string,
+    endDate?: string,
   ): Promise<any[]> {
     const conditions = [
       eq(debts.workspaceId, workspaceId),
@@ -105,6 +110,22 @@ export abstract class DebtsRepository {
 
     if (contactId) {
       conditions.push(eq(debts.contactId, contactId));
+    }
+
+    if (startDate && endDate) {
+      conditions.push(
+        or(
+          and(
+            gte(debts.dueDate, startDate),
+            lte(debts.dueDate, endDate),
+          ),
+          and(
+            isNull(debts.dueDate),
+            gte(debts.createdAt, startDate),
+            lte(debts.createdAt, endDate),
+          )
+        )!
+      );
     }
 
     const results = await db
