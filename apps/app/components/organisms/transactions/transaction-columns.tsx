@@ -280,6 +280,7 @@ export const transactionColumns = (
   },
   {
     id: "actions",
+    header: "Actions",
     cell: ({ row, table }) => {
       const transaction = row.original;
       const meta = table.options.meta as any;

@@ -63,6 +63,7 @@ import {
   type GroupByInterval,
 } from "./transaction-grouping-selector";
 import { formatCurrency } from "@workspace/utils";
+import { useConfirm } from "@/components/providers/confirm-modal-provider";
 
 interface Props {
   initialData: Transaction[];
@@ -93,6 +94,7 @@ export function TransactionsClient({
   const { settings } = useAppStore();
   const [activeTab, setActiveTab] = useState<"all" | "review">("all");
   const { rowSelection, setRowSelection } = useTransactionsStore();
+  const confirm = useConfirm();
 
   const [transactionId, setTransactionId] = useQueryState(
     "transactionId",
@@ -310,12 +312,14 @@ export function TransactionsClient({
     return result;
   }, [transactions, groupBy, expandedGroups]);
 
+  const handleEdit = useCallback((transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setIsFormOpen(true);
+  }, []);
+
   const columnsWithActions = useMemo(
-    () =>
-      transactionColumns((transaction) => {
-        handleRowClick(transaction);
-      }),
-    [],
+    () => transactionColumns(handleEdit),
+    [handleEdit],
   );
 
   const handleRowClick = (transaction: Transaction) => {
@@ -530,7 +534,17 @@ export function TransactionsClient({
               categories,
               wallets,
               onRowClick: handleRowClick,
-              onDelete: (id: string) => deleteMutation.mutate(id),
+              onDelete: async (id: string) => {
+                const ok = await confirm({
+                  title: "Delete transaction?",
+                  description: "Are you sure you want to delete this transaction?",
+                  destructive: true,
+                  confirmLabel: "Delete",
+                });
+                if (ok) {
+                  deleteMutation.mutate(id);
+                }
+              },
               // Custom selection logic for grouped rows (proxy rows)
               isAllTransactionsSelected: () => {
                 const transactionIds = processedRows.flatMap((r: any) =>
@@ -756,9 +770,14 @@ export function TransactionsClient({
       <TransactionBulkEditBar />
 
       <TransactionFormSheet
-        open={isFormOpen && !selectedTransaction}
-        onOpenChange={setIsFormOpen}
-        transaction={undefined}
+        open={isFormOpen}
+        onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open && !isDetailOpen) {
+            setSelectedTransaction(undefined);
+          }
+        }}
+        transaction={isFormOpen ? selectedTransaction : undefined}
       />
 
       <TransactionDetailSheet

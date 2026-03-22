@@ -35,13 +35,27 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
 
   const uniqueCategories = useMemo(() => {
     if (!categoryCol || !firstRows) return [];
-    const values = new Set<string>();
+    
+    // Set of categories that appear in at least one non-transfer row
+    const nonTransferCategories = new Set<string>();
+    
     firstRows.forEach((row) => {
-      const val = row[categoryCol];
-      if (val) values.add(val);
+      const catVal = row[categoryCol];
+      if (!catVal) return;
+
+      const csvType = typeCol ? row[typeCol] : null;
+      const mappedType = csvType ? valueMappings.types[csvType] : null;
+      
+      // If it's not a transfer (or we don't know yet, default to showing it)
+      const isTransfer = mappedType === "transfer-in" || mappedType === "transfer-out";
+      
+      if (!isTransfer) {
+        nonTransferCategories.add(catVal);
+      }
     });
-    return Array.from(values).sort();
-  }, [categoryCol, firstRows]);
+
+    return Array.from(nonTransferCategories).sort();
+  }, [categoryCol, firstRows, typeCol, valueMappings.types]);
 
   const uniqueWallets = useMemo(() => {
     if (!walletCol || !firstRows) return [];
@@ -211,7 +225,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
             <h3 className="text-sm font-semibold tracking-tight">
               Map Transaction Types
             </h3>
-            <span className="text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full ml-auto">
+            <span className="text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 ml-auto">
               {uniqueTypes.length} types
             </span>
           </div>
@@ -219,7 +233,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
             {uniqueTypes.map((val) => (
               <div
                 key={val}
-                className="flex items-center gap-4 p-2.5 rounded-lg border bg-muted/20 hover:bg-muted/30 transition-colors"
+                className="flex items-center gap-4 p-2.5 border bg-muted/20 hover:bg-muted/30 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{val}</p>
@@ -261,7 +275,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
             <h3 className="text-sm font-semibold tracking-tight">
               Map Accounts
             </h3>
-            <span className="text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full ml-auto">
+            <span className="text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 ml-auto">
               {uniqueWallets.length} values
             </span>
           </div>
@@ -269,7 +283,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
             {uniqueWallets.map((val) => (
               <div
                 key={val}
-                className="flex items-center gap-4 p-2.5 rounded-lg border bg-muted/20 hover:bg-muted/30 transition-colors"
+                className="flex items-center gap-4 p-2.5 border bg-muted/20 hover:bg-muted/30 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{val}</p>
@@ -294,7 +308,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
             <h3 className="text-sm font-semibold tracking-tight">
               Map Categories
             </h3>
-            <span className="text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full ml-auto">
+            <span className="text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 ml-auto">
               {uniqueCategories.length} categories
             </span>
           </div>
@@ -302,15 +316,18 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
             {uniqueCategories.map((val) => (
               <div
                 key={val}
-                className="flex items-center gap-4 p-2.5 rounded-lg border bg-muted/20 hover:bg-muted/30 transition-colors"
+                className="flex items-center gap-4 p-2.5 border bg-muted/20 hover:bg-muted/30 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{val}</p>
                 </div>
-                <CategoryMappingRow
+                 <CategoryMappingRow
                   csvValue={val}
                   handleCategoryMap={handleCategoryMap}
                   valueMappings={valueMappings}
+                  firstRows={firstRows}
+                  categoryCol={categoryCol}
+                  typeCol={typeCol}
                 />
               </div>
             ))}
@@ -325,16 +342,32 @@ function CategoryMappingRow({
   csvValue,
   handleCategoryMap,
   valueMappings,
+  firstRows,
+  categoryCol,
+  typeCol,
 }: {
   csvValue: string;
   handleCategoryMap: (csvValue: string, categoryId: string) => void;
   valueMappings: any;
+  firstRows: any[] | null;
+  categoryCol: string;
+  typeCol: string;
 }) {
   const queryClient = useQueryClient();
+
+  const getInferredType = (csvValue: string): "income" | "expense" => {
+    const row = firstRows?.find((r) => r[categoryCol] === csvValue);
+    if (!row) return "expense";
+    const csvType = row[typeCol];
+    const mappedType = csvType ? valueMappings.types[csvType] : "expense";
+    return mappedType === "income" ? "income" : "expense";
+  };
+
+  const inferredType = getInferredType(csvValue);
+
   return (
     <div className="w-[280px] flex gap-2">
       <SelectCategory
-        type="expense"
         onChange={(id) => handleCategoryMap(csvValue, id)}
         value={valueMappings.categories[csvValue]}
         className="flex-1 h-8 text-xs"
@@ -347,19 +380,22 @@ function CategoryMappingRow({
           onClick={async () => {
             const res = await createCategory({
               name: csvValue,
-              type: "expense",
+              type: inferredType,
             });
             if (res.success && res.data) {
               queryClient.invalidateQueries({
-                queryKey: ["categories", "expense"],
+                queryKey: ["categories", "all"],
+              });
+              queryClient.invalidateQueries({
+                queryKey: ["categories", inferredType],
               });
               handleCategoryMap(csvValue, res.data.id);
-              toast.success(`Category "${csvValue}" created`);
+              toast.success(`Category "${csvValue}" created as ${inferredType}`);
             } else {
               toast.error(res.error || "Failed to create category");
             }
           }}
-          title="Create this category"
+          title={`Create as ${inferredType}`}
         >
           <Plus className="h-4 w-4" />
         </Button>

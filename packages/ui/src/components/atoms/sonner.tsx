@@ -32,6 +32,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--border-radius": "var(--radius)",
         } as React.CSSProperties
       }
+      toastOptions={{
+        classNames: {
+          toast: "cn-toast bg-background border rounded-0 shadow-none",
+        },
+      }}
       {...props}
     />
   );

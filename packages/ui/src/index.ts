@@ -22,3 +22,4 @@ export * from "./stores/preferences-provider";
 export * from "./lib/cookie.client";
 export * from "./lib/local-storage.client";
 export * from "./lib/canvas-utils";
+export * from "./components/atoms/badge";

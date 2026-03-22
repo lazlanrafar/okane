@@ -45,7 +45,7 @@ export function FieldMapping() {
         ))}
       </div>
 
-      <div className="pt-4 border-t border-border">
+      {/* <div className="pt-4 border-t border-border">
         <Controller
           control={control}
           name="inverted"
@@ -61,7 +61,7 @@ export function FieldMapping() {
             </div>
           )}
         />
-      </div>
+      </div> */}
     </div>
   );
 }
@@ -126,7 +126,7 @@ function FieldRow({
         <ArrowRight className="h-4 w-4 text-muted-foreground/40" />
       </div>
 
-      <div className="flex items-center justify-between px-3 h-10 bg-muted/30 border border-border/50 rounded-lg w-[45%] min-w-0">
+      <div className="flex items-center justify-between px-3 h-10 bg-muted/30 border w-[45%] min-w-0">
         <span className="text-xs font-medium text-foreground/80">{label}</span>
         {required && (
           <span className="text-[10px] text-red-500 font-bold ml-1">*</span>

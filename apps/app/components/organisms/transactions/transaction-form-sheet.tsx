@@ -7,6 +7,7 @@ import {
   createTransaction,
   updateTransaction,
 } from "@workspace/modules/transaction/transaction.action";
+import { uploadVaultFile } from "@workspace/modules/vault/vault.action";
 import type { Transaction } from "@workspace/types";
 import {
   useInfiniteQuery,
@@ -63,7 +64,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-import { VaultPickerModal } from "@/components/organisms/vault-picker-modal";
+import { VaultPickerModal } from "@/components/molecules/vault-picker-modal";
 
 const transactionSchema = z.object({
   amount: z.coerce.number().positive("Amount must be positive"),
@@ -80,8 +81,8 @@ const transactionSchema = z.object({
   walletId: z.string().min(1, "Wallet is required"),
   toWalletId: z.string().optional(),
   categoryId: z.string().optional(),
-  name: z.string().optional(),
-  description: z.string().optional(),
+  name: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
   assignedUserId: z.string().optional(),
   attachmentIds: z.array(z.string()).optional(),
 });
@@ -128,7 +129,7 @@ export function TransactionFormSheet({
   );
   const [attachments, setAttachments] = useState<VaultFileRef[]>([]);
   const [vaultPickerOpen, setVaultPickerOpen] = useState(false);
-  const { settings, formatCurrency } = useAppStore();
+  const { settings, formatCurrency, user } = useAppStore();
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema as any),
@@ -141,7 +142,7 @@ export function TransactionFormSheet({
       walletId: "",
       categoryId: "",
       toWalletId: "",
-      assignedUserId: "",
+      assignedUserId: user?.id ?? "",
       attachmentIds: [],
     },
   });
@@ -178,7 +179,7 @@ export function TransactionFormSheet({
             categoryId: "",
             toWalletId: "",
             attachmentIds: [],
-            assignedUserId: "",
+            assignedUserId: user?.id ?? "",
           });
           setAttachments([]);
           setActiveTab("expense");
@@ -244,6 +245,60 @@ export function TransactionFormSheet({
   const removeAttachment = (id: string) =>
     setAttachments((prev) => prev.filter((a) => a.id !== id));
 
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const ALLOWED_TYPES = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "application/pdf",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "text/csv",
+      ];
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        throw new Error(
+          `Invalid file type for ${file.name}. Only documents and images are allowed.`,
+        );
+      }
+      const formData = new FormData();
+      formData.append("file", file);
+      const result = await uploadVaultFile(formData);
+      if (result.success) return result.data;
+      throw new Error(result.error);
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["vault-files"] });
+      setAttachments((prev) => {
+        if (prev.find((a) => a.id === data.id)) return prev;
+        return [
+          ...prev,
+          { id: data.id, name: data.name, size: data.size, type: data.type },
+        ];
+      });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Upload failed");
+    },
+  });
+
+  const handleUploadFiles = async (selectedFiles: FileList | File[]) => {
+    const filesArray = Array.from(selectedFiles);
+    if (filesArray.length === 0) return;
+
+    const toastId = toast.loading(`Uploading ${filesArray.length} file(s)...`);
+
+    try {
+      await Promise.all(
+        filesArray.map((file) => uploadMutation.mutateAsync(file)),
+      );
+      toast.success("All files uploaded successfully", { id: toastId });
+    } catch (error) {
+      toast.error("Some files failed to upload", { id: toastId });
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="flex flex-col h-full p-0">
@@ -261,10 +316,11 @@ export function TransactionFormSheet({
               className="space-y-8"
             >
               {/* Type Toggle */}
-              <div className="flex w-full border border-border bg-muted/30 rounded-md overflow-hidden">
+              <div className="flex w-full border border-border bg-muted/30 overflow-hidden">
                 <Button
                   type="button"
                   variant="ghost"
+                  disabled={!!transaction}
                   className={cn(
                     "flex-1 rounded-none text-xs border-r border-border last:border-r-0 h-full",
                     activeTab === "expense"
@@ -278,6 +334,7 @@ export function TransactionFormSheet({
                 <Button
                   type="button"
                   variant="ghost"
+                  disabled={!!transaction}
                   className={cn(
                     "flex-1 rounded-none text-xs border-r border-border last:border-r-0 h-full",
                     activeTab === "income"
@@ -291,6 +348,7 @@ export function TransactionFormSheet({
                 <Button
                   type="button"
                   variant="ghost"
+                  disabled={!!transaction}
                   className={cn(
                     "flex-1 rounded-none text-xs h-full",
                     activeTab === "transfer"
@@ -319,6 +377,7 @@ export function TransactionFormSheet({
                       <Input
                         placeholder="e.g. Grocery shopping, Salary…"
                         {...field}
+                        value={field.value ?? ""}
                         className="bg-transparent h-10 transition-colors focus:border-foreground"
                       />
                     </FormControl>
@@ -518,7 +577,7 @@ export function TransactionFormSheet({
                   <FormItem className="space-y-2">
                     <FormLabel className="text-sm font-medium">Notes</FormLabel>
                     <FormControl>
-                      <div className="min-h-[120px] rounded-md border bg-transparent px-3 py-2 text-sm transition-colors focus-within:border-foreground focus-within:ring-0 mb-4">
+                      <div className="min-h-[120px] border bg-transparent px-3 py-2 text-sm transition-colors focus-within:border-foreground focus-within:ring-0 mb-4">
                         <Editor
                           initialContent={field.value || ""}
                           placeholder="Add notes, links, or any details…"
@@ -544,16 +603,6 @@ export function TransactionFormSheet({
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Attachments
                   </span>
-                  <Button
-                    type="button"
-                    variant="link"
-                    size="sm"
-                    onClick={() => setVaultPickerOpen(true)}
-                    className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <Paperclip className="w-3 h-3 mr-1.5" />
-                    Attach from Vault
-                  </Button>
                 </div>
 
                 {attachments.length > 0 && (
@@ -561,19 +610,19 @@ export function TransactionFormSheet({
                     {attachments.map((file) => (
                       <div
                         key={file.id}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-md border border-muted/20 bg-muted/5 text-sm group transition-colors hover"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-md border border-muted/20 bg-muted/5 text-sm group transition-colors hover:bg-muted/10"
                       >
                         <FileIcon type={file.type} />
                         <span className="flex-1 truncate">{file.name}</span>
                         {file.size > 0 && (
-                          <span className="text-xs text-muted-foreground shrink-0">
+                          <span className="text-xs text-muted-foreground shrink-0 hidden sm:inline-block">
                             {formatBytes(file.size)}
                           </span>
                         )}
                         <button
                           type="button"
                           onClick={() => removeAttachment(file.id)}
-                          className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+                          className="shrink-0 text-muted-foreground hover:text-destructive transition-colors p-1"
                           aria-label={`Remove ${file.name}`}
                         >
                           <X className="w-3.5 h-3.5" />
@@ -582,6 +631,56 @@ export function TransactionFormSheet({
                     ))}
                   </div>
                 )}
+
+                <div
+                  className="mt-2 aspect-3/1 sm:aspect-[4/1] border-2 border-dashed flex flex-col items-center justify-center gap-3 bg-muted/5 group hover:bg-muted/10 hover:border-border/60 transition-all cursor-pointer relative overflow-hidden"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.add(
+                      "bg-muted/20",
+                      "border-primary/50",
+                    );
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove(
+                      "bg-muted/20",
+                      "border-primary/50",
+                    );
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove(
+                      "bg-muted/20",
+                      "border-primary/50",
+                    );
+                    if (e.dataTransfer.files)
+                      handleUploadFiles(e.dataTransfer.files);
+                  }}
+                  onClick={() => setVaultPickerOpen(true)}
+                >
+                  <div className="bg-background p-2 rounded-full shadow-sm border border-border/20 group-hover:scale-110 transition-transform">
+                    <Paperclip className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground text-center px-4 sm:px-8 leading-relaxed">
+                    <span className="font-medium text-foreground">
+                      Click to browse
+                    </span>{" "}
+                    or drag and drop files here
+                    <br />
+                    <span className="opacity-60 text-[10px]">
+                      Images, PDFs, and spreadsheets from your computer or Vault
+                    </span>
+                  </p>
+
+                  {uploadMutation.isPending && (
+                    <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center">
+                      <span className="text-xs font-medium animate-pulse">
+                        Uploading...
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </form>
 

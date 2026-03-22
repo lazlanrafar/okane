@@ -59,7 +59,7 @@ export function ImportModal({
   wallets,
   onSuccess,
 }: ImportModalProps) {
-  const { settings, formatCurrency } = useAppStore();
+  const { settings, subCurrencies, formatCurrency } = useAppStore();
   const [step, setStep] = useState<
     | "select"
     | "mapping"
@@ -135,6 +135,13 @@ export function ImportModal({
       setValue("walletId", wallets[0].id);
     }
   }, [wallets, setValue, watch]);
+
+  // Set default currency from settings
+  useEffect(() => {
+    if (settings?.mainCurrencyCode && !watch("currency")) {
+      setValue("currency", settings.mainCurrencyCode);
+    }
+  }, [settings?.mainCurrencyCode, setValue, watch]);
 
   const onNext = () => {
     if (step === "select") setStep("mapping");
@@ -276,7 +283,7 @@ export function ImportModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[700px] font-sans h-[90vh] flex flex-col p-0 overflow-hidden text-foreground">
+      <DialogContent className="sm:max-w-[700px] font-sans max-h-[90vh] h-fit flex flex-col p-0 overflow-hidden text-foreground">
         <ImportCsvContext.Provider
           value={{
             fileColumns,
@@ -303,7 +310,7 @@ export function ImportModal({
                     <ArrowLeft className="h-4 w-4" />
                   </button>
                 )}
-                <DialogTitle className="text-xl font-sans font-semibold tracking-tight">
+                <DialogTitle className="font-medium">
                   {step === "select" && "Select CSV File"}
                   {step === "mapping" && "Field Mapping"}
                   {step === "mapping-values" && "Value Mapping"}
@@ -334,7 +341,7 @@ export function ImportModal({
             )}
             {step === "summary" && (
               <div className="space-y-6 font-sans">
-                <div className="p-4 bg-primary/5 border border-primary/10 rounded-xl space-y-4">
+                <div className="p-4 bg-primary/5 border space-y-4">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Import Summary
@@ -379,7 +386,7 @@ export function ImportModal({
                             value={field.value}
                             onValueChange={field.onChange}
                           >
-                            <SelectTrigger className="h-11 bg-background border-border/60 hover:border-primary/50 transition-colors rounded-xl shadow-sm">
+                            <SelectTrigger className="h-11 bg-background border-border/60 hover:border-primary/50 transition-colors  shadow-sm">
                               <SelectValue placeholder="Select an account" />
                             </SelectTrigger>
                             <SelectContent>
@@ -407,15 +414,20 @@ export function ImportModal({
                           value={field.value}
                           onValueChange={field.onChange}
                         >
-                          <SelectTrigger className="h-11 bg-background border-border/60 hover:border-primary/50 transition-colors rounded-xl shadow-sm">
+                          <SelectTrigger className="h-11 bg-background border-border/60 hover:border-primary/50 transition-colors  shadow-sm">
                             <SelectValue placeholder="Select currency" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="USD">USD - US Dollar</SelectItem>
-                            <SelectItem value="EUR">EUR - Euro</SelectItem>
-                            <SelectItem value="IDR">
-                              IDR - Indonesian Rupiah
-                            </SelectItem>
+                            {settings?.mainCurrencyCode && (
+                              <SelectItem value={settings.mainCurrencyCode}>
+                                {settings.mainCurrencyCode}
+                              </SelectItem>
+                            )}
+                            {subCurrencies.map((sc) => (
+                              <SelectItem key={sc.id} value={sc.currencyCode}>
+                                {sc.currencyCode}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       )}
@@ -473,8 +485,7 @@ export function ImportModal({
             )}
           </div>
 
-          {(step === "select" ||
-            step === "mapping" ||
+          {(step === "mapping" ||
             step === "mapping-values" ||
             step === "summary") && (
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-muted/5 mt-auto shrink-0">
@@ -485,12 +496,6 @@ export function ImportModal({
               >
                 Cancel
               </Button>
-
-              {step === "select" && (
-                <Button size="sm" disabled={!fileColumns} onClick={onNext}>
-                  Next: Field Mapping
-                </Button>
-              )}
 
               {step === "mapping" && (
                 <Button size="sm" onClick={onNext}>

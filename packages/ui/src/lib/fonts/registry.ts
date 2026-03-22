@@ -4,6 +4,8 @@ import {
   Geist,
   Geist_Mono,
   Great_Vibes,
+  Hedvig_Letters_Sans,
+  Hedvig_Letters_Serif,
   Inter,
   Manrope,
   Nunito,
@@ -12,6 +14,20 @@ import {
   Poppins,
   Roboto,
 } from "next/font/google";
+
+const hedvigSans = Hedvig_Letters_Sans({
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-hedvig-sans",
+});
+
+const hedvigSerif = Hedvig_Letters_Serif({
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-hedvig-serif",
+});
 
 const inter = Inter({
   subsets: ["latin"],
@@ -125,6 +141,14 @@ export const fontRegistry = {
   greatVibes: {
     label: "Great Vibes",
     font: greatVibes,
+  },
+  hedvigSans: {
+    label: "Hedvig Letters Sans",
+    font: hedvigSans,
+  },
+  hedvigSerif: {
+    label: "Hedvig Letters Serif",
+    font: hedvigSerif,
   },
 } as const;
 

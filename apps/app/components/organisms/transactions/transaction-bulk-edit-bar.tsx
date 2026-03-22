@@ -17,6 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { bulkDeleteTransactions } from "@workspace/modules/transaction/transaction.action";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useConfirm } from "@/components/providers/confirm-modal-provider";
 
 export function TransactionBulkEditBar() {
   const { rowSelection, resetSelection } = useTransactionsStore();
@@ -26,6 +27,7 @@ export function TransactionBulkEditBar() {
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
 
   useEffect(() => {
     setShow(hasSelection);
@@ -68,6 +70,14 @@ export function TransactionBulkEditBar() {
                       disabled={isDeleting}
                       onClick={async () => {
                         const ids = Object.keys(rowSelection);
+                        const ok = await confirm({
+                          title: "Delete transactions?",
+                          description: `Are you sure you want to delete ${ids.length} transactions?`,
+                          destructive: true,
+                          confirmLabel: "Delete",
+                        });
+                        if (!ok) return;
+
                         setIsDeleting(true);
                         const result = await bulkDeleteTransactions(ids);
                         if (result.success) {

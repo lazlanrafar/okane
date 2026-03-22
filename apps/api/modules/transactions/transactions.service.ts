@@ -204,7 +204,17 @@ export abstract class TransactionsService {
     if (amount !== undefined) rawData.amount = amount;
 
     const updateData = Object.fromEntries(
-      Object.entries(rawData).filter(([_, v]) => v !== undefined && v !== ""),
+      Object.entries(rawData).filter(([k, v]) => {
+        if (v === undefined) return false;
+        // Allow empty strings for text fields, but filter them out for UUID fields
+        if (
+          v === "" &&
+          ["walletId", "toWalletId", "categoryId", "assignedUserId"].includes(k)
+        ) {
+          return false;
+        }
+        return true;
+      }),
     );
 
     const oldVal = Number(transaction.amount);

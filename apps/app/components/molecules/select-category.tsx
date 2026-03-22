@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 export interface SelectCategoryProps {
   value?: string;
-  type: "income" | "expense";
+  type?: "income" | "expense";
   onChange: (categoryId: string) => void;
   className?: string;
   disabled?: boolean;
@@ -45,7 +45,7 @@ export function SelectCategory({
 
   // Handle internal fetching
   const { data: categories = [], isLoading } = useQuery({
-    queryKey: ["categories", type],
+    queryKey: ["categories", type || "all"],
     queryFn: async () => {
       const res = await getCategories(type);
       if (!res.success) throw new Error(res.error);
@@ -55,7 +55,7 @@ export function SelectCategory({
 
   const createMutation = useMutation({
     mutationFn: async (name: string) => {
-      const res = await createCategory({ name, type });
+      const res = await createCategory({ name, type: type || "expense" });
       if (!res.success) throw new Error(res.error);
       return res.data;
     },
@@ -63,7 +63,7 @@ export function SelectCategory({
       if (data) {
         onChange(data.id);
         setSearchValue("");
-        queryClient.invalidateQueries({ queryKey: ["categories", type] });
+        queryClient.invalidateQueries({ queryKey: ["categories", type || "all"] });
         toast.success(`Category "${data.name}" created`);
       }
     },
@@ -111,7 +111,7 @@ export function SelectCategory({
       }}
       renderSelectedItem={(item) => (
         <div className="flex items-center space-x-2">
-          <CategoryColor type={type} />
+          <CategoryColor type={selectedCategory?.type || type || "expense"} />
           <span className="text-left truncate max-w-[90%]">
             {item.label}
           </span>
@@ -119,16 +119,19 @@ export function SelectCategory({
       )}
       renderOnCreate={(value) => (
         <div className="flex items-center space-x-2">
-          <CategoryColor type={type} />
+          <CategoryColor type={type || "expense"} />
           <span>{`Create "${value}"`}</span>
         </div>
       )}
-      renderListItem={({ item }) => (
-        <div className="flex items-center space-x-2">
-          <CategoryColor type={type} />
-          <span className="line-clamp-1">{item.label}</span>
-        </div>
-      )}
+      renderListItem={({ item }) => {
+        const cat = categories.find((c) => c.id === item.id);
+        return (
+          <div className="flex items-center space-x-2">
+            <CategoryColor type={cat?.type || type || "expense"} />
+            <span className="line-clamp-1">{item.label}</span>
+          </div>
+        );
+      }}
     />
   );
 }

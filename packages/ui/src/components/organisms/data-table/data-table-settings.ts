@@ -47,7 +47,7 @@ export const defaultHiddenColumns: Record<TableId, string[]> = {
   pricing: [],
   orders: [],
   accounts: [],
-  transactions: [],
+  transactions: ["assignee"],
   contacts: [],
   invoices: [],
   debts: [],

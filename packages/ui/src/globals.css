@@ -12,6 +12,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-mono: var(--font-mono);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -139,7 +142,8 @@ These serve as the fallback; there is no separate default.css file. */
   --sidebar-ring: 240 5.9% 10%;
 
   /* fonts */
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-hedvig-sans);
+  --font-serif: var(--font-hedvig-serif);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -279,6 +283,12 @@ These serve as the fallback; there is no separate default.css file. */
   }
   html[data-font="greatVibes"] body {
     --font-sans: var(--font-great-vibes);
+  }
+  html[data-font="hedvigSans"] body {
+    --font-sans: var(--font-hedvig-sans);
+  }
+  html[data-font="hedvigSerif"] body {
+    --font-sans: var(--font-hedvig-serif);
   }
 
   .scrollbar-hide {

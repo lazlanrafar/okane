@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getTransactionSettings } from "@workspace/modules/setting/setting.action";
+import { getTransactionSettings, getSubCurrencies } from "@workspace/modules/setting/setting.action";
 import { getActiveWorkspace } from "@workspace/modules/workspace/workspace.action";
 import { getMe } from "@workspace/modules/user/user.action";
 import { useAppStore, type AppState } from "../../stores/app";
@@ -18,6 +18,7 @@ export function AppProvider({
   const setUser = useAppStore((state: AppState) => state.setUser);
   const setWorkspace = useAppStore((state: AppState) => state.setWorkspace);
   const setSettings = useAppStore((state: AppState) => state.setSettings);
+  const setSubCurrencies = useAppStore((state: AppState) => state.setSubCurrencies);
   const setDictionary = useAppStore((state: AppState) => state.setDictionary);
   const setIsLoading = useAppStore((state: AppState) => state.setIsLoading);
 
@@ -51,25 +52,40 @@ export function AppProvider({
     staleTime: 1000 * 60 * 60, // 1 hour
     refetchOnWindowFocus: false,
   });
+  
+  const { data: subCurrenciesData, isLoading: isSubCurrenciesLoading } = useQuery({
+    queryKey: ["settings", "sub-currencies"],
+    queryFn: async () => {
+      const result = await getSubCurrencies();
+      if (result.success) return result.data;
+      return [];
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour
+    refetchOnWindowFocus: false,
+  });
 
   useEffect(() => {
     if (userData) setUser(userData.user);
     if (workspaceData) setWorkspace(workspaceData);
     if (settingsData) setSettings(settingsData);
+    if (subCurrenciesData) setSubCurrencies(subCurrenciesData);
     if (dictionary) setDictionary(dictionary);
 
-    setIsLoading(isUserLoading || isWorkspaceLoading || isSettingsLoading);
+    setIsLoading(isUserLoading || isWorkspaceLoading || isSettingsLoading || isSubCurrenciesLoading);
   }, [
     userData,
     workspaceData,
     settingsData,
+    subCurrenciesData,
     dictionary,
     isUserLoading,
     isWorkspaceLoading,
     isSettingsLoading,
+    isSubCurrenciesLoading,
     setUser,
     setWorkspace,
     setSettings,
+    setSubCurrencies,
     setDictionary,
     setIsLoading,
   ]);

@@ -10,50 +10,47 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  Label,
-  Switch,
-  Textarea,
-  InputDate,
-  CurrencyInput,
+  Badge,
 } from "@workspace/ui";
 import type { Transaction } from "@workspace/types";
 import { format } from "date-fns";
 import {
   Landmark,
-  ChevronUp,
-  ChevronDown,
-  Paperclip,
+  X,
   File,
   FileText,
   Film,
-  Image,
-  X,
+  Image as ImageIcon,
+  ArrowUp,
+  ArrowDown,
+  Plus,
 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { updateTransaction, getTransactionDebts } from "@workspace/modules/transaction/transaction.action";
-import { getVaultDownloadUrl } from "@workspace/modules/vault/vault.action";
+import { useState } from "react";
+import {
+  getTransactionDebts,
+  updateTransaction,
+} from "@workspace/modules/transaction/transaction.action";
+import {
+  getVaultDownloadUrl,
+  uploadVaultFile,
+  getVaultFiles,
+  type VaultFile,
+} from "@workspace/modules/vault/vault.action";
 import { toast } from "sonner";
-import { SelectCategory } from "@/components/molecules/select-category";
-import { SelectUser } from "@/components/molecules/select-user";
-import { SelectAccount } from "@/components/molecules/select-account";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/stores/app";
-import { VaultPickerModal } from "@/components/organisms/vault-picker-modal";
 import { FilePreviewSheet } from "@/components/organisms/file-preview-sheet";
+import { SelectUser } from "@/components/molecules/select-user";
+import { SelectCategory } from "@/components/molecules/select-category";
+import { SelectAccount } from "@/components/molecules/select-account";
+import { VaultPickerModal } from "@/components/molecules/vault-picker-modal";
+import { Label } from "@workspace/ui";
 
 interface FilePreview {
   id: string;
   name: string;
   type: string;
   url: string;
-}
-
-interface VaultFileRef {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
 }
 
 function formatBytes(bytes: number) {
@@ -63,7 +60,7 @@ function formatBytes(bytes: number) {
 }
 
 function FileIcon({ type }: { type: string }) {
-  if (type.startsWith("image/")) return <Image className="w-4 h-4" />;
+  if (type.startsWith("image/")) return <ImageIcon className="w-4 h-4" />;
   if (type.startsWith("video/")) return <Film className="w-4 h-4" />;
   if (type === "application/pdf") return <FileText className="w-4 h-4" />;
   return <File className="w-4 h-4" />;
@@ -84,24 +81,31 @@ export function TransactionDetailSheet({
   onNext,
   onPrevious,
 }: Props) {
-  const { settings, getTransactionColor, formatCurrency } = useAppStore();
-  const [excludeFromReports, setExcludeFromReports] = useState(false);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [attachments, setAttachments] = useState<VaultFileRef[]>([]);
-  const [vaultPickerOpen, setVaultPickerOpen] = useState(false);
+  const { getTransactionColor, formatCurrency } = useAppStore();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<FilePreview | null>(null);
-
-  const [isEditingAmount, setIsEditingAmount] = useState(false);
-  const [amount, setAmount] = useState(0);
-  const [isEditingDate, setIsEditingDate] = useState(false);
-  const [date, setDate] = useState("");
-
-  const debouncedName = useDebounce(name, 500);
-  const debouncedDescription = useDebounce(description, 500);
-
+  const [vaultPickerOpen, setVaultPickerOpen] = useState(false);
   const queryClient = useQueryClient();
+
+  const updateMutation = useMutation({
+    mutationFn: (data: Partial<Transaction>) =>
+      updateTransaction(transaction!.id, data),
+    onSuccess: (res) => {
+      if (res.success) {
+        toast.success("Transaction updated");
+        queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      } else {
+        toast.error(res.error || "Failed to update transaction");
+      }
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "An unexpected error occurred");
+    },
+  });
+
+  const handleUpdate = (data: Partial<Transaction>) => {
+    updateMutation.mutate(data);
+  };
 
   const { data: debtsResponse, isLoading: isDebtsLoading } = useQuery({
     queryKey: ["transaction-debts", transaction?.id],
@@ -110,135 +114,7 @@ export function TransactionDetailSheet({
   });
   const relatedDebts = debtsResponse?.data || [];
 
-  useEffect(() => {
-    if (transaction) {
-      setExcludeFromReports(transaction.isExported);
-      setName(transaction.name || "");
-      setDescription(transaction.description || "");
-      setAttachments(transaction.attachments || []);
-      setAmount(Number(transaction.amount));
-      setDate(
-        typeof transaction.date === "string"
-          ? transaction.date.slice(0, 10)
-          : new Date(transaction.date).toISOString().slice(0, 10),
-      );
-    }
-  }, [transaction?.id]); // Only re-run when ID changes, not when props update from list
-
-  const updateTransactionInCache = (updatedData: Partial<Transaction>) => {
-    if (!transaction?.id) return;
-    queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: any) => {
-      if (!old) return old;
-      return {
-        ...old,
-        pages: old.pages.map((page: any) => ({
-          ...page,
-          data: page.data.map((t: any) =>
-            t.id === transaction.id ? { ...t, ...updatedData } : t,
-          ),
-        })),
-      };
-    });
-  };
-
-  // Real-time update for Name and Description
-  useEffect(() => {
-    if (!transaction) return;
-
-    const hasChanged =
-      (debouncedName !== transaction.name && debouncedName !== "") ||
-      (debouncedDescription !== transaction.description &&
-        debouncedDescription !== "");
-
-    if (!hasChanged) return;
-
-    const update = async () => {
-      if (!transaction?.id) return;
-      const res = await updateTransaction(transaction.id, {
-        name: debouncedName,
-        description: debouncedDescription,
-      });
-      if (res.success) {
-        updateTransactionInCache({
-          name: debouncedName,
-          description: debouncedDescription,
-        });
-        await queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      }
-    };
-
-    update();
-  }, [debouncedName, debouncedDescription, transaction?.id, queryClient]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!open || !transaction) return;
-
-      if ((e.metaKey || e.ctrlKey) && e.key === "m") {
-        e.preventDefault();
-        if (!transaction?.id) return;
-        (async () => {
-          const res = await updateTransaction(transaction.id, {
-            isReady: !transaction.isReady,
-          });
-          if (res.success) {
-            updateTransactionInCache({ isReady: !transaction.isReady });
-            await queryClient.invalidateQueries({ queryKey: ["transactions"] });
-            toast.success(
-              transaction.isReady ? "Marked as pending" : "Marked as ready",
-            );
-          }
-        })();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, transaction, queryClient]);
-
-  const handleVaultConfirm = async (ids: string[]) => {
-    if (!transaction) return;
-
-    // In a real scenario, the VaultPicker already uploaded the files.
-    // We just need to link them to the transaction.
-    // However, we need the basic file info to show them in the UI immediately.
-    // For now, let's assume we update the transaction with the new IDs.
-    const res = await updateTransaction(transaction.id, {
-      attachmentIds: ids,
-    });
-
-    if (res.success && res.data) {
-      setAttachments(res.data.attachments || []);
-      updateTransactionInCache({
-        attachmentIds: ids,
-        attachments: res.data.attachments,
-      });
-      await queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("Attachments updated");
-    }
-  };
-
-  const removeAttachment = async (id: string) => {
-    if (!transaction) return;
-
-    const newIds = attachments.filter((a) => a.id !== id).map((a) => a.id);
-    const res = await updateTransaction(transaction.id, {
-      attachmentIds: newIds,
-    });
-
-    if (res.success && res.data) {
-      setAttachments(res.data.attachments || []);
-      updateTransactionInCache({
-        attachmentIds: newIds,
-        attachments: res.data.attachments,
-      });
-      await queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("Attachment removed");
-    }
-  };
-
-  const handlePreview = async (file: VaultFileRef) => {
-    // We fetch a fresh signed URL to ensure it hasn't expired
+  const handlePreview = async (file: any) => {
     const res = await getVaultDownloadUrl(file.id);
     if (res.success && res.data) {
       setPreviewFile({
@@ -253,256 +129,181 @@ export function TransactionDetailSheet({
     }
   };
 
-  if (!transaction) return null;
+  const removeAttachment = (fileId: string) => {
+    if (!transaction) return;
+    const newAttachmentIds = (transaction.attachmentIds || []).filter(
+      (id) => id !== fileId,
+    );
+    handleUpdate({ attachmentIds: newAttachmentIds });
+  };
 
-  const isExpense = transaction.type === "expense";
-  const isIncome = transaction.type === "income";
-  const isTransfer = transaction.type === "transfer";
+  if (!transaction) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="flex flex-col h-full p-0">
-        <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-8 pb-32">
-          {/* Header Bar */}
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-              {/* <Landmark className="h-3 w-3 text-muted-foreground/60" /> */}
-              <SelectAccount
-                value={transaction.walletId ?? undefined}
-                onChange={async (walletId) => {
-                  const res = await updateTransaction(transaction.id, {
-                    walletId,
-                  });
-                  if (res.success && res.data) {
-                    updateTransactionInCache(res.data);
-                    await queryClient.invalidateQueries({
-                      queryKey: ["transactions"],
-                    });
-                    toast.success("Account updated");
-                  }
-                }}
-                className="h-auto p-0 border-none bg-transparent hover:bg-transparent text-[10px] font-medium text-muted-foreground uppercase tracking-widest min-w-0"
-              />
-            </div>
-            {isEditingDate ? (
-              <InputDate
-                value={date}
-                className="h-8 w-40 text-[11px] bg-transparent"
-                onChange={async (newDate) => {
-                  setDate(newDate);
-                  setIsEditingDate(false);
-                  const currentDateStr =
-                    typeof transaction.date === "string"
-                      ? transaction.date.slice(0, 10)
-                      : new Date(transaction.date).toISOString().slice(0, 10);
-
-                  if (newDate !== currentDateStr) {
-                    const res = await updateTransaction(transaction.id, {
-                      date: newDate,
-                    });
-                    if (res.success && res.data) {
-                      updateTransactionInCache(res.data);
-                      await queryClient.invalidateQueries({
-                        queryKey: ["transactions"],
-                      });
-                      toast.success("Date updated");
-                    }
-                  }
-                }}
-              />
-            ) : (
-              <span
-                className="text-[11px] text-muted-foreground tracking-tight cursor-pointer hover:text-foreground transition-colors"
-                onClick={() => setIsEditingDate(true)}
-              >
+        <div className="flex-1 overflow-y-auto no-scrollbar p-6 flex flex-col pb-32">
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <span className="text-[#606060] text-xs select-text">
                 {format(new Date(transaction.date), "MMM d, yyyy")}
               </span>
-            )}
-          </div>
+            </div>
 
-          {/* Type & Title & Amount */}
-          <div className="space-y-3">
-            <div className="flex items-baseline justify-start gap-3 pt-1">
-              {isEditingAmount ? (
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      "text-3xl font-serif font-medium",
-                      getTransactionColor(transaction.type),
-                    )}
-                  >
-                    {settings?.mainCurrencySymbol}
-                  </span>
-                  <CurrencyInput
-                    value={amount}
-                    onChange={(val) => setAmount(val)}
-                    currencySymbol={settings?.mainCurrencySymbol}
-                    decimalPlaces={settings?.mainCurrencyDecimalPlaces}
-                    className={cn(
-                      "text-5xl tracking-tighter font-medium font-serif bg-transparent border-none p-0 h-auto focus:ring-0 w-full",
-                      getTransactionColor(transaction.type),
-                    )}
-                    autoFocus
-                    onBlur={async () => {
-                      setIsEditingAmount(false);
-                      if (amount !== Number(transaction.amount)) {
-                        const res = await updateTransaction(transaction.id, {
-                          amount: amount.toString(),
-                        });
-                        if (res.success && res.data) {
-                          updateTransactionInCache(res.data);
-                          await queryClient.invalidateQueries({
-                            queryKey: ["transactions"],
-                          });
-                          toast.success("Amount updated");
-                        }
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") e.currentTarget.blur();
-                    }}
-                  />
-                </div>
-              ) : (
+            <h2 className="mt-6 mb-3">
+              {transaction.description || "No description"}
+            </h2>
+
+            {/* Type & Title & Amount */}
+            <div className="flex justify-between items-center">
+              <div className="flex flex-col w-full space-y-1">
                 <h1
                   className={cn(
-                    "text-5xl tracking-tighter font-medium font-serif cursor-pointer hover:opacity-80 transition-opacity",
+                    "text-4xl select-text font-serif",
                     getTransactionColor(transaction.type),
                   )}
-                  onClick={() => setIsEditingAmount(true)}
                 >
                   {formatCurrency(Number(transaction.amount))}
                 </h1>
-              )}
+              </div>
             </div>
           </div>
 
-          {/* Inline Selection Grid */}
-          <div className="grid grid-cols-2 gap-4 pt-2">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest px-1">
-                Category
-              </Label>
-              <SelectCategory
-                value={transaction.categoryId || undefined}
-                type={isIncome ? "income" : "expense"}
-                onChange={async (categoryId) => {
-                  const res = await updateTransaction(transaction.id, {
-                    categoryId,
-                  });
-                  if (res.success && res.data) {
-                    updateTransactionInCache({
-                      categoryId,
-                      category: res.data.category,
-                    });
-                    await queryClient.invalidateQueries({
-                      queryKey: ["transactions"],
-                    });
-                    toast.success("Category updated");
+          {/* Interactive Selection Grid */}
+          <div
+            className={cn(
+              "grid gap-4 pt-2",
+              transaction.type === "transfer" ? "grid-cols-1" : "grid-cols-2",
+            )}
+          >
+            {transaction.type !== "transfer" && (
+              <div className="flex flex-col gap-2">
+                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+                  Category
+                </Label>
+                <SelectCategory
+                  value={transaction.categoryId || undefined}
+                  type={
+                    transaction.type === "income" ||
+                    transaction.type === "transfer-in"
+                      ? "income"
+                      : "expense"
                   }
-                }}
-                className=""
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest px-1">
+                  onChange={(id) => handleUpdate({ categoryId: id })}
+                  className="w-full text-sm font-medium"
+                />
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
                 Assign
               </Label>
               <SelectUser
                 value={transaction.assignedUserId || undefined}
-                onChange={async (assignedUserId) => {
-                  const res = await updateTransaction(transaction.id, {
-                    assignedUserId,
-                  });
-                  if (res.success && res.data) {
-                    updateTransactionInCache({
-                      assignedUserId,
-                      user: res.data.user,
-                    });
-                    await queryClient.invalidateQueries({
-                      queryKey: ["transactions"],
-                    });
-                    toast.success("Assignee updated");
-                  }
-                }}
-                className=""
-                placeholder="Assign user"
+                onChange={(id: string) => handleUpdate({ assignedUserId: id })}
+                className="w-full text-sm font-medium"
               />
             </div>
           </div>
 
-          {/* Name Input Row */}
-          <div className="space-y-2">
-            <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest px-1">
-              Description
-            </Label>
-            <Textarea
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Transaction name"
-            />
-          </div>
+          {/* Account Selection */}
+          <div
+            className={cn(
+              "grid gap-4 mt-6",
+              transaction.type === "transfer" ? "grid-cols-2" : "grid-cols-1",
+            )}
+          >
+            <div className="flex flex-col gap-2">
+              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+                Account
+              </Label>
+              <SelectAccount
+                value={transaction.walletId}
+                onChange={(id) => handleUpdate({ walletId: id })}
+                className="w-full text-sm font-medium"
+              />
+            </div>
 
-          <Separator className="bg-border" />
+            {transaction.type === "transfer" && (
+              <div className="flex flex-col gap-2">
+                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+                  To Account
+                </Label>
+                <SelectAccount
+                  value={transaction.toWalletId || undefined}
+                  onChange={(id) => handleUpdate({ toWalletId: id })}
+                  className="w-full text-sm font-medium"
+                  placeholder="Select destination account"
+                />
+              </div>
+            )}
+          </div>
 
           {/* Accordion Sections */}
           <Accordion
             type="multiple"
-            defaultValue={["attachments"]}
-            className="w-full"
+            defaultValue={["attachments", "general"]}
+            className="w-full mt-6"
           >
             <AccordionItem value="attachments" className="border-none">
-              <AccordionTrigger className="hover:no-underline py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.2em]">
-                Attachments
-              </AccordionTrigger>
-              <AccordionContent className="space-y-4 pt-1">
-                {attachments.length > 0 && (
-                  <div className="grid grid-cols-1 gap-2 mb-4">
-                    {attachments.map((file) => (
-                      <div
-                        key={file.id}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-md border border-muted/20 bg-muted/5 text-sm group transition-colors hover:bg-muted/10 cursor-pointer"
-                        onClick={() => handlePreview(file)}
-                      >
-                        <FileIcon type={file.type} />
-                        <span className="flex-1 truncate font-medium">
-                          {file.name}
-                        </span>
-                        {file.size > 0 && (
-                          <span className="text-xs text-muted-foreground shrink-0 font-sans">
-                            {formatBytes(file.size)}
-                          </span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeAttachment(file.id);
-                          }}
-                          className="shrink-0 text-muted-foreground hover:text-destructive transition-colors p-1"
-                          aria-label={`Remove ${file.name}`}
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <AccordionTrigger className="">Attachments</AccordionTrigger>
+              <AccordionContent className="flex flex-col gap-4 pt-1">
+                {/* Add from Vault Button */}
 
-                <div
-                  onClick={() => setVaultPickerOpen(true)}
-                  className="aspect-3/1 border-2 border-dashed flex flex-col items-center justify-center gap-3 bg-muted/5 group hover:bg-muted/10 hover:border-border/60 transition-all cursor-pointer rounded-lg"
-                >
-                  <div className="bg-background p-2 rounded-full shadow-sm border border-border/20 group-hover:scale-110 transition-transform">
-                    <Paperclip className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <p className="text-[11px] text-muted-foreground text-center px-8 leading-relaxed">
-                    Attach files from your Vault
-                    <br />
-                    <span className="opacity-50 text-[10px]">
-                      Images, PDFs, and more
-                    </span>
-                  </p>
+                <VaultPickerModal
+                  open={vaultPickerOpen}
+                  onOpenChange={setVaultPickerOpen}
+                  selectedIds={transaction.attachmentIds || []}
+                  onConfirm={(ids) => {
+                    handleUpdate({ attachmentIds: ids });
+                  }}
+                />
+
+                {transaction.attachments &&
+                  transaction.attachments.length > 0 && (
+                    <div className="grid grid-cols-1 gap-2 mb-4">
+                      {transaction.attachments.map((file) => (
+                        <div
+                          key={file.id}
+                          className="flex items-center gap-3 px-3 py-2.5 border bg-muted/5 text-sm group transition-colors hover:bg-muted/10 cursor-pointer"
+                          onClick={() => handlePreview(file)}
+                        >
+                          <FileIcon type={file.type} />
+                          <span className="flex-1 truncate font-medium">
+                            {file.name}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            {file.size > 0 && (
+                              <span className="text-xs text-muted-foreground shrink-0 font-sans">
+                                {formatBytes(file.size)}
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeAttachment(file.id);
+                              }}
+                              className="p-1 opacity-0 group-hover:opacity-100 hover:text-destructive transition-all"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                <div className="flex items-center justify-between gap-4 mb-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-9 text-[10px] font-medium uppercase tracking-widest gap-2 bg-muted/5 border-muted/20"
+                    onClick={() => setVaultPickerOpen(true)}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Add or upload files
+                  </Button>
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -514,7 +315,9 @@ export function TransactionDetailSheet({
                 </AccordionTrigger>
                 <AccordionContent className="space-y-3 pt-1">
                   {isDebtsLoading ? (
-                    <div className="text-xs text-muted-foreground animate-pulse">Loading debts...</div>
+                    <div className="text-xs text-muted-foreground animate-pulse">
+                      Loading debts...
+                    </div>
                   ) : (
                     <div className="grid grid-cols-1 gap-2 mb-2">
                       {relatedDebts.map((item: any) => (
@@ -530,7 +333,9 @@ export function TransactionDetailSheet({
                               className={cn(
                                 "font-serif tracking-tight",
                                 getTransactionColor(
-                                  item.debt?.type === "payable" ? "expense" : "income"
+                                  item.debt?.type === "payable"
+                                    ? "expense"
+                                    : "income",
                                 ),
                               )}
                             >
@@ -551,115 +356,106 @@ export function TransactionDetailSheet({
             )}
 
             <AccordionItem value="general" className="border-none">
-              <AccordionTrigger className="hover:no-underline py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.2em]">
-                General
-              </AccordionTrigger>
-              <AccordionContent className="space-y-6 pt-2">
-                <div className="flex items-center justify-between group">
-                  <div className="space-y-1">
-                    <Label className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors cursor-pointer">
-                      Exclude from reports
-                    </Label>
-                    <p className="text-[11px] text-muted-foreground leading-relaxed max-w-[280px]">
-                      Hides this transaction from all charts and report
-                      calculations.
-                    </p>
+              <AccordionTrigger>Details</AccordionTrigger>
+              <AccordionContent className="flex flex-col pt-2 border-t pt-4 space-y-5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Type</span>
+                  <span
+                    className={cn(
+                      "text-xs font-medium capitalize",
+                      getTransactionColor(transaction.type),
+                    )}
+                  >
+                    {transaction.type}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Account</span>
+                  <span className="text-xs font-medium truncate max-w-[150px]">
+                    {transaction.wallet?.name || "No Account"}
+                  </span>
+                </div>
+                {transaction.type === "transfer" &&
+                  transaction.toWallet?.name && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">
+                        To Account
+                      </span>
+                      <span className="text-xs font-medium truncate max-w-[150px]">
+                        {transaction.toWallet.name}
+                      </span>
+                    </div>
+                  )}
+                {transaction.type !== "transfer" && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">
+                      Category
+                    </span>
+                    <span className="text-xs font-medium truncate max-w-[150px]">
+                      {transaction.category?.name || "Uncategorized"}
+                    </span>
                   </div>
-                  <Switch
-                    checked={excludeFromReports}
-                    onCheckedChange={async (checked: boolean) => {
-                      setExcludeFromReports(checked);
-                      const res = await updateTransaction(transaction.id, {
-                        isExported: checked,
-                      });
-                      if (res.success) {
-                        updateTransactionInCache({ isExported: checked });
-                        await queryClient.invalidateQueries({
-                          queryKey: ["transactions"],
-                        });
-                        toast.success(
-                          checked
-                            ? "Excluded from reports"
-                            : "Included in reports",
-                        );
-                      }
-                    }}
-                  />
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Assign</span>
+                  <span className="text-xs font-medium truncate max-w-[150px]">
+                    {transaction.user?.name || "Unassigned"}
+                  </span>
                 </div>
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="note" className="border-none">
-              <AccordionTrigger className="hover:no-underline py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.2em]">
-                Note
-              </AccordionTrigger>
-              <AccordionContent className="pt-1">
-                <Textarea
-                  placeholder="Add a note or description..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </AccordionContent>
-            </AccordionItem>
+            {transaction.description && (
+              <AccordionItem value="note" className="border-none">
+                <AccordionTrigger className="hover:no-underline py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.2em]">
+                  Note
+                </AccordionTrigger>
+                <AccordionContent className="pt-1">
+                  <div className="text-sm leading-relaxed max-w-[90%] wrap-break-word">
+                    {transaction.description}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
           </Accordion>
         </div>
 
         {/* Footer Toolbar */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] bg-background/70 backdrop-blur-xl border px-4 py-1 flex items-center justify-between z-50 shadow-2xl shadow-black/20">
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] bg-background/70 backdrop-blur-xl py-2 flex items-center justify-between z-50 shadow-2xl shadow-black/20 border-t">
           <div className="flex items-center gap-4">
-            {transaction.type === "transfer" && (
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  To:
-                </span>
-                <SelectAccount
-                  value={transaction.toWalletId ?? undefined}
-                  onChange={async (toWalletId) => {
-                    const res = await updateTransaction(transaction.id, {
-                      toWalletId,
-                    });
-                    if (res.success && res.data) {
-                      updateTransactionInCache({
-                        toWalletId,
-                        toWallet: res.data.toWallet,
-                      });
-                      await queryClient.invalidateQueries({
-                        queryKey: ["transactions"],
-                      });
-                      toast.success("Destination updated");
-                    }
-                  }}
-                  className="h-7 p-0 border-none bg-transparent hover:bg-transparent text-[10px] font-bold uppercase tracking-widest min-w-0"
-                  placeholder="Target Account"
-                />
-              </div>
-            )}
+            <p className="text-[10px] text-muted-foreground/60">
+              Created{" "}
+              {format(
+                new Date(transaction.createdAt || transaction.date),
+                "MMM d, yyyy 'at' h:mm a",
+              )}
+            </p>
           </div>
 
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <Button
-                className="border"
+                className="border p-0 w-7 h-7"
                 variant="ghost"
                 size="icon"
                 onClick={onPrevious}
                 disabled={!onPrevious}
               >
-                <ChevronUp className="h-4 w-4" />
+                <ArrowUp className="h-3 w-3 text-foreground/50" />
               </Button>
               <Button
-                className="border"
+                className="border p-0 w-7 h-7"
                 variant="ghost"
                 size="icon"
                 onClick={onNext}
                 disabled={!onNext}
               >
-                <ChevronDown className="h-4 w-4" />
+                <ArrowDown className="h-3 w-3 text-foreground/50" />
               </Button>
             </div>
             <button
               onClick={() => onOpenChange(false)}
-              className="px-3 py-2 hover:bg-muted/40 transition-colors group"
+              className="px-3 hover:bg-muted/40 transition-colors group border grid place-items-center h-7"
             >
               <span className="text-[10px] font-bold text-muted-foreground group-hover:text-foreground uppercase tracking-widest">
                 Esc
@@ -667,13 +463,6 @@ export function TransactionDetailSheet({
             </button>
           </div>
         </div>
-
-        <VaultPickerModal
-          open={vaultPickerOpen}
-          onOpenChange={setVaultPickerOpen}
-          selectedIds={attachments.map((a) => a.id)}
-          onConfirm={handleVaultConfirm}
-        />
 
         <FilePreviewSheet
           open={previewOpen}
