@@ -16,4 +16,5 @@ export const audit_logs = pgTable("audit_logs", {
   before: jsonb("before"),
   after: jsonb("after"),
   created_at: timestamp("created_at").defaultNow().notNull(),
+  deleted_at: timestamp("deleted_at"),
 });

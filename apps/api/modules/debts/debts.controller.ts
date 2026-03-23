@@ -22,12 +22,7 @@ export const debtsController = new Elysia({ prefix: "/debts" })
   .get(
     "/",
     async ({ workspaceId, query }) => {
-      const data = await DebtsService.getDebts(
-        workspaceId!,
-        query.contactId,
-        query.startDate,
-        query.endDate,
-      );
+      const data = await DebtsService.getDebts(workspaceId!, query);
       return data;
     },
     {

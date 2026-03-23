@@ -122,7 +122,8 @@ function VirtualRowInner<TData>({
               "group-hover:bg-[#F2F1EF] group-hover:dark:bg-[#0f0f0f]",
               cellClassName,
               isSticky && "z-10",
-              isActions && "justify-center",
+              (columnId === "select" || isActions) && "justify-center!",
+              columnId === "select" && "px-0!",
               shouldFlex && "border-r-0",
             )}
             style={cellStyle}
@@ -133,7 +134,9 @@ function VirtualRowInner<TData>({
             }}
           >
             {columnId === "select" || columnId === "actions" ? (
-              flexRender(cell.column.columnDef.cell, cell.getContext())
+              <div className="flex items-center justify-center w-full h-full">
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </div>
             ) : (
               <div className="w-full overflow-hidden truncate">
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}

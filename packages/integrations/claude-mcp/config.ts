@@ -4,7 +4,8 @@ export default {
   name: "Claude",
   id: "claude-mcp",
   category: "ai-automation",
-  active: true, hidden: true,
+  active: true,
+  hidden: true,
   logo: Logo,
   short_description:
     "Connect Claude to your Midday data via MCP. Get financial answers grounded in real numbers.",

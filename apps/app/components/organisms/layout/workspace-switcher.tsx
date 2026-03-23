@@ -19,6 +19,9 @@ import { Cat, ChevronsUpDown, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { switchWorkspaceAction } from "@workspace/modules/user/user.action";
+import { useAppStore } from "@/stores/app";
+import { useLocalizedRoute } from "@/utils/localized-route";
+import { CreateWorkspaceDialog } from "./create-workspace-dialog";
 
 type WorkspaceData = {
   id: string;
@@ -26,6 +29,7 @@ type WorkspaceData = {
   slug: string;
   role?: string;
   plan_name?: string | null;
+  max_workspaces?: number | null;
 };
 
 export function WorkspaceSwitcher({
@@ -43,6 +47,28 @@ export function WorkspaceSwitcher({
   );
 
   const [isSwitching, setIsSwitching] = React.useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
+  const { dictionary } = useAppStore();
+  const { getLocalizedUrl } = useLocalizedRoute();
+
+  const t = (key: string, variables?: Record<string, string | number>) => {
+    if (!key || !key.includes(".") || !dictionary) return key;
+    const keys = key.split(".");
+    let result: any = dictionary;
+    for (const k of keys) {
+      if (!result?.[k]) return key;
+      result = result[k];
+    }
+    if (typeof result !== "string") return key;
+
+    if (variables) {
+      Object.entries(variables).forEach(([k, v]) => {
+        result = result.replace(`{${k}}`, String(v));
+      });
+    }
+
+    return result;
+  };
 
   // Sync state if activeWorkspaceId changes (e.g. from parent)
   React.useEffect(() => {
@@ -62,11 +88,13 @@ export function WorkspaceSwitcher({
       const result = await switchWorkspaceAction(workspace.id);
       if (result.success) {
         setActiveWorkspace(workspace);
-        toast.success(`Switched to ${workspace.name}`);
+        toast.success(
+          t("workspace.switcher.switch_success", { name: workspace.name }),
+        );
         // Refresh to ensure all data is refetched with new workspace context
         window.location.reload();
       } else {
-        toast.error(result.error || "Failed to switch workspace");
+        toast.error(result.error || t("workspace.switcher.switch_error"));
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
@@ -88,32 +116,32 @@ export function WorkspaceSwitcher({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-foreground text-background font-semibold text-sm">
+              <span className="flex aspect-square size-8 items-center justify-center rounded bg-foreground text-background font-semibold text-sm">
                 {isSwitching ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
                   <Cat className="size-4" />
                 )}
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              </span>
+              <span className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
                   {activeWorkspace.name}
                 </span>
                 <span className="truncate text-xs capitalize">
                   {activeWorkspace.plan_name || "Free"}
                 </span>
-              </div>
+              </span>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56"
             align="start"
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-muted-foreground text-xs">
-              Workspaces
+              {t("workspace.switcher.title")}
             </DropdownMenuLabel>
             {workspaces.map((workspace, index) => (
               <DropdownMenuItem
@@ -122,7 +150,7 @@ export function WorkspaceSwitcher({
                 className="gap-2 p-2"
                 disabled={isSwitching}
               >
-                <div className="flex size-6 items-center justify-center rounded-sm border font-semibold text-xs">
+                <div className="flex size-6 items-center justify-center border font-semibold text-xs">
                   {workspace.name.charAt(0).toUpperCase()}
                 </div>
                 {workspace.name}
@@ -130,17 +158,43 @@ export function WorkspaceSwitcher({
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2">
-              <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+            <DropdownMenuItem
+              className="gap-2 p-2 cursor-pointer"
+              onClick={() => {
+                const ownedWorkspaces = workspaces.filter(
+                  (w) => w.role === "owner",
+                );
+                const maxAllowed = workspaces.reduce((max, curr) => {
+                  return Math.max(max, curr.max_workspaces ?? 1);
+                }, 1);
+
+                if (ownedWorkspaces.length >= maxAllowed) {
+                  toast.error(
+                    t("workspace.switcher.limit_reached", {
+                      maxLimit: maxAllowed,
+                    }),
+                  );
+                  return;
+                }
+
+                setIsCreateModalOpen(true);
+              }}
+            >
+              <div className="flex size-6 items-center justify-center border bg-background">
                 <Plus className="size-4" />
               </div>
               <div className="font-medium text-muted-foreground">
-                Add workspace
+                {t("workspace.switcher.add_workspace")}
               </div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
+
+      <CreateWorkspaceDialog
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+      />
     </SidebarMenu>
   );
 }

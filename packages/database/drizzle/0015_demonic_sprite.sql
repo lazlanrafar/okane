@@ -1,0 +1,1 @@
+ALTER TABLE "pricing" ADD COLUMN "max_workspaces" integer DEFAULT 1 NOT NULL;

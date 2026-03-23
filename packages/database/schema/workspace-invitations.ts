@@ -14,4 +14,5 @@ export const workspaceInvitations = pgTable("workspace_invitations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   acceptedAt: timestamp("accepted_at"),
+  deletedAt: timestamp("deleted_at"),
 });

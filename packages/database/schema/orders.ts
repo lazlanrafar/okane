@@ -25,4 +25,5 @@ export const orders = pgTable("orders", {
   manual: boolean("manual").default(false).notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
+  deleted_at: timestamp("deleted_at"),
 });

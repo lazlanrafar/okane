@@ -23,6 +23,7 @@ import {
   getStripePrice,
   displayPrice,
 } from "@workspace/utils";
+import { BusinessDetailsForm } from "./business-details-form";
 
 // ---------------------------------------------------------------------------
 // Step indicator
@@ -200,45 +201,16 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
             </p>
           </div>
 
-          <form onSubmit={handleContinue} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="workspace-name">Company name</Label>
-              <Input
-                id="workspace-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Acme Marketing or Acme Co"
-                required
-                // biome-ignore lint/a11y/noAutofocus: UX requirement
-                autoFocus
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Country</Label>
-              <SelectCountry value={country} onSelect={handleCountryChange} />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Base currency</Label>
-              <SelectCurrency
-                value={currency.code}
-                onSelect={(c) =>
-                  setCurrency({ code: c.code, symbol: c.symbol })
-                }
-              />
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                You can change this later from settings.
-              </p>
-            </div>
-
-            <div className="pt-2">
-              <Button type="submit" className="w-full" disabled={!name.trim()}>
-                Continue
-              </Button>
-            </div>
-          </form>
+          <BusinessDetailsForm
+            name={name}
+            setName={setName}
+            country={country}
+            onCountryChange={handleCountryChange}
+            currencyCode={currency.code}
+            onCurrencySelect={(c: { code: string; symbol: string }) => setCurrency({ code: c.code, symbol: c.symbol })}
+            onSubmit={handleContinue}
+            submitLabel="Continue"
+          />
         </>
       )}
 

@@ -12,6 +12,7 @@ import {
   sql,
   contacts,
   transactions,
+  ilike,
 } from "@workspace/database";
 import type { Debt, DebtPayment } from "@workspace/types";
 
@@ -99,36 +100,49 @@ export abstract class DebtsRepository {
 
   static async findMany(
     workspaceId: string,
-    contactId?: string,
-    startDate?: string,
-    endDate?: string,
-  ): Promise<any[]> {
+    filters?: {
+      contactId?: string;
+      startDate?: string;
+      endDate?: string;
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+  ): Promise<{ rows: any[]; total: number }> {
+    const page = filters?.page ?? 1;
+    const limit = filters?.limit ?? 20;
+    const offset = (page - 1) * limit;
+
     const conditions = [
       eq(debts.workspaceId, workspaceId),
       isNull(debts.deletedAt),
     ];
 
-    if (contactId) {
-      conditions.push(eq(debts.contactId, contactId));
+    if (filters?.contactId) {
+      conditions.push(eq(debts.contactId, filters.contactId));
     }
 
-    if (startDate && endDate) {
+    if (filters?.search) {
+      conditions.push(ilike(contacts.name, `%${filters.search}%`));
+    }
+
+    if (filters?.startDate && filters?.endDate) {
       conditions.push(
         or(
           and(
-            gte(debts.dueDate, startDate),
-            lte(debts.dueDate, endDate),
+            gte(debts.dueDate, filters.startDate),
+            lte(debts.dueDate, filters.endDate),
           ),
           and(
             isNull(debts.dueDate),
-            gte(debts.createdAt, startDate),
-            lte(debts.createdAt, endDate),
-          )
-        )!
+            gte(debts.createdAt, filters.startDate),
+            lte(debts.createdAt, filters.endDate),
+          ),
+        )!,
       );
     }
 
-    const results = await db
+    const rows = await db
       .select({
         debt: debts,
         contactName: contacts.name,
@@ -136,9 +150,20 @@ export abstract class DebtsRepository {
       .from(debts)
       .leftJoin(contacts, eq(debts.contactId, contacts.id))
       .where(and(...conditions))
-      .orderBy(desc(debts.createdAt));
+      .orderBy(desc(debts.createdAt))
+      .limit(limit)
+      .offset(offset);
 
-    return results.map(r => ({ ...r.debt, contactName: r.contactName }));
+    const [stats] = await db
+      .select({ total: sql<number>`count(*)` })
+      .from(debts)
+      .leftJoin(contacts, eq(debts.contactId, contacts.id))
+      .where(and(...conditions));
+
+    return {
+      rows: rows.map((r) => ({ ...r.debt, contactName: r.contactName })),
+      total: Number(stats?.total ?? 0),
+    };
   }
 
   static async findById(
@@ -171,6 +196,7 @@ export abstract class DebtsRepository {
       debtId: data.debtId,
       transactionId: data.transactionId,
       amount: data.amount.toString(),
+      deletedAt: null,
     }).returning();
     return payment as unknown as DebtPayment;
   }

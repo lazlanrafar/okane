@@ -4,7 +4,8 @@ export default {
   name: "ChatGPT",
   id: "chatgpt-mcp",
   category: "ai-automation",
-  active: true, hidden: true,
+  active: true,
+  hidden: true,
   logo: Logo,
   short_description:
     "Build custom ChatGPT integrations with Midday using the MCP SDK.",

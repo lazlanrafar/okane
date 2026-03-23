@@ -99,13 +99,10 @@ export async function proxy(request: NextRequest) {
     // Optional: Redirect if workspace_id is missing in JWT (handled by API, but we could enforce it here)
   }
 
-  // Protect create-workspace (must be logged in, but not already on a workspace)
+  // Protect create-workspace (must be logged in)
   if (pathAfterLocale.startsWith("/create-workspace")) {
     if (!session) {
       return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
-    }
-    if (okane_session) {
-      return NextResponse.redirect(new URL(`/${locale}/overview`, request.url));
     }
   }
 

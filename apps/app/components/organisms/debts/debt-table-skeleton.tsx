@@ -1,19 +1,19 @@
+"use client";
 import { TableSkeleton } from "@workspace/ui";
-import { debtColumns } from "./debts-columns";
-import { useAppStore } from "@/stores/app";
 
 export function DebtTableSkeleton() {
-  const { dictionary } = useAppStore();
+  const dictionary: any = null; // We don't need real dictionary for skeleton headers if we mock them
 
-  if (!dictionary) return null;
-
-  const columns = debtColumns(
-    () => {},
-    () => {},
-    () => {},
-    () => {},
-    dictionary,
-  );
+  const columns = [
+    { id: "select", header: "" },
+    { id: "type", header: "Type" },
+    { id: "contactName", header: "Contact" },
+    { id: "description", header: "Description" },
+    { id: "amount", header: "Amount" },
+    { id: "status", header: "Status" },
+    { id: "dueDate", header: "Due Date" },
+    { id: "actions", header: "" },
+  ];
 
   return (
     <div className="flex w-full flex-col h-full space-y-4">

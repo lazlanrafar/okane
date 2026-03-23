@@ -4,7 +4,8 @@ export default {
   name: "Zapier",
   id: "zapier",
   category: "ai-automation",
-  active: false, hidden: true,
+  active: false,
+  hidden: true,
   logo: Logo,
   short_description:
     "Zapier lets you connect Midday to other apps and automate powerful workflows.",

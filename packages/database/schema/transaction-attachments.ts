@@ -15,4 +15,5 @@ export const transactionAttachments = pgTable("transaction_attachments", {
     .notNull()
     .references(() => vaultFiles.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  deletedAt: timestamp("deleted_at"),
 });

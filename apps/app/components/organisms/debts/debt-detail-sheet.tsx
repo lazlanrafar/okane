@@ -40,7 +40,7 @@ export function DebtDetailSheet({
 }: Props) {
   const [paymentFormOpen, setPaymentFormOpen] = useState(false);
   const { settings, formatCurrency, dictionary: global_dict, isLoading: isDictLoading } = useAppStore() as any;
-  const dict = dictionary || global_dict?.debts;
+  const dict = (dictionary?.debts || global_dict?.debts) as any;
 
   if (!debt) return null;
 
@@ -55,7 +55,7 @@ export function DebtDetailSheet({
         <SheetContent className="flex flex-col h-full p-0 rounded-none shadow-none border-l sm:max-w-[540px]">
           <SheetHeader className="px-6 py-6 border-b shrink-0 flex flex-row items-center justify-between bg-muted/5 text-left">
             <SheetTitle className="font-serif text-xl font-normal">
-              {dictionary.debts.details.title}
+              {dict.details.title}
             </SheetTitle>
             <div className="flex gap-2">
               <Button
@@ -86,8 +86,8 @@ export function DebtDetailSheet({
                   )}
                   <span className="text-[10px] font-medium uppercase tracking-widest">
                     {isReceivable
-                      ? dictionary.debts.types.you_are_owed
-                      : dictionary.debts.types.you_owe}
+                      ? dict.types.you_are_owed
+                      : dict.types.you_owe}
                   </span>
                   <span className="text-[10px] font-medium uppercase tracking-widest text-foreground">
                     {debt.contactName}
@@ -105,7 +105,7 @@ export function DebtDetailSheet({
                 }
                 className="capitalize rounded-none shadow-none text-[10px] font-medium tracking-widest"
               >
-                {dictionary.debts.statuses[debt.status] || debt.status}
+                {dict.statuses[debt.status] || debt.status}
               </Badge>
             </div>
 
@@ -113,13 +113,13 @@ export function DebtDetailSheet({
 
             <div className="space-y-6">
               <h3 className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                {dictionary.debts.details.summary}
+                {dict.details.summary}
               </h3>
 
               <div className="grid grid-cols-2 gap-y-4 text-sm">
                 <div className="space-y-1">
                   <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                    {dictionary.debts.details.original_amount}
+                    {dict.details.original_amount}
                   </p>
                   <p className="font-serif text-lg font-normal">
                     {formatCurrency(amount)}
@@ -128,7 +128,7 @@ export function DebtDetailSheet({
 
                 <div className="space-y-1">
                   <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                    {dictionary.debts.details.paid_amount}
+                    {dict.details.paid_amount}
                   </p>
                   <p className="font-serif text-lg font-normal text-emerald-500">
                     {formatCurrency(paidAmount)}
@@ -138,12 +138,12 @@ export function DebtDetailSheet({
                 <div className="space-y-1">
                   <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5" />
-                    {dictionary.debts.details.due_date}
+                    {dict.details.due_date}
                   </p>
                   <p className="font-serif text-lg font-normal">
                     {debt.dueDate
                       ? format(new Date(debt.dueDate), "MMM d, yyyy")
-                      : dictionary.debts.details.no_due_date}
+                      : dict.details.no_due_date}
                   </p>
                 </div>
 
@@ -151,7 +151,7 @@ export function DebtDetailSheet({
                   <div className="space-y-1">
                     <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                       <CreditCard className="w-3.5 h-3.5" />
-                      {dictionary.debts.details.from_transaction}
+                      {dict.details.from_transaction}
                     </p>
                     <p className="font-serif text-lg hover:underline cursor-pointer line-clamp-1 italic text-muted-foreground font-normal">
                       {debt.sourceTransactionName}
@@ -164,7 +164,7 @@ export function DebtDetailSheet({
             {debt.description && (
               <div className="space-y-2">
                 <h3 className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                  {dictionary.debts.details.notes}
+                  {dict.details.notes}
                 </h3>
                 <div className="text-sm text-foreground/80 whitespace-pre-wrap rounded-none bg-muted/10 p-4 border border-border/50 italic font-normal">
                   {debt.description}

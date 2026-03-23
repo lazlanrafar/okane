@@ -1,6 +1,8 @@
 import {
   db,
   eq,
+  and,
+  isNull,
   users,
   user_workspaces,
   workspaces,
@@ -87,7 +89,12 @@ export const usersRepository = {
     return db
       .select()
       .from(user_workspaces)
-      .where(eq(user_workspaces.user_id, user_id));
+      .where(
+        and(
+          eq(user_workspaces.user_id, user_id),
+          isNull(user_workspaces.deleted_at),
+        ),
+      );
   },
 
   async getWorkspacesWithRole(user_id: string) {
@@ -98,10 +105,17 @@ export const usersRepository = {
         slug: workspaces.slug,
         role: user_workspaces.role,
         plan_name: pricing.name,
+        max_workspaces: pricing.max_workspaces,
       })
       .from(user_workspaces)
       .innerJoin(workspaces, eq(user_workspaces.workspace_id, workspaces.id))
       .leftJoin(pricing, eq(workspaces.plan_id, pricing.id))
-      .where(eq(user_workspaces.user_id, user_id));
+      .where(
+        and(
+          eq(user_workspaces.user_id, user_id),
+          isNull(user_workspaces.deleted_at),
+          isNull(workspaces.deleted_at),
+        ),
+      );
   },
 };

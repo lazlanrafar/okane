@@ -4,7 +4,8 @@ export default {
   name: "Raycast",
   id: "raycast-mcp",
   category: "ai-automation",
-  active: true, hidden: true,
+  active: true,
+  hidden: true,
   logo: Logo,
   short_description:
     "Access Midday financial data directly from Raycast via MCP.",

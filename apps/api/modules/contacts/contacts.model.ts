@@ -31,6 +31,11 @@ export const ContactsModel = {
     vatNumber: t.Optional(t.String()),
     billingEmails: t.Optional(t.String()),
   }),
+  listQuery: t.Object({
+    search: t.Optional(t.String()),
+    page: t.Optional(t.Numeric({ minimum: 1 })),
+    limit: t.Optional(t.Numeric({ minimum: 1, maximum: 100 })),
+  }),
 } as const;
 
 export type CreateContactInput = UnwrapSchema<typeof ContactsModel.create>;

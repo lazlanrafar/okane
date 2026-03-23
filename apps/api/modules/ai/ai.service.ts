@@ -45,7 +45,7 @@ export abstract class AiService {
 
       // Save previous messages if any
       for (const msg of messages.slice(0, -1)) {
-        await AiRepository.saveMessage(currentSessionId, msg.role as any, msg.content);
+        await AiRepository.saveMessage(currentSessionId, workspaceId, msg.role as any, msg.content);
       }
     } else {
       const session = await AiRepository.getSession(currentSessionId, workspaceId);
@@ -55,13 +55,14 @@ export abstract class AiService {
     // Save latest user message
     await AiRepository.saveMessage(
       currentSessionId,
+      workspaceId,
       latestUserMessage.role as any,
       latestUserMessage.content,
       latestUserMessage.attachments,
     );
 
     // 2. Load History
-    const history = await AiRepository.getSessionMessages(currentSessionId);
+    const history = await AiRepository.getSessionMessages(currentSessionId, workspaceId);
     const consolidatedMessages: RepoChatMessage[] = history.map(m => ({
       role: m.role as any,
       content: m.content as string,
@@ -72,7 +73,7 @@ export abstract class AiService {
     const usageData = await AiRepository.getUsageAndQuota(workspaceId);
     if (!usageData) throw status(404, buildError(ErrorCode.WORKSPACE_NOT_FOUND, "Workspace not found"));
 
-    const maxTokens = usageData.maxTokens ?? 50000;
+    const maxTokens = usageData.maxTokens ?? 5000;
     const currentTokens = Number(usageData.used);
 
     if (currentTokens >= maxTokens && workspaceId !== "b45ad588-6758-43a4-8c26-1d80f3b0ab9f") {
@@ -96,7 +97,7 @@ export abstract class AiService {
     );
 
     // 5. Save Response & Token Usage
-    await AiRepository.saveMessage(currentSessionId, "assistant", response.reply);
+    await AiRepository.saveMessage(currentSessionId, workspaceId, "assistant", response.reply);
     
     const tokensSpent = (response.usage?.input_tokens ?? 250) + (response.usage?.output_tokens ?? 250);
     await AiRepository.incrementAiTokens(workspaceId, currentTokens, tokensSpent);
@@ -142,8 +143,6 @@ export abstract class AiService {
   }
 
   static async getSessionMessages(sessionId: string, workspaceId: string) {
-    const session = await AiRepository.getSession(sessionId, workspaceId);
-    if (!session) throw new Error("Chat session not found or access denied.");
-    return AiRepository.getSessionMessages(sessionId);
+    return AiRepository.getSessionMessages(sessionId, workspaceId);
   }
 }

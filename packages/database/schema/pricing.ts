@@ -27,6 +27,7 @@ export const pricing = pgTable("pricing", {
   stripe_product_id: text("stripe_product_id"),
   max_vault_size_mb: integer("max_vault_size_mb").default(100).notNull(),
   max_ai_tokens: integer("max_ai_tokens").default(100).notNull(),
+  max_workspaces: integer("max_workspaces").default(1).notNull(),
   features: jsonb("features").$type<string[]>().default([]).notNull(),
   is_active: boolean("is_active").default(true).notNull(),
   deleted_at: timestamp("deleted_at"),

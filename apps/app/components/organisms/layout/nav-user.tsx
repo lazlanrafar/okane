@@ -24,6 +24,8 @@ import {
   LogOut,
   MessageSquareDot,
 } from "lucide-react";
+import { useAppStore } from "@/stores/app";
+import { useLocalizedRoute } from "@/utils/localized-route";
 
 export function NavUser({
   user,
@@ -35,6 +37,19 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const { dictionary } = useAppStore();
+  const { getLocalizedUrl } = useLocalizedRoute();
+
+  const t = (key: string) => {
+    if (!key || !key.includes(".") || !dictionary) return key;
+    const keys = key.split(".");
+    let result: any = dictionary;
+    for (const k of keys) {
+      if (!result?.[k]) return key;
+      result = result[k];
+    }
+    return typeof result === "string" ? result : key;
+  };
 
   return (
     <SidebarMenu>
@@ -51,12 +66,12 @@ export function NavUser({
                   {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
                 <span className="truncate text-muted-foreground text-xs">
                   {user.email}
                 </span>
-              </div>
+              </span>
               <EllipsisVertical className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -84,23 +99,23 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.location.href = getLocalizedUrl("/settings/profile")}>
                 <CircleUser />
-                Account
+                {t("sidebar.account")}
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.location.href = getLocalizedUrl("/settings/billing")}>
                 <CreditCard />
-                Billing
+                {t("sidebar.billing")}
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.location.href = getLocalizedUrl("/settings/notifications")}>
                 <MessageSquareDot />
-                Notifications
+                {t("sidebar.notifications")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => window.location.href = getLocalizedUrl("/logout")}>
               <LogOut />
-              Log out
+              {t("sidebar.logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

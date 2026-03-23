@@ -34,7 +34,7 @@ export function SelectContact({
     queryKey: ["contacts"],
     queryFn: async () => {
       const res = await getContacts();
-      if (!res.success) throw new Error(res.error);
+      if (!res.success) throw new Error(res.message);
       return res.data || [];
     },
   });

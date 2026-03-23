@@ -40,15 +40,28 @@ export const workspacesService = {
   ) {
     const { name, country, mainCurrencyCode, mainCurrencySymbol } = data;
 
-    // 0. Check for existing workspaces (Free Tier limit)
-    const existingWorkspaces =
-      await workspacesRepository.getMemberWorkspaces(user_id);
-    if (existingWorkspaces && existingWorkspaces.length > 0) {
+    // 0. Check for existing workspaces (Plan Gating)
+    const workspacesWithPlans =
+      await workspacesRepository.getWorkspacesWithPlans(user_id);
+
+    // Filter to only workspaces where the user is an owner/admin (who can create workspaces)
+    // Actually, the limit should be based on the TOTAL workspaces a user is in, or just those they OWN?
+    // User request: "maximum workspace".
+    // Usually, this refers to ownership.
+    const ownedWorkspaces = workspacesWithPlans.filter(w => w.role === 'owner');
+    
+    // Find the maximum limit from all plans the user is part of
+    const maxAllowed = workspacesWithPlans.reduce((max, curr) => {
+      const planLimit = curr.plan?.max_workspaces ?? 1; // Default to 1 if no plan
+      return Math.max(max, planLimit);
+    }, 1);
+
+    if (ownedWorkspaces.length >= maxAllowed) {
       throw status(
         422,
         buildError(
           ErrorCode.PLAN_LIMIT_REACHED,
-          "You already have a workspace. Free tier accounts are limited to one workspace.",
+          `You have reached the workspace limit for your current plan (Max: ${maxAllowed}). Please upgrade to create more workspaces.`,
         ),
       );
     }

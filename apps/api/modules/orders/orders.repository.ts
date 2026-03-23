@@ -11,6 +11,7 @@ import {
   gte,
   lte,
   sql,
+  isNull,
 } from "@workspace/database";
 
 /**
@@ -101,7 +102,10 @@ export const ordersRepository = {
       conditions.push(lte(orders.created_at, endDate));
     }
 
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const whereClause = and(
+      isNull(orders.deleted_at),
+      ...(conditions.length > 0 ? conditions : []),
+    );
 
     const [totalResult] = await db
       .select({ count: sql<number>`count(*)` })
@@ -139,7 +143,7 @@ export const ordersRepository = {
     const [order] = await db
       .select()
       .from(orders)
-      .where(eq(orders.id, id))
+      .where(and(eq(orders.id, id), isNull(orders.deleted_at)))
       .limit(1);
     return order ?? null;
   },
@@ -148,7 +152,7 @@ export const ordersRepository = {
     const [order] = await db
       .select()
       .from(orders)
-      .where(eq(orders.stripe_invoice_id, invoiceId))
+      .where(and(eq(orders.stripe_invoice_id, invoiceId), isNull(orders.deleted_at)))
       .limit(1);
     return order ?? null;
   },
@@ -169,7 +173,7 @@ export const ordersRepository = {
         updated_at: orders.updated_at,
       })
       .from(orders)
-      .where(eq(orders.workspace_id, workspaceId))
+      .where(and(eq(orders.workspace_id, workspaceId), isNull(orders.deleted_at)))
       .orderBy(desc(orders.created_at));
   },
 };

@@ -5,6 +5,9 @@ export const DebtsModel = {
     contactId: t.Optional(t.String()),
     startDate: t.Optional(t.String()),
     endDate: t.Optional(t.String()),
+    search: t.Optional(t.String()),
+    page: t.Optional(t.Numeric({ minimum: 1 })),
+    limit: t.Optional(t.Numeric({ minimum: 1, maximum: 100 })),
   }),
   create: t.Object({
     contactId: t.String(),

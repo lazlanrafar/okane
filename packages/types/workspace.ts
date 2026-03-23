@@ -30,5 +30,6 @@ export type WorkspaceMembership = {
 export type WorkspaceWithRole = Workspace & {
   role: WorkspaceRole;
   plan_name?: string | null;
+  max_workspaces?: number | null;
 };
 

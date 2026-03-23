@@ -3,24 +3,26 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { Wallet, Contact } from "@workspace/types";
-import { type DebtWithContact, deleteDebt, getContact } from "@workspace/modules/client";
+import { type DebtWithContact, deleteDebt, getContact, getDebts } from "@workspace/modules/client";
 import {
   Button,
   DataTable,
   DataTableColumnsVisibility,
   DataTableFilter,
+  DataTableEmptyState,
 } from "@workspace/ui";
 import { Plus } from "lucide-react";
 import { debtColumns } from "./debts-columns";
 import { DebtFormSheet } from "./debt-form-sheet";
 import { DebtDetailSheet } from "./debt-detail-sheet";
+import { DebtBulkEditBar } from "./debt-bulk-edit-bar";
 import { ContactDetailSheet } from "../contacts/contact-detail-sheet";
-import { DataTableEmptyState } from "@workspace/ui";
 import { useAppStore } from "@/stores/app";
+import { useDebtsStore } from "@/stores/debts";
 import { useDataTableFilter } from "@/hooks/use-data-table-filter";
 import { useConfirm } from "@/components/providers/confirm-modal-provider";
 import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   initialData: DebtWithContact[];
@@ -38,6 +40,7 @@ export function DebtsClient({ initialData, wallets, dictionary }: Props) {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   
   const { settings, formatCurrency } = useAppStore();
+  const { rowSelection, setRowSelection } = useDebtsStore();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
 
@@ -107,22 +110,52 @@ export function DebtsClient({ initialData, wallets, dictionary }: Props) {
     [dictionary]
   );
 
-  const filteredData = useMemo(() => {
-    let result = [...initialData];
-    if (filters.status) {
-      result = result.filter((d) => d.status === filters.status);
-    }
-    if (filters.q) {
-      const q = filters.q.toLowerCase();
-      result = result.filter(
-        (d) =>
-          d.contactName.toLowerCase().includes(q) ||
-          d.description?.toLowerCase().includes(q) ||
-          d.sourceTransactionName?.toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [initialData, filters]);
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ["debts", filters.q, filters.status],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await getDebts({
+        contactId: filters.q as string, // Search is handled by backend
+        page: pageParam,
+        limit: 50,
+      });
+      if (!res.success) throw new Error(res.message);
+      return res;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage.meta?.pagination;
+      if (!pagination) return undefined;
+      return pagination.page < pagination.total_pages
+        ? pagination.page + 1
+        : undefined;
+    },
+    initialData: {
+      pages: [
+        {
+          success: true,
+          data: initialData,
+          code: "OK",
+          message: "Initial data",
+          meta: {
+            pagination: {
+              total: initialData.length,
+              page: 1,
+              limit: 50,
+              total_pages: 1,
+            },
+            timestamp: Date.now(),
+          },
+        },
+      ],
+      pageParams: [1],
+    },
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
+
+  const allDebts = useMemo(() => {
+    return data?.pages.flatMap((p: any) => p.data ?? []) ?? [];
+  }, [data]);
 
   const statusOptions = [
     { id: "unpaid", name: dictionary.debts.statuses.unpaid },
@@ -159,12 +192,18 @@ export function DebtsClient({ initialData, wallets, dictionary }: Props) {
 
       <div className="flex-1 min-h-0 relative">
         <DataTable
-          data={filteredData}
+          data={allDebts}
           columns={columnsWithActions}
           setColumns={setColumns}
           tableId="debts"
           sticky={{ columns: ["select", "contactName"] }}
           nonClickableColumns={nonClickableColumns}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection as any}
+          infiniteScroll={true}
+          fetchNextPage={fetchNextPage}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
           meta={{
             onRowClick: handleRowClick,
             onDelete: (id: string) => deleteMutation.mutate(id),
@@ -182,6 +221,7 @@ export function DebtsClient({ initialData, wallets, dictionary }: Props) {
           }
           hFull
         />
+        <DebtBulkEditBar />
       </div>
 
       <DebtFormSheet

@@ -58,7 +58,7 @@ const CellActions = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>
-          {dictionary.transactions.actions.title}
+          {dictionary.contacts.details.title}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => onEdit(contact)}>
@@ -145,6 +145,14 @@ export const getContactColumns = (
   },
   {
     id: "actions",
+    header: dictionary.contacts.columns.actions,
+    size: 100,
+    enableResizing: false,
+    meta: {
+      headerLabel: dictionary.contacts.columns.actions,
+      sticky: true,
+      className: "bg-background z-20",
+    },
     cell: ({ row }) => (
       <CellActions row={row} onEdit={onEdit} dictionary={dictionary} />
     ),

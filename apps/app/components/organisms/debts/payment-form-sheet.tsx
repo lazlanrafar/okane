@@ -47,7 +47,7 @@ export function PaymentFormSheet({
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const { settings, formatCurrency, dictionary: global_dict, isLoading: isDictLoading } = useAppStore() as any;
-  const dict = dictionary || global_dict?.debts;
+  const dict = (dictionary?.debts || global_dict?.debts) as any;
 
   const remaining = debt
     ? Number.parseFloat(debt.remainingAmount as string)
@@ -56,9 +56,9 @@ export function PaymentFormSheet({
   const paymentSchema = z.object({
     amount: z.coerce
       .number()
-      .positive(dictionary.debts.form.amount.error_positive)
-      .max(remaining, dictionary.debts.form.amount.error_max_remaining),
-    walletId: z.string().min(1, dictionary.debts.form.account.error_required),
+      .positive(dict.form.amount.error_positive)
+      .max(remaining, dict.form.amount.error_max_remaining),
+    walletId: z.string().min(1, dict.form.account.error_required),
   });
 
   type PaymentFormValues = z.infer<typeof paymentSchema>;
@@ -89,7 +89,7 @@ export function PaymentFormSheet({
       });
     },
     onSuccess: () => {
-      toast.success(dictionary.debts.toasts.payment_recorded);
+      toast.success(dict.toasts.payment_recorded);
       queryClient.invalidateQueries({ queryKey: ["debts"] });
       // Invalidate wallets and transactions since a new transaction is created
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
@@ -99,7 +99,7 @@ export function PaymentFormSheet({
       router.refresh();
     },
     onError: (error: any) => {
-      toast.error(error.message || dictionary.debts.toasts.payment_failed);
+      toast.error(error.message || dict.toasts.payment_failed);
     },
   });
 
@@ -115,7 +115,7 @@ export function PaymentFormSheet({
       <SheetContent className="flex flex-col h-full p-0 rounded-none shadow-none border-l sm:max-w-[540px]">
         <SheetHeader className="px-6 py-6 border-b shrink-0 bg-muted/5 text-left">
           <SheetTitle className="font-serif text-xl font-normal">
-            {dictionary.debts.form.payment.title}
+            {dict.form.payment.title}
           </SheetTitle>
         </SheetHeader>
 
@@ -128,14 +128,14 @@ export function PaymentFormSheet({
             >
               <div className="rounded-none border border-border/50 p-4 bg-muted/5 space-y-2 mb-8">
                 <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                  {dictionary.debts.form.payment.paying_to_from}
+                  {dict.form.payment.paying_to_from}
                 </p>
                 <p className="text-lg font-serif font-normal">
                   {debt.contactName}
                 </p>
                 <div className="pt-2 border-t border-border/50">
                   <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                    {dictionary.debts.form.payment.remaining_balance}
+                    {dict.form.payment.remaining_balance}
                   </p>
                   <p className="text-lg font-serif text-primary font-normal">
                     {formatCurrency(remaining)}
@@ -149,7 +149,7 @@ export function PaymentFormSheet({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                      {dictionary.debts.form.payment.amount_to_pay}
+                      {dict.form.payment.amount_to_pay}
                     </FormLabel>
                     <FormControl>
                       <div className="relative group">
@@ -171,7 +171,7 @@ export function PaymentFormSheet({
                       </div>
                     </FormControl>
                     <FormDescription className="text-[11px]">
-                      {dictionary.debts.form.payment.amount_to_pay_description}
+                      {dict.form.payment.amount_to_pay_description}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -184,7 +184,7 @@ export function PaymentFormSheet({
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                      {dictionary.debts.form.account.label}
+                      {dict.form.account.label}
                     </FormLabel>
                     <FormControl>
                       <SelectAccount
@@ -194,7 +194,7 @@ export function PaymentFormSheet({
                       />
                     </FormControl>
                     <FormDescription className="text-[10px] uppercase tracking-wider opacity-60">
-                      {dictionary.debts.form.account.description}
+                      {dict.form.account.description}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

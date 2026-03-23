@@ -81,16 +81,15 @@ export const walletsController = new Elysia()
       .get(
         "/",
         async ({ workspaceId, query }) => {
-          const data = await walletsService.getWallets(workspaceId!, {
-            search: query.search,
-            groupId: query.groupId,
-          });
-          return buildSuccess(data, "Wallets retrieved");
+          const data = await walletsService.getWallets(workspaceId!, query);
+          return data;
         },
         {
           query: t.Object({
             search: t.Optional(t.String()),
             groupId: t.Optional(t.String()),
+            page: t.Optional(t.Numeric({ minimum: 1 })),
+            limit: t.Optional(t.Numeric({ minimum: 1, maximum: 100 })),
           }),
           detail: { summary: "Get Wallets", tags: ["Wallets"] },
         },

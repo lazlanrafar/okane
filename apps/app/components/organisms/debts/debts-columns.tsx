@@ -44,6 +44,12 @@ export const debtColumns = (
     ),
     enableSorting: false,
     enableHiding: false,
+    enableResizing: false,
+    size: 50,
+    meta: {
+      sticky: true,
+      className: "bg-background z-10",
+    },
   },
   {
     accessorKey: "type",
@@ -159,6 +165,12 @@ export const debtColumns = (
   },
   {
     id: "actions",
+    header: dictionary.debts.columns.actions,
+    enableResizing: false,
+    size: 100,
+    meta: {
+      headerLabel: dictionary.debts.columns.actions,
+    },
     cell: ({ row, table }) => {
       const debt = row.original;
       

@@ -4,11 +4,11 @@ export default {
   name: "Deel",
   id: "deel",
   category: "payments",
-  active: false, hidden: true,
+  active: false,
+  hidden: true,
   logo: Logo,
   short_description:
     "Connect Deel to sync your contractor payments, payroll, and compliance data with Midday.",
   description: null,
   images: [],
 };
-

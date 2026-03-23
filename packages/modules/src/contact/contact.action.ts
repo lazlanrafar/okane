@@ -1,20 +1,23 @@
 "use server";
 
-import type { ActionResponse, Contact } from "@workspace/types";
+import type { ActionResponse, ApiResponse, Contact } from "@workspace/types";
 import { axiosInstance as api } from "../lib/axios.server";
 
 export const getContacts = async (filters?: {
   search?: string;
   page?: number;
   limit?: number;
-}): Promise<ActionResponse<Contact[]>> => {
+}): Promise<ApiResponse<Contact[]>> => {
   try {
     const res = await api.get("/contacts", { params: filters });
-    return { success: true, data: res.data?.data || [] };
+    return (res as any)._api_response;
   } catch (error: any) {
     return {
       success: false,
-      error: error.response?.data?.message || "Failed to fetch contacts",
+      data: [],
+      code: "FETCH_ERROR",
+      message: error.response?.data?.message || "Failed to fetch contacts",
+      meta: { timestamp: Date.now() },
     };
   }
 };

@@ -12,6 +12,7 @@ export interface Pricing {
   stripe_product_id: string | null;
   max_vault_size_mb: number;
   max_ai_tokens: number;
+  max_workspaces: number;
   features: string[];
   is_active: boolean;
   deleted_at: Date | null;
@@ -30,6 +31,9 @@ export interface CreatePricingInput {
     stripe_yearly_id?: string;
   }[];
   stripe_product_id?: string;
+  max_vault_size_mb?: number;
+  max_ai_tokens?: number;
+  max_workspaces?: number;
   features?: string[];
   is_active?: boolean;
 }

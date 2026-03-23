@@ -5,7 +5,8 @@ export const baseConfig = {
   name: "Slack",
   id: "slack",
   category: "capture",
-  active: true, hidden: true,
+  active: true,
+  hidden: true,
   logo: Logo,
   short_description:
     "Get transaction notifications and upload receipts directly from Slack. Midday automatically extracts data and matches them to transactions.",

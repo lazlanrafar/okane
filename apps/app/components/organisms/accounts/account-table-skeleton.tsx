@@ -1,15 +1,15 @@
 "use client";
 
 import { TableSkeleton, Skeleton } from "@workspace/ui";
-import { accountColumns } from "./account-columns";
-import { useAppStore } from "@/stores/app";
 
 export function AccountTableSkeleton() {
-  const { dictionary } = useAppStore();
-
-  if (!dictionary) return null;
-
-  const columns = accountColumns(() => {}, () => {}, dictionary);
+  const columns = [
+    { id: "name", header: "Account" },
+    { id: "type", header: "Type" },
+    { id: "currency", header: "Currency" },
+    { id: "balance", header: "Balance" },
+    { id: "actions", header: "" },
+  ];
 
   return (
     <div className="flex w-full flex-col h-full space-y-4">

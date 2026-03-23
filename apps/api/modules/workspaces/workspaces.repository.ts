@@ -2,6 +2,7 @@ import {
   db,
   eq,
   and,
+  isNull,
   workspaces,
   user_workspaces,
   workspaceInvitations,
@@ -36,10 +37,10 @@ export const workspacesRepository = {
       })
       .from(workspaces)
       .leftJoin(pricing, eq(workspaces.plan_id, pricing.id))
-      .where(eq(workspaces.id, workspace_id))
+      .where(and(eq(workspaces.id, workspace_id), isNull(workspaces.deleted_at)))
       .limit(1);
 
-    if (!result || result.workspace.deleted_at) return null;
+    if (!result) return null;
 
     return {
       ...result.workspace,
@@ -68,7 +69,32 @@ export const workspacesRepository = {
       })
       .from(user_workspaces)
       .innerJoin(workspaces, eq(user_workspaces.workspace_id, workspaces.id))
-      .where(eq(user_workspaces.user_id, user_id));
+      .where(
+        and(
+          eq(user_workspaces.user_id, user_id),
+          isNull(user_workspaces.deleted_at),
+          isNull(workspaces.deleted_at),
+        ),
+      );
+  },
+
+  async getWorkspacesWithPlans(user_id: string) {
+    return db
+      .select({
+        workspace: workspaces,
+        plan: pricing,
+        role: user_workspaces.role,
+      })
+      .from(user_workspaces)
+      .innerJoin(workspaces, eq(user_workspaces.workspace_id, workspaces.id))
+      .leftJoin(pricing, eq(workspaces.plan_id, pricing.id))
+      .where(
+        and(
+          eq(user_workspaces.user_id, user_id),
+          isNull(user_workspaces.deleted_at),
+          isNull(workspaces.deleted_at),
+        ),
+      );
   },
 
   async getMembers(workspace_id: string) {
@@ -83,7 +109,12 @@ export const workspacesRepository = {
       })
       .from(user_workspaces)
       .innerJoin(users, eq(user_workspaces.user_id, users.id))
-      .where(eq(user_workspaces.workspace_id, workspace_id));
+      .where(
+        and(
+          eq(user_workspaces.workspace_id, workspace_id),
+          isNull(user_workspaces.deleted_at),
+        ),
+      );
   },
 
   async getMembership(user_id: string, workspace_id: string) {
@@ -94,6 +125,7 @@ export const workspacesRepository = {
         and(
           eq(user_workspaces.user_id, user_id),
           eq(user_workspaces.workspace_id, workspace_id),
+          isNull(user_workspaces.deleted_at),
         ),
       )
       .limit(1);
@@ -122,6 +154,7 @@ export const workspacesRepository = {
         and(
           eq(workspaceInvitations.token, token),
           eq(workspaceInvitations.status, "pending"),
+          isNull(workspaceInvitations.deletedAt),
         ),
       )
       .limit(1);
@@ -137,6 +170,7 @@ export const workspacesRepository = {
           eq(workspaceInvitations.workspaceId, workspaceId),
           eq(workspaceInvitations.email, email),
           eq(workspaceInvitations.status, "pending"),
+          isNull(workspaceInvitations.deletedAt),
         ),
       )
       .limit(1);
@@ -151,6 +185,7 @@ export const workspacesRepository = {
         and(
           eq(workspaceInvitations.email, email),
           eq(workspaceInvitations.status, "pending"),
+          isNull(workspaceInvitations.deletedAt),
         ),
       );
   },
@@ -158,8 +193,17 @@ export const workspacesRepository = {
   async updateInvitationStatus(id: string, status: "accepted" | "expired") {
     await db
       .update(workspaceInvitations)
-      .set({ status, acceptedAt: status === "accepted" ? new Date() : null })
-      .where(eq(workspaceInvitations.id, id));
+      .set({
+        status,
+        acceptedAt: status === "accepted" ? new Date() : null,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(workspaceInvitations.id, id),
+          isNull(workspaceInvitations.deletedAt),
+        ),
+      );
   },
 
   async getWorkspaceInvitations(workspaceId: string) {
@@ -170,13 +214,15 @@ export const workspacesRepository = {
         and(
           eq(workspaceInvitations.workspaceId, workspaceId),
           eq(workspaceInvitations.status, "pending"),
+          isNull(workspaceInvitations.deletedAt),
         ),
       );
   },
 
   async deleteInvitation(id: string) {
     await db
-      .delete(workspaceInvitations)
+      .update(workspaceInvitations)
+      .set({ deletedAt: new Date(), updatedAt: new Date() })
       .where(eq(workspaceInvitations.id, id));
   },
 };

@@ -18,20 +18,14 @@ export const contactsController = new Elysia({ prefix: "/contacts" })
     }
   })
 
-  // Get all contacts
   .get(
     "/",
     async ({ workspaceId, query }) => {
-      const data = await ContactsService.getContacts(
-        workspaceId!,
-        query.search,
-      );
+      const data = await ContactsService.getContacts(workspaceId!, query);
       return data;
     },
     {
-      query: t.Object({
-        search: t.Optional(t.String()),
-      }),
+      query: ContactsModel.listQuery,
     },
   )
   

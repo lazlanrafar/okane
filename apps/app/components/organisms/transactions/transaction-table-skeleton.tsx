@@ -1,15 +1,18 @@
 "use client";
 
 import { TableSkeleton } from "@workspace/ui";
-import { transactionColumns } from "./transaction-columns";
-import { useAppStore } from "@/stores/app";
 
 export function TransactionTableSkeleton({ hideHeader = false }: { hideHeader?: boolean }) {
-  const { dictionary, formatCurrency, getTransactionColor } = useAppStore();
-
-  if (!dictionary) return null;
-
-  const columns = transactionColumns(() => {}, dictionary, formatCurrency, getTransactionColor);
+  const columns = [
+    { id: "select", header: "" },
+    { id: "date", header: "Date" },
+    { id: "type", header: "Type" },
+    { id: "category", header: "Category" },
+    { id: "name", header: "Name" },
+    { id: "amount", header: "Amount" },
+    { id: "wallet", header: "Wallet" },
+    { id: "actions", header: "" },
+  ];
 
   return (
     <div className="flex w-full flex-col h-full space-y-4">

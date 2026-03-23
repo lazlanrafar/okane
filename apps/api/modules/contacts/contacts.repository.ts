@@ -98,24 +98,38 @@ export abstract class ContactsRepository {
 
   static async findMany(
     workspaceId: string,
-    search?: string,
-  ): Promise<Contact[]> {
+    filters?: { search?: string; page?: number; limit?: number },
+  ): Promise<{ rows: Contact[]; total: number }> {
+    const page = filters?.page ?? 1;
+    const limit = filters?.limit ?? 20;
+    const offset = (page - 1) * limit;
+
     const conditions = [
       eq(contacts.workspaceId, workspaceId),
       isNull(contacts.deletedAt),
     ];
 
-    if (search) {
-      conditions.push(ilike(contacts.name, `%${search}%`));
+    if (filters?.search) {
+      conditions.push(ilike(contacts.name, `%${filters.search}%`));
     }
 
-    const results = await db
+    const rows = await db
       .select()
       .from(contacts)
       .where(and(...conditions))
-      .orderBy(desc(contacts.createdAt));
+      .orderBy(desc(contacts.createdAt))
+      .limit(limit)
+      .offset(offset);
 
-    return results as unknown as Contact[];
+    const [stats] = await db
+      .select({ total: sql<number>`count(*)` })
+      .from(contacts)
+      .where(and(...conditions));
+
+    return {
+      rows: rows as unknown as Contact[],
+      total: Number(stats?.total ?? 0),
+    };
   }
 
   static async findById(

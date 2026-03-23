@@ -193,7 +193,7 @@ export function Combobox<T extends ComboboxItem>({
       <PopoverContent
         {...popoverProps}
         portal={false}
-        className={cn("p-0", popoverProps?.className)}
+        className={cn("p-0 min-w-50", popoverProps?.className)}
         style={{
           width: "var(--radix-popover-trigger-width)",
           ...popoverProps?.style,

@@ -129,7 +129,13 @@ export abstract class InvoicesRepository {
     const [result] = await db
       .update(invoices)
       .set(values)
-      .where(and(eq(invoices.id, id), eq(invoices.workspaceId, workspaceId)))
+      .where(
+        and(
+          eq(invoices.id, id),
+          eq(invoices.workspaceId, workspaceId),
+          isNull(invoices.deletedAt),
+        ),
+      )
       .returning();
     return result;
   }

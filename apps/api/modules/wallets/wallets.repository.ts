@@ -71,7 +71,13 @@ export const walletsRepository = {
     const [wallet] = await db
       .update(wallets)
       .set(updateData)
-      .where(and(eq(wallets.id, id), eq(wallets.workspaceId, workspaceId)))
+      .where(
+        and(
+          eq(wallets.id, id),
+          eq(wallets.workspaceId, workspaceId),
+          isNull(wallets.deletedAt),
+        ),
+      )
       .returning();
     return wallet ?? null;
   },
@@ -87,8 +93,12 @@ export const walletsRepository = {
 
   async findMany(
     workspaceId: string,
-    filters?: { search?: string; groupId?: string },
-  ) {
+    filters?: { search?: string; groupId?: string; page?: number; limit?: number },
+  ): Promise<{ rows: any[]; total: number }> {
+    const page = filters?.page ?? 1;
+    const limit = filters?.limit ?? 20;
+    const offset = (page - 1) * limit;
+
     const conditions = [
       eq(wallets.workspaceId, workspaceId),
       isNull(wallets.deletedAt),
@@ -106,23 +116,39 @@ export const walletsRepository = {
       }
     }
 
-    const result = await db
+    const rows = await db
       .select()
       .from(wallets)
       .where(and(...conditions))
-      .orderBy(asc(wallets.sortOrder), desc(wallets.createdAt));
+      .orderBy(asc(wallets.sortOrder), desc(wallets.createdAt))
+      .limit(limit)
+      .offset(offset);
 
-    return result.map((wallet) => ({
-      ...wallet,
-      balance: Number(wallet.balance),
-    }));
+    const [stats] = await db
+      .select({ total: sql<number>`count(*)` })
+      .from(wallets)
+      .where(and(...conditions));
+
+    return {
+      rows: rows.map((wallet) => ({
+        ...wallet,
+        balance: Number(wallet.balance),
+      })),
+      total: Number(stats?.total ?? 0),
+    };
   },
 
   async findById(workspaceId: string, id: string) {
     const [wallet] = await db
       .select()
       .from(wallets)
-      .where(and(eq(wallets.id, id), eq(wallets.workspaceId, workspaceId)))
+      .where(
+        and(
+          eq(wallets.id, id),
+          eq(wallets.workspaceId, workspaceId),
+          isNull(wallets.deletedAt),
+        ),
+      )
       .limit(1);
 
     if (wallet?.deletedAt) return null;
@@ -193,7 +219,11 @@ export const walletsRepository = {
       .update(wallets)
       .set(updateSet)
       .where(
-        and(inArray(wallets.id, ids), eq(wallets.workspaceId, workspaceId)),
+        and(
+          inArray(wallets.id, ids),
+          eq(wallets.workspaceId, workspaceId),
+          isNull(wallets.deletedAt),
+        ),
       );
   },
 
@@ -204,7 +234,13 @@ export const walletsRepository = {
         balance: sql`${wallets.balance} + ${amount}`,
         updatedAt: new Date().toISOString(),
       })
-      .where(and(eq(wallets.id, id), eq(wallets.workspaceId, workspaceId)))
+      .where(
+        and(
+          eq(wallets.id, id),
+          eq(wallets.workspaceId, workspaceId),
+          isNull(wallets.deletedAt),
+        ),
+      )
       .returning();
     return wallet ?? null;
   },

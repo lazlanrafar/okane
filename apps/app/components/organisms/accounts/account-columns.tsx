@@ -66,7 +66,7 @@ const CellActions = ({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleDelete} className="text-destructive">
           <Trash2 className="mr-2 h-4 w-4" />
-          <span>{dictionary.transactions.delete}</span>
+          <span>{dictionary.settings.common.delete}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

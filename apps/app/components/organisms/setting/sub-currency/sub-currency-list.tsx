@@ -129,7 +129,7 @@ export function SubCurrencyList({
         <SelectCurrency
           onSelect={handleAdd}
           trigger={
-            <Button size="sm" className="rounded-none h-8 text-xs gap-2">
+            <Button size="sm" className="rounded-none h-8 text-xs gap-2 w-30">
               <Plus className="h-4 w-4" />
               {dictionary?.settings.sub_currencies.add_button}
             </Button>

@@ -73,28 +73,47 @@ export abstract class AiRepository {
    */
   static async saveMessage(
     sessionId: string,
+    workspaceId: string,
     role: "user" | "assistant" | "system",
     content: string,
     attachments?: any,
   ) {
     await db.transaction(async (tx) => {
+      // Verify session exists and belongs to workspace
+      const [session] = await tx
+        .select()
+        .from(aiSessions)
+        .where(
+          and(
+            eq(aiSessions.id, sessionId),
+            eq(aiSessions.workspace_id, workspaceId),
+            isNull(aiSessions.deleted_at),
+          ),
+        );
+
+      if (!session) throw new Error("Session not found or access denied");
+
       await tx.insert(aiMessages).values({
         session_id: sessionId,
+        workspace_id: workspaceId,
         role,
         content,
         attachments,
       });
+
       await tx
         .update(aiSessions)
         .set({ updated_at: new Date() })
-        .where(eq(aiSessions.id, sessionId));
+        .where(
+          and(eq(aiSessions.id, sessionId), isNull(aiSessions.deleted_at)),
+        );
     });
   }
 
   /**
    * Get all messages for a session.
    */
-  static async getSessionMessages(sessionId: string) {
+  static async getSessionMessages(sessionId: string, workspaceId: string) {
     return await db
       .select({
         id: aiMessages.id,
@@ -104,7 +123,13 @@ export abstract class AiRepository {
         createdAt: aiMessages.created_at,
       })
       .from(aiMessages)
-      .where(eq(aiMessages.session_id, sessionId))
+      .where(
+        and(
+          eq(aiMessages.session_id, sessionId),
+          eq(aiMessages.workspace_id, workspaceId),
+          isNull(aiMessages.deleted_at),
+        ),
+      )
       .orderBy(aiMessages.created_at);
   }
   /**
@@ -254,7 +279,13 @@ export abstract class AiRepository {
       })
       .from(workspaces)
       .leftJoin(pricing, eq(workspaces.plan_id, pricing.id))
-      .where(eq(workspaces.id, workspaceId))
+      .where(
+        and(
+          eq(workspaces.id, workspaceId),
+          isNull(workspaces.deleted_at),
+          isNull(pricing.deleted_at),
+        ),
+      )
       .limit(1);
     return usageData;
   }
@@ -270,6 +301,6 @@ export abstract class AiRepository {
     await db
       .update(workspaces)
       .set({ ai_tokens_used: currentTokens + tokensSpent })
-      .where(eq(workspaces.id, workspaceId));
+      .where(and(eq(workspaces.id, workspaceId), isNull(workspaces.deleted_at)));
   }
 }

@@ -16,6 +16,7 @@ type WorkspaceData = {
   slug: string;
   role?: string;
   plan_name?: string | null;
+  max_workspaces?: number | null;
 };
 
 type UserData = {

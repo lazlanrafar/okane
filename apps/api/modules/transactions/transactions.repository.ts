@@ -347,13 +347,15 @@ export abstract class TransactionsRepository {
     workspaceId: string,
     vaultFileIds: string[],
   ) {
-    // Delete all current attachments for this transaction
+    // Soft delete all current attachments for this transaction
     await db
-      .delete(transactionAttachments)
+      .update(transactionAttachments)
+      .set({ deletedAt: new Date() })
       .where(
         and(
           eq(transactionAttachments.transactionId, transactionId),
           eq(transactionAttachments.workspaceId, workspaceId),
+          isNull(transactionAttachments.deletedAt),
         ),
       );
 

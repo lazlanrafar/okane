@@ -20,6 +20,7 @@ export const user_workspaces = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     role: text("role").notNull(), // 'owner' | 'admin' | 'member'
     joined_at: timestamp("joined_at").defaultNow().notNull(),
+    deleted_at: timestamp("deleted_at"),
   },
   (table) => ({
     workspaceUserIdx: uniqueIndex("workspace_user_idx").on(

@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { db } from "@workspace/database";
 import { workspaces, pricing } from "@workspace/database";
-import { eq, or, and, sql } from "drizzle-orm";
+import { eq, or, and, sql, isNull } from "drizzle-orm";
 import { ErrorCode } from "@workspace/types";
 import { buildSuccess, buildError } from "@workspace/utils";
 import { status } from "elysia";
@@ -45,9 +45,12 @@ export abstract class StripeService {
                 .select()
                 .from(pricing)
                 .where(
-                  or(
-                    sql`${pricing.prices} @> ${JSON.stringify([{ stripe_monthly_id: priceId }])}::jsonb`,
-                    sql`${pricing.prices} @> ${JSON.stringify([{ stripe_yearly_id: priceId }])}::jsonb`,
+                  and(
+                    or(
+                      sql`${pricing.prices} @> ${JSON.stringify([{ stripe_monthly_id: priceId }])}::jsonb`,
+                      sql`${pricing.prices} @> ${JSON.stringify([{ stripe_yearly_id: priceId }])}::jsonb`,
+                    ),
+                    isNull(pricing.deleted_at),
                   ),
                 )
                 .limit(1);
@@ -83,7 +86,7 @@ export abstract class StripeService {
                   ai_tokens_used: 0,
                   vault_size_used_bytes: 0,
                 })
-                .where(eq(workspaces.id, workspaceId));
+                .where(and(eq(workspaces.id, workspaceId), isNull(workspaces.deleted_at)));
 
               // Create or update order from session info as a fallback for the race condition
               // This ensures that for new customers, the order is created even if invoice.paid arrives too early to find the workspace
@@ -129,7 +132,7 @@ export abstract class StripeService {
         const [workspace] = await db
           .select()
           .from(workspaces)
-          .where(eq(workspaces.stripe_customer_id, customerId))
+          .where(and(eq(workspaces.stripe_customer_id, customerId), isNull(workspaces.deleted_at)))
           .limit(1);
 
         if (workspace) {
@@ -146,6 +149,7 @@ export abstract class StripeService {
               and(
                 eq(user_workspaces.workspace_id, workspace.id),
                 eq(user_workspaces.role, "owner"),
+                isNull(user_workspaces.deleted_at),
               ),
             )
             .limit(1)
@@ -178,7 +182,7 @@ export abstract class StripeService {
         const [workspace] = await db
           .select()
           .from(workspaces)
-          .where(eq(workspaces.stripe_customer_id, customerId))
+          .where(and(eq(workspaces.stripe_customer_id, customerId), isNull(workspaces.deleted_at)))
           .limit(1);
 
         if (workspace) {
@@ -191,6 +195,7 @@ export abstract class StripeService {
               and(
                 eq(user_workspaces.workspace_id, workspace.id),
                 eq(user_workspaces.role, "owner"),
+                isNull(user_workspaces.deleted_at),
               ),
             )
             .limit(1)
@@ -211,7 +216,7 @@ export abstract class StripeService {
           await db
             .update(workspaces)
             .set({ plan_status: "past_due" })
-            .where(eq(workspaces.id, workspace.id));
+            .where(and(eq(workspaces.id, workspace.id), isNull(workspaces.deleted_at)));
         }
         break;
       }
@@ -225,9 +230,12 @@ export abstract class StripeService {
             .select()
             .from(pricing)
             .where(
-              or(
-                sql`${pricing.prices} @> ${JSON.stringify([{ stripe_monthly_id: priceId }])}::jsonb`,
-                sql`${pricing.prices} @> ${JSON.stringify([{ stripe_yearly_id: priceId }])}::jsonb`,
+              and(
+                or(
+                  sql`${pricing.prices} @> ${JSON.stringify([{ stripe_monthly_id: priceId }])}::jsonb`,
+                  sql`${pricing.prices} @> ${JSON.stringify([{ stripe_yearly_id: priceId }])}::jsonb`,
+                ),
+                isNull(pricing.deleted_at),
               ),
             )
             .limit(1);
@@ -261,7 +269,7 @@ export abstract class StripeService {
                 ? new Date(Number(currentPeriodEnd) * 1000)
                 : null,
             })
-            .where(eq(workspaces.stripe_customer_id, customerId));
+            .where(and(eq(workspaces.stripe_customer_id, customerId), isNull(workspaces.deleted_at)));
         }
         break;
       }
@@ -277,7 +285,12 @@ export abstract class StripeService {
             plan_id: null,
             stripe_subscription_id: null,
           })
-          .where(eq(workspaces.stripe_customer_id, customerId));
+          .where(
+            and(
+              eq(workspaces.stripe_customer_id, customerId),
+              isNull(workspaces.deleted_at),
+            ),
+          );
         break;
       }
     }
@@ -299,7 +312,7 @@ export abstract class StripeService {
     const [workspace] = await db
       .select()
       .from(workspaces)
-      .where(eq(workspaces.id, workspaceId))
+      .where(and(eq(workspaces.id, workspaceId), isNull(workspaces.deleted_at)))
       .limit(1);
 
     if (!workspace) {
@@ -310,9 +323,12 @@ export abstract class StripeService {
       .select()
       .from(pricing)
       .where(
-        or(
-          sql`${pricing.prices} @> ${JSON.stringify([{ stripe_monthly_id: priceId }])}::jsonb`,
-          sql`${pricing.prices} @> ${JSON.stringify([{ stripe_yearly_id: priceId }])}::jsonb`,
+        and(
+          or(
+            sql`${pricing.prices} @> ${JSON.stringify([{ stripe_monthly_id: priceId }])}::jsonb`,
+            sql`${pricing.prices} @> ${JSON.stringify([{ stripe_yearly_id: priceId }])}::jsonb`,
+          ),
+          isNull(pricing.deleted_at),
         ),
       )
       .limit(1);
@@ -355,7 +371,7 @@ export abstract class StripeService {
 
   static async createCustomerPortal(workspaceId: string) {
     const workspace = await db.query.workspaces.findFirst({
-      where: eq(workspaces.id, workspaceId),
+      where: and(eq(workspaces.id, workspaceId), isNull(workspaces.deleted_at)),
     });
 
     if (!workspace || !workspace.stripe_customer_id) {
@@ -393,7 +409,7 @@ export abstract class StripeService {
 
   static async cancelSubscription(workspaceId: string) {
     const workspace = await db.query.workspaces.findFirst({
-      where: eq(workspaces.id, workspaceId),
+      where: and(eq(workspaces.id, workspaceId), isNull(workspaces.deleted_at)),
     });
 
     if (!workspace || !workspace.stripe_subscription_id) {

@@ -159,7 +159,8 @@ export abstract class IntegrationsService {
           );
 
           if (parsedReceipt && parsedReceipt.amount) {
-            const wallets = await walletsRepository.findMany(workspaceId);
+            const walletsResult = await walletsRepository.findMany(workspaceId);
+            const wallets = walletsResult.rows;
             if (wallets.length > 0) {
               const defaultWallet = wallets[0];
               if (!defaultWallet) return "OK";
@@ -199,7 +200,7 @@ export abstract class IntegrationsService {
           if (chatResponse && chatResponse.reply) {
             // Save current session ID if it's new
             if (chatResponse.sessionId && chatResponse.sessionId !== chatSessionId) {
-              await IntegrationsRepository.updateSettings(integration.id, {
+              await IntegrationsRepository.updateSettings(integration.id, workspaceId, {
                 ...((settings as any) || {}),
                 chatSessionId: chatResponse.sessionId,
               });
@@ -332,7 +333,8 @@ export abstract class IntegrationsService {
           );
 
           if (parsedReceipt && parsedReceipt.amount) {
-            const wallets = await walletsRepository.findMany(workspaceId);
+            const walletsResult = await walletsRepository.findMany(workspaceId);
+            const wallets = walletsResult.rows;
             if (wallets.length > 0) {
               const defaultWallet = wallets[0];
               if (!defaultWallet) return "OK";
@@ -373,7 +375,7 @@ export abstract class IntegrationsService {
           if (chatResponse && chatResponse.reply) {
             // Save current session ID if it's new
             if (chatResponse.sessionId && chatResponse.sessionId !== chatSessionId) {
-              await IntegrationsRepository.updateSettings(integration.id, {
+              await IntegrationsRepository.updateSettings(integration.id, workspaceId, {
                 ...((settings as any) || {}),
                 chatSessionId: chatResponse.sessionId,
               });

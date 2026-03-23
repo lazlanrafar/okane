@@ -292,7 +292,7 @@ function renderHeaderContent<TData>(
   const sortField = SORT_FIELD_MAPS[tableId][columnId];
 
   // Priority 1: Custom header renderer from column definition
-  if (typeof header.column.columnDef.header !== "string") {
+  if (header.column.columnDef.header && typeof header.column.columnDef.header !== "string") {
     // For the select column, we still want the centering wrapper
     if (columnId === "select") {
       return (
@@ -325,8 +325,9 @@ function renderHeaderContent<TData>(
 
   // Actions column - static text
   if (columnId === "actions") {
+    const label = getHeaderLabel(header.column.columnDef);
     return (
-      <span className="text-muted-foreground w-full text-center">Actions</span>
+      <span className="text-muted-foreground w-full text-center">{label}</span>
     );
   }
 
@@ -424,6 +425,7 @@ function SortButton({
 
 function getHeaderLabel(columnDef: any): string {
   const meta = columnDef.meta as any;
+  if (meta?.headerLabel) return meta.headerLabel;
   if (meta?.header) return meta.header;
   if (typeof columnDef.header === "string") return columnDef.header;
   return columnDef.id;

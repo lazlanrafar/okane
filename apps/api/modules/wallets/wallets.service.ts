@@ -1,5 +1,6 @@
 import { walletsRepository } from "./wallets.repository";
 import { walletGroupsRepository } from "./groups/groups.repository";
+import { buildPaginatedSuccess } from "@workspace/utils";
 
 export const walletsService = {
   // --- Wallet Groups ---
@@ -38,9 +39,22 @@ export const walletsService = {
 
   async getWallets(
     workspaceId: string,
-    filters?: { search?: string; groupId?: string },
+    filters?: { search?: string; groupId?: string; page?: number; limit?: number },
   ) {
-    return walletsRepository.findMany(workspaceId, filters);
+    const { rows, total } = await walletsRepository.findMany(workspaceId, filters);
+    const page = filters?.page ?? 1;
+    const limit = filters?.limit ?? 20;
+
+    return buildPaginatedSuccess(
+      rows,
+      {
+        total,
+        page,
+        limit,
+        total_pages: Math.ceil(total / limit),
+      },
+      "Wallets retrieved successfully",
+    );
   },
 
   async createWallet(

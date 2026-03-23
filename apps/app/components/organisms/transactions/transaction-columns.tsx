@@ -273,103 +273,14 @@ export const transactionColumns = (
   {
     id: "actions",
     header: dictionary.settings.common.actions,
-    cell: ({ row, table }) => {
-      const transaction = row.original;
-      const meta = table.options.meta as any;
-      const queryClient = useQueryClient();
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0 hover:bg-transparent"
-            >
-              <span className="sr-only">{dictionary.settings.common.open_menu}</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 font-sans">
-            <DropdownMenuItem
-              onClick={() => meta?.onRowClick?.(transaction)}
-              className="gap-2 cursor-pointer"
-            >
-              <ExternalLink className="h-4 w-4" />
-              {dictionary.transactions.view_details}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onEdit(transaction)}
-              className="gap-2 cursor-pointer"
-            >
-              <Edit className="h-4 w-4" />
-              {dictionary.transactions.edit}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                const url = `${window.location.origin}${window.location.pathname}?transactionId=${transaction.id}`;
-                navigator.clipboard.writeText(url);
-                toast.success(dictionary.transactions.toasts.link_copied);
-              }}
-              className="gap-2 cursor-pointer"
-            >
-              <Copy className="h-4 w-4" />
-              {dictionary.transactions.copy_link}
-            </DropdownMenuItem>
-
-            <div className="h-px bg-muted my-1" />
-
-            <DropdownMenuItem
-              onClick={async () => {
-                const res = await updateTransaction(transaction.id, {
-                  isReady: !transaction.isReady,
-                });
-                if (res.success) {
-                  toast.success(
-                    transaction.isReady
-                      ? dictionary.transactions.toasts.marked_pending
-                      : dictionary.transactions.toasts.marked_ready,
-                  );
-                  queryClient.invalidateQueries({ queryKey: ["transactions"] });
-                }
-              }}
-              className="gap-2 cursor-pointer"
-            >
-              <Check className="h-4 w-4" />
-              {transaction.isReady ? dictionary.transactions.reset_status : dictionary.transactions.mark_ready}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={async () => {
-                const res = await updateTransaction(transaction.id, {
-                  isExported: !transaction.isExported,
-                });
-                if (res.success) {
-                  toast.success(
-                    transaction.isExported
-                      ? dictionary.transactions.toasts.unmarked_exported
-                      : dictionary.transactions.toasts.marked_exported,
-                  );
-                  queryClient.invalidateQueries({ queryKey: ["transactions"] });
-                }
-              }}
-              className="gap-2 cursor-pointer"
-            >
-              <FileCheck className="h-4 w-4" />
-              {transaction.isExported ? dictionary.transactions.reset_export : dictionary.transactions.mark_exported}
-            </DropdownMenuItem>
-
-            <div className="h-px bg-muted my-1" />
-
-            <DropdownMenuItem
-              onClick={() => meta?.onDelete?.(transaction.id)}
-              className="gap-2 cursor-pointer text-destructive focus:text-destructive"
-            >
-              <Trash className="h-4 w-4" />
-              {dictionary.settings.common.delete}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
+    cell: ({ row, table }) => (
+      <ActionCell
+        transaction={row.original}
+        table={table}
+        dictionary={dictionary}
+        onEdit={onEdit}
+      />
+    ),
     enableSorting: false,
     enableHiding: false,
     size: 100,
@@ -491,6 +402,114 @@ function AccountCell({
         </div>
       )}
     </div>
+  );
+}
+
+function ActionCell({
+  transaction,
+  table,
+  dictionary,
+  onEdit,
+}: {
+  transaction: Transaction;
+  table: any;
+  dictionary: Dictionary;
+  onEdit: (transaction: Transaction) => void;
+}) {
+  const queryClient = useQueryClient();
+  const meta = table.options.meta as any;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-transparent">
+          <span className="sr-only">{dictionary.settings.common.open_menu}</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48 font-sans">
+        <DropdownMenuItem
+          onClick={() => meta?.onRowClick?.(transaction)}
+          className="gap-2 cursor-pointer"
+        >
+          <ExternalLink className="h-4 w-4" />
+          {dictionary.transactions.view_details}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => onEdit(transaction)}
+          className="gap-2 cursor-pointer"
+        >
+          <Edit className="h-4 w-4" />
+          {dictionary.transactions.edit}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            const url = `${window.location.origin}${window.location.pathname}?transactionId=${transaction.id}`;
+            navigator.clipboard.writeText(url);
+            toast.success(dictionary.transactions.toasts.link_copied);
+          }}
+          className="gap-2 cursor-pointer"
+        >
+          <Copy className="h-4 w-4" />
+          {dictionary.transactions.copy_link}
+        </DropdownMenuItem>
+
+        <div className="h-px bg-muted my-1" />
+
+        <DropdownMenuItem
+          onClick={async () => {
+            const res = await updateTransaction(transaction.id, {
+              isReady: !transaction.isReady,
+            });
+            if (res.success) {
+              toast.success(
+                transaction.isReady
+                  ? dictionary.transactions.toasts.marked_pending
+                  : dictionary.transactions.toasts.marked_ready,
+              );
+              queryClient.invalidateQueries({ queryKey: ["transactions"] });
+            }
+          }}
+          className="gap-2 cursor-pointer"
+        >
+          <Check className="h-4 w-4" />
+          {transaction.isReady
+            ? dictionary.transactions.reset_status
+            : dictionary.transactions.mark_ready}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={async () => {
+            const res = await updateTransaction(transaction.id, {
+              isExported: !transaction.isExported,
+            });
+            if (res.success) {
+              toast.success(
+                transaction.isExported
+                  ? dictionary.transactions.toasts.unmarked_exported
+                  : dictionary.transactions.toasts.marked_exported,
+              );
+              queryClient.invalidateQueries({ queryKey: ["transactions"] });
+            }
+          }}
+          className="gap-2 cursor-pointer"
+        >
+          <FileCheck className="h-4 w-4" />
+          {transaction.isExported
+            ? dictionary.transactions.reset_export
+            : dictionary.transactions.mark_exported}
+        </DropdownMenuItem>
+
+        <div className="h-px bg-muted my-1" />
+
+        <DropdownMenuItem
+          onClick={() => meta?.onDelete?.(transaction.id)}
+          className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+        >
+          <Trash className="h-4 w-4" />
+          {dictionary.settings.common.delete}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

@@ -40,8 +40,8 @@ const getDebtSchema = (dictionary: any, remaining?: number) =>
   z.object({
     amount: z.coerce
       .number()
-      .positive(dictionary.debts.form.amount.error_positive),
-    contactId: z.string().min(1, dictionary.debts.form.contact.error_required),
+      .positive(dictionary.form.amount.error_positive),
+    contactId: z.string().min(1, dictionary.form.contact.error_required),
     type: z.enum(["payable", "receivable"]),
     description: z.string().optional(),
     dueDate: z.string().optional(),
@@ -64,10 +64,10 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary }: Props) {
     (debt?.type as "payable" | "receivable") || "receivable",
   );
   const { settings, dictionary: global_dict, isLoading: isDictLoading } = useAppStore() as any;
-  const dict = dictionary || global_dict?.debts;
+  const dict = (dictionary?.debts || global_dict?.debts) as any;
 
   const form = useForm<DebtFormValues>({
-    resolver: zodResolver(getDebtSchema(dictionary) as any),
+    resolver: zodResolver(getDebtSchema(dict) as any),
     defaultValues: {
       type: "receivable",
       amount: 0,
@@ -123,8 +123,8 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary }: Props) {
       if (data?.success) {
         toast.success(
           debt
-            ? dictionary.debts.toasts.updated
-            : dictionary.debts.toasts.created,
+            ? dict.toasts.updated
+            : dict.toasts.created,
         );
         queryClient.invalidateQueries({ queryKey: ["debts"] });
         router.refresh();
@@ -134,13 +134,13 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary }: Props) {
         toast.error(
           data?.error ||
             (debt
-              ? dictionary.debts.toasts.update_failed
-              : dictionary.debts.toasts.create_failed),
+              ? dict.toasts.update_failed
+              : dict.toasts.create_failed),
         );
       }
     },
     onError: (error: any) => {
-      toast.error(error.message || dictionary.debts.toasts.update_failed);
+      toast.error(error.message || dict.toasts.update_failed);
     },
   });
 
@@ -185,13 +185,13 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary }: Props) {
                       value="receivable"
                       className="rounded-none data-[state=active]:bg-background data-[state=active]:shadow-none uppercase text-[10px] font-medium tracking-widest"
                     >
-                      {dictionary.debts.form.type_receivable}
+                      {dict.form.type_receivable}
                     </TabsTrigger>
                     <TabsTrigger
                       value="payable"
                       className="rounded-none data-[state=active]:bg-background data-[state=active]:shadow-none uppercase text-[10px] font-medium tracking-widest"
                     >
-                      {dictionary.debts.form.type_payable}
+                      {dict.form.type_payable}
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
@@ -203,7 +203,7 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                      {dictionary.debts.form.amount.label}
+                      {dict.form.amount.label}
                     </FormLabel>
                     <FormControl>
                       <div className="relative group">
@@ -225,7 +225,7 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary }: Props) {
                       </div>
                     </FormControl>
                     <FormDescription className="text-[11px]">
-                      {dictionary.debts.form.amount.description}
+                      {dict.form.amount.description}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -239,20 +239,20 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary }: Props) {
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                          {dictionary.debts.form.contact.label}
+                          {dict.form.contact.label}
                         </FormLabel>
                         <FormControl>
                           <SelectContact
                             value={field.value}
                             onChange={field.onChange}
                             placeholder={
-                              dictionary.debts.form.contact.placeholder
+                              dict.form.contact.placeholder
                             }
                             className="bg-transparent rounded-none border-border focus:border-foreground w-full justify-start text-left px-3 h-10"
                           />
                         </FormControl>
                         <FormDescription className="text-[10px] uppercase tracking-wider opacity-60">
-                          {dictionary.debts.form.contact.description}
+                          {dict.form.contact.description}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -265,20 +265,20 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary }: Props) {
                     render={({ field }) => (
                       <FormItem className="">
                         <FormLabel className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                          {dictionary.debts.form.due_date.label}
+                          {dict.form.due_date.label}
                         </FormLabel>
                         <FormControl>
                           <InputDate
                             value={field.value ?? ""}
                             onChange={field.onChange}
                             placeholder={
-                              dictionary.debts.form.due_date.placeholder
+                              dict.form.due_date.placeholder
                             }
                             className="rounded-none h-10"
                           />
                         </FormControl>
                         <FormDescription className="text-[10px] uppercase tracking-wider opacity-60">
-                          {dictionary.debts.form.due_date.description}
+                          {dict.form.due_date.description}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -292,11 +292,11 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary }: Props) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-                      {dictionary.debts.form.notes.label}
+                      {dict.form.notes.label}
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder={dictionary.debts.form.notes.placeholder}
+                        placeholder={dict.form.notes.placeholder}
                         {...field}
                         className="bg-transparent rounded-none border-border focus:border-foreground h-10"
                       />
@@ -316,7 +316,7 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary }: Props) {
             className="flex-1 rounded-none h-12 uppercase tracking-widest font-medium text-xs"
             onClick={() => onOpenChange(false)}
           >
-            {dictionary.debts.form.cancel}
+            {dict.form.cancel}
           </Button>
           <Button
             form="debt-form"

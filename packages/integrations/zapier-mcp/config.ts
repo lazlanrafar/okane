@@ -4,7 +4,8 @@ export default {
   name: "Zapier",
   id: "zapier-mcp",
   category: "ai-automation",
-  active: true, hidden: true,
+  active: true,
+  hidden: true,
   logo: Logo,
   short_description:
     "Connect Midday to 7,000+ apps. Automate reports, alerts, and workflows.",

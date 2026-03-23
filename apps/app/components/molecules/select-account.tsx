@@ -37,7 +37,7 @@ export function SelectAccount({
     queryKey: ["wallets"],
     queryFn: async () => {
       const res = await getWallets();
-      if (!res.success) throw new Error(res.error);
+      if (!res.success) throw new Error(res.message);
       return res.data || [];
     },
   });

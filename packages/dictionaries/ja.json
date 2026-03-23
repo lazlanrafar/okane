@@ -563,7 +563,8 @@
       "type": "タイプ",
       "description": "説明",
       "summary": "概要",
-      "debt": "借金"
+      "debt": "借金",
+      "actions": "アクション"
     },
     "statuses": {
       "unpaid": "未払い",
@@ -869,7 +870,8 @@
       "email": "メールアドレス",
       "phone": "電話番号",
       "address": "住所",
-      "created_at": "登録日"
+      "created_at": "登録日",
+      "actions": "アクション"
     },
     "details": {
       "title": "連絡先詳細",
@@ -1017,6 +1019,16 @@
       "unknown_transaction": "不明"
     }
   },
+  "workspace": {
+    "title": "ワークスペース",
+    "switcher": {
+      "title": "ワークスペース",
+      "add_workspace": "ワークスペースを追加",
+      "switch_success": "{name} に切り替えました",
+      "switch_error": "ワークスペースの切り替えに失敗しました",
+      "limit_reached": "現在のプランのワークスペース上限に達しました（最大: {maxLimit}）。"
+    }
+  },
   "sidebar": {
     "dashboard": "ダッシュボード",
     "finance": "財務",
@@ -1034,7 +1046,11 @@
     "settings": "設定",
     "invoices": "請求書",
     "customers": "顧客",
-    "coming_soon": "まもなく"
+    "coming_soon": "まもなく",
+    "account": "アカウント",
+    "billing": "請求",
+    "notifications": "通知",
+    "logout": "ログアウト"
   },
   "search": {
     "placeholder": "何でも探す...",

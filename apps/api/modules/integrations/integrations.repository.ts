@@ -75,7 +75,12 @@ export abstract class IntegrationsRepository {
           isActive: data.isActive,
           updatedAt: new Date().toISOString(),
         })
-        .where(eq(workspaceIntegrations.id, existing.id))
+        .where(
+          and(
+            eq(workspaceIntegrations.id, existing.id),
+            isNull(workspaceIntegrations.deletedAt),
+          ),
+        )
         .returning();
       return updated;
     }
@@ -87,14 +92,20 @@ export abstract class IntegrationsRepository {
     return created;
   }
 
-  static async updateSettings(id: string, settings: any) {
+  static async updateSettings(id: string, workspaceId: string, settings: any) {
     const [updated] = await db
       .update(workspaceIntegrations)
       .set({
         settings,
         updatedAt: new Date().toISOString(),
       })
-      .where(eq(workspaceIntegrations.id, id))
+      .where(
+        and(
+          eq(workspaceIntegrations.id, id),
+          eq(workspaceIntegrations.workspaceId, workspaceId),
+          isNull(workspaceIntegrations.deletedAt),
+        ),
+      )
       .returning();
     return updated;
   }
@@ -103,7 +114,12 @@ export abstract class IntegrationsRepository {
     const [membership] = await db
       .select({ userId: user_workspaces.user_id })
       .from(user_workspaces)
-      .where(eq(user_workspaces.workspace_id, workspaceId))
+      .where(
+        and(
+          eq(user_workspaces.workspace_id, workspaceId),
+          isNull(user_workspaces.deleted_at),
+        ),
+      )
       .limit(1);
     return membership?.userId || null;
   }

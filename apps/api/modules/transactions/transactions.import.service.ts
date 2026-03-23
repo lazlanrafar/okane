@@ -21,10 +21,12 @@ export abstract class TransactionsImportService {
     filename: string,
   ) {
     // 1. Fetch wallets and existing categories for AI context and ID resolution
-    const [wallets, existingCategories] = await Promise.all([
+    const [walletsResult, existingCategories] = await Promise.all([
       walletsRepository.findMany(workspaceId),
       CategoriesRepository.findMany(workspaceId),
     ]);
+
+    const wallets = walletsResult.rows;
 
     const walletNames = wallets.map((w) => w.name);
     const categoryNames = existingCategories.map((c) => c.name);

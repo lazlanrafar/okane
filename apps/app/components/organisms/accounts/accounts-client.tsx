@@ -55,23 +55,42 @@ export function AccountsClient({
 
   const { columns, setColumns } = useAccountsStore();
 
-  const { data, isLoading, isFetching } = useInfiniteQuery({
+  const { data, isLoading, isFetching, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ["wallets", filters.q, filters.groupId],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await getWallets({
         search: filters.q as string,
         groupId: filters.groupId as string,
+        page: pageParam,
+        limit: pageSize,
       });
-      if (!res.success) throw new Error(res.error);
+      if (!res.success) throw new Error(res.message);
       return res;
     },
     initialPageParam: 1,
-    getNextPageParam: () => null,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage.meta?.pagination;
+      if (!pagination) return undefined;
+      return pagination.page < pagination.total_pages
+        ? pagination.page + 1
+        : undefined;
+    },
     initialData: {
       pages: [
         {
           success: true,
           data: initialData,
+          code: "OK",
+          message: "Initial data",
+          meta: {
+            pagination: {
+              total: initialRowCount,
+              page: initialPage + 1,
+              limit: pageSize,
+              total_pages: initialPageCount,
+            },
+            timestamp: Date.now(),
+          },
         },
       ],
       pageParams: [1],
@@ -81,7 +100,7 @@ export function AccountsClient({
   });
 
   const wallets = useMemo(() => {
-    return data?.pages.flatMap((page) => page.data || []) || [];
+    return data?.pages.flatMap((page: any) => page.data || []) || [];
   }, [data]);
 
   const selectedWallet = useMemo(() => {
@@ -209,11 +228,10 @@ export function AccountsClient({
             startFromColumn: 0,
           }}
           emptyMessage={dictionary.accounts.empty_message}
-          manualPagination
-          pagination={pagination}
-          onPaginationChange={handlePaginationChange}
-          rowCount={wallets.length}
-          pageCount={1}
+          infiniteScroll={true}
+          fetchNextPage={fetchNextPage}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
           hFull
           meta={{
             groups: initialGroups,

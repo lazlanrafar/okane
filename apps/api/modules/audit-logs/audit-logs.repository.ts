@@ -1,4 +1,4 @@
-import { db, audit_logs, and, eq, desc, users } from "@workspace/database";
+import { db, audit_logs, and, eq, desc, users, isNull } from "@workspace/database";
 
 /**
  * Audit logs repository — append-only.
@@ -48,6 +48,7 @@ export const auditLogsRepository = {
           eq(audit_logs.entity, entity),
           eq(audit_logs.entity_id, entity_id),
           eq(audit_logs.workspace_id, workspace_id),
+          isNull(audit_logs.deleted_at),
         ),
       )
       .orderBy(desc(audit_logs.created_at));

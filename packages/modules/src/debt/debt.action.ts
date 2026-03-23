@@ -1,6 +1,6 @@
 "use server";
 
-import type { ActionResponse, Debt, DebtPayment } from "@workspace/types";
+import type { ActionResponse, ApiResponse, Debt, DebtPayment } from "@workspace/types";
 import { axiosInstance as api } from "../lib/axios.server";
 
 export interface DebtWithContact extends Debt {
@@ -14,14 +14,19 @@ export const getDebts = async (filters?: {
   contactId?: string;
   startDate?: string;
   endDate?: string;
-}): Promise<ActionResponse<DebtWithContact[]>> => {
+  page?: number;
+  limit?: number;
+}): Promise<ApiResponse<DebtWithContact[]>> => {
   try {
     const res = await api.get("/debts", { params: filters });
-    return { success: true, data: res.data?.data || [] };
+    return (res as any)._api_response;
   } catch (error: any) {
     return {
       success: false,
-      error: error.response?.data?.message || "Failed to fetch debts",
+      data: [],
+      code: "FETCH_ERROR",
+      message: error.response?.data?.message || "Failed to fetch debts",
+      meta: { timestamp: Date.now() },
     };
   }
 };
@@ -124,6 +129,20 @@ export const splitBill = async (data: {
     return {
       success: false,
       error: error.response?.data?.message || "Failed to split bill",
+    };
+  }
+};
+export const bulkDeleteDebts = async (
+  ids: string[],
+): Promise<ActionResponse<void>> => {
+  try {
+    await Promise.all(ids.map((id) => api.delete(`/debts/${id}`)));
+    return { success: true, data: undefined };
+  } catch (error: any) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message || "Failed to delete some debts",
     };
   }
 };

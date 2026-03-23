@@ -281,7 +281,7 @@ export function ContactFormSheet({
                 {/* General */}
                 <AccordionItem value="general" className="border-none">
                   <AccordionTrigger className="text-sm font-medium py-2">
-                    {dictionary.overview.general.title}
+                    {dictionary.settings.sidebar.general}
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4 pt-2">
@@ -395,7 +395,7 @@ export function ContactFormSheet({
                 {/* Details */}
                 <AccordionItem value="details" className="border-none">
                   <AccordionTrigger className="text-sm font-medium py-2">
-                    {dictionary.transactions.details.title}
+                    {dictionary.transactions.details}
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4 pt-2">

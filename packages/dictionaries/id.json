@@ -563,7 +563,8 @@
       "type": "Tipe",
       "description": "Deskripsi",
       "summary": "Ringkasan",
-      "debt": "Hutang"
+      "debt": "Hutang",
+      "actions": "Aksi"
     },
     "statuses": {
       "unpaid": "Belum Bayar",
@@ -625,11 +626,12 @@
       "settle_all": "Lunasi semua"
     },
     "form": {
-      "new_title": "Hutang Baru",
-      "update_title": "Edit Hutang",
+      "add_title": "Hutang Baru",
+      "edit_title": "Edit Hutang",
       "contact": {
         "label": "Kontak",
         "placeholder": "Pilih kontak",
+        "description": "Siapa yang terlibat dalam hutang ini?",
         "error_required": "Kontak wajib diisi"
       },
       "type": {
@@ -637,20 +639,24 @@
         "payable": "Hutang",
         "receivable": "Piutang"
       },
+      "type_payable": "Kamu Berhutang",
+      "type_receivable": "Kamu Dipinjami",
       "amount": {
         "label": "Jumlah",
         "placeholder": "0.00",
+        "description": "Jumlah total hutang.",
         "error_required": "Jumlah wajib diisi",
         "error_positive": "Jumlah harus positif",
         "error_max_remaining": "Pembayaran tidak boleh melebihi sisa hutang"
       },
-      "description": {
+      "notes": {
         "label": "Deskripsi",
         "placeholder": "Untuk apa hutang ini?"
       },
       "due_date": {
         "label": "Jatuh Tempo",
-        "placeholder": "Pilih tanggal"
+        "placeholder": "Pilih tanggal",
+        "description": "Batas waktu opsional untuk penyelesaian."
       },
       "account": {
         "label": "Akun",
@@ -864,7 +870,8 @@
       "email": "Email",
       "phone": "Telepon",
       "address": "Alamat",
-      "created_at": "Bergabung Pada"
+      "created_at": "Bergabung Pada",
+      "actions": "Aksi"
     },
     "details": {
       "title": "Detail Kontak",
@@ -1012,6 +1019,16 @@
       "unknown_transaction": "Tidak Diketahui"
     }
   },
+  "workspace": {
+    "title": "Workspace",
+    "switcher": {
+      "title": "Ruang Kerja",
+      "add_workspace": "Tambah ruang kerja",
+      "switch_success": "Beralih ke {name}",
+      "switch_error": "Gagal beralih ruang kerja",
+      "limit_reached": "Anda telah mencapai batas ruang kerja untuk paket Anda saat ini (Maks: {maxLimit})."
+    }
+  },
   "sidebar": {
     "dashboard": "Dasbor",
     "finance": "Keuangan",
@@ -1029,7 +1046,11 @@
     "settings": "Pengaturan",
     "invoices": "Tagihan",
     "customers": "Pelanggan",
-    "coming_soon": "Segera Hadir"
+    "coming_soon": "Segera Hadir",
+    "account": "Akun",
+    "billing": "Penagihan",
+    "notifications": "Notifikasi",
+    "logout": "Keluar"
   },
   "search": {
     "placeholder": "Cari apa saja...",

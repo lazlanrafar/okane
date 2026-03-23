@@ -5,7 +5,8 @@ export const baseConfig = {
   name: "Fortnox",
   id: "fortnox",
   category: "accounting",
-  active: true, hidden: true,
+  active: true,
+  hidden: true,
   beta: true,
   logo: Logo,
   short_description:
@@ -15,4 +16,3 @@ export const baseConfig = {
   settings: [],
   config: {},
 };
-

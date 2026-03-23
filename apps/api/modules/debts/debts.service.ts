@@ -2,7 +2,7 @@ import { DebtsRepository } from "./debts.repository";
 import { ContactsRepository } from "../contacts/contacts.repository";
 import { TransactionsRepository } from "../transactions/transactions.repository";
 import { auditLogsService } from "../audit-logs/audit-logs.service";
-import { buildSuccess, buildError } from "@workspace/utils";
+import { buildSuccess, buildError, buildPaginatedSuccess } from "@workspace/utils";
 import { status } from "elysia";
 import { ErrorCode } from "@workspace/types";
 import { db } from "@workspace/database";
@@ -120,9 +120,31 @@ export abstract class DebtsService {
     return buildSuccess(null, "Debt deleted successfully");
   }
 
-  static async getDebts(workspaceId: string, contactId?: string, startDate?: string, endDate?: string) {
-    const debts = await DebtsRepository.findMany(workspaceId, contactId, startDate, endDate);
-    return buildSuccess(debts, "Debts retrieved successfully");
+  static async getDebts(
+    workspaceId: string,
+    filters?: {
+      contactId?: string;
+      startDate?: string;
+      endDate?: string;
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+  ) {
+    const { rows, total } = await DebtsRepository.findMany(workspaceId, filters);
+    const page = filters?.page ?? 1;
+    const limit = filters?.limit ?? 20;
+
+    return buildPaginatedSuccess(
+      rows,
+      {
+        total,
+        page,
+        limit,
+        total_pages: Math.ceil(total / limit),
+      },
+      "Debts retrieved successfully",
+    );
   }
 
   static async payDebt(workspaceId: string, userId: string, id: string, data: PayDebtInput) {

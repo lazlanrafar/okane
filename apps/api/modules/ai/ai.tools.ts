@@ -24,7 +24,8 @@ export async function executeAiTool(
 
         // Robustness: Resolve walletId from name if not a UUID
         if (walletId && !isUuid(walletId)) {
-          const allWallets = await walletsRepository.findMany(workspaceId);
+          const allWalletsResult = await walletsRepository.findMany(workspaceId);
+          const allWallets = allWalletsResult.rows;
           const match = allWallets.find((w: any) =>
             w.name.toLowerCase().includes(walletId.toLowerCase())
           );
@@ -97,7 +98,8 @@ export async function executeAiTool(
       case "split_bill": {
         let walletId = input.walletId;
         if (walletId && !isUuid(walletId)) {
-          const allWallets = await walletsRepository.findMany(workspaceId);
+          const allWalletsResult = await walletsRepository.findMany(workspaceId);
+          const allWallets = allWalletsResult.rows;
           const match = allWallets.find((w: any) =>
             w.name.toLowerCase().includes(walletId.toLowerCase())
           );

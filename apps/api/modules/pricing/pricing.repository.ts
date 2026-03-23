@@ -103,6 +103,7 @@ export abstract class PricingRepository {
         prices: dto.prices || [],
         max_vault_size_mb: dto.max_vault_size_mb || 100,
         max_ai_tokens: dto.max_ai_tokens || 100,
+        max_workspaces: dto.max_workspaces || 1,
         features: dto.features || [],
         is_active: dto.is_active ?? true,
       })
@@ -118,7 +119,7 @@ export abstract class PricingRepository {
         ...dto,
         updated_at: new Date(),
       })
-      .where(eq(pricing.id, id))
+      .where(and(eq(pricing.id, id), isNull(pricing.deleted_at)))
       .returning();
 
     return result;
@@ -128,7 +129,7 @@ export abstract class PricingRepository {
     const [result] = await db
       .update(pricing)
       .set({ deleted_at: new Date() })
-      .where(eq(pricing.id, id))
+      .where(and(eq(pricing.id, id), isNull(pricing.deleted_at)))
       .returning();
 
     return result;

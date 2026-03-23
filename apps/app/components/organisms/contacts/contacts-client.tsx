@@ -39,17 +39,43 @@ export function ContactsClient({ initialData }: Props) {
     initialPage: 0,
   });
 
-  const { data, isLoading } = useInfiniteQuery({
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ["contacts", filters.q],
-    queryFn: async () => {
-      const res = await getContacts({ search: filters.q as string });
-      if (!res.success) throw new Error(res.error);
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await getContacts({
+        search: filters.q as string,
+        page: pageParam,
+        limit: 50,
+      });
+      if (!res.success) throw new Error(res.message);
       return res;
     },
     initialPageParam: 1,
-    getNextPageParam: () => null,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage.meta?.pagination;
+      if (!pagination) return undefined;
+      return pagination.page < pagination.total_pages
+        ? pagination.page + 1
+        : undefined;
+    },
     initialData: {
-      pages: [{ success: true, data: initialData }],
+      pages: [
+        {
+          success: true,
+          data: initialData,
+          code: "OK",
+          message: "Initial data",
+          meta: {
+            pagination: {
+              total: initialData.length,
+              page: 1,
+              limit: 50,
+              total_pages: 1,
+            },
+            timestamp: Date.now(),
+          },
+        },
+      ],
       pageParams: [1],
     },
     staleTime: 60000,
@@ -58,7 +84,7 @@ export function ContactsClient({ initialData }: Props) {
 
   if (!dictionary) return null;
 
-  const allContacts = data?.pages.flatMap((p) => p.data ?? []) ?? [];
+  const allContacts = data?.pages.flatMap((p: any) => p.data ?? []) ?? [];
 
   const now = new Date();
   const thisMonthStart = new Date(
@@ -166,6 +192,10 @@ export function ContactsClient({ initialData }: Props) {
           tableId="contacts"
           hFull
           emptyMessage={dictionary.contacts.empty.description}
+          infiniteScroll={true}
+          fetchNextPage={fetchNextPage}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
           meta={{
             onRowClick: handleRowClick,
           }}

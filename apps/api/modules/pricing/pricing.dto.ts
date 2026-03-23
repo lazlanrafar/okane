@@ -16,6 +16,7 @@ export const CreatePricingDto = t.Object({
   ),
   max_vault_size_mb: t.Optional(t.Number({ minimum: 0, default: 100 })),
   max_ai_tokens: t.Optional(t.Number({ minimum: 0, default: 100 })),
+  max_workspaces: t.Optional(t.Number({ minimum: 1, default: 1 })),
   features: t.Optional(t.Array(t.String())),
   is_active: t.Optional(t.Boolean({ default: true })),
 });

@@ -563,7 +563,8 @@
       "type": "Type",
       "description": "Description",
       "summary": "Summary",
-      "debt": "debt"
+      "debt": "debt",
+      "actions": "Actions"
     },
     "statuses": {
       "unpaid": "Unpaid",
@@ -869,7 +870,8 @@
       "email": "Email",
       "phone": "Phone",
       "address": "Address",
-      "created_at": "Joined At"
+      "created_at": "Joined At",
+      "actions": "Actions"
     },
     "details": {
       "title": "Contact Details",
@@ -1017,6 +1019,16 @@
       "unknown_transaction": "Unknown"
     }
   },
+  "workspace": {
+    "title": "Workspace",
+    "switcher": {
+      "title": "Workspaces",
+      "add_workspace": "Add workspace",
+      "switch_success": "Switched to {name}",
+      "switch_error": "Failed to switch workspace",
+      "limit_reached": "You have reached the workspace limit for your current plan (Max: {maxLimit})."
+    }
+  },
   "sidebar": {
     "dashboard": "Dashboard",
     "finance": "Finance",
@@ -1034,7 +1046,11 @@
     "settings": "Settings",
     "invoices": "Invoices",
     "customers": "Customers",
-    "coming_soon": "Coming Soon"
+    "coming_soon": "Coming Soon",
+    "account": "Account",
+    "billing": "Billing",
+    "notifications": "Notifications",
+    "logout": "Log out"
   },
   "search": {
     "placeholder": "Find anything...",

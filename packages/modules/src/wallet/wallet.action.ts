@@ -1,6 +1,6 @@
 "use server";
 
-import type { ActionResponse, Wallet } from "@workspace/types";
+import type { ActionResponse, ApiResponse, Wallet } from "@workspace/types";
 import { axiosInstance as api } from "../lib/axios.server";
 
 export interface CreateWalletData {
@@ -21,14 +21,19 @@ export interface UpdateWalletData {
 export const getWallets = async (filters?: {
   search?: string;
   groupId?: string;
-}): Promise<ActionResponse<Wallet[]>> => {
+  page?: number;
+  limit?: number;
+}): Promise<ApiResponse<Wallet[]>> => {
   try {
     const res = await api.get("/wallets", { params: filters });
-    return { success: true, data: res.data?.data || [] };
+    return (res as any)._api_response;
   } catch (error: any) {
     return {
       success: false,
-      error: error.response?.data?.message || "Failed to fetch wallets",
+      data: [],
+      code: "FETCH_ERROR",
+      message: error.response?.data?.message || "Failed to fetch wallets",
+      meta: { timestamp: Date.now() },
     };
   }
 };

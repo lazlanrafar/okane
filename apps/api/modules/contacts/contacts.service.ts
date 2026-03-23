@@ -1,6 +1,6 @@
 import { ContactsRepository } from "./contacts.repository";
 import { auditLogsService } from "../audit-logs/audit-logs.service";
-import { buildSuccess, buildError } from "@workspace/utils";
+import { buildSuccess, buildError, buildPaginatedSuccess } from "@workspace/utils";
 import { status } from "elysia";
 import { ErrorCode } from "@workspace/types";
 import type { CreateContactInput, UpdateContactInput } from "./contacts.model";
@@ -109,9 +109,21 @@ export abstract class ContactsService {
     return buildSuccess(null, "Contact deleted successfully");
   }
 
-  static async getContacts(workspaceId: string, search?: string) {
-    const contacts = await ContactsRepository.findMany(workspaceId, search);
-    return buildSuccess(contacts, "Contacts retrieved successfully");
+  static async getContacts(workspaceId: string, filters?: { search?: string; page?: number; limit?: number }) {
+    const { rows, total } = await ContactsRepository.findMany(workspaceId, filters);
+    const page = filters?.page ?? 1;
+    const limit = filters?.limit ?? 20;
+
+    return buildPaginatedSuccess(
+      rows,
+      {
+        total,
+        page,
+        limit,
+        total_pages: Math.ceil(total / limit),
+      },
+      "Contacts retrieved successfully",
+    );
   }
 
   static async getContactById(workspaceId: string, id: string) {
