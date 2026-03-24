@@ -12,8 +12,8 @@ import {
   ilike,
 } from "@workspace/database";
 
-export const vaultRepository = {
-  async count(workspaceId: string, data?: { search?: string }) {
+export abstract class VaultRepository {
+  static async count(workspaceId: string, data?: { search?: string }) {
     const [result] = await db
       .select({ value: count() })
       .from(vaultFiles)
@@ -27,9 +27,9 @@ export const vaultRepository = {
         ),
       );
     return result?.value ?? 0;
-  },
+  }
 
-  async create(data: {
+  static async create(data: {
     workspaceId: string;
     name: string;
     key: string;
@@ -45,9 +45,9 @@ export const vaultRepository = {
       })
       .returning();
     return file ?? null;
-  },
+  }
 
-  async delete(id: string, workspaceId: string) {
+  static async delete(id: string, workspaceId: string) {
     const [file] = await db
       .update(vaultFiles)
       .set({ deletedAt: new Date() })
@@ -56,9 +56,9 @@ export const vaultRepository = {
       )
       .returning();
     return file ?? null;
-  },
+  }
 
-  async findMany(
+  static async findMany(
     workspaceId: string,
     limit: number = 20,
     offset: number = 0,
@@ -77,9 +77,9 @@ export const vaultRepository = {
       .orderBy(desc(vaultFiles.createdAt))
       .limit(limit)
       .offset(offset);
-  },
+  }
 
-  async findById(id: string, workspaceId: string) {
+  static async findById(id: string, workspaceId: string) {
     const [file] = await db
       .select()
       .from(vaultFiles)
@@ -92,9 +92,9 @@ export const vaultRepository = {
       )
       .limit(1);
     return file ?? null;
-  },
+  }
 
-  async updateTags(id: string, workspaceId: string, tags: string[]) {
+  static async updateTags(id: string, workspaceId: string, tags: string[]) {
     const [file] = await db
       .update(vaultFiles)
       .set({ tags, updatedAt: new Date() })
@@ -103,9 +103,9 @@ export const vaultRepository = {
       )
       .returning();
     return file ?? null;
-  },
+  }
 
-  async getUsageAndQuota(workspaceId: string) {
+  static async getUsageAndQuota(workspaceId: string) {
     const [usageData] = await db
       .select({
         used: workspaces.vault_size_used_bytes,
@@ -116,12 +116,12 @@ export const vaultRepository = {
       .where(eq(workspaces.id, workspaceId))
       .limit(1);
     return usageData;
-  },
+  }
 
-  async updateVaultSize(workspaceId: string, newSize: number) {
+  static async updateVaultSize(workspaceId: string, newSize: number) {
     await db
       .update(workspaces)
       .set({ vault_size_used_bytes: newSize })
       .where(eq(workspaces.id, workspaceId));
-  },
-};
+  }
+}

@@ -6,8 +6,8 @@ import {
 import { InvoicesRepository } from "./invoices.repository";
 import type { CreateInvoiceInput, UpdateInvoiceInput } from "./invoices.dto";
 import { ErrorCode } from "@workspace/types";
-import { auditLogsService } from "../audit-logs/audit-logs.service";
-import { auditLogsRepository } from "../audit-logs/audit-logs.repository";
+import { AuditLogsService } from "../audit-logs/audit-logs.service";
+import { AuditLogsRepository } from "../audit-logs/audit-logs.repository";
 
 export abstract class InvoicesService {
   static async getAll(
@@ -57,7 +57,7 @@ export abstract class InvoicesService {
       throw new Error("Failed to create invoice");
     }
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "invoice.created",
@@ -86,7 +86,7 @@ export abstract class InvoicesService {
       throw new Error("Failed to update invoice");
     }
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "invoice.updated",
@@ -103,7 +103,7 @@ export abstract class InvoicesService {
     const before = await InvoicesRepository.findById(id, workspaceId);
     await InvoicesRepository.softDelete(id, workspaceId);
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "invoice.deleted",
@@ -116,7 +116,7 @@ export abstract class InvoicesService {
   }
 
   static async getActivity(id: string, workspaceId: string) {
-    const activity = await auditLogsRepository.findByEntity(
+    const activity = await AuditLogsRepository.findByEntity(
       "invoice",
       id,
       workspaceId,

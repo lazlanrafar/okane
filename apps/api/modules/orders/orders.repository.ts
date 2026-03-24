@@ -17,13 +17,13 @@ import {
 /**
  * Orders repository — ONLY layer with DB access.
  */
-export const ordersRepository = {
-  async create(data: typeof orders.$inferInsert, tx: any = db) {
+export abstract class OrdersRepository {
+  static async create(data: typeof orders.$inferInsert, tx: any = db) {
     const [order] = await tx.insert(orders).values(data).returning();
     return order;
-  },
+  }
 
-  async updateByStripeInvoiceId(
+  static async updateByStripeInvoiceId(
     invoiceId: string,
     data: Partial<typeof orders.$inferInsert>,
   ) {
@@ -33,9 +33,9 @@ export const ordersRepository = {
       .where(eq(orders.stripe_invoice_id, invoiceId))
       .returning();
     return order;
-  },
+  }
 
-  async updateByPaymentIntentId(
+  static async updateByPaymentIntentId(
     paymentIntentId: string,
     data: Partial<typeof orders.$inferInsert>,
   ) {
@@ -45,9 +45,9 @@ export const ordersRepository = {
       .where(eq(orders.stripe_payment_intent_id, paymentIntentId))
       .returning();
     return order;
-  },
+  }
 
-  async findAll(
+  static async findAll(
     page = 1,
     limit = 20,
     search?: string,
@@ -137,26 +137,26 @@ export const ordersRepository = {
       .offset(offset);
 
     return { rows, total: Number(totalResult?.count ?? 0) };
-  },
+  }
 
-  async findById(id: string) {
+  static async findById(id: string) {
     const [order] = await db
       .select()
       .from(orders)
       .where(and(eq(orders.id, id), isNull(orders.deleted_at)))
       .limit(1);
     return order ?? null;
-  },
+  }
 
-  async findByInvoiceId(invoiceId: string) {
+  static async findByInvoiceId(invoiceId: string) {
     const [order] = await db
       .select()
       .from(orders)
       .where(and(eq(orders.stripe_invoice_id, invoiceId), isNull(orders.deleted_at)))
       .limit(1);
     return order ?? null;
-  },
-  async findByWorkspaceId(workspaceId: string) {
+  }
+  static async findByWorkspaceId(workspaceId: string) {
     return await db
       .select({
         id: orders.id,
@@ -175,5 +175,5 @@ export const ordersRepository = {
       .from(orders)
       .where(and(eq(orders.workspace_id, workspaceId), isNull(orders.deleted_at)))
       .orderBy(desc(orders.created_at));
-  },
-};
+  }
+}

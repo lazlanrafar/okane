@@ -13,26 +13,26 @@ import {
  * Users repository — ONLY layer with DB access.
  * All reads filter by workspace_id + deleted_at: null where applicable.
  */
-export const usersRepository = {
-  async findById(user_id: string) {
+export abstract class UsersRepository {
+  static async findById(user_id: string) {
     const [user] = await db
       .select()
       .from(users)
       .where(eq(users.id, user_id))
       .limit(1);
     return user ?? null;
-  },
+  }
 
-  async findByEmail(email: string) {
+  static async findByEmail(email: string) {
     const [user] = await db
       .select()
       .from(users)
       .where(eq(users.email, email))
       .limit(1);
     return user ?? null;
-  },
+  }
 
-  async upsert(data: {
+  static async upsert(data: {
     id: string;
     email: string;
     name?: string | null;
@@ -60,32 +60,32 @@ export const usersRepository = {
           updated_at: new Date(),
         },
       });
-  },
+  }
 
-  async update(user_id: string, data: Partial<typeof users.$inferInsert>) {
+  static async update(user_id: string, data: Partial<typeof users.$inferInsert>) {
     await db
       .update(users)
       .set({ ...data, updated_at: new Date() })
       .where(eq(users.id, user_id));
-  },
+  }
 
-  async getWorkspaceId(user_id: string, tx: any = db) {
+  static async getWorkspaceId(user_id: string, tx: any = db) {
     const [user] = await tx
       .select({ workspace_id: users.workspace_id })
       .from(users)
       .where(eq(users.id, user_id))
       .limit(1);
     return user?.workspace_id ?? null;
-  },
+  }
 
-  async setWorkspaceId(user_id: string, workspace_id: string, tx: any = db) {
+  static async setWorkspaceId(user_id: string, workspace_id: string, tx: any = db) {
     await tx
       .update(users)
       .set({ workspace_id, updated_at: new Date() })
       .where(eq(users.id, user_id));
-  },
+  }
 
-  async getMemberships(user_id: string) {
+  static async getMemberships(user_id: string) {
     return db
       .select()
       .from(user_workspaces)
@@ -95,9 +95,9 @@ export const usersRepository = {
           isNull(user_workspaces.deleted_at),
         ),
       );
-  },
+  }
 
-  async getWorkspacesWithRole(user_id: string) {
+  static async getWorkspacesWithRole(user_id: string) {
     return db
       .select({
         id: workspaces.id,
@@ -117,5 +117,5 @@ export const usersRepository = {
           isNull(workspaces.deleted_at),
         ),
       );
-  },
-};
+  }
+}

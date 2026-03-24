@@ -1,0 +1,178 @@
+export const websiteJa = {
+  nav: {
+    features: "機能",
+    pricing: "料金",
+    story: "ストーリー",
+    integrations: "連携",
+    support: "サポート",
+    signIn: "サインイン",
+    signOut: "サインアウト",
+  },
+  hero: {
+    badge: "オープンソースの財務OS",
+    title: "手作業なしでビジネス財務を運営",
+    subtitle:
+      "oewangは近代的なビジネス向け財務OSです。AI搭載の分析、自動分類、リアルタイム同期。",
+    ctaStartFree: "無料試用を開始",
+    ctaSeeHow: "仕組みを見る",
+    ctaGetStarted: "無料で始める",
+    ctaGoToDashboard: "ダッシュボードへ",
+    ctaViewDemo: "デモを見る",
+    trialNote: "14日間無料 · いつでもキャンセル可能",
+    noCreditCard: "クレジットカード不要",
+  },
+  howItWorks: {
+    title: "仕組み",
+    subtitle: "ビジネス財務を運営に必要なすべてが一箇所に。",
+    seeAllFeatures: "すべての機能を見る",
+    transactions: {
+      title: "取引",
+      description: "すべての収入と支出が自動的に同期・分類。手作業告别。",
+    },
+    aiAssistant: {
+      title: "AIアシスタント",
+      description: "财务について平易な言葉で質問。すぐにインサイトを獲得。",
+    },
+    invoices: {
+      title: "請求書",
+      description: "プロフェッショナルな請求書、自動追跡でお支払い迅速化。",
+    },
+  },
+  features: {
+    title: "ビジネス運営に必要なすべて",
+    transactions: {
+      title: "すべての取引を一元管理",
+      description:
+        "ビジネスのすべての収入と支出が自動的に同期・分類。手作業告别。",
+      items: [
+        "AIによる自動分類",
+        "瞬時の検索とフィルター",
+        "複数通貨対応",
+        "一括編集",
+      ],
+    },
+    aiAssistant: {
+      title: "财务について質問",
+      description:
+        "支出、収益、トレンドについて即座に回答。レポートを検索する必要はありません。",
+      items: [
+        "自然言語クエリ",
+        "リアルタイムインサイト",
+        "週間サマリー",
+        "マルチエージェントAI",
+      ],
+    },
+    invoices: {
+      title: "プロフェッショナルな請求書、自動追跡",
+      description:
+        "数秒で請求書を作成・送信。オンライン決済リンクでお支払い迅速化。",
+      items: [
+        "カスタマイズ可能テンプレート",
+        "オンライン決済リンク",
+        "自動リマインダー",
+        "VAT・税対応",
+      ],
+    },
+    dashboard: {
+      title: "完全な財務概要",
+      description:
+        "一目で完全な財務状況を把握。収入、支出、トレンドが1つのダッシュボードに。",
+      items: [
+        "リアルタイム指標",
+        "トレンド分析",
+        "上位支出カテゴリ",
+        "AI搭載インサイト",
+      ],
+    },
+  },
+  story: {
+    title: "ストーリー",
+    heading: "oewangを作った理由",
+    problemTitle: "問題",
+    problemText:
+      "ビジネスを運営するには、複数のツールで財務管理が必要。銀行口座、請求書、レシート、取引—all scattered across spreadsheets, email threads, and disconnected dashboards.",
+    solutionTitle: "解決策",
+    solutionText:
+      "oewangは、すべてを一元化。取引は自動的に同期、AIが支出を分類・説明、請求書は作成・追跡、Vaultはレシートを整理。",
+    modernTitle: "近代的なビジネス向け",
+    modernText:
+      "フリーランスでも小規模チームでも、oewangはあなたのワークフローに適応します。",
+    focusTitle: "私たちのフォーカス",
+    focusItems: [
+      "手作業を排除",
+      "データの一貫性を保つ",
+      "適切な情報をお届けします",
+      "静かにバックグラウンドで動作",
+    ],
+    founder: "L Azlan Rafar",
+    founderTitle: "創設者",
+  },
+  pricing: {
+    title: "ビジネス運営に合った料金設定",
+    subtitle: "シンプルに始めて、ワークフローが複雑になったらアップグレード。",
+    monthly: "月額",
+    yearly: "年額",
+    yearlyDiscount: "20%オフ",
+    mostPopular: "人気No.1",
+    getStarted: "始める",
+    startFree: "無料試用を開始",
+    noCreditCard: "クレジットカード不要",
+    allPrices: "すべての価格はUSD。現地税が適用される場合があります。",
+  },
+  integrations: {
+    title: "お使いのツールと連携",
+    subtitle: "数分でビジネスツールを接続。",
+    available: "利用可能",
+    comingSoon: "近日公開",
+    telegram: {
+      title: "Telegram",
+      description: "Telegramボットでレシートを転送",
+      setupTitle: "Telegramボット設定",
+      setupSteps: [
+        "Telegramを開き@OewangBotを検索",
+        "チャットを開始しConnectをタップ",
+        "QRコードをスキャンしてアカウントをリンク",
+        "レシートの転送を開始！",
+      ],
+    },
+    categories: {
+      capture: "レシートキャプチャ",
+      email: "メール",
+      accounting: "会計",
+      payments: "決済",
+      storage: "ストレージ",
+      ai: "AI & 自動化",
+    },
+  },
+  support: {
+    title: "サポート",
+    subtitle: "お手伝いします。",
+    faqTitle: "よくある質問",
+    faqSubtitle: "oewangについて知りたいことすべて。",
+    contactTitle: "まだ質問がありますか？",
+    contactText: "答えが見つかりませんでしたか？チームにお問い合わせください。",
+    contactEmail: "メールを送る",
+  },
+  footer: {
+    tagline: "ビジネスを運営。管理工作じゃない。",
+    rights: "All rights reserved.",
+    lightMode: "ライトモード",
+    darkMode: "ダークモード",
+  },
+  notFound: {
+    title: "404",
+    heading: "ページが見つかりません",
+    description: "お探しのページは存在しないか、移動した可能性があります。",
+    goHome: "ホームへ",
+    goToApp: "アプリへ",
+  },
+  cta: {
+    title: "管理を始める準備ができましたか？",
+    subtitle:
+      "oewangを使って財務を管理している何百ものビジネスに参加しましょう。",
+    getStarted: "無料で始める",
+    viewPricing: "料金を見る",
+  },
+};
+
+export type WebsiteDictionaryJa = typeof websiteJa;

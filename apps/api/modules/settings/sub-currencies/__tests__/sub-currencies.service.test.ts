@@ -20,7 +20,7 @@ mock.module("../sub-currencies.repository", () => ({
 }));
 
 mock.module("../../../audit-logs/audit-logs.service", () => ({
-  auditLogsService: {
+  AuditLogsService: {
     log: mock(() => Promise.resolve()),
   },
 }));

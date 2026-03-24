@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { ErrorCode } from "@workspace/types";
 import { buildSuccess, buildError } from "@workspace/utils";
-import { workspacesService } from "./workspaces.service";
+import { WorkspacesService } from "./workspaces.service";
 import { OrdersService } from "../orders/orders.service";
 import {
   CreateWorkspaceBody,
@@ -10,6 +10,7 @@ import {
 } from "./workspaces.model";
 import { authPlugin } from "../../plugins/auth";
 import { encryptionPlugin } from "../../plugins/encryption";
+import { logger } from "@workspace/logger";
 
 /**
  * Workspaces controller — route definitions + validation + call service.
@@ -22,7 +23,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
     "/",
     // biome-ignore lint/suspicious/noExplicitAny: Generic handler
     async ({ body, set, auth }: any) => {
-      console.log("[WorkspacesController] Create workspace request received", {
+      logger.info("[WorkspacesController] Create workspace request received", {
         auth_user: auth,
         workspace_name: body.name,
       });
@@ -33,14 +34,14 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
       }
 
       try {
-        const workspace = await workspacesService.createWorkspace(
+        const workspace = await WorkspacesService.createWorkspace(
           auth.user_id,
           body,
         );
         set.status = 201;
         return buildSuccess(workspace, "Workspace created successfully");
       } catch (error: any) {
-        console.error("Error creating workspace:", error);
+        logger.error("Error creating workspace", { error, userId: auth.user_id });
 
         // Handle errors thrown by service using status()
         if (error.status && error.body) {
@@ -75,7 +76,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
       }
 
       try {
-        const workspaces = await workspacesService.listWorkspaces(auth.user_id);
+        const workspaces = await WorkspacesService.listWorkspaces(auth.user_id);
         return buildSuccess(workspaces, "Workspaces retrieved");
       } catch (_error) {
         set.status = 500;
@@ -103,7 +104,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
       }
 
       try {
-        const workspace = await workspacesService.getActiveWorkspace(
+        const workspace = await WorkspacesService.getActiveWorkspace(
           auth.workspace_id,
         );
         if (!workspace) {
@@ -122,6 +123,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
     {
       detail: {
         summary: "Get Active Workspace",
+        description: "Retrieves details of the currently active workspace.",
         tags: ["Workspaces"],
       },
     },
@@ -134,7 +136,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
         return buildError(ErrorCode.UNAUTHORIZED, "Unauthorized");
       }
       try {
-        const members = await workspacesService.getMembers(auth.workspace_id);
+        const members = await WorkspacesService.getMembers(auth.workspace_id);
         return buildSuccess(members, "Members retrieved");
       } catch (error: any) {
         set.status = 500;
@@ -144,6 +146,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
     {
       detail: {
         summary: "List Members",
+        description: "Lists all members of the active workspace.",
         tags: ["Workspaces"],
       },
     },
@@ -157,7 +160,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
       }
 
       try {
-        const invitation = await workspacesService.inviteMember(
+        const invitation = await WorkspacesService.inviteMember(
           auth.user_id,
           auth.workspace_id,
           body.email,
@@ -165,7 +168,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
         );
         return buildSuccess(invitation, "Invitation sent successfully");
       } catch (error: any) {
-        console.log(error);
+        logger.error("Error inviting member", { error, workspaceId: auth.workspace_id });
 
         set.status = 400;
         return buildError(ErrorCode.VALIDATION_ERROR, error.message);
@@ -175,6 +178,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
       body: CreateInvitationBody,
       detail: {
         summary: "Invite Member",
+        description: "Invites a new member to the active workspace.",
         tags: ["Workspaces"],
       },
     },
@@ -189,7 +193,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
 
       try {
         // ideally check if user is member of workspace first
-        const invitations = await workspacesService.getInvitations(
+        const invitations = await WorkspacesService.getInvitations(
           auth.workspace_id,
         );
         return buildSuccess(invitations, "Invitations retrieved");
@@ -201,6 +205,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
     {
       detail: {
         summary: "List Invitations",
+        description: "Lists all pending invitations for the active workspace.",
         tags: ["Workspaces"],
       },
     },
@@ -214,7 +219,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
       }
 
       try {
-        await workspacesService.cancelInvitation(
+        await WorkspacesService.cancelInvitation(
           auth.user_id,
           auth.workspace_id,
           params.invitationId,
@@ -228,6 +233,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
     {
       detail: {
         summary: "Cancel Invitation",
+        description: "Cancels a pending workspace invitation.",
         tags: ["Workspaces"],
       },
     },
@@ -241,7 +247,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
       }
 
       try {
-        const workspaceId = await workspacesService.acceptInvitationByToken(
+        const workspaceId = await WorkspacesService.acceptInvitationByToken(
           body.token,
           auth.user_id,
         );
@@ -257,6 +263,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
     {
       detail: {
         summary: "Accept Invitation",
+        description: "Accepts a workspace invitation using a token.",
         tags: ["Workspaces"],
       },
     },
@@ -279,6 +286,7 @@ export const workspacesController = new Elysia({ prefix: "/workspaces" })
     {
       detail: {
         summary: "Get Billing History",
+        description: "Retrieves the billing/order history for the active workspace.",
         tags: ["Workspaces"],
       },
     },

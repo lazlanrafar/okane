@@ -1,6 +1,6 @@
-import { workspacesRepository } from "./workspaces.repository";
-import { usersRepository } from "../users/users.repository";
-import { auditLogsService } from "../audit-logs/audit-logs.service";
+import { WorkspacesRepository } from "./workspaces.repository";
+import { UsersRepository } from "../users/users.repository";
+import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import {
   DEFAULT_INCOME_CATEGORIES,
   DEFAULT_EXPENSE_CATEGORIES,
@@ -10,8 +10,8 @@ import {
 import { sendInvitationEmail } from "@workspace/email";
 import { CategoriesRepository } from "../categories/categories.repository";
 import { SettingsRepository } from "../settings/settings.repository";
-import { walletGroupsRepository } from "../wallets/groups/groups.repository";
-import { walletsRepository } from "../wallets/wallets.repository";
+import { WalletGroupsRepository } from "../wallets/groups/groups.repository";
+import { WalletsRepository } from "../wallets/wallets.repository";
 import { db, pricing, eq } from "@workspace/database";
 import { Env } from "@workspace/constants";
 import { OrdersService } from "../orders/orders.service";
@@ -19,17 +19,18 @@ import { generateSlug } from "@workspace/utils";
 import { status } from "elysia";
 import { ErrorCode } from "@workspace/types";
 import { buildError } from "@workspace/utils";
+import { logger } from "@workspace/logger";
 
 /**
  * Workspaces service — business logic layer.
  * Workspace validation, slug generation, membership assignment.
  * No HTTP logic. No DB access.
  */
-export const workspacesService = {
+export abstract class WorkspacesService {
   /**
    * Create a new workspace and assign creator as owner.
    */
-  async createWorkspace(
+  static async createWorkspace(
     user_id: string,
     data: {
       name: string;
@@ -42,7 +43,7 @@ export const workspacesService = {
 
     // 0. Check for existing workspaces (Plan Gating)
     const workspacesWithPlans =
-      await workspacesRepository.getWorkspacesWithPlans(user_id);
+      await WorkspacesRepository.getWorkspacesWithPlans(user_id);
 
     // Filter to only workspaces where the user is an owner/admin (who can create workspaces)
     // Actually, the limit should be based on the TOTAL workspaces a user is in, or just those they OWN?
@@ -79,7 +80,7 @@ export const workspacesService = {
 
     // 2. Wrap creation in a transaction to rollback on partial failure
     const workspaceResult = await db.transaction(async (tx) => {
-      const workspace = await workspacesRepository.create(
+      const workspace = await WorkspacesRepository.create(
         {
           name,
           slug,
@@ -97,7 +98,7 @@ export const workspacesService = {
       // 3. Parallelize independent initialization tasks within the transaction
       await Promise.all([
         // A. Add user as owner
-        workspacesRepository.addMember(
+        WorkspacesRepository.addMember(
           {
             workspace_id: workspace.id,
             user_id,
@@ -108,12 +109,12 @@ export const workspacesService = {
 
         // B. Set as user's active workspace if they don't have one
         (async () => {
-          const current_workspace_id = await usersRepository.getWorkspaceId(
+          const current_workspace_id = await UsersRepository.getWorkspaceId(
             user_id,
             tx,
           );
           if (!current_workspace_id) {
-            await usersRepository.setWorkspaceId(user_id, workspace.id, tx);
+            await UsersRepository.setWorkspaceId(user_id, workspace.id, tx);
           }
         })(),
 
@@ -160,7 +161,7 @@ export const workspacesService = {
 
         // G. Handle wallet system (groups then items)
         (async () => {
-          const defaultGroups = await walletGroupsRepository.createMany(
+          const defaultGroups = await WalletGroupsRepository.createMany(
             DEFAULT_WALLET_GROUPS.map((groupName) => ({
               workspaceId: workspace.id,
               name: groupName,
@@ -194,7 +195,7 @@ export const workspacesService = {
           }
 
           if (walletsToCreate.length > 0) {
-            await walletsRepository.createMany(walletsToCreate, tx);
+            await WalletsRepository.createMany(walletsToCreate, tx);
           }
         })(),
       ]);
@@ -207,7 +208,7 @@ export const workspacesService = {
     });
 
     // E. Log action (after transaction commits to respect FK constraints)
-    auditLogsService
+    AuditLogsService
       .log({
         workspace_id: workspaceResult.id,
         user_id,
@@ -219,37 +220,37 @@ export const workspacesService = {
           slug: workspaceResult.slug,
         },
       })
-      .catch(console.error);
+      .catch((err) => logger.error("Failed to log workspace creation", { err }));
 
     return workspaceResult;
-  },
+  }
 
   /**
    * List all workspaces the user is a member of.
    */
-  async listWorkspaces(user_id: string) {
-    return workspacesRepository.getMemberWorkspaces(user_id);
-  },
+  static async listWorkspaces(user_id: string) {
+    return WorkspacesRepository.getMemberWorkspaces(user_id);
+  }
 
-  async getActiveWorkspace(workspace_id: string) {
-    return workspacesRepository.findById(workspace_id);
-  },
+  static async getActiveWorkspace(workspace_id: string) {
+    return WorkspacesRepository.findById(workspace_id);
+  }
 
-  async getMembers(workspace_id: string) {
-    return workspacesRepository.getMembers(workspace_id);
-  },
+  static async getMembers(workspace_id: string) {
+    return WorkspacesRepository.getMembers(workspace_id);
+  }
 
   /**
    * Invite a user to the workspace.
    */
-  async inviteMember(
+  static async inviteMember(
     actor_id: string,
     workspace_id: string,
     email: string,
     role: "admin" | "member",
   ) {
     // 1. Check if actor has permission (owner/admin)
-    const actorMembership = await workspacesRepository.getMembership(
+    const actorMembership = await WorkspacesRepository.getMembership(
       actor_id,
       workspace_id,
     );
@@ -261,9 +262,9 @@ export const workspacesService = {
     }
 
     // 2. Check if user is already a member
-    const existingUser = await usersRepository.findByEmail(email);
+    const existingUser = await UsersRepository.findByEmail(email);
     if (existingUser) {
-      const existingMembership = await workspacesRepository.getMembership(
+      const existingMembership = await WorkspacesRepository.getMembership(
         existingUser.id,
         workspace_id,
       );
@@ -273,12 +274,12 @@ export const workspacesService = {
     }
 
     // 3. Check for pending invitation - delete if exists to allow re-invite
-    const pendingInvite = await workspacesRepository.findPendingInvitation(
+    const pendingInvite = await WorkspacesRepository.findPendingInvitation(
       workspace_id,
       email,
     );
     if (pendingInvite) {
-      await workspacesRepository.deleteInvitation(pendingInvite.id);
+      await WorkspacesRepository.deleteInvitation(pendingInvite.id);
     }
 
     // 4. Create token and invitation
@@ -286,7 +287,7 @@ export const workspacesService = {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiration
 
-    const invitation = await workspacesRepository.createInvitation({
+    const invitation = await WorkspacesRepository.createInvitation({
       workspaceId: workspace_id,
       email,
       role,
@@ -297,14 +298,14 @@ export const workspacesService = {
     if (!invitation) throw new Error("Failed to create invitation");
 
     // 5. Send email
-    const workspace = await workspacesRepository.findById(workspace_id);
+    const workspace = await WorkspacesRepository.findById(workspace_id);
     if (workspace) {
       const inviteLink = `${Env.APP_URL}/accept-invite?token=${token}`;
       await sendInvitationEmail(email, workspace.name, inviteLink);
     }
 
     // 6. Log action
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id,
       user_id: actor_id,
       action: "workspace.invitation_created",
@@ -314,19 +315,19 @@ export const workspacesService = {
     });
 
     return invitation;
-  },
+  }
 
-  async getInvitations(workspace_id: string) {
-    return workspacesRepository.getWorkspaceInvitations(workspace_id);
-  },
+  static async getInvitations(workspace_id: string) {
+    return WorkspacesRepository.getWorkspaceInvitations(workspace_id);
+  }
 
-  async cancelInvitation(
+  static async cancelInvitation(
     actor_id: string,
     workspace_id: string,
     invitation_id: string,
   ) {
     // Check permission
-    const actorMembership = await workspacesRepository.getMembership(
+    const actorMembership = await WorkspacesRepository.getMembership(
       actor_id,
       workspace_id,
     );
@@ -337,18 +338,18 @@ export const workspacesService = {
       throw new Error("Unauthorized to cancel invitations");
     }
 
-    await workspacesRepository.deleteInvitation(invitation_id);
+    await WorkspacesRepository.deleteInvitation(invitation_id);
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id,
       user_id: actor_id,
       action: "workspace.invitation_cancelled",
       entity: "invitation",
       entity_id: invitation_id,
     });
-  },
+  }
 
-  async acceptInvitation(email: string, user_id: string) {
+  static async acceptInvitation(email: string, user_id: string) {
     // 1. Find pending invitation
     // We need to iterate through all workspaces or find by email globally.
     // But findPendingInvitation requires workspaceId.
@@ -358,7 +359,7 @@ export const workspacesService = {
     // For now, let's assume we check for a specific workspace if provided, or we need to implement findPendingInvitationsByEmail.
     // Let's rely on the repository to search by email.
     const invitations =
-      await workspacesRepository.findPendingInvitationsByEmail(email);
+      await WorkspacesRepository.findPendingInvitationsByEmail(email);
 
     if (invitations.length === 0) return null;
 
@@ -367,26 +368,26 @@ export const workspacesService = {
     if (!invitation) return null;
 
     // 2. Add member
-    await workspacesRepository.addMember({
+    await WorkspacesRepository.addMember({
       workspace_id: invitation.workspaceId,
       user_id,
       role: invitation.role,
     });
 
     // 3. Update invitation status
-    await workspacesRepository.updateInvitationStatus(
+    await WorkspacesRepository.updateInvitationStatus(
       invitation.id,
       "accepted",
     );
 
     // 4. Set as active workspace if user has none
-    const currentWorkspace = await usersRepository.getWorkspaceId(user_id);
+    const currentWorkspace = await UsersRepository.getWorkspaceId(user_id);
     if (!currentWorkspace) {
-      await usersRepository.setWorkspaceId(user_id, invitation.workspaceId);
+      await UsersRepository.setWorkspaceId(user_id, invitation.workspaceId);
     }
 
     // 5. Log action
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: invitation.workspaceId,
       user_id,
       action: "workspace.invitation_accepted",
@@ -395,11 +396,11 @@ export const workspacesService = {
     });
 
     return invitation.workspaceId;
-  },
+  }
 
-  async acceptInvitationByToken(token: string, user_id: string) {
+  static async acceptInvitationByToken(token: string, user_id: string) {
     // 1. Find pending invitation by token
-    const invitation = await workspacesRepository.findInvitationByToken(token);
+    const invitation = await WorkspacesRepository.findInvitationByToken(token);
 
     if (!invitation || invitation.status !== "pending") {
       throw new Error("Invalid or expired invitation");
@@ -407,7 +408,7 @@ export const workspacesService = {
 
     // 2. Check expiry
     if (new Date() > new Date(invitation.expiresAt)) {
-      await workspacesRepository.updateInvitationStatus(
+      await WorkspacesRepository.updateInvitationStatus(
         invitation.id,
         "expired",
       );
@@ -415,12 +416,12 @@ export const workspacesService = {
     }
 
     // 3. Add member if not already a member
-    const existingMembership = await workspacesRepository.getMembership(
+    const existingMembership = await WorkspacesRepository.getMembership(
       user_id,
       invitation.workspaceId,
     );
     if (!existingMembership) {
-      await workspacesRepository.addMember({
+      await WorkspacesRepository.addMember({
         workspace_id: invitation.workspaceId,
         user_id,
         role: invitation.role,
@@ -428,19 +429,19 @@ export const workspacesService = {
     }
 
     // 4. Update invitation status
-    await workspacesRepository.updateInvitationStatus(
+    await WorkspacesRepository.updateInvitationStatus(
       invitation.id,
       "accepted",
     );
 
     // 5. Set as active workspace if user has none
-    const currentWorkspace = await usersRepository.getWorkspaceId(user_id);
+    const currentWorkspace = await UsersRepository.getWorkspaceId(user_id);
     if (!currentWorkspace) {
-      await usersRepository.setWorkspaceId(user_id, invitation.workspaceId);
+      await UsersRepository.setWorkspaceId(user_id, invitation.workspaceId);
     }
 
     // 6. Log action
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: invitation.workspaceId,
       user_id,
       action: "workspace.invitation_accepted",
@@ -449,5 +450,5 @@ export const workspacesService = {
     });
 
     return invitation.workspaceId;
-  },
-};
+  }
+}

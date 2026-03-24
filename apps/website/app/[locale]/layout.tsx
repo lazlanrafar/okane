@@ -5,9 +5,9 @@ import { Toaster } from "@workspace/ui/atoms";
 import "@workspace/ui/globals.css";
 
 export const metadata: Metadata = {
-  title: "Okane – Financial intelligence for modern business",
+  title: "oewang – Run your business finances without manual work",
   description:
-    "Okane is the operating system for your business. Manage spending, send invoices, and gain real-time visibility into your finances.",
+    "oewang is the financial OS for modern businesses. AI-powered insights, automatic categorization, real-time sync. Manage spending, send invoices, track transactions.",
 };
 
 export default async function RootLayout({

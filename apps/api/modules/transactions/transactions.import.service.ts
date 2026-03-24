@@ -3,13 +3,14 @@ import {
   parseFileToAiInput, 
   type ExtractedTransaction 
 } from "@workspace/ai";
-import { walletsRepository } from "../wallets/wallets.repository";
+import { WalletsRepository } from "../wallets/wallets.repository";
 import { TransactionsRepository } from "./transactions.repository";
 import { CategoriesRepository } from "../categories/categories.repository";
-import { auditLogsService } from "../audit-logs/audit-logs.service";
+import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import { buildSuccess, buildError } from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
 import { Env } from "@workspace/constants";
+import { logger } from "@workspace/logger";
 import { status } from "elysia";
 
 export abstract class TransactionsImportService {
@@ -22,19 +23,19 @@ export abstract class TransactionsImportService {
   ) {
     // 1. Fetch wallets and existing categories for AI context and ID resolution
     const [walletsResult, existingCategories] = await Promise.all([
-      walletsRepository.findMany(workspaceId),
+      WalletsRepository.findMany(workspaceId),
       CategoriesRepository.findMany(workspaceId),
     ]);
 
     const wallets = walletsResult.rows;
 
-    const walletNames = wallets.map((w) => w.name);
-    const categoryNames = existingCategories.map((c) => c.name);
+    const walletNames = wallets.map((w: any) => w.name);
+    const categoryNames = existingCategories.map((c: any) => c.name);
 
-    const walletMap = new Map(wallets.map((w) => [w.name.toLowerCase(), w.id]));
+    const walletMap = new Map<string, string>(wallets.map((w: any) => [w.name.toLowerCase(), w.id]));
     // category map: name → { id, type }
-    const categoryMap = new Map(
-      existingCategories.map((c) => [c.name.toLowerCase(), c]),
+    const categoryMap = new Map<string, any>(
+      existingCategories.map((c: any) => [c.name.toLowerCase(), c]),
     );
 
     // 2. Parse file → AI input
@@ -54,7 +55,7 @@ export abstract class TransactionsImportService {
         }
       );
     } catch (err: any) {
-      console.error("[AI Import Error]:", err);
+      logger.error("[AI Import Error]", { err });
       if (err.message?.includes("No AI provider configured")) {
         throw status(
           422,
@@ -149,20 +150,20 @@ export abstract class TransactionsImportService {
         // Adjust wallet balance
         const val = Number(amount);
         if (tx.type === "expense") {
-          await walletsRepository.updateBalance(
+          await WalletsRepository.updateBalance(
             resolvedWalletId,
             workspaceId,
             -val,
           );
         } else if (tx.type === "income") {
-          await walletsRepository.updateBalance(
+          await WalletsRepository.updateBalance(
             resolvedWalletId,
             workspaceId,
             val,
           );
         }
 
-        await auditLogsService.log({
+        await AuditLogsService.log({
           workspace_id: workspaceId,
           user_id: userId,
           action: "transaction.imported",

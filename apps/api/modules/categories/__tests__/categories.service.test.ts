@@ -1,7 +1,7 @@
 import { expect, test, describe, mock, beforeEach } from "bun:test";
 import { CategoriesService } from "../categories.service";
 import { CategoriesRepository } from "../categories.repository";
-import { auditLogsService } from "../../audit-logs/audit-logs.service";
+import { AuditLogsService } from "../../audit-logs/audit-logs.service";
 
 mock.module("../categories.repository", () => ({
   CategoriesRepository: {
@@ -23,7 +23,7 @@ mock.module("../categories.repository", () => ({
 }));
 
 mock.module("../../audit-logs/audit-logs.service", () => ({
-  auditLogsService: {
+  AuditLogsService: {
     log: mock(() => Promise.resolve()),
   },
 }));

@@ -5,8 +5,8 @@ import type {
   GetTransactionsQueryInput,
   UpdateTransactionInput,
 } from "./transactions.model";
-import { walletsRepository } from "../wallets/wallets.repository";
-import { auditLogsService } from "../audit-logs/audit-logs.service";
+import { WalletsRepository } from "../wallets/wallets.repository";
+import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import {
   buildPaginatedSuccess,
   buildSuccess,
@@ -51,15 +51,15 @@ export abstract class TransactionsService {
     const val = Number(amount);
 
     if (body.type === "expense") {
-      await walletsRepository.updateBalance(body.walletId, workspaceId, -val);
+      await WalletsRepository.updateBalance(body.walletId, workspaceId, -val);
     } else if (body.type === "income") {
-      await walletsRepository.updateBalance(body.walletId, workspaceId, val);
+      await WalletsRepository.updateBalance(body.walletId, workspaceId, val);
     } else if (body.type === "transfer" && body.toWalletId) {
-      await walletsRepository.updateBalance(body.walletId, workspaceId, -val);
-      await walletsRepository.updateBalance(body.toWalletId, workspaceId, val);
+      await WalletsRepository.updateBalance(body.walletId, workspaceId, -val);
+      await WalletsRepository.updateBalance(body.toWalletId, workspaceId, val);
     }
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "transaction.created",
@@ -108,31 +108,31 @@ export abstract class TransactionsService {
 
         const val = Number(amount);
         if (item.type === "expense") {
-          await walletsRepository.updateBalance(
+          await WalletsRepository.updateBalance(
             item.walletId,
             workspaceId,
             -val,
           );
         } else if (item.type === "income") {
-          await walletsRepository.updateBalance(
+          await WalletsRepository.updateBalance(
             item.walletId,
             workspaceId,
             val,
           );
         } else if (item.type === "transfer" && item.toWalletId) {
-          await walletsRepository.updateBalance(
+          await WalletsRepository.updateBalance(
             item.walletId,
             workspaceId,
             -val,
           );
-          await walletsRepository.updateBalance(
+          await WalletsRepository.updateBalance(
             item.toWalletId,
             workspaceId,
             val,
           );
         }
 
-        await auditLogsService.log({
+        await AuditLogsService.log({
           workspace_id: workspaceId,
           user_id: userId,
           action: "transaction.imported",
@@ -219,24 +219,24 @@ export abstract class TransactionsService {
 
     const oldVal = Number(transaction.amount);
     if (transaction.type === "expense") {
-      await walletsRepository.updateBalance(
+      await WalletsRepository.updateBalance(
         transaction.walletId,
         workspaceId,
         oldVal,
       );
     } else if (transaction.type === "income") {
-      await walletsRepository.updateBalance(
+      await WalletsRepository.updateBalance(
         transaction.walletId,
         workspaceId,
         -oldVal,
       );
     } else if (transaction.type === "transfer" && transaction.toWalletId) {
-      await walletsRepository.updateBalance(
+      await WalletsRepository.updateBalance(
         transaction.walletId,
         workspaceId,
         oldVal,
       );
-      await walletsRepository.updateBalance(
+      await WalletsRepository.updateBalance(
         transaction.toWalletId,
         workspaceId,
         -oldVal,
@@ -268,31 +268,31 @@ export abstract class TransactionsService {
     const newVal = Number(updated.amount);
 
     if (updated.type === "expense") {
-      await walletsRepository.updateBalance(
+      await WalletsRepository.updateBalance(
         updated.walletId,
         workspaceId,
         -newVal,
       );
     } else if (updated.type === "income") {
-      await walletsRepository.updateBalance(
+      await WalletsRepository.updateBalance(
         updated.walletId,
         workspaceId,
         newVal,
       );
     } else if (updated.type === "transfer" && updated.toWalletId) {
-      await walletsRepository.updateBalance(
+      await WalletsRepository.updateBalance(
         updated.walletId,
         workspaceId,
         -newVal,
       );
-      await walletsRepository.updateBalance(
+      await WalletsRepository.updateBalance(
         updated.toWalletId,
         workspaceId,
         newVal,
       );
     }
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "transaction.updated",
@@ -319,31 +319,31 @@ export abstract class TransactionsService {
     const val = Number(transaction.amount);
 
     if (transaction.type === "expense") {
-      await walletsRepository.updateBalance(
+      await WalletsRepository.updateBalance(
         transaction.walletId,
         workspaceId,
         val,
       );
     } else if (transaction.type === "income") {
-      await walletsRepository.updateBalance(
+      await WalletsRepository.updateBalance(
         transaction.walletId,
         workspaceId,
         -val,
       );
     } else if (transaction.type === "transfer" && transaction.toWalletId) {
-      await walletsRepository.updateBalance(
+      await WalletsRepository.updateBalance(
         transaction.walletId,
         workspaceId,
         val,
       );
-      await walletsRepository.updateBalance(
+      await WalletsRepository.updateBalance(
         transaction.toWalletId,
         workspaceId,
         -val,
       );
     }
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "transaction.deleted",

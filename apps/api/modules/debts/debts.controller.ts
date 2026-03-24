@@ -27,6 +27,11 @@ export const debtsController = new Elysia({ prefix: "/debts" })
     },
     {
       query: DebtsModel.listQuery,
+      detail: {
+        summary: "Get All Debts",
+        description: "Returns a paginated list of debts (loans and payables) for the active workspace.",
+        tags: ["Debts"],
+      },
     },
   )
 
@@ -44,6 +49,11 @@ export const debtsController = new Elysia({ prefix: "/debts" })
     },
     {
       body: DebtsModel.create,
+      detail: {
+        summary: "Create Debt",
+        description: "Creates a new debt record (money owed to others or owed by others).",
+        tags: ["Debts"],
+      },
     },
   )
 
@@ -62,6 +72,11 @@ export const debtsController = new Elysia({ prefix: "/debts" })
     {
       params: t.Object({ id: t.String() }),
       body: DebtsModel.update,
+      detail: {
+        summary: "Update Debt",
+        description: "Updates an existing debt record's terms, amount, or contact details.",
+        tags: ["Debts"],
+      },
     },
   )
 
@@ -81,6 +96,11 @@ export const debtsController = new Elysia({ prefix: "/debts" })
     {
       params: t.Object({ id: t.String() }),
       body: DebtsModel.pay,
+      detail: {
+        summary: "Pay Debt",
+        description: "Records a payment against a debt. If fully paid, the debt status is updated.",
+        tags: ["Debts"],
+      },
     },
   )
 
@@ -98,6 +118,11 @@ export const debtsController = new Elysia({ prefix: "/debts" })
     },
     {
       body: DebtsModel.bulkPay,
+      detail: {
+        summary: "Bulk Pay Debts",
+        description: "Records payments for multiple debts in a single transaction.",
+        tags: ["Debts"],
+      },
     },
   )
 
@@ -114,6 +139,11 @@ export const debtsController = new Elysia({ prefix: "/debts" })
     },
     {
       params: t.Object({ id: t.String() }),
+      detail: {
+        summary: "Delete Debt",
+        description: "Soft-deletes a debt record. Associated payments remain as transactions but the debt relationship is hidden.",
+        tags: ["Debts"],
+      },
     },
   )
   
@@ -131,5 +161,10 @@ export const debtsController = new Elysia({ prefix: "/debts" })
     },
     {
       body: DebtsModel.splitBill,
+      detail: {
+        summary: "Split Bill",
+        description: "Creates multiple debt records from a single amount, distributed among multiple contacts.",
+        tags: ["Debts"],
+      },
     },
   );

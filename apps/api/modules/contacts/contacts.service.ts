@@ -1,5 +1,5 @@
 import { ContactsRepository } from "./contacts.repository";
-import { auditLogsService } from "../audit-logs/audit-logs.service";
+import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import { buildSuccess, buildError, buildPaginatedSuccess } from "@workspace/utils";
 import { status } from "elysia";
 import { ErrorCode } from "@workspace/types";
@@ -31,7 +31,7 @@ export abstract class ContactsService {
       );
     }
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "contact.created",
@@ -76,7 +76,7 @@ export abstract class ContactsService {
       );
     }
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "contact.updated",
@@ -97,7 +97,7 @@ export abstract class ContactsService {
 
     await ContactsRepository.delete(id, workspaceId);
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "contact.deleted",

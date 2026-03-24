@@ -1,42 +1,41 @@
-import { usersRepository } from "./users.repository";
-import { auditLogsService } from "../audit-logs/audit-logs.service";
+import { UsersRepository } from "./users.repository";
+import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import { createClient } from "@workspace/supabase/server";
 import { BucketClient } from "@workspace/bucket";
 import { Env } from "@workspace/constants";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { logger } from "@workspace/logger";
 
 /**
  * Users service — business logic layer.
  * Handles workspace validation, calls repository.
  * No HTTP logic. No DB access.
  */
-export const usersService = {
-  private: {
-    async getBucketClient() {
-      if (
-        !Env.R2_ENDPOINT ||
-        !Env.R2_ACCESS_KEY_ID ||
-        !Env.R2_SECRET_ACCESS_KEY ||
-        !Env.R2_BUCKET_NAME
-      ) {
-        throw new Error("R2 storage not configured for avatars");
-      }
+export abstract class UsersService {
+  private static async getBucketClient() {
+    if (
+      !Env.R2_ENDPOINT ||
+      !Env.R2_ACCESS_KEY_ID ||
+      !Env.R2_SECRET_ACCESS_KEY ||
+      !Env.R2_BUCKET_NAME
+    ) {
+      throw new Error("R2 storage not configured for avatars");
+    }
 
-      return new BucketClient({
-        endpoint: Env.R2_ENDPOINT,
-        accessKeyId: Env.R2_ACCESS_KEY_ID,
-        secretAccessKey: Env.R2_SECRET_ACCESS_KEY,
-        bucketName: Env.R2_BUCKET_NAME,
-      });
-    },
-  },
+    return new BucketClient({
+      endpoint: Env.R2_ENDPOINT,
+      accessKeyId: Env.R2_ACCESS_KEY_ID,
+      secretAccessKey: Env.R2_SECRET_ACCESS_KEY,
+      bucketName: Env.R2_BUCKET_NAME,
+    });
+  }
 
   /**
    * Sync a user from Supabase Auth to the internal database.
    * Returns workspace status.
    */
-  async syncUser(data: {
+  static async syncUser(data: {
     id: string;
     email: string;
     name?: string | null;
@@ -57,7 +56,7 @@ export const usersService = {
       const providers = Array.isArray(data.providers) ? data.providers : null;
 
       // 2. Upsert user
-      await usersRepository.upsert({
+      await UsersRepository.upsert({
         id: data.id,
         email: data.email,
         name: data.name,
@@ -67,12 +66,12 @@ export const usersService = {
       });
 
       // 2. Check workspace membership
-      const memberships = await usersRepository.getMemberships(data.id);
+      const memberships = await UsersRepository.getMemberships(data.id);
       const has_workspace = memberships.length > 0;
       let workspace_id: string | null = null;
 
       if (has_workspace) {
-        const current_workspace_id = await usersRepository.getWorkspaceId(
+        const current_workspace_id = await UsersRepository.getWorkspaceId(
           data.id,
         );
         workspace_id =
@@ -81,7 +80,7 @@ export const usersService = {
 
       // 3. Log action (only if workspace_id found)
       if (workspace_id) {
-        await auditLogsService.log({
+        await AuditLogsService.log({
           workspace_id,
           user_id: data.id,
           action: "user.synced",
@@ -98,24 +97,24 @@ export const usersService = {
       );
       throw error;
     }
-  },
+  }
 
   /**
    * Get current user profile with workspaces.
    */
-  async getProfile(user_id: string) {
-    const user = await usersRepository.findById(user_id);
+  static async getProfile(user_id: string) {
+    const user = await UsersRepository.findById(user_id);
     if (!user) return null;
 
-    const workspaces = await usersRepository.getWorkspacesWithRole(user_id);
+    const workspaces = await UsersRepository.getWorkspacesWithRole(user_id);
 
     let profile_picture = user.profile_picture;
     if (profile_picture && profile_picture.startsWith("avatars/")) {
       try {
-        const bucket = await this.private.getBucketClient();
+        const bucket = await this.getBucketClient();
         profile_picture = await bucket.getSignedUrl(profile_picture);
       } catch (error) {
-        console.error("Failed to sign avatar URL:", error);
+        logger.error("Failed to sign avatar URL", { error, userId: user_id });
       }
     }
 
@@ -129,13 +128,14 @@ export const usersService = {
       },
       workspaces,
     };
-  },
+  }
+
   /**
    * Update the user's active workspace.
    */
-  async updateActiveWorkspace(user_id: string, workspace_id: string) {
+  static async updateActiveWorkspace(user_id: string, workspace_id: string) {
     // 1. Verify membership
-    const memberships = await usersRepository.getMemberships(user_id);
+    const memberships = await UsersRepository.getMemberships(user_id);
     const isMember = memberships.some((m) => m.workspace_id === workspace_id);
 
     if (!isMember) {
@@ -143,41 +143,41 @@ export const usersService = {
     }
 
     // 2. Update active workspace
-    await usersRepository.setWorkspaceId(user_id, workspace_id);
+    await UsersRepository.setWorkspaceId(user_id, workspace_id);
 
     // 3. Log action
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id,
       user_id,
       action: "user.workspace_switched",
       entity: "user",
       entity_id: user_id,
     });
-  },
+  }
 
   /**
    * Update user profile.
    */
-  async updateProfile(user_id: string, data: { name?: string; profile_picture?: string }) {
-    await usersRepository.update(user_id, data);
-  },
+  static async updateProfile(user_id: string, data: { name?: string; profile_picture?: string }) {
+    await UsersRepository.update(user_id, data);
+  }
 
   /**
    * Update user avatar (photo profile).
    * Automatically deletes the old avatar from storage.
    */
-  async updateAvatar(user_id: string, file: { name: string; type: string; size: number; buffer: Buffer }) {
-    const user = await usersRepository.findById(user_id);
+  static async updateAvatar(user_id: string, file: { name: string; type: string; size: number; buffer: Buffer }) {
+    const user = await UsersRepository.findById(user_id);
     if (!user) throw new Error("User not found");
 
-    const bucket = await this.private.getBucketClient();
+    const bucket = await this.getBucketClient();
 
     // 1. Storage Cleanup: Delete old avatar if it exists and is an internal key
     if (user.profile_picture && user.profile_picture.startsWith("avatars/")) {
       try {
         await bucket.delete(user.profile_picture);
       } catch (error) {
-        console.error("Failed to delete old avatar:", error);
+        logger.error("Failed to delete old avatar", { error, userId: user_id });
         // Continue anyway, we don't want to block the new upload
       }
     }
@@ -190,16 +190,16 @@ export const usersService = {
     await bucket.upload(key, file.buffer, file.type);
 
     // 3. Update user record with the new key
-    await usersRepository.update(user_id, { profile_picture: key });
+    await UsersRepository.update(user_id, { profile_picture: key });
 
     // 4. Return the signed URL for immediate UI update
     return bucket.getSignedUrl(key);
-  },
+  }
 
   /**
    * Get linked providers.
    */
-  async getProviders(user_id: string) {
+  static async getProviders(user_id: string) {
     const supabase = await createClient();
     const {
       data: { user },
@@ -214,12 +214,12 @@ export const usersService = {
       providers: user.app_metadata.providers || [],
       identities: user.identities || [],
     };
-  },
+  }
 
   /**
    * Disconnect a provider.
    */
-  async disconnectProvider(user_id: string, provider: string) {
+  static async disconnectProvider(user_id: string, provider: string) {
     const supabase = await createClient();
 
     // 1. Get user to find identity ID for this provider
@@ -253,6 +253,6 @@ export const usersService = {
     // 3. Update internal providers list
     const updatedProviders =
       user.app_metadata.providers?.filter((p: string) => p !== provider) || [];
-    await usersRepository.update(user_id, { providers: updatedProviders });
-  },
-};
+    await UsersRepository.update(user_id, { providers: updatedProviders });
+  }
+}

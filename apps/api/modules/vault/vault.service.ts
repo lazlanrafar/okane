@@ -1,4 +1,4 @@
-import { vaultRepository } from "./vault.repository";
+import { VaultRepository } from "./vault.repository";
 import { BucketClient } from "@workspace/bucket";
 import { db, workspaceSettings, eq, and, isNull } from "@workspace/database";
 import { decrypt } from "@workspace/encryption";
@@ -12,8 +12,8 @@ import { ErrorCode } from "@workspace/types";
 import { status } from "elysia";
 import { Env } from "@workspace/constants";
 
-export class VaultService {
-  private async getBucketClient(workspaceId: string) {
+export abstract class VaultService {
+  private static async getBucketClient(workspaceId: string) {
     const [settings] = await db
       .select()
       .from(workspaceSettings)
@@ -65,11 +65,11 @@ export class VaultService {
     });
   }
 
-  async uploadFile(
+  static async uploadFile(
     workspaceId: string,
     file: { name: string; type: string; size: number; buffer: Buffer },
   ) {
-    const usageData = await vaultRepository.getUsageAndQuota(workspaceId);
+    const usageData = await VaultRepository.getUsageAndQuota(workspaceId);
 
     if (!usageData)
       throw status(
@@ -91,7 +91,7 @@ export class VaultService {
       );
     }
 
-    const bucket = await this.getBucketClient(workspaceId);
+    const bucket = await VaultService.getBucketClient(workspaceId);
 
     // Generate unique key
     const timestamp = Date.now();
@@ -100,7 +100,7 @@ export class VaultService {
 
     await bucket.upload(key, file.buffer, file.type);
 
-    const vaultEntry = await vaultRepository.create({
+    const vaultEntry = await VaultRepository.create({
       workspaceId,
       name: file.name,
       key,
@@ -113,7 +113,7 @@ export class VaultService {
     }
 
     // Increment vault size safely in DB
-    await vaultRepository.updateVaultSize(workspaceId, usedBytes + file.size);
+    await VaultRepository.updateVaultSize(workspaceId, usedBytes + file.size);
 
     return {
       ...vaultEntry,
@@ -121,20 +121,20 @@ export class VaultService {
     };
   }
 
-  async listFiles(workspaceId: string, query: PaginationQuery) {
+  static async listFiles(workspaceId: string, query: PaginationQuery) {
     const { limit, offset, page } = parsePaginationQuery(query);
 
     const [files, total] = await Promise.all([
-      vaultRepository.findMany(
+      VaultRepository.findMany(
         workspaceId,
         limit,
         offset,
         (query as any).search,
       ),
-      vaultRepository.count(workspaceId, { search: (query as any).search }),
+      VaultRepository.count(workspaceId, { search: (query as any).search }),
     ]);
 
-    const bucket = await this.getBucketClient(workspaceId);
+    const bucket = await VaultService.getBucketClient(workspaceId);
 
     // Provide signed URLs for each file
     const filesWithUrls = await Promise.all(
@@ -150,38 +150,36 @@ export class VaultService {
     };
   }
 
-  async deleteFile(workspaceId: string, fileId: string) {
-    const file = await vaultRepository.findById(fileId, workspaceId);
+  static async deleteFile(workspaceId: string, fileId: string) {
+    const file = await VaultRepository.findById(fileId, workspaceId);
     if (!file) throw new Error("File not found");
 
-    const bucket = await this.getBucketClient(workspaceId);
+    const bucket = await VaultService.getBucketClient(workspaceId);
     await bucket.delete(file.key);
 
-    const deletedFile = await vaultRepository.delete(fileId, workspaceId);
+    const deletedFile = await VaultRepository.delete(fileId, workspaceId);
 
     // Decrement the vault size usage safely in DB
-    const workspaceSync = await vaultRepository.getUsageAndQuota(workspaceId);
+    const workspaceSync = await VaultRepository.getUsageAndQuota(workspaceId);
 
     if (workspaceSync) {
       const currentUsed = Number(workspaceSync.used);
       const newUsed = Math.max(0, currentUsed - Number(file.size));
-      await vaultRepository.updateVaultSize(workspaceId, newUsed);
+      await VaultRepository.updateVaultSize(workspaceId, newUsed);
     }
 
     return deletedFile;
   }
 
-  async getDownloadUrl(workspaceId: string, fileId: string) {
-    const file = await vaultRepository.findById(fileId, workspaceId);
+  static async getDownloadUrl(workspaceId: string, fileId: string) {
+    const file = await VaultRepository.findById(fileId, workspaceId);
     if (!file) throw new Error("File not found");
 
-    const bucket = await this.getBucketClient(workspaceId);
+    const bucket = await VaultService.getBucketClient(workspaceId);
     return bucket.getSignedUrl(file.key);
   }
 
-  async updateTags(workspaceId: string, fileId: string, tags: string[]) {
-    return vaultRepository.updateTags(fileId, workspaceId, tags);
+  static async updateTags(workspaceId: string, fileId: string, tags: string[]) {
+    return VaultRepository.updateTags(fileId, workspaceId, tags);
   }
 }
-
-export const vaultService = new VaultService();

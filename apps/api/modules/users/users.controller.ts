@@ -1,9 +1,10 @@
 import { Elysia } from "elysia";
 import { ErrorCode } from "@workspace/types";
 import { buildSuccess, buildError } from "@workspace/utils";
-import { usersService } from "./users.service";
+import { UsersService } from "./users.service";
 import { SyncUserBody, UpdateAvatarBody } from "./users.model";
 import { authPlugin } from "../../plugins/auth";
+import { logger } from "@workspace/logger";
 
 /**
  * Users controller — route definitions + TypeBox validation + call service.
@@ -15,10 +16,10 @@ export const usersController = new Elysia({ prefix: "/users" })
     "/sync",
     async ({ body, set }) => {
       try {
-        const result = await usersService.syncUser(body);
+        const result = await UsersService.syncUser(body);
         return buildSuccess(result, "User synced successfully");
       } catch (error) {
-        console.error("Error in syncUser:", error);
+        logger.error("Error in syncUser", { error, body });
         set.status = 500;
         return buildError(ErrorCode.INTERNAL_ERROR, "Failed to sync user");
       }
@@ -43,7 +44,7 @@ export const usersController = new Elysia({ prefix: "/users" })
       }
 
       try {
-        const profile = await usersService.getProfile(auth.user_id);
+        const profile = await UsersService.getProfile(auth.user_id);
 
         if (!profile) {
           set.status = 404;
@@ -76,7 +77,7 @@ export const usersController = new Elysia({ prefix: "/users" })
       }
 
       try {
-        await usersService.updateActiveWorkspace(
+        await UsersService.updateActiveWorkspace(
           auth.user_id,
           body.workspace_id,
         );
@@ -103,7 +104,7 @@ export const usersController = new Elysia({ prefix: "/users" })
       }
 
       try {
-        await usersService.updateProfile(auth.user_id, body);
+        await UsersService.updateProfile(auth.user_id, body);
         return buildSuccess(null, "Profile updated successfully");
       } catch (error: any) {
         set.status = 400;
@@ -127,7 +128,7 @@ export const usersController = new Elysia({ prefix: "/users" })
       }
 
       try {
-        const data = await usersService.getProviders(auth.user_id);
+        const data = await UsersService.getProviders(auth.user_id);
         return buildSuccess(data, "Providers retrieved successfully");
       } catch (error: any) {
         set.status = 500;
@@ -151,7 +152,7 @@ export const usersController = new Elysia({ prefix: "/users" })
       }
 
       try {
-        await usersService.disconnectProvider(auth.user_id, provider);
+        await UsersService.disconnectProvider(auth.user_id, provider);
         return buildSuccess(null, `Provider ${provider} disconnected`);
       } catch (error: any) {
         set.status = 400;
@@ -177,7 +178,7 @@ export const usersController = new Elysia({ prefix: "/users" })
 
       try {
         const buffer = Buffer.from(await file.arrayBuffer());
-        const url = await usersService.updateAvatar(auth.user_id, {
+        const url = await UsersService.updateAvatar(auth.user_id, {
           name: file.name,
           type: file.type,
           size: file.size,
@@ -186,7 +187,7 @@ export const usersController = new Elysia({ prefix: "/users" })
 
         return buildSuccess({ url }, "Profile picture updated successfully");
       } catch (error: any) {
-        console.error("Error in updateAvatar:", error);
+        logger.error("Error in updateAvatar", { error, userId: auth.user_id });
         set.status = 500;
         return buildError(ErrorCode.INTERNAL_ERROR, error.message || "Failed to update profile picture");
       }

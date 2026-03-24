@@ -1,5 +1,5 @@
 import { CategoriesRepository } from "./categories.repository";
-import { auditLogsService } from "../audit-logs/audit-logs.service";
+import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import { buildSuccess, buildError } from "@workspace/utils";
 import { status } from "elysia";
 import { ErrorCode } from "@workspace/types";
@@ -28,7 +28,7 @@ export abstract class CategoriesService {
       );
     }
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "category.created",
@@ -60,7 +60,7 @@ export abstract class CategoriesService {
       );
     }
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "category.updated",
@@ -80,7 +80,7 @@ export abstract class CategoriesService {
   ) {
     await CategoriesRepository.reorder(workspaceId, data.updates);
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "categories.reordered",
@@ -100,7 +100,7 @@ export abstract class CategoriesService {
 
     await CategoriesRepository.delete(id, workspaceId);
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "category.deleted",

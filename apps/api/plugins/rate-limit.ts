@@ -1,13 +1,15 @@
-import { Elysia } from "elysia";
+import { Env } from "@workspace/constants";
+import { encrypt } from "@workspace/encryption";
 import { ErrorCode } from "@workspace/types";
 import { buildError } from "@workspace/utils";
-import { encrypt } from "@workspace/encryption";
-import { Env } from "@workspace/constants";
+import { Elysia } from "elysia";
 
-/**
- * Rate limiter state. In-memory for dev, Redis-backed in production.
- */
-const rate_limit_store = new Map<string, { count: number; reset_at: number }>();
+let redis: typeof import("@workspace/redis").redis | null = null;
+if (Env.UPSTASH_REDIS_REST_URL && Env.UPSTASH_REDIS_REST_TOKEN) {
+  import("@workspace/redis").then((mod) => {
+    redis = mod.redis;
+  });
+}
 
 type RateLimitConfig = {
   max_requests: number;
@@ -16,7 +18,7 @@ type RateLimitConfig = {
 
 const AUTHENTICATED_LIMIT: RateLimitConfig = {
   max_requests: 300,
-  window_ms: 60_000, // 1 minute
+  window_ms: 60_000,
 };
 
 const UNAUTHENTICATED_LIMIT: RateLimitConfig = {
@@ -26,7 +28,7 @@ const UNAUTHENTICATED_LIMIT: RateLimitConfig = {
 
 const AUTH_ENDPOINT_LIMIT: RateLimitConfig = {
   max_requests: 10,
-  window_ms: 900_000, // 15 minutes
+  window_ms: 900_000,
 };
 
 function getClientKey(
@@ -37,7 +39,6 @@ function getClientKey(
     return `ws:${auth.workspace_id}`;
   }
 
-  // Fall back to IP
   const forwarded = request.headers.get("x-forwarded-for");
   const ip = forwarded?.split(",")[0]?.trim() ?? "unknown";
   return `ip:${ip}`;
@@ -47,16 +48,45 @@ function isAuthEndpoint(path: string): boolean {
   return path.includes("/auth/");
 }
 
-function checkRateLimit(
+async function checkRateLimitRedis(
+  key: string,
+  config: RateLimitConfig,
+): Promise<{ allowed: boolean; remaining: number; reset: number }> {
+  const now = Date.now();
+  const windowKey = `ratelimit:${key}`;
+  const windowStart = now - config.window_ms;
+
+  try {
+    const pipeline = redis!.pipeline();
+    pipeline.zremrangebyscore(windowKey, 0, windowStart);
+    pipeline.zcard(windowKey);
+    pipeline.zadd(windowKey, { score: now, member: `${now}:${Math.random()}` });
+    pipeline.expire(windowKey, Math.ceil(config.window_ms / 1000));
+    const results = (await pipeline.exec()) as [any, number][] | null;
+
+    const currentCount = results?.[1]?.[1] ?? 0;
+    const allowed = currentCount < config.max_requests;
+    const remaining = Math.max(0, config.max_requests - currentCount - 1);
+    const reset = Math.ceil((now + config.window_ms) / 1000);
+
+    return { allowed, remaining, reset };
+  } catch {
+    return checkRateLimitMemory(key, config);
+  }
+}
+
+const memoryStore = new Map<string, { count: number; reset_at: number }>();
+
+function checkRateLimitMemory(
   key: string,
   config: RateLimitConfig,
 ): { allowed: boolean; remaining: number; reset: number } {
   const now = Date.now();
-  const entry = rate_limit_store.get(key);
+  const entry = memoryStore.get(key);
 
   if (!entry || now > entry.reset_at) {
     const reset_at = now + config.window_ms;
-    rate_limit_store.set(key, { count: 1, reset_at });
+    memoryStore.set(key, { count: 1, reset_at });
     return {
       allowed: true,
       remaining: config.max_requests - 1,
@@ -74,16 +104,19 @@ function checkRateLimit(
   };
 }
 
-/**
- * Rate limiting plugin — applied globally.
- * - Authenticated: 300 req/min per workspace
- * - Unauthenticated: 30 req/min per IP
- * - Auth endpoints: 10 req/15min per IP
- */
+async function checkRateLimit(
+  key: string,
+  config: RateLimitConfig,
+): Promise<{ allowed: boolean; remaining: number; reset: number }> {
+  if (redis) {
+    return checkRateLimitRedis(key, config);
+  }
+  return checkRateLimitMemory(key, config);
+}
+
 export const rateLimitPlugin = new Elysia({
   name: "rate-limit",
-}).onBeforeHandle(({ request, set, headers }) => {
-  // biome-ignore lint/suspicious/noExplicitAny: Elysia internal types
+}).onBeforeHandle(async ({ request, set, headers }) => {
   const auth = (headers as any)?.auth ?? null;
   const path = new URL(request.url).pathname;
 
@@ -98,9 +131,8 @@ export const rateLimitPlugin = new Elysia({
   }
 
   const key = getClientKey(request, auth);
-  const result = checkRateLimit(key, config);
+  const result = await checkRateLimit(key, config);
 
-  // Always set rate limit headers
   set.headers["X-RateLimit-Limit"] = String(config.max_requests);
   set.headers["X-RateLimit-Remaining"] = String(result.remaining);
   set.headers["X-RateLimit-Reset"] = String(result.reset);

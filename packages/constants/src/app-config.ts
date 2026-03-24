@@ -2,36 +2,36 @@ const currentYear = new Date().getFullYear();
 
 const sharedMeta = {
   description:
-    "Okane is a modern, privacy-first personal finance tracker built to help you take control of your wealth. Manage your budgets, track your expenses, and achieve your financial goals with ease.",
+    "oewang is a modern financial OS for businesses. Manage spending, send invoices, track transactions, and gain real-time visibility into your finances.",
 } as const;
 
 export const APP_CONFIG = {
-  name: "Okane - Money Manager",
+  name: "oewang - Financial OS",
   version: "1.0.0",
-  copyright: `© ${currentYear}, Okane - Money Manager.`,
+  copyright: `© ${currentYear}, Latoe.`,
   meta: {
-    title: "Okane - Money Manager",
+    title: "oewang - Financial OS",
     ...sharedMeta,
   },
 } as const;
 
 export const WEBSITE_CONFIG = {
-  name: "Okane - Financial intelligence for modern business",
+  name: "oewang - Run your business finances without manual work",
   version: "1.0.0",
-  copyright: `© ${currentYear}, Okane.`,
+  copyright: `© ${currentYear}, Latoe.`,
   meta: {
-    title: "Okane – Financial intelligence for modern business",
+    title: "oewang – Run your business finances without manual work",
     description:
-      "Okane is the operating system for your business. Manage spending, send invoices, and gain real-time visibility into your finances.",
+      "oewang is the financial OS for modern businesses. AI-powered insights, automatic categorization, real-time sync. Manage spending, send invoices, track transactions.",
   },
 } as const;
 
 export const ADMIN_CONFIG = {
-  name: "Okane Admin Panel",
+  name: "oewang Admin Panel",
   version: "1.0.0",
-  copyright: `© ${currentYear}, Okane Admin Panel.`,
+  copyright: `© ${currentYear}, Latoe.`,
   meta: {
-    title: "Okane Admin Panel",
+    title: "oewang Admin Panel",
     ...sharedMeta,
   },
 } as const;

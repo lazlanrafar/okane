@@ -130,9 +130,10 @@ export const getEnv = () => {
     if (!parsedServer.success || !parsedClient.success) {
       // In Next.js static builds, we might not have the full server environment.
       // Skip strict server validation if it fails during the build step, unless we actually want to fail.
-      const isNextBuild =
+      const isSkipValidation =
         process.env.npm_lifecycle_event === "build" ||
-        process.env.NEXT_PHASE !== undefined;
+        process.env.NEXT_PHASE !== undefined ||
+        process.env.NODE_ENV === "test";
 
       console.error(
         "❌ Invalid environment variables:",
@@ -149,7 +150,7 @@ export const getEnv = () => {
           2,
         ),
       );
-      if (!isNextBuild) {
+      if (!isSkipValidation) {
         throw new Error("Invalid environment variables");
       } else {
         console.warn(

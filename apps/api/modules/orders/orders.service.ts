@@ -1,4 +1,4 @@
-import { ordersRepository } from "./orders.repository";
+import { OrdersRepository } from "./orders.repository";
 import {
   buildSuccess,
   buildError,
@@ -23,11 +23,11 @@ export abstract class OrdersService {
   ) {
     // If invoice ID exists, try updatng first, otherwise create
     if (data.stripe_invoice_id) {
-      const existing = await ordersRepository.findByInvoiceId(
+      const existing = await OrdersRepository.findByInvoiceId(
         data.stripe_invoice_id,
       );
       if (existing) {
-        const updated = await ordersRepository.updateByStripeInvoiceId(
+        const updated = await OrdersRepository.updateByStripeInvoiceId(
           data.stripe_invoice_id,
           {
             status: data.status,
@@ -39,12 +39,12 @@ export abstract class OrdersService {
       }
     }
 
-    const order = await ordersRepository.create(data, tx);
+    const order = await OrdersRepository.create(data, tx);
     return buildSuccess(order, "Order created");
   }
 
   static async updateOrderFromStripe(stripeInvoiceId: string, status: string) {
-    const order = await ordersRepository.updateByStripeInvoiceId(
+    const order = await OrdersRepository.updateByStripeInvoiceId(
       stripeInvoiceId,
       { status },
     );
@@ -64,7 +64,7 @@ export abstract class OrdersService {
     attachments?: string,
     manual?: string,
   ) {
-    const result = await ordersRepository.findAll(
+    const result = await OrdersRepository.findAll(
       page,
       limit,
       search,
@@ -82,14 +82,14 @@ export abstract class OrdersService {
   }
 
   static async getOrderDetails(id: string) {
-    const order = await ordersRepository.findById(id);
+    const order = await OrdersRepository.findById(id);
     if (!order) {
       return buildError(ErrorCode.NOT_FOUND, "Order not found");
     }
     return buildSuccess(order, "Order details fetched");
   }
   static async getWorkspaceOrders(workspaceId: string) {
-    const orders = await ordersRepository.findByWorkspaceId(workspaceId);
+    const orders = await OrdersRepository.findByWorkspaceId(workspaceId);
     return buildSuccess(orders, "Workspace orders fetched");
   }
 }

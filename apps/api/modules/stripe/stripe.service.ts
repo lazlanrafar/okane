@@ -1,15 +1,34 @@
-import Stripe from "stripe";
-import { db } from "@workspace/database";
-import { workspaces, pricing } from "@workspace/database";
-import { eq, or, and, sql, isNull } from "drizzle-orm";
-import { ErrorCode } from "@workspace/types";
-import { buildSuccess, buildError } from "@workspace/utils";
-import { status } from "elysia";
-import { OrdersService } from "../orders/orders.service";
 import { Env } from "@workspace/constants";
-import { user_workspaces, users } from "@workspace/database";
+import {
+  db,
+  pricing,
+  user_workspaces,
+  users,
+  webhook_events,
+  workspaces,
+} from "@workspace/database";
+import { logger } from "@workspace/logger";
+import { ErrorCode } from "@workspace/types";
+import { buildError, buildSuccess } from "@workspace/utils";
+import { and, eq, isNull, or, sql } from "drizzle-orm";
+import { status } from "elysia";
+import Stripe from "stripe";
+import { OrdersService } from "../orders/orders.service";
 
 const stripe = new Stripe(Env.STRIPE_SECRET_KEY as string);
+
+async function isEventProcessed(eventId: string): Promise<boolean> {
+  const [existing] = await db
+    .select({ id: webhook_events.id })
+    .from(webhook_events)
+    .where(eq(webhook_events.id, eventId))
+    .limit(1);
+  return !!existing;
+}
+
+async function markEventProcessed(eventId: string): Promise<void> {
+  await db.insert(webhook_events).values({ id: eventId }).onConflictDoNothing();
+}
 
 export abstract class StripeService {
   static async handleWebhook(rawBody: string, signature: string) {
@@ -24,8 +43,31 @@ export abstract class StripeService {
       webhookSecret,
     );
 
-    console.log(`[Stripe Webhook] Received event: ${event.type}`);
+    logger.info(`[Stripe Webhook] Received event: ${event.type}`, {
+      eventId: event.id,
+      type: event.type,
+    });
 
+    if (await isEventProcessed(event.id)) {
+      logger.info(
+        `[Stripe Webhook] Event ${event.id} already processed, skipping`,
+      );
+      return;
+    }
+
+    try {
+      await StripeService.processEvent(event);
+      await markEventProcessed(event.id);
+    } catch (error) {
+      logger.error("[Stripe Webhook] Error processing event", {
+        eventId: event.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
+  }
+
+  private static async processEvent(event: Stripe.Event) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -55,23 +97,21 @@ export abstract class StripeService {
                 )
                 .limit(1);
 
-              console.log(
-                "[Stripe Webhook] Subscription keys:",
-                Object.keys(subscription),
-              );
+              logger.info("[Stripe Webhook] Subscription keys", {
+                keys: Object.keys(subscription),
+              });
               let currentPeriodEnd = (subscription as any).current_period_end;
               if (!currentPeriodEnd && (subscription as any).items?.data?.[0]) {
                 currentPeriodEnd = (subscription as any).items.data[0]
                   .current_period_end;
-                console.log(
+                logger.info(
                   "[Stripe Webhook] Found current_period_end in items.data[0]:",
                   currentPeriodEnd,
                 );
               }
-              console.log(
-                "[Stripe Webhook] current_period_end value:",
+              logger.info("[Stripe Webhook] current_period_end value", {
                 currentPeriodEnd,
-              );
+              });
 
               await db
                 .update(workspaces)
@@ -86,12 +126,17 @@ export abstract class StripeService {
                   ai_tokens_used: 0,
                   vault_size_used_bytes: 0,
                 })
-                .where(and(eq(workspaces.id, workspaceId), isNull(workspaces.deleted_at)));
+                .where(
+                  and(
+                    eq(workspaces.id, workspaceId),
+                    isNull(workspaces.deleted_at),
+                  ),
+                );
 
               // Create or update order from session info as a fallback for the race condition
               // This ensures that for new customers, the order is created even if invoice.paid arrives too early to find the workspace
               if (session.payment_status === "paid" && session.invoice) {
-                console.log(
+                logger.info(
                   `[Stripe Webhook] Session paid. Creating/updating order from session ${session.id}...`,
                 );
                 await OrdersService.createOrderFromStripe({
@@ -113,30 +158,28 @@ export abstract class StripeService {
       case "invoice.paid": {
         const invoice = event.data.object as any;
         const customerId = invoice.customer as string;
-        console.log(`[Stripe Webhook] invoice.paid for customer ${customerId}`);
-        console.log(
-          `[Stripe Webhook] Invoice details:`,
-          JSON.stringify(
-            {
-              id: invoice.id,
-              amount_paid: invoice.amount_paid,
-              currency: invoice.currency,
-              customer: invoice.customer,
-              subscription: invoice.subscription,
-            },
-            null,
-            2,
-          ),
-        );
+        logger.info(`[Stripe Webhook] invoice.paid for customer ${customerId}`);
+        logger.info("[Stripe Webhook] Invoice details", {
+          id: invoice.id,
+          amount_paid: invoice.amount_paid,
+          currency: invoice.currency,
+          customer: invoice.customer,
+          subscription: invoice.subscription,
+        });
 
         const [workspace] = await db
           .select()
           .from(workspaces)
-          .where(and(eq(workspaces.stripe_customer_id, customerId), isNull(workspaces.deleted_at)))
+          .where(
+            and(
+              eq(workspaces.stripe_customer_id, customerId),
+              isNull(workspaces.deleted_at),
+            ),
+          )
           .limit(1);
 
         if (workspace) {
-          console.log(
+          logger.info(
             `[Stripe Webhook] Found workspace ${workspace.id} for customer ${customerId}. Creating order...`,
           );
 
@@ -165,12 +208,11 @@ export abstract class StripeService {
             currency: invoice.currency,
             status: "paid",
           });
-          console.log(
-            `[Stripe Webhook] Order creation result:`,
-            JSON.stringify(orderResult, null, 2),
-          );
+          logger.info("[Stripe Webhook] Order creation result", {
+            orderResult,
+          });
         } else {
-          console.log(
+          logger.info(
             `[Stripe Webhook] Workspace not found for customer ${customerId} (Checked stripe_customer_id)`,
           );
         }
@@ -182,7 +224,12 @@ export abstract class StripeService {
         const [workspace] = await db
           .select()
           .from(workspaces)
-          .where(and(eq(workspaces.stripe_customer_id, customerId), isNull(workspaces.deleted_at)))
+          .where(
+            and(
+              eq(workspaces.stripe_customer_id, customerId),
+              isNull(workspaces.deleted_at),
+            ),
+          )
           .limit(1);
 
         if (workspace) {
@@ -216,7 +263,12 @@ export abstract class StripeService {
           await db
             .update(workspaces)
             .set({ plan_status: "past_due" })
-            .where(and(eq(workspaces.id, workspace.id), isNull(workspaces.deleted_at)));
+            .where(
+              and(
+                eq(workspaces.id, workspace.id),
+                isNull(workspaces.deleted_at),
+              ),
+            );
         }
         break;
       }
@@ -240,23 +292,21 @@ export abstract class StripeService {
             )
             .limit(1);
 
-          console.log(
-            "[Stripe Webhook] Subscription keys:",
-            Object.keys(subscription),
-          );
+          logger.info("[Stripe Webhook] Subscription keys", {
+            keys: Object.keys(subscription),
+          });
           let currentPeriodEnd = (subscription as any).current_period_end;
           if (!currentPeriodEnd && (subscription as any).items?.data?.[0]) {
             currentPeriodEnd = (subscription as any).items.data[0]
               .current_period_end;
-            console.log(
+            logger.info(
               "[Stripe Webhook] Found current_period_end in items.data[0]:",
               currentPeriodEnd,
             );
           }
-          console.log(
-            "[Stripe Webhook] Resolved current_period_end value:",
+          logger.info("[Stripe Webhook] Resolved current_period_end value", {
             currentPeriodEnd,
-          );
+          });
 
           // Whenever a subscription updates (renews, upgrades), reset standard usages if the period rolled over
           await db
@@ -269,7 +319,12 @@ export abstract class StripeService {
                 ? new Date(Number(currentPeriodEnd) * 1000)
                 : null,
             })
-            .where(and(eq(workspaces.stripe_customer_id, customerId), isNull(workspaces.deleted_at)));
+            .where(
+              and(
+                eq(workspaces.stripe_customer_id, customerId),
+                isNull(workspaces.deleted_at),
+              ),
+            );
         }
         break;
       }

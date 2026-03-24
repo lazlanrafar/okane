@@ -1,7 +1,7 @@
 import { DebtsRepository } from "./debts.repository";
 import { ContactsRepository } from "../contacts/contacts.repository";
 import { TransactionsRepository } from "../transactions/transactions.repository";
-import { auditLogsService } from "../audit-logs/audit-logs.service";
+import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import { buildSuccess, buildError, buildPaginatedSuccess } from "@workspace/utils";
 import { status } from "elysia";
 import { ErrorCode } from "@workspace/types";
@@ -48,7 +48,7 @@ export abstract class DebtsService {
       throw status(500, buildError(ErrorCode.INTERNAL_ERROR, "Failed to create debt"));
     }
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "debt.created",
@@ -89,7 +89,7 @@ export abstract class DebtsService {
       dueDate: data.dueDate,
     });
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "debt.updated",
@@ -108,7 +108,7 @@ export abstract class DebtsService {
 
     await DebtsRepository.delete(id, workspaceId);
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "debt.deleted",
@@ -194,7 +194,7 @@ export abstract class DebtsService {
         status: newStatus,
       }, tx);
 
-      await auditLogsService.log({
+      await AuditLogsService.log({
         workspace_id: workspaceId,
         user_id: userId,
         action: "debt.paid",
@@ -301,7 +301,7 @@ export abstract class DebtsService {
           status: newStatus,
         }, tx);
 
-        await auditLogsService.log({
+        await AuditLogsService.log({
           workspace_id: workspaceId,
           user_id: userId,
           action: "debt.paid",
@@ -368,7 +368,7 @@ export abstract class DebtsService {
         createdDebts.push(debt);
       }
 
-      await auditLogsService.log({
+      await AuditLogsService.log({
         workspace_id: workspaceId,
         user_id: userId,
         action: "debt.split_bill",

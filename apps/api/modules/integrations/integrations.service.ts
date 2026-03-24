@@ -1,10 +1,10 @@
-import { IntegrationsRepository } from "./integrations.repository";
+import { Env } from "@workspace/constants";
+import { buildSuccess } from "@workspace/utils";
 import { AiService } from "../ai/ai.service";
 import { TransactionsService } from "../transactions/transactions.service";
-import { walletsRepository } from "../wallets/wallets.repository";
-import { vaultService } from "../vault/vault.service";
-import { buildSuccess } from "@workspace/utils";
-import { Env } from "@workspace/constants";
+import { VaultService as vaultService } from "../vault/vault.service";
+import { WalletsRepository as walletsRepository } from "../wallets/wallets.repository";
+import { IntegrationsRepository } from "./integrations.repository";
 
 export abstract class IntegrationsService {
   static async connectWhatsApp(
@@ -70,9 +70,10 @@ export abstract class IntegrationsService {
       const match = text.match(/^Connect Okane\s+([a-f0-9-]{36})$/i);
       if (match) {
         const targetWorkspaceId = match[1];
-        
-        let targetUserId = await IntegrationsRepository.findFirstMemberId(targetWorkspaceId);
-        
+
+        const targetUserId =
+          await IntegrationsRepository.findFirstMemberId(targetWorkspaceId);
+
         if (!targetUserId) {
           await IntegrationsService.sendWhatsAppMessage(
             fromUserNumber,
@@ -105,7 +106,8 @@ export abstract class IntegrationsService {
 
     // Resolve invalid zero UUID or missing userId to a valid workspace member
     if (!userId || userId === "00000000-0000-0000-0000-000000000000") {
-      const fallbackId = await IntegrationsRepository.findFirstMemberId(workspaceId);
+      const fallbackId =
+        await IntegrationsRepository.findFirstMemberId(workspaceId);
       if (!fallbackId) return "Need a valid user to create transaction";
       userId = fallbackId;
     }
@@ -127,7 +129,8 @@ export abstract class IntegrationsService {
             },
           );
 
-          if (!mediaResponse.ok) throw new Error("Failed to get media URL from Meta");
+          if (!mediaResponse.ok)
+            throw new Error("Failed to get media URL from Meta");
           const mediaData = await mediaResponse.json();
           const downloadUrl = mediaData.url;
 
@@ -138,7 +141,8 @@ export abstract class IntegrationsService {
             },
           });
 
-          if (!response.ok) throw new Error("Failed to download media from Meta");
+          if (!response.ok)
+            throw new Error("Failed to download media from Meta");
 
           const arrayBuffer = await response.arrayBuffer();
           const base64Image = Buffer.from(arrayBuffer).toString("base64");
@@ -178,7 +182,10 @@ export abstract class IntegrationsService {
 
               const amountStr = Number(parsedReceipt.amount).toLocaleString();
               const replyBody = `✅ Added expense: ${parsedReceipt.name || "Receipt"} for ${amountStr}. Includes attached receipt file!`;
-              await IntegrationsService.sendWhatsAppMessage(fromUserNumber, replyBody);
+              await IntegrationsService.sendWhatsAppMessage(
+                fromUserNumber,
+                replyBody,
+              );
             }
           } else {
             await IntegrationsService.sendWhatsAppMessage(
@@ -199,11 +206,18 @@ export abstract class IntegrationsService {
 
           if (chatResponse && chatResponse.reply) {
             // Save current session ID if it's new
-            if (chatResponse.sessionId && chatResponse.sessionId !== chatSessionId) {
-              await IntegrationsRepository.updateSettings(integration.id, workspaceId, {
-                ...((settings as any) || {}),
-                chatSessionId: chatResponse.sessionId,
-              });
+            if (
+              chatResponse.sessionId &&
+              chatResponse.sessionId !== chatSessionId
+            ) {
+              await IntegrationsRepository.updateSettings(
+                integration.id,
+                workspaceId,
+                {
+                  ...((settings as any) || {}),
+                  chatSessionId: chatResponse.sessionId,
+                },
+              );
             }
 
             await IntegrationsService.sendWhatsAppMessage(
@@ -238,16 +252,18 @@ export abstract class IntegrationsService {
 
     // 1. Check for linking command
     if (text) {
-      const startMatch = text.match(/^\/start\s+([a-f0-9-]{36})(?:___([a-f0-9-]{36}))?$/i) || 
-                         text.match(/^Connect Okane\s+([a-f0-9-]{36})(?:___([a-f0-9-]{36}))?$/i);
-      
+      const startMatch =
+        text.match(/^\/start\s+([a-f0-9-]{36})(?:___([a-f0-9-]{36}))?$/i) ||
+        text.match(/^Connect Okane\s+([a-f0-9-]{36})(?:___([a-f0-9-]{36}))?$/i);
+
       if (startMatch) {
         const targetWorkspaceId = startMatch[1];
         let targetUserId = startMatch[2];
 
         // If userId is missing, try to find the first member of the workspace
         if (!targetUserId) {
-          targetUserId = await IntegrationsRepository.findFirstMemberId(targetWorkspaceId);
+          targetUserId =
+            await IntegrationsRepository.findFirstMemberId(targetWorkspaceId);
         }
 
         // If still no userId, we can't link safely
@@ -274,7 +290,8 @@ export abstract class IntegrationsService {
     }
 
     // 2. Find integration
-    const integration = await IntegrationsRepository.findByTelegramChatId(chatId);
+    const integration =
+      await IntegrationsRepository.findByTelegramChatId(chatId);
 
     if (!integration) {
       await IntegrationsService.sendTelegramMessage(
@@ -289,7 +306,8 @@ export abstract class IntegrationsService {
 
     // Resolve invalid zero UUID or missing userId to a valid workspace member
     if (!userId || userId === "00000000-0000-0000-0000-000000000000") {
-      const fallbackId = await IntegrationsRepository.findFirstMemberId(workspaceId);
+      const fallbackId =
+        await IntegrationsRepository.findFirstMemberId(workspaceId);
       if (!fallbackId) return "Need a valid user to create transaction";
       userId = fallbackId;
     }
@@ -298,20 +316,21 @@ export abstract class IntegrationsService {
       if (photo && photo.length > 0) {
         // Handle receipt image
         const fileId = photo[photo.length - 1].file_id;
-        
+
         // A. Get file path from Telegram
         const fileResponse = await fetch(
-          `https://api.telegram.org/bot${Env.TELEGRAM_BOT_TOKEN}/getFile?file_id=${fileId}`
+          `https://api.telegram.org/bot${Env.TELEGRAM_BOT_TOKEN}/getFile?file_id=${fileId}`,
         );
         const fileData = await fileResponse.json();
-        
+
         if (fileData.ok && fileData.result.file_path) {
           const filePath = fileData.result.file_path;
           const downloadUrl = `https://api.telegram.org/file/bot${Env.TELEGRAM_BOT_TOKEN}/${filePath}`;
-          
+
           // B. Download media
           const response = await fetch(downloadUrl);
-          if (!response.ok) throw new Error("Failed to download media from Telegram");
+          if (!response.ok)
+            throw new Error("Failed to download media from Telegram");
 
           const arrayBuffer = await response.arrayBuffer();
           const base64Image = Buffer.from(arrayBuffer).toString("base64");
@@ -374,11 +393,18 @@ export abstract class IntegrationsService {
 
           if (chatResponse && chatResponse.reply) {
             // Save current session ID if it's new
-            if (chatResponse.sessionId && chatResponse.sessionId !== chatSessionId) {
-              await IntegrationsRepository.updateSettings(integration.id, workspaceId, {
-                ...((settings as any) || {}),
-                chatSessionId: chatResponse.sessionId,
-              });
+            if (
+              chatResponse.sessionId &&
+              chatResponse.sessionId !== chatSessionId
+            ) {
+              await IntegrationsRepository.updateSettings(
+                integration.id,
+                workspaceId,
+                {
+                  ...((settings as any) || {}),
+                  chatSessionId: chatResponse.sessionId,
+                },
+              );
             }
 
             await IntegrationsService.sendTelegramMessage(
@@ -395,7 +421,7 @@ export abstract class IntegrationsService {
         }
       }
     } catch (error) {
-       console.error("[Telegram Webhook] Error processing message:", error);
+      console.error("[Telegram Webhook] Error processing message:", error);
     }
 
     return "OK";
@@ -408,18 +434,24 @@ export abstract class IntegrationsService {
       return;
     }
 
-    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        parse_mode: "Markdown",
-      }),
-    });
+    const response = await fetch(
+      `https://api.telegram.org/bot${token}/sendMessage`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text,
+          parse_mode: "Markdown",
+        }),
+      },
+    );
 
     if (!response.ok) {
-      console.error("[Telegram] Failed to send message:", await response.text());
+      console.error(
+        "[Telegram] Failed to send message:",
+        await response.text(),
+      );
     }
   }
 

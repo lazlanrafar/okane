@@ -39,7 +39,11 @@ export const ordersController = new Elysia({
         attachments: t.Optional(t.String()),
         manual: t.Optional(t.String()),
       }),
-      detail: { summary: "List Orders", tags: ["Orders"] },
+      detail: {
+        summary: "List Orders",
+        description: "Lists all payment orders (invoices/subscriptions) across the system. Restricted to system administrators.",
+        tags: ["Orders"],
+      },
     },
   )
   .get(
@@ -51,6 +55,10 @@ export const ordersController = new Elysia({
       params: t.Object({
         id: t.String(),
       }),
-      detail: { summary: "Get Order Details", tags: ["Orders"] },
+      detail: {
+        summary: "Get Order Details",
+        description: "Retrieves full details of a payment order, including associated customer and transaction IDs.",
+        tags: ["Orders"],
+      },
     },
   );

@@ -26,6 +26,11 @@ export const contactsController = new Elysia({ prefix: "/contacts" })
     },
     {
       query: ContactsModel.listQuery,
+      detail: {
+        summary: "Get Contacts",
+        description: "Returns a paginated list of contacts (debtors/creditors) for the active workspace.",
+        tags: ["Contacts"],
+      },
     },
   )
   
@@ -41,6 +46,11 @@ export const contactsController = new Elysia({ prefix: "/contacts" })
     },
     {
       params: t.Object({ id: t.String() }),
+      detail: {
+        summary: "Get Contact by ID",
+        description: "Retrieves the full details and current balance for a specific contact.",
+        tags: ["Contacts"],
+      },
     },
   )
   .post(
@@ -56,6 +66,11 @@ export const contactsController = new Elysia({ prefix: "/contacts" })
     },
     {
       body: ContactsModel.create,
+      detail: {
+        summary: "Create Contact",
+        description: "Creates a new contact for tracking debts and transactions.",
+        tags: ["Contacts"],
+      },
     },
   )
 
@@ -74,6 +89,11 @@ export const contactsController = new Elysia({ prefix: "/contacts" })
     {
       params: t.Object({ id: t.String() }),
       body: ContactsModel.update,
+      detail: {
+        summary: "Update Contact",
+        description: "Updates an existing contact's name, email, or phone number.",
+        tags: ["Contacts"],
+      },
     },
   )
 
@@ -90,5 +110,10 @@ export const contactsController = new Elysia({ prefix: "/contacts" })
     },
     {
       params: t.Object({ id: t.String() }),
+      detail: {
+        summary: "Delete Contact",
+        description: "Soft-deletes a contact. Historical data linked to this contact is preserved but the contact is hidden.",
+        tags: ["Contacts"],
+      },
     },
   );

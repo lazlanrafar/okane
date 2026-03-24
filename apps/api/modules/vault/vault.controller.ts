@@ -1,12 +1,9 @@
 import { Elysia, t } from "elysia";
-import { vaultService } from "./vault.service";
+import { VaultService } from "./vault.service";
 import { authPlugin } from "../../plugins/auth";
-import {
-  buildPaginatedSuccess,
-  buildSuccess,
-  buildError,
-} from "@workspace/utils";
+import { buildPaginatedSuccess, buildSuccess, buildError } from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
+import { logger } from "@workspace/logger";
 import {
   uploadFileBody,
   updateTagsBody,
@@ -27,7 +24,7 @@ export const vaultController = new Elysia({ prefix: "/vault" })
   .get(
     "/",
     async ({ workspaceId, query }) => {
-      const { files, pagination } = await vaultService.listFiles(
+      const { files, pagination } = await VaultService.listFiles(
         workspaceId!,
         query,
       );
@@ -35,7 +32,11 @@ export const vaultController = new Elysia({ prefix: "/vault" })
     },
     {
       query: getVaultFilesQuery,
-      detail: { summary: "List Vault Files", tags: ["Vault"] },
+      detail: {
+        summary: "List Vault Files",
+        description: "Returns a paginated list of files stored in the workspace vault.",
+        tags: ["Vault"],
+      },
     },
   )
   .post(
@@ -43,7 +44,7 @@ export const vaultController = new Elysia({ prefix: "/vault" })
     async ({ workspaceId, body: { file }, set }) => {
       try {
         const buffer = Buffer.from(await file.arrayBuffer());
-        const data = await vaultService.uploadFile(workspaceId!, {
+        const data = await VaultService.uploadFile(workspaceId!, {
           name: file.name,
           type: file.type,
           size: file.size,
@@ -52,7 +53,7 @@ export const vaultController = new Elysia({ prefix: "/vault" })
         set.status = 201;
         return buildSuccess(data, "File uploaded successfully");
       } catch (error: any) {
-        console.log(error);
+        logger.error("Error uploading file to vault", { error, workspaceId });
 
         set.status = 500;
         return buildError(ErrorCode.INTERNAL_ERROR, error.message);
@@ -60,33 +61,53 @@ export const vaultController = new Elysia({ prefix: "/vault" })
     },
     {
       body: uploadFileBody,
-      detail: { summary: "Upload File to Vault", tags: ["Vault"] },
+      detail: {
+        summary: "Upload File",
+        description: "Uploads a new file to the workspace vault.",
+        tags: ["Vault"],
+      },
     },
   )
   .delete(
     "/:id",
     async ({ workspaceId, params: { id } }) => {
-      const data = await vaultService.deleteFile(workspaceId!, id);
+      const data = await VaultService.deleteFile(workspaceId!, id);
       return buildSuccess(data, "File deleted successfully");
     },
-    { detail: { summary: "Delete Vault File", tags: ["Vault"] } },
+    {
+      detail: {
+        summary: "Delete File",
+        description: "Permanently deletes a file from the vault and associated storage.",
+        tags: ["Vault"],
+      },
+    },
   )
   .get(
     "/:id/download",
     async ({ workspaceId, params: { id } }) => {
-      const url = await vaultService.getDownloadUrl(workspaceId!, id);
+      const url = await VaultService.getDownloadUrl(workspaceId!, id);
       return buildSuccess({ url }, "Download URL generated");
     },
-    { detail: { summary: "Get Download URL", tags: ["Vault"] } },
+    {
+      detail: {
+        summary: "Get Download URL",
+        description: "Generates a temporary signed URL for downloading a file from the vault.",
+        tags: ["Vault"],
+      },
+    },
   )
   .patch(
     "/:id/tags",
     async ({ workspaceId, params: { id }, body: { tags } }) => {
-      const data = await vaultService.updateTags(workspaceId!, id, tags);
+      const data = await VaultService.updateTags(workspaceId!, id, tags);
       return buildSuccess(data, "Tags updated successfully");
     },
     {
       body: updateTagsBody,
-      detail: { summary: "Update Vault File Tags", tags: ["Vault"] },
+      detail: {
+        summary: "Update File Tags",
+        description: "Updates the organizational tags associated with a specific file.",
+        tags: ["Vault"],
+      },
     },
   );

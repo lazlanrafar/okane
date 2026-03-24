@@ -28,6 +28,7 @@ export const categoriesController = new Elysia({
       query: CategoryModel.listQuery,
       detail: {
         summary: "List Categories",
+        description: "Returns all transaction categories for the workspace, optionally filtered by type (income/expense).",
         tags: ["Categories"],
       },
     },
@@ -48,6 +49,7 @@ export const categoriesController = new Elysia({
       body: CategoryModel.create,
       detail: {
         summary: "Create Category",
+        description: "Creates a new transaction category.",
         tags: ["Categories"],
       },
     },
@@ -72,6 +74,7 @@ export const categoriesController = new Elysia({
       }),
       detail: {
         summary: "Update Category",
+        description: "Updates an existing category's name or color.",
         tags: ["Categories"],
       },
     },
@@ -92,6 +95,7 @@ export const categoriesController = new Elysia({
       body: CategoryModel.reorder,
       detail: {
         summary: "Reorder Categories",
+        description: "Updates the sorting order of multiple categories at once.",
         tags: ["Categories"],
       },
     },
@@ -114,6 +118,7 @@ export const categoriesController = new Elysia({
       }),
       detail: {
         summary: "Delete Category",
+        description: "Soft-deletes a category. Transactions using this category will still exist but the category will be hidden.",
         tags: ["Categories"],
       },
     },

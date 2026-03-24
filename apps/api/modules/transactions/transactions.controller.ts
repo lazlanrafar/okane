@@ -27,6 +27,7 @@ export const transactions = new Elysia({
       query: TransactionModel.listQuery,
       detail: {
         summary: "List transactions",
+        description: "Returns a paginated list of transactions for the active workspace, with optional filtering by wallet, category, and date range.",
         tags: ["Transactions"],
       },
     },
@@ -43,6 +44,7 @@ export const transactions = new Elysia({
       body: TransactionModel.create,
       detail: {
         summary: "Create transaction",
+        description: "Creates a new transaction (income, expense, or transfer) and automatically updates the associated wallet balances.",
         tags: ["Transactions"],
       },
     },
@@ -63,6 +65,7 @@ export const transactions = new Elysia({
       body: TransactionModel.bulkCreate,
       detail: {
         summary: "Bulk create transactions",
+        description: "Creates multiple transactions in a single request. Useful for batch imports or initial data setup.",
         tags: ["Transactions"],
       },
     },
@@ -86,6 +89,7 @@ export const transactions = new Elysia({
       params: t.Object({ id: t.String() }),
       detail: {
         summary: "Update transaction",
+        description: "Updates an existing transaction. If the amount or type changes, wallet balances are recalculated accordingly.",
         tags: ["Transactions"],
       },
     },
@@ -102,6 +106,7 @@ export const transactions = new Elysia({
       params: t.Object({ id: t.String() }),
       detail: {
         summary: "Delete transaction",
+        description: "Soft-deletes a transaction and reverts any balance changes made to associated wallets.",
         tags: ["Transactions"],
       },
     },
@@ -129,7 +134,8 @@ export const transactions = new Elysia({
         file: t.File(),
       }),
       detail: {
-        summary: "Import transactions from file using AI",
+        summary: "Import transactions (AI)",
+        description: "Analyzes an uploaded bank statement image or PDF using AI to extract and import transactions automatically.",
         tags: ["Transactions"],
       },
     },
@@ -145,7 +151,8 @@ export const transactions = new Elysia({
     {
       params: t.Object({ id: t.String() }),
       detail: {
-        summary: "Get debts associated with transaction",
+        summary: "Get transaction debts",
+        description: "Returns all debt records (loans/payables) that are linked to this specific transaction.",
         tags: ["Transactions"],
       },
     },

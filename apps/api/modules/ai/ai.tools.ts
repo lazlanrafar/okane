@@ -1,11 +1,10 @@
-import { TransactionsService } from "../transactions/transactions.service";
-import { walletsRepository } from "../wallets/wallets.repository";
 import { CategoriesRepository } from "../categories/categories.repository";
 import { ContactsRepository } from "../contacts/contacts.repository";
 import { DebtsService } from "../debts/debts.service";
+import { TransactionsService } from "../transactions/transactions.service";
+import { WalletsRepository as walletsRepository } from "../wallets/wallets.repository";
 
 // Tool definitions are now managed in @workspace/ai/tools/tool.definitions.ts
-
 
 // Helper to check if string is a UUID
 const isUuid = (id: string) => /^[a-f0-9-]{36}$/i.test(id);
@@ -24,10 +23,11 @@ export async function executeAiTool(
 
         // Robustness: Resolve walletId from name if not a UUID
         if (walletId && !isUuid(walletId)) {
-          const allWalletsResult = await walletsRepository.findMany(workspaceId);
+          const allWalletsResult =
+            await walletsRepository.findMany(workspaceId);
           const allWallets = allWalletsResult.rows;
           const match = allWallets.find((w: any) =>
-            w.name.toLowerCase().includes(walletId.toLowerCase())
+            w.name.toLowerCase().includes(walletId.toLowerCase()),
           );
           if (match) walletId = match.id;
         }
@@ -36,7 +36,7 @@ export async function executeAiTool(
         if (categoryId && !isUuid(categoryId)) {
           const allCats = await CategoriesRepository.findMany(workspaceId);
           const match = allCats.find((c: any) =>
-            c.name.toLowerCase().includes(categoryId.toLowerCase())
+            c.name.toLowerCase().includes(categoryId.toLowerCase()),
           );
           if (match) categoryId = match.id;
         }
@@ -78,11 +78,18 @@ export async function executeAiTool(
         return { success: true, data: result.data };
       }
       case "create_debt": {
-        let contact = await ContactsRepository.findByName(workspaceId, input.contactName);
+        let contact = await ContactsRepository.findByName(
+          workspaceId,
+          input.contactName,
+        );
         if (!contact) {
-          contact = await ContactsRepository.create({ workspaceId, name: input.contactName });
+          contact = await ContactsRepository.create({
+            workspaceId,
+            name: input.contactName,
+          });
         }
-        if (!contact) return { success: false, error: "Failed to resolve contact." };
+        if (!contact)
+          return { success: false, error: "Failed to resolve contact." };
 
         const body = {
           contactId: contact.id,
@@ -98,10 +105,11 @@ export async function executeAiTool(
       case "split_bill": {
         let walletId = input.walletId;
         if (walletId && !isUuid(walletId)) {
-          const allWalletsResult = await walletsRepository.findMany(workspaceId);
+          const allWalletsResult =
+            await walletsRepository.findMany(workspaceId);
           const allWallets = allWalletsResult.rows;
           const match = allWallets.find((w: any) =>
-            w.name.toLowerCase().includes(walletId.toLowerCase())
+            w.name.toLowerCase().includes(walletId.toLowerCase()),
           );
           if (match) walletId = match.id;
         }
@@ -110,7 +118,7 @@ export async function executeAiTool(
         if (categoryId && !isUuid(categoryId)) {
           const allCats = await CategoriesRepository.findMany(workspaceId);
           const match = allCats.find((c: any) =>
-            c.name.toLowerCase().includes(categoryId.toLowerCase())
+            c.name.toLowerCase().includes(categoryId.toLowerCase()),
           );
           if (match) categoryId = match.id;
         }

@@ -1,6 +1,6 @@
-import type { Elysia } from "elysia";
-import { encrypt } from "@workspace/encryption";
 import { Env } from "@workspace/constants";
+import { encrypt } from "@workspace/encryption";
+import type { Elysia } from "elysia";
 
 /**
  * Encryption plugin — encrypts ALL JSON responses with AES-256-GCM.
@@ -12,7 +12,8 @@ import { Env } from "@workspace/constants";
  */
 export const encryptionPlugin = (app: Elysia) =>
   app.mapResponse(({ response, set: _set, path }) => {
-    if (path && path.startsWith("/swagger")) return;
+    if (path && (path.startsWith("/swagger") || path.startsWith("/health")))
+      return;
 
     // Only encrypt JSON responses
     if (

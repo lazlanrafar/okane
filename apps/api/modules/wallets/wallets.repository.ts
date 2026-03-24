@@ -11,10 +11,8 @@ import {
   like,
 } from "@workspace/database";
 
-export type WalletsRepository = typeof walletsRepository;
-
-export const walletsRepository = {
-  async create(data: {
+export abstract class WalletsRepository {
+  static async create(data: {
     workspaceId: string;
     groupId?: string | null;
     name: string;
@@ -29,9 +27,9 @@ export const walletsRepository = {
       })
       .returning();
     return wallet ?? null;
-  },
+  }
 
-  async createMany(
+  static async createMany(
     data: {
       workspaceId: string;
       groupId?: string | null;
@@ -50,9 +48,9 @@ export const walletsRepository = {
         })),
       )
       .returning();
-  },
+  }
 
-  async update(
+  static async update(
     id: string,
     workspaceId: string,
     data: Partial<{
@@ -80,18 +78,18 @@ export const walletsRepository = {
       )
       .returning();
     return wallet ?? null;
-  },
+  }
 
-  async delete(id: string, workspaceId: string) {
+  static async delete(id: string, workspaceId: string) {
     const [wallet] = await db
       .update(wallets)
       .set({ deletedAt: new Date().toISOString() })
       .where(and(eq(wallets.id, id), eq(wallets.workspaceId, workspaceId)))
       .returning();
     return wallet ?? null;
-  },
+  }
 
-  async findMany(
+  static async findMany(
     workspaceId: string,
     filters?: { search?: string; groupId?: string; page?: number; limit?: number },
   ): Promise<{ rows: any[]; total: number }> {
@@ -136,9 +134,9 @@ export const walletsRepository = {
       })),
       total: Number(stats?.total ?? 0),
     };
-  },
+  }
 
-  async findById(workspaceId: string, id: string) {
+  static async findById(workspaceId: string, id: string) {
     const [wallet] = await db
       .select()
       .from(wallets)
@@ -158,21 +156,13 @@ export const walletsRepository = {
       ...wallet,
       balance: Number(wallet.balance),
     };
-  },
+  }
 
-  async reorder(
+  static async reorder(
     workspaceId: string,
     updates: { id: string; sortOrder: number; groupId?: string | null }[],
   ) {
     if (updates.length === 0) return;
-
-    // For simple reordering within same group context or mixed
-    // We can use a transaction or just simple updates if we construct the CASE properly
-    // But since groupId might also change, providing a single SQL update for both is tricky if we use CASE for everything
-    // However, usually reorder touches sortOrder. If groupId changes, it's a "move" + "reorder".
-    // Let's handle sortOrder via CASE, and if groupId is present in update, we might need separate updates or a complex query.
-    // For simplicity and performance of drag & drop which sends batch updates:
-    // We'll construct a query that updates sortOrder ALL the time, and groupId IF present in the update object.
 
     const sqlChunksSort = [sql`(CASE`];
     const sqlChunksGroup = [sql`(CASE`];
@@ -185,7 +175,6 @@ export const walletsRepository = {
       );
       if (update.groupId !== undefined) {
         hasGroupUpdates = true;
-        // Handle null explicit
         if (update.groupId === null) {
           sqlChunksGroup.push(sql`WHEN ${wallets.id} = ${update.id} THEN NULL`);
         } else {
@@ -199,10 +188,6 @@ export const walletsRepository = {
 
     sqlChunksSort.push(sql`END)::integer`);
     sqlChunksGroup.push(sql`ELSE ${wallets.groupId} END)`);
-    // ELSE keep current value if not specified in update.
-    // Actually, if we use CASE for group, we must cover all IDs in the IN clause.
-    // If an ID is in IN clause but not in WHEN, it hits ELSE.
-    // So "ELSE groupId" is correct to preserve existing values for rows being updated by sortOrder but not groupId.
 
     const updateSet: any = {
       sortOrder: sql.join(sqlChunksSort, sql` `),
@@ -212,8 +197,6 @@ export const walletsRepository = {
     if (hasGroupUpdates) {
       updateSet.groupId = sql.join(sqlChunksGroup, sql` `);
     }
-
-    const finalSql = sql.join(sqlChunksSort, sql` `);
 
     await db
       .update(wallets)
@@ -225,9 +208,9 @@ export const walletsRepository = {
           isNull(wallets.deletedAt),
         ),
       );
-  },
+  }
 
-  async updateBalance(id: string, workspaceId: string, amount: number) {
+  static async updateBalance(id: string, workspaceId: string, amount: number) {
     const [wallet] = await db
       .update(wallets)
       .set({
@@ -243,5 +226,5 @@ export const walletsRepository = {
       )
       .returning();
     return wallet ?? null;
-  },
-};
+  }
+}

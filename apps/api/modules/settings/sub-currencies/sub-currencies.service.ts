@@ -1,7 +1,7 @@
 import { SubCurrenciesRepository } from "./sub-currencies.repository";
 import type { CreateSubCurrencyInput } from "./sub-currencies.model";
 import { buildSuccess, buildError } from "@workspace/utils";
-import { auditLogsService } from "../../audit-logs/audit-logs.service";
+import { AuditLogsService } from "../../audit-logs/audit-logs.service";
 import { ErrorCode } from "@workspace/types";
 import { status } from "elysia";
 
@@ -42,7 +42,7 @@ export abstract class SubCurrenciesService {
 
     const subCurrency = await SubCurrenciesRepository.create(workspaceId, data);
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "sub_currency.created",
@@ -69,7 +69,7 @@ export abstract class SubCurrenciesService {
 
     await SubCurrenciesRepository.delete(id, workspaceId);
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "sub_currency.deleted",

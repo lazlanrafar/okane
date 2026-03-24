@@ -13,7 +13,7 @@ interface Plan {
   highlighted: boolean;
 }
 
-const PLANS: Plan[] = [
+const DEFAULT_PLANS: Plan[] = [
   {
     name: "Starter",
     price: "$0",
@@ -71,9 +71,11 @@ const PLANS: Plan[] = [
 
 interface PricingSectionProps {
   appUrl: string;
+  plans?: Plan[];
 }
 
-export function PricingSection({ appUrl }: PricingSectionProps) {
+export function PricingSection({ appUrl, plans }: PricingSectionProps) {
+  const displayPlans = plans && plans.length > 0 ? plans : DEFAULT_PLANS;
   return (
     <section className="bg-background py-12 sm:py-16 lg:py-24">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -88,7 +90,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
 
         {/* Cards */}
         <div className="flex flex-col lg:flex-row gap-8 justify-center items-center lg:items-stretch max-w-5xl mx-auto">
-          {PLANS.map((plan) => (
+          {displayPlans.map((plan) => (
             <div key={plan.name} className="flex-1 max-w-sm w-full">
               <div
                 className={`h-full flex flex-col border p-6 ${

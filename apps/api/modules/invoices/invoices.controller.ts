@@ -30,7 +30,11 @@ export const invoicesController = new Elysia({ prefix: "/invoices" })
     },
     {
       query: InvoiceListQuery,
-      detail: { summary: "Get Invoices", tags: ["Invoices"] },
+      detail: {
+        summary: "Get Invoices",
+        description: "Returns a paginated list of invoices for the active workspace.",
+        tags: ["Invoices"],
+      },
     },
   )
   .post(
@@ -41,7 +45,11 @@ export const invoicesController = new Elysia({ prefix: "/invoices" })
     },
     {
       body: CreateInvoiceDto,
-      detail: { summary: "Create Invoice", tags: ["Invoices"] },
+      detail: {
+        summary: "Create Invoice",
+        description: "Creates a new invoice with line items and customer details.",
+        tags: ["Invoices"],
+      },
     },
   )
   .get(
@@ -50,7 +58,11 @@ export const invoicesController = new Elysia({ prefix: "/invoices" })
       return InvoicesService.getById(id, workspaceId!);
     },
     {
-      detail: { summary: "Get Invoice by ID", tags: ["Invoices"] },
+      detail: {
+        summary: "Get Invoice by ID",
+        description: "Retrieves the full details of a specific invoice by its unique ID.",
+        tags: ["Invoices"],
+      },
     },
   )
   .get(
@@ -60,7 +72,11 @@ export const invoicesController = new Elysia({ prefix: "/invoices" })
       return buildSuccess({ token });
     },
     {
-      detail: { summary: "Get Invoice Public Token", tags: ["Invoices"] },
+      detail: {
+        summary: "Get Invoice Public Token",
+        description: "Generates a secure, temporary token to allow public viewing of an invoice without authentication.",
+        tags: ["Invoices"],
+      },
     },
   )
   .get(
@@ -69,7 +85,11 @@ export const invoicesController = new Elysia({ prefix: "/invoices" })
       return InvoicesService.getActivity(id, workspaceId!);
     },
     {
-      detail: { summary: "Get Invoice Activity", tags: ["Invoices"] },
+      detail: {
+        summary: "Get Invoice Activity",
+        description: "Returns an audit trail of all changes and events related to a specific invoice.",
+        tags: ["Invoices"],
+      },
     },
   )
   .patch(
@@ -79,7 +99,11 @@ export const invoicesController = new Elysia({ prefix: "/invoices" })
     },
     {
       body: UpdateInvoiceDto,
-      detail: { summary: "Update Invoice", tags: ["Invoices"] },
+      detail: {
+        summary: "Update Invoice",
+        description: "Updates an existing invoice's details or metadata.",
+        tags: ["Invoices"],
+      },
     },
   )
   .delete(
@@ -88,6 +112,10 @@ export const invoicesController = new Elysia({ prefix: "/invoices" })
       return InvoicesService.delete(id, workspaceId!, userId!);
     },
     {
-      detail: { summary: "Delete Invoice", tags: ["Invoices"] },
+      detail: {
+        summary: "Delete Invoice",
+        description: "Soft-deletes an invoice. Deleted invoices are hidden from the list but remain in the database for audit purposes.",
+        tags: ["Invoices"],
+      },
     },
   );

@@ -14,8 +14,8 @@ import {
  * Workspaces repository — ONLY layer with DB access.
  * All reads filter deleted_at: null on workspaces.
  */
-export const workspacesRepository = {
-  async create(
+export abstract class WorkspacesRepository {
+  static async create(
     data: {
       name: string;
       slug: string;
@@ -27,9 +27,9 @@ export const workspacesRepository = {
   ) {
     const [workspace] = await tx.insert(workspaces).values(data).returning();
     return workspace ?? null;
-  },
+  }
 
-  async findById(workspace_id: string) {
+  static async findById(workspace_id: string) {
     const [result] = await db
       .select({
         workspace: workspaces,
@@ -46,9 +46,9 @@ export const workspacesRepository = {
       ...result.workspace,
       plan: result.plan,
     };
-  },
+  }
 
-  async addMember(
+  static async addMember(
     data: {
       workspace_id: string;
       user_id: string;
@@ -57,9 +57,9 @@ export const workspacesRepository = {
     tx: any = db,
   ) {
     await tx.insert(user_workspaces).values(data);
-  },
+  }
 
-  async getMemberWorkspaces(user_id: string) {
+  static async getMemberWorkspaces(user_id: string) {
     return db
       .select({
         id: workspaces.id,
@@ -76,9 +76,9 @@ export const workspacesRepository = {
           isNull(workspaces.deleted_at),
         ),
       );
-  },
+  }
 
-  async getWorkspacesWithPlans(user_id: string) {
+  static async getWorkspacesWithPlans(user_id: string) {
     return db
       .select({
         workspace: workspaces,
@@ -95,9 +95,9 @@ export const workspacesRepository = {
           isNull(workspaces.deleted_at),
         ),
       );
-  },
+  }
 
-  async getMembers(workspace_id: string) {
+  static async getMembers(workspace_id: string) {
     return db
       .select({
         userId: users.id,
@@ -115,9 +115,9 @@ export const workspacesRepository = {
           isNull(user_workspaces.deleted_at),
         ),
       );
-  },
+  }
 
-  async getMembership(user_id: string, workspace_id: string) {
+  static async getMembership(user_id: string, workspace_id: string) {
     const [membership] = await db
       .select()
       .from(user_workspaces)
@@ -130,9 +130,9 @@ export const workspacesRepository = {
       )
       .limit(1);
     return membership ?? null;
-  },
+  }
 
-  async createInvitation(data: {
+  static async createInvitation(data: {
     workspaceId: string;
     email: string;
     role: string;
@@ -144,9 +144,9 @@ export const workspacesRepository = {
       .values(data)
       .returning();
     return invitation;
-  },
+  }
 
-  async findInvitationByToken(token: string) {
+  static async findInvitationByToken(token: string) {
     const [invitation] = await db
       .select()
       .from(workspaceInvitations)
@@ -159,9 +159,9 @@ export const workspacesRepository = {
       )
       .limit(1);
     return invitation ?? null;
-  },
+  }
 
-  async findPendingInvitation(workspaceId: string, email: string) {
+  static async findPendingInvitation(workspaceId: string, email: string) {
     const [invitation] = await db
       .select()
       .from(workspaceInvitations)
@@ -175,9 +175,9 @@ export const workspacesRepository = {
       )
       .limit(1);
     return invitation ?? null;
-  },
+  }
 
-  async findPendingInvitationsByEmail(email: string) {
+  static async findPendingInvitationsByEmail(email: string) {
     return db
       .select()
       .from(workspaceInvitations)
@@ -188,9 +188,9 @@ export const workspacesRepository = {
           isNull(workspaceInvitations.deletedAt),
         ),
       );
-  },
+  }
 
-  async updateInvitationStatus(id: string, status: "accepted" | "expired") {
+  static async updateInvitationStatus(id: string, status: "accepted" | "expired") {
     await db
       .update(workspaceInvitations)
       .set({
@@ -204,9 +204,9 @@ export const workspacesRepository = {
           isNull(workspaceInvitations.deletedAt),
         ),
       );
-  },
+  }
 
-  async getWorkspaceInvitations(workspaceId: string) {
+  static async getWorkspaceInvitations(workspaceId: string) {
     return db
       .select()
       .from(workspaceInvitations)
@@ -217,12 +217,12 @@ export const workspacesRepository = {
           isNull(workspaceInvitations.deletedAt),
         ),
       );
-  },
+  }
 
-  async deleteInvitation(id: string) {
+  static async deleteInvitation(id: string) {
     await db
       .update(workspaceInvitations)
       .set({ deletedAt: new Date(), updatedAt: new Date() })
       .where(eq(workspaceInvitations.id, id));
-  },
-};
+  }
+}

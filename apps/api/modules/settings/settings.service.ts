@@ -2,7 +2,7 @@ import { SettingsRepository } from "./settings.repository";
 import type { TransactionSettingsInput } from "./settings.model";
 import { encrypt } from "@workspace/encryption";
 import { buildSuccess } from "@workspace/utils";
-import { auditLogsService } from "../audit-logs/audit-logs.service";
+import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import { Env } from "@workspace/constants";
 
 export abstract class SettingsService {
@@ -62,7 +62,7 @@ export abstract class SettingsService {
 
     const updated = await SettingsRepository.update(workspaceId, updateData);
 
-    await auditLogsService.log({
+    await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,
       action: "settings.updated",

@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import { ErrorCode } from "@workspace/types";
 import { buildSuccess, buildError } from "@workspace/utils";
 import { generateJwt, authPlugin } from "../../plugins/auth";
-import { workspacesService } from "../workspaces/workspaces.service";
+import { WorkspacesService } from "../workspaces/workspaces.service";
 
 /**
  * Auth controller — exchanges Supabase token for app JWT.
@@ -24,7 +24,7 @@ export const authController = new Elysia({ prefix: "/auth" })
         // Check for pending invitations and accept them (auto-join)
         // This handles cases where existing user is invited to another workspace
         if (auth.email) {
-          await workspacesService.acceptInvitation(auth.email, auth.user_id);
+          await WorkspacesService.acceptInvitation(auth.email, auth.user_id);
         }
 
         const token = await generateJwt(
@@ -42,7 +42,7 @@ export const authController = new Elysia({ prefix: "/auth" })
       // User has no workspace — try to find one via invitation
       let workspaceId = "";
       if (auth.email) {
-        const acceptedWorkspaceId = await workspacesService.acceptInvitation(
+        const acceptedWorkspaceId = await WorkspacesService.acceptInvitation(
           auth.email,
           auth.user_id,
         );

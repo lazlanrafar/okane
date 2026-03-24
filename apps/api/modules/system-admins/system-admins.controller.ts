@@ -48,7 +48,11 @@ export const systemAdminsController = new Elysia({ prefix: "/system-admins" })
     },
     {
       query: SystemAdminModel.listQuery,
-      detail: { summary: "List All Users", tags: ["System Admins"] },
+      detail: {
+        summary: "List All Users",
+        description: "Retrieves a paginated list of all users in the system. Restricted to system owners and finance administrators.",
+        tags: ["System Admins"],
+      },
     },
   )
   .patch(
@@ -69,6 +73,10 @@ export const systemAdminsController = new Elysia({ prefix: "/system-admins" })
           t.Literal("user"),
         ]),
       }),
-      detail: { summary: "Update System Role", tags: ["System Admins"] },
+      detail: {
+        summary: "Update System Role",
+        description: "Promotes or demotes a user's system-wide administrative role. Restricted to system owners.",
+        tags: ["System Admins"],
+      },
     },
   );

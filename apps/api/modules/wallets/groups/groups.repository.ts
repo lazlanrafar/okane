@@ -10,20 +10,20 @@ import {
   inArray,
 } from "@workspace/database";
 
-export const walletGroupsRepository = {
-  async create(data: { workspaceId: string; name: string }) {
+export abstract class WalletGroupsRepository {
+  static async create(data: { workspaceId: string; name: string }) {
     const [group] = await db.insert(walletGroups).values(data).returning();
     return group ?? null;
-  },
+  }
 
-  async createMany(
+  static async createMany(
     data: { workspaceId: string; name: string }[],
     tx: any = db,
   ) {
     return tx.insert(walletGroups).values(data).returning();
-  },
+  }
 
-  async update(
+  static async update(
     id: string,
     workspaceId: string,
     data: Partial<{ name: string; sortOrder: number }>,
@@ -36,9 +36,9 @@ export const walletGroupsRepository = {
       )
       .returning();
     return group ?? null;
-  },
+  }
 
-  async delete(id: string, workspaceId: string) {
+  static async delete(id: string, workspaceId: string) {
     const [group] = await db
       .update(walletGroups)
       .set({ deletedAt: new Date().toISOString() })
@@ -47,9 +47,9 @@ export const walletGroupsRepository = {
       )
       .returning();
     return group ?? null;
-  },
+  }
 
-  async findMany(workspaceId: string) {
+  static async findMany(workspaceId: string) {
     return db
       .select()
       .from(walletGroups)
@@ -60,9 +60,9 @@ export const walletGroupsRepository = {
         ),
       )
       .orderBy(asc(walletGroups.sortOrder), desc(walletGroups.createdAt));
-  },
+  }
 
-  async reorder(
+  static async reorder(
     workspaceId: string,
     updates: { id: string; sortOrder: number }[],
   ) {
@@ -91,5 +91,5 @@ export const walletGroupsRepository = {
           eq(walletGroups.workspaceId, workspaceId),
         ),
       );
-  },
-};
+  }
+}

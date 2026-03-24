@@ -1,8 +1,8 @@
 import { expect, test, describe, mock, beforeEach } from "bun:test";
 import { TransactionsService } from "../transactions.service";
 import { TransactionsRepository } from "../transactions.repository";
-import { walletsRepository } from "../../wallets/wallets.repository";
-import { auditLogsService } from "../../audit-logs/audit-logs.service";
+import { WalletsRepository } from "../../wallets/wallets.repository";
+import { AuditLogsService } from "../../audit-logs/audit-logs.service";
 
 // Mock the imported dependencies
 mock.module("../transactions.repository", () => ({
@@ -37,13 +37,13 @@ mock.module("../transactions.repository", () => ({
 }));
 
 mock.module("../../wallets/wallets.repository", () => ({
-  walletsRepository: {
+  WalletsRepository: {
     updateBalance: mock(() => Promise.resolve()),
   },
 }));
 
 mock.module("../../audit-logs/audit-logs.service", () => ({
-  auditLogsService: {
+  AuditLogsService: {
     log: mock(() => Promise.resolve()),
   },
 }));

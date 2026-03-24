@@ -4,8 +4,8 @@ import { db, audit_logs, and, eq, desc, users, isNull } from "@workspace/databas
  * Audit logs repository — append-only.
  * Never update or delete audit logs.
  */
-export const auditLogsRepository = {
-  async create(data: {
+export abstract class AuditLogsRepository {
+  static async create(data: {
     workspace_id: string;
     user_id: string;
     action: string;
@@ -23,9 +23,9 @@ export const auditLogsRepository = {
       before: data.before ?? null,
       after: data.after ?? null,
     });
-  },
+  }
 
-  async findByEntity(entity: string, entity_id: string, workspace_id: string) {
+  static async findByEntity(entity: string, entity_id: string, workspace_id: string) {
     return db
       .select({
         id: audit_logs.id,
@@ -52,5 +52,5 @@ export const auditLogsRepository = {
         ),
       )
       .orderBy(desc(audit_logs.created_at));
-  },
-};
+  }
+}
