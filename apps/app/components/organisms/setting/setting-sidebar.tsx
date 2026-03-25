@@ -116,11 +116,11 @@ export function SettingSidebar({
           href: "/settings/expense-category",
           icon: TrendingDown,
         },
-        {
-          title: sidebar.accounts,
-          href: "/settings/wallets-and-banks",
-          icon: Landmark,
-        },
+        // {
+        //   title: sidebar.accounts,
+        //   href: "/settings/wallets-and-banks",
+        //   icon: Landmark,
+        // },
         {
           title: sidebar.budget,
           href: "/settings/budget",

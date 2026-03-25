@@ -1,3 +1,7 @@
+import {
+  sendPurchaseSuccessEmail,
+  sendPackageExpiredEmail,
+} from "@workspace/email";
 import { Env } from "@workspace/constants";
 import { logger } from "@workspace/logger";
 import { ErrorCode } from "@workspace/types";
@@ -112,6 +116,18 @@ export abstract class StripeService {
                   currency: session.currency || "usd",
                   status: "paid",
                 });
+
+                // Send purchase success email
+                const workspace = await StripeRepository.findWorkspaceById(workspaceId);
+                const owner = await StripeRepository.findWorkspaceOwner(workspaceId);
+                if (owner && workspace) {
+                  await sendPurchaseSuccessEmail(
+                    owner.email,
+                    owner.name || "there",
+                    workspace.name,
+                    plan?.name || "Premium",
+                  ).catch((err) => logger.error("Failed to send purchase email", { err }));
+                }
               }
             }
           }
@@ -142,6 +158,17 @@ export abstract class StripeService {
             currency: invoice.currency,
             status: "paid",
           });
+
+          // Send confirmation email for recurring payments if it's not the initial checkout (which is handled above)
+          if (invoice.billing_reason === "subscription_cycle" && owner) {
+             const plan = workspace.plan_id ? await StripeRepository.findPlanById(workspace.plan_id) : null;
+             await sendPurchaseSuccessEmail(
+               owner.email,
+               owner.name || "there",
+               workspace.name,
+               plan?.name || "Premium",
+             ).catch((err) => logger.error("Failed to send renewal email", { err }));
+          }
         }
         break;
       }
@@ -167,6 +194,15 @@ export abstract class StripeService {
           await StripeRepository.updateWorkspaceSubscription(workspace.id, {
             plan_status: "past_due",
           });
+
+          // Send expiration/warning email
+          if (owner) {
+            await sendPackageExpiredEmail(
+              owner.email,
+              owner.name || "there",
+              workspace.name,
+            ).catch((err) => logger.error("Failed to send expiration email", { err }));
+          }
         }
         break;
       }
@@ -192,6 +228,21 @@ export abstract class StripeService {
               ? new Date(Number(currentPeriodEnd) * 1000)
               : null,
           });
+
+          // If subscription becomes past_due or canceled, send email
+          if (subscription.status === "past_due" || subscription.status === "unpaid") {
+            const workspace = await StripeRepository.findWorkspaceByCustomerId(customerId);
+            if (workspace) {
+              const owner = await StripeRepository.findWorkspaceOwner(workspace.id);
+              if (owner) {
+                await sendPackageExpiredEmail(
+                  owner.email,
+                  owner.name || "there",
+                  workspace.name,
+                ).catch((err) => logger.error("Failed to send expiration alert", { err }));
+              }
+            }
+          }
         }
         break;
       }
@@ -204,6 +255,19 @@ export abstract class StripeService {
           plan_id: null,
           stripe_subscription_id: null,
         });
+
+        // Inform user that subscription has been canceled/expired
+        const workspace = await StripeRepository.findWorkspaceByCustomerId(customerId);
+        if (workspace) {
+          const owner = await StripeRepository.findWorkspaceOwner(workspace.id);
+          if (owner) {
+            await sendPackageExpiredEmail(
+              owner.email,
+              owner.name || "there",
+              workspace.name,
+            ).catch((err) => logger.error("Failed to send subscription deleted email", { err }));
+          }
+        }
         break;
       }
     }

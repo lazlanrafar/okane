@@ -26,14 +26,14 @@ const PLANS = [
       { currency: "idr", monthly: 0, yearly: 0 },
     ],
     max_vault_size_mb: 100,
-    max_ai_tokens: 5000, // Bumped slightly (see notes)
+    max_ai_tokens: 5000,
+    max_workspaces: 1,
     features: [
       "1 workspace",
-      "Up to 3 wallets",
       "Basic transaction tracking",
       "5,000 AI tokens / month",
       "Limited storage (100MB)",
-      "Email support",
+      "Standard support",
     ],
     is_active: true,
   },
@@ -41,12 +41,13 @@ const PLANS = [
     name: "Pro",
     description: "Everything you need to run a growing business.",
     prices: [
-      { currency: "usd", monthly: 1500, yearly: 15000 }, // $15/mo or $150/yr
-      { currency: "eur", monthly: 1500, yearly: 15000 },
-      { currency: "idr", monthly: 149000, yearly: 1490000 }, // Adjusted for PPP and .99 psychology
+      { currency: "usd", monthly: 1900, yearly: 19000 },
+      { currency: "eur", monthly: 1900, yearly: 19000 },
+      { currency: "idr", monthly: 149000, yearly: 1490000 },
     ],
     max_vault_size_mb: 5120, // 5GB
     max_ai_tokens: 50000,
+    max_workspaces: 5,
     features: [
       "5 workspaces",
       "Unlimited wallets",
@@ -62,12 +63,13 @@ const PLANS = [
     name: "Business",
     description: "For teams that need full control and collaboration.",
     prices: [
-      { currency: "usd", monthly: 4900, yearly: 49000 }, // $49/mo or $490/yr
-      { currency: "eur", monthly: 4900, yearly: 49000 },
+      { currency: "usd", monthly: 5900, yearly: 59000 },
+      { currency: "eur", monthly: 5900, yearly: 59000 },
       { currency: "idr", monthly: 499000, yearly: 4990000 },
     ],
     max_vault_size_mb: 20480, // 20GB
     max_ai_tokens: 250000,
+    max_workspaces: 100, // Effectively unlimited (ui labels as unlimited)
     features: [
       "Unlimited workspaces",
       "Unlimited wallets",

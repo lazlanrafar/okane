@@ -92,7 +92,11 @@ export abstract class StripeRepository {
 
   static async findWorkspaceOwner(workspaceId: string) {
     const [owner] = await db
-      .select({ id: users.id })
+      .select({ 
+        id: users.id,
+        email: users.email,
+        name: users.name,
+      })
       .from(users)
       .innerJoin(user_workspaces, eq(users.id, user_workspaces.user_id))
       .where(
@@ -104,5 +108,13 @@ export abstract class StripeRepository {
       )
       .limit(1);
     return owner;
+  }
+  static async findPlanById(id: string) {
+    const [plan] = await db
+      .select()
+      .from(pricing)
+      .where(and(eq(pricing.id, id), isNull(pricing.deleted_at)))
+      .limit(1);
+    return plan;
   }
 }
