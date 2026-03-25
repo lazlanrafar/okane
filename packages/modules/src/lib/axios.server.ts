@@ -48,6 +48,26 @@ axiosInstance.interceptors.request.use(async (config) => {
     }
   }
 
+  // Request body encryption
+  if (
+    config.data &&
+    ["post", "put", "patch"].includes(config.method?.toLowerCase() || "") &&
+    !(config.data instanceof FormData)
+  ) {
+    const secret = Env.ENCRYPTION_KEY;
+    if (secret) {
+      const { encrypt: encryptBody } = await import("@workspace/encryption");
+      try {
+        const encrypted = encryptBody(JSON.stringify(config.data), secret);
+        config.data = { data: encrypted };
+        config.headers["x-encrypted"] = "true";
+      } catch (e) {
+        // Log error but continue with plaintext if encryption fails in dev
+        console.error("Failed to encrypt request body", e);
+      }
+    }
+  }
+
   return config;
 });
 

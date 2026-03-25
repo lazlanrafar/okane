@@ -4,6 +4,7 @@ import { buildSuccess, buildError } from "@workspace/utils";
 import { UsersService } from "./users.service";
 import { SyncUserBody, UpdateAvatarBody } from "./users.model";
 import { authPlugin } from "../../plugins/auth";
+import { encryptionPlugin } from "../../plugins/encryption";
 import { logger } from "@workspace/logger";
 
 /**
@@ -12,6 +13,7 @@ import { logger } from "@workspace/logger";
  */
 export const usersController = new Elysia({ prefix: "/users" })
   .use(authPlugin)
+  .use(encryptionPlugin)
   .post(
     "/sync",
     async ({ body, set }) => {

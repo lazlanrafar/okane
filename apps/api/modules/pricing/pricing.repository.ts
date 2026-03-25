@@ -123,4 +123,12 @@ export abstract class PricingRepository {
 
     return result;
   }
+
+  static async findPublicActive() {
+    return db
+      .select()
+      .from(pricing)
+      .where(and(eq(pricing.is_active, true), isNull(pricing.deleted_at)))
+      .orderBy(asc(pricing.created_at));
+  }
 }

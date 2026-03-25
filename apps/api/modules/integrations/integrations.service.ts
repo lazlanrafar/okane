@@ -148,7 +148,7 @@ export abstract class IntegrationsService {
           const base64Image = Buffer.from(arrayBuffer).toString("base64");
 
           // 3. Upload to Vault
-          const vaultFile = await vaultService.uploadFile(workspaceId, {
+          const vaultFile = await vaultService.uploadFile(workspaceId, userId, {
             name: `receipt-${Date.now()}.${mimeType === "application/pdf" ? "pdf" : "jpg"}`,
             type: mimeType,
             size: Buffer.byteLength(base64Image, "base64"),
@@ -158,6 +158,7 @@ export abstract class IntegrationsService {
           // 4. Parse with AI
           const parsedReceipt = await AiService.parseReceipt(
             workspaceId,
+            userId,
             base64Image,
             mimeType,
           );
@@ -337,7 +338,7 @@ export abstract class IntegrationsService {
           const mimeType = "image/jpeg"; // Telegram photos are usually jpeg
 
           // C. Upload to Vault
-          const vaultFile = await vaultService.uploadFile(workspaceId, {
+          const vaultFile = await vaultService.uploadFile(workspaceId, userId, {
             name: `receipt-${Date.now()}.jpg`,
             type: mimeType,
             size: Buffer.byteLength(base64Image, "base64"),
@@ -347,6 +348,7 @@ export abstract class IntegrationsService {
           // D. Parse with AI
           const parsedReceipt = await AiService.parseReceipt(
             workspaceId,
+            userId,
             base64Image,
             mimeType,
           );

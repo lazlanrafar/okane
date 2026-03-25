@@ -2,11 +2,13 @@ import { Elysia, t } from "elysia";
 import { DebtsService } from "./debts.service";
 import { DebtsModel } from "./debts.model";
 import { authPlugin } from "../../plugins/auth";
+import { encryptionPlugin } from "../../plugins/encryption";
 import { buildError, buildSuccess } from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
 
 export const debtsController = new Elysia({ prefix: "/debts" })
   .use(authPlugin)
+  .use(encryptionPlugin)
   .derive(({ auth }) => ({
     workspaceId: auth?.workspace_id,
     userId: auth?.user_id,

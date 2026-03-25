@@ -12,6 +12,7 @@ export const ordersController = new Elysia({
   name: "orders.controller",
 })
   .use(requireAdminAccess)
+  .use(encryptionPlugin)
   .get(
     "/",
     async ({ query }) => {

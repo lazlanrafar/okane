@@ -1,7 +1,7 @@
 import { VaultRepository } from "./vault.repository";
 import { BucketClient } from "@workspace/bucket";
-import { db, workspaceSettings, eq, and, isNull } from "@workspace/database";
 import { decrypt } from "@workspace/encryption";
+import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import {
   buildPagination,
   parsePaginationQuery,
@@ -14,16 +14,7 @@ import { Env } from "@workspace/constants";
 
 export abstract class VaultService {
   private static async getBucketClient(workspaceId: string) {
-    const [settings] = await db
-      .select()
-      .from(workspaceSettings)
-      .where(
-        and(
-          eq(workspaceSettings.workspaceId, workspaceId),
-          isNull(workspaceSettings.deletedAt),
-        ),
-      )
-      .limit(1);
+    const settings = await VaultRepository.getWorkspaceSettings(workspaceId);
 
     const secret = Env.ENCRYPTION_KEY || "";
 
@@ -67,6 +58,7 @@ export abstract class VaultService {
 
   static async uploadFile(
     workspaceId: string,
+    userId: string,
     file: { name: string; type: string; size: number; buffer: Buffer },
   ) {
     const usageData = await VaultRepository.getUsageAndQuota(workspaceId);
@@ -115,6 +107,15 @@ export abstract class VaultService {
     // Increment vault size safely in DB
     await VaultRepository.updateVaultSize(workspaceId, usedBytes + file.size);
 
+    await AuditLogsService.log({
+        workspace_id: workspaceId,
+        user_id: userId,
+        action: "vault.file_uploaded",
+        entity: "vault_file",
+        entity_id: vaultEntry.id,
+        after: vaultEntry,
+    });
+
     return {
       ...vaultEntry,
       url: await bucket.getSignedUrl(vaultEntry.key),
@@ -150,7 +151,7 @@ export abstract class VaultService {
     };
   }
 
-  static async deleteFile(workspaceId: string, fileId: string) {
+  static async deleteFile(workspaceId: string, userId: string, fileId: string) {
     const file = await VaultRepository.findById(fileId, workspaceId);
     if (!file) throw new Error("File not found");
 
@@ -168,6 +169,15 @@ export abstract class VaultService {
       await VaultRepository.updateVaultSize(workspaceId, newUsed);
     }
 
+    await AuditLogsService.log({
+        workspace_id: workspaceId,
+        user_id: userId,
+        action: "vault.file_deleted",
+        entity: "vault_file",
+        entity_id: fileId,
+        before: file,
+    });
+
     return deletedFile;
   }
 
@@ -179,7 +189,20 @@ export abstract class VaultService {
     return bucket.getSignedUrl(file.key);
   }
 
-  static async updateTags(workspaceId: string, fileId: string, tags: string[]) {
-    return VaultRepository.updateTags(fileId, workspaceId, tags);
+  static async updateTags(workspaceId: string, userId: string, fileId: string, tags: string[]) {
+    const before = await VaultRepository.findById(fileId, workspaceId);
+    const updated = await VaultRepository.updateTags(fileId, workspaceId, tags);
+
+    await AuditLogsService.log({
+        workspace_id: workspaceId,
+        user_id: userId,
+        action: "vault.file_tags_updated",
+        entity: "vault_file",
+        entity_id: fileId,
+        before,
+        after: updated,
+    });
+
+    return updated;
   }
 }

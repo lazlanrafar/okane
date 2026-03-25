@@ -1,43 +1,28 @@
 import { Env } from "@workspace/constants";
-import {
-  db,
-  pricing,
-  user_workspaces,
-  users,
-  webhook_events,
-  workspaces,
-} from "@workspace/database";
 import { logger } from "@workspace/logger";
 import { ErrorCode } from "@workspace/types";
 import { buildError, buildSuccess } from "@workspace/utils";
-import { and, eq, isNull, or, sql } from "drizzle-orm";
 import { status } from "elysia";
 import Stripe from "stripe";
 import { OrdersService } from "../orders/orders.service";
-
-const stripe = new Stripe(Env.STRIPE_SECRET_KEY as string);
-
-async function isEventProcessed(eventId: string): Promise<boolean> {
-  const [existing] = await db
-    .select({ id: webhook_events.id })
-    .from(webhook_events)
-    .where(eq(webhook_events.id, eventId))
-    .limit(1);
-  return !!existing;
-}
-
-async function markEventProcessed(eventId: string): Promise<void> {
-  await db.insert(webhook_events).values({ id: eventId }).onConflictDoNothing();
-}
+import { StripeRepository } from "./stripe.repository";
 
 export abstract class StripeService {
+  private static _stripe: Stripe | null = null;
+  private static get stripe() {
+    if (!this._stripe) {
+      this._stripe = new Stripe(Env.STRIPE_SECRET_KEY as string);
+    }
+    return this._stripe;
+  }
+
   static async handleWebhook(rawBody: string, signature: string) {
     const webhookSecret = Env.STRIPE_WEBHOOK_SECRET;
     if (!webhookSecret) {
       throw new Error("STRIPE_WEBHOOK_SECRET is not configured");
     }
 
-    const event = await stripe.webhooks.constructEventAsync(
+    const event = await this.stripe.webhooks.constructEventAsync(
       rawBody,
       signature,
       webhookSecret,
@@ -48,7 +33,7 @@ export abstract class StripeService {
       type: event.type,
     });
 
-    if (await isEventProcessed(event.id)) {
+    if (await StripeRepository.isEventProcessed(event.id)) {
       logger.info(
         `[Stripe Webhook] Event ${event.id} already processed, skipping`,
       );
@@ -57,7 +42,7 @@ export abstract class StripeService {
 
     try {
       await StripeService.processEvent(event);
-      await markEventProcessed(event.id);
+      await StripeRepository.markEventProcessed(event.id);
     } catch (error) {
       logger.error("[Stripe Webhook] Error processing event", {
         eventId: event.id,
@@ -79,23 +64,11 @@ export abstract class StripeService {
 
           if (subscriptionId) {
             const subscription =
-              await stripe.subscriptions.retrieve(subscriptionId);
+              await this.stripe.subscriptions.retrieve(subscriptionId);
             const priceId = subscription.items.data[0]?.price.id;
 
             if (priceId) {
-              const [plan] = await db
-                .select()
-                .from(pricing)
-                .where(
-                  and(
-                    or(
-                      sql`${pricing.prices} @> ${JSON.stringify([{ stripe_monthly_id: priceId }])}::jsonb`,
-                      sql`${pricing.prices} @> ${JSON.stringify([{ stripe_yearly_id: priceId }])}::jsonb`,
-                    ),
-                    isNull(pricing.deleted_at),
-                  ),
-                )
-                .limit(1);
+              const plan = await StripeRepository.findPlanByStripePriceId(priceId);
 
               logger.info("[Stripe Webhook] Subscription keys", {
                 keys: Object.keys(subscription),
@@ -113,28 +86,18 @@ export abstract class StripeService {
                 currentPeriodEnd,
               });
 
-              await db
-                .update(workspaces)
-                .set({
-                  stripe_customer_id: customerId,
-                  stripe_subscription_id: subscriptionId,
-                  plan_id: plan?.id,
-                  plan_status: subscription.status,
-                  stripe_current_period_end: currentPeriodEnd
-                    ? new Date(Number(currentPeriodEnd) * 1000)
-                    : null,
-                  ai_tokens_used: 0,
-                  vault_size_used_bytes: 0,
-                })
-                .where(
-                  and(
-                    eq(workspaces.id, workspaceId),
-                    isNull(workspaces.deleted_at),
-                  ),
-                );
+              await StripeRepository.updateWorkspaceSubscription(workspaceId, {
+                stripe_customer_id: customerId,
+                stripe_subscription_id: subscriptionId,
+                plan_id: plan?.id,
+                plan_status: subscription.status,
+                stripe_current_period_end: currentPeriodEnd
+                  ? new Date(Number(currentPeriodEnd) * 1000)
+                  : null,
+                ai_tokens_used: 0,
+                vault_size_used_bytes: 0,
+              });
 
-              // Create or update order from session info as a fallback for the race condition
-              // This ensures that for new customers, the order is created even if invoice.paid arrives too early to find the workspace
               if (session.payment_status === "paid" && session.invoice) {
                 logger.info(
                   `[Stripe Webhook] Session paid. Creating/updating order from session ${session.id}...`,
@@ -156,119 +119,54 @@ export abstract class StripeService {
         break;
       }
       case "invoice.paid": {
-        const invoice = event.data.object as any;
+        const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;
         logger.info(`[Stripe Webhook] invoice.paid for customer ${customerId}`);
-        logger.info("[Stripe Webhook] Invoice details", {
-          id: invoice.id,
-          amount_paid: invoice.amount_paid,
-          currency: invoice.currency,
-          customer: invoice.customer,
-          subscription: invoice.subscription,
-        });
 
-        const [workspace] = await db
-          .select()
-          .from(workspaces)
-          .where(
-            and(
-              eq(workspaces.stripe_customer_id, customerId),
-              isNull(workspaces.deleted_at),
-            ),
-          )
-          .limit(1);
+        const workspace = await StripeRepository.findWorkspaceByCustomerId(customerId);
 
         if (workspace) {
           logger.info(
             `[Stripe Webhook] Found workspace ${workspace.id} for customer ${customerId}. Creating order...`,
           );
 
-          // Find the owner of the workspace to attribute the order
-          const owner = await db
-            .select({ id: users.id })
-            .from(users)
-            .innerJoin(user_workspaces, eq(users.id, user_workspaces.user_id))
-            .where(
-              and(
-                eq(user_workspaces.workspace_id, workspace.id),
-                eq(user_workspaces.role, "owner"),
-                isNull(user_workspaces.deleted_at),
-              ),
-            )
-            .limit(1)
-            .then((res) => res[0]);
-
-          const orderResult = await OrdersService.createOrderFromStripe({
-            workspace_id: workspace.id,
-            user_id: owner?.id,
-            stripe_invoice_id: invoice.id,
-            stripe_subscription_id: invoice.subscription as string,
-            stripe_payment_intent_id: invoice.payment_intent as string,
-            amount: invoice.amount_paid,
-            currency: invoice.currency,
-            status: "paid",
-          });
-          logger.info("[Stripe Webhook] Order creation result", {
-            orderResult,
-          });
-        } else {
-          logger.info(
-            `[Stripe Webhook] Workspace not found for customer ${customerId} (Checked stripe_customer_id)`,
-          );
-        }
-        break;
-      }
-      case "invoice.payment_failed": {
-        const invoice = event.data.object as any;
-        const customerId = invoice.customer as string;
-        const [workspace] = await db
-          .select()
-          .from(workspaces)
-          .where(
-            and(
-              eq(workspaces.stripe_customer_id, customerId),
-              isNull(workspaces.deleted_at),
-            ),
-          )
-          .limit(1);
-
-        if (workspace) {
-          // Find the owner of the workspace to attribute the order
-          const owner = await db
-            .select({ id: users.id })
-            .from(users)
-            .innerJoin(user_workspaces, eq(users.id, user_workspaces.user_id))
-            .where(
-              and(
-                eq(user_workspaces.workspace_id, workspace.id),
-                eq(user_workspaces.role, "owner"),
-                isNull(user_workspaces.deleted_at),
-              ),
-            )
-            .limit(1)
-            .then((res) => res[0]);
+          const owner = await StripeRepository.findWorkspaceOwner(workspace.id);
 
           await OrdersService.createOrderFromStripe({
             workspace_id: workspace.id,
             user_id: owner?.id,
-            stripe_invoice_id: invoice.id,
-            stripe_subscription_id: invoice.subscription as string,
-            stripe_payment_intent_id: invoice.payment_intent as string,
+            stripe_invoice_id: (invoice as any).id,
+            stripe_subscription_id: (invoice as any).subscription as string,
+            stripe_payment_intent_id: (invoice as any).payment_intent as string,
+            amount: invoice.amount_paid,
+            currency: invoice.currency,
+            status: "paid",
+          });
+        }
+        break;
+      }
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = invoice.customer as string;
+        const workspace = await StripeRepository.findWorkspaceByCustomerId(customerId);
+
+        if (workspace) {
+          const owner = await StripeRepository.findWorkspaceOwner(workspace.id);
+
+          await OrdersService.createOrderFromStripe({
+            workspace_id: workspace.id,
+            user_id: owner?.id,
+            stripe_invoice_id: (invoice as any).id,
+            stripe_subscription_id: (invoice as any).subscription as string,
+            stripe_payment_intent_id: (invoice as any).payment_intent as string,
             amount: invoice.amount_due,
             currency: invoice.currency,
             status: "failed",
           });
 
-          // Also update workspace plan status
-          await db
-            .update(workspaces)
-            .set({ plan_status: "past_due" })
-            .where(
-              and(
-                eq(workspaces.id, workspace.id),
-                isNull(workspaces.deleted_at),
-              ),
-            );
+          await StripeRepository.updateWorkspaceSubscription(workspace.id, {
+            plan_status: "past_due",
+          });
         }
         break;
       }
@@ -278,53 +176,22 @@ export abstract class StripeService {
         const priceId = subscription.items.data[0]?.price.id;
 
         if (priceId) {
-          const [plan] = await db
-            .select()
-            .from(pricing)
-            .where(
-              and(
-                or(
-                  sql`${pricing.prices} @> ${JSON.stringify([{ stripe_monthly_id: priceId }])}::jsonb`,
-                  sql`${pricing.prices} @> ${JSON.stringify([{ stripe_yearly_id: priceId }])}::jsonb`,
-                ),
-                isNull(pricing.deleted_at),
-              ),
-            )
-            .limit(1);
+          const plan = await StripeRepository.findPlanByStripePriceId(priceId);
 
-          logger.info("[Stripe Webhook] Subscription keys", {
-            keys: Object.keys(subscription),
-          });
           let currentPeriodEnd = (subscription as any).current_period_end;
           if (!currentPeriodEnd && (subscription as any).items?.data?.[0]) {
             currentPeriodEnd = (subscription as any).items.data[0]
               .current_period_end;
-            logger.info(
-              "[Stripe Webhook] Found current_period_end in items.data[0]:",
-              currentPeriodEnd,
-            );
           }
-          logger.info("[Stripe Webhook] Resolved current_period_end value", {
-            currentPeriodEnd,
-          });
 
-          // Whenever a subscription updates (renews, upgrades), reset standard usages if the period rolled over
-          await db
-            .update(workspaces)
-            .set({
-              stripe_subscription_id: subscription.id,
-              plan_id: plan?.id,
-              plan_status: subscription.status,
-              stripe_current_period_end: currentPeriodEnd
-                ? new Date(Number(currentPeriodEnd) * 1000)
-                : null,
-            })
-            .where(
-              and(
-                eq(workspaces.stripe_customer_id, customerId),
-                isNull(workspaces.deleted_at),
-              ),
-            );
+          await StripeRepository.updateWorkspaceSubscriptionByCustomerId(customerId, {
+            stripe_subscription_id: subscription.id,
+            plan_id: plan?.id,
+            plan_status: subscription.status,
+            stripe_current_period_end: currentPeriodEnd
+              ? new Date(Number(currentPeriodEnd) * 1000)
+              : null,
+          });
         }
         break;
       }
@@ -332,20 +199,11 @@ export abstract class StripeService {
         const subscription = event.data.object as Stripe.Subscription;
         const customerId = subscription.customer as string;
 
-        // Downgrade back to Free Tier config
-        await db
-          .update(workspaces)
-          .set({
-            plan_status: "free",
-            plan_id: null,
-            stripe_subscription_id: null,
-          })
-          .where(
-            and(
-              eq(workspaces.stripe_customer_id, customerId),
-              isNull(workspaces.deleted_at),
-            ),
-          );
+        await StripeRepository.updateWorkspaceSubscriptionByCustomerId(customerId, {
+          plan_status: "free",
+          plan_id: null,
+          stripe_subscription_id: null,
+        });
         break;
       }
     }
@@ -364,29 +222,13 @@ export abstract class StripeService {
       );
     }
 
-    const [workspace] = await db
-      .select()
-      .from(workspaces)
-      .where(and(eq(workspaces.id, workspaceId), isNull(workspaces.deleted_at)))
-      .limit(1);
+    const workspace = await StripeRepository.findWorkspaceById(workspaceId);
 
     if (!workspace) {
       throw status(404, buildError(ErrorCode.NOT_FOUND, "Workspace not found"));
     }
 
-    const [plan] = await db
-      .select()
-      .from(pricing)
-      .where(
-        and(
-          or(
-            sql`${pricing.prices} @> ${JSON.stringify([{ stripe_monthly_id: priceId }])}::jsonb`,
-            sql`${pricing.prices} @> ${JSON.stringify([{ stripe_yearly_id: priceId }])}::jsonb`,
-          ),
-          isNull(pricing.deleted_at),
-        ),
-      )
-      .limit(1);
+    const plan = await StripeRepository.findPlanByStripePriceId(priceId);
 
     if (!plan) {
       throw status(404, buildError(ErrorCode.NOT_FOUND, "Plan not found"));
@@ -399,24 +241,14 @@ export abstract class StripeService {
         .replace(":3002", ":3001")
         .replace(/\/v1$/, "");
 
-    // Determine mode based on which price ID it is
-    const mode = "subscription";
-
-    const session = await stripe.checkout.sessions.create({
+    const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       billing_address_collection: "required",
       customer: workspace.stripe_customer_id || undefined,
       client_reference_id: workspace.id,
-      metadata: {
-        userId,
-      },
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode,
+      metadata: { userId },
+      line_items: [{ price: priceId, quantity: 1 }],
+      mode: "subscription",
       success_url: `${appUrl}${returnPath ?? "/en/settings/billing"}?success=true`,
       cancel_url: `${appUrl}${returnPath ?? "/en/settings/billing"}?canceled=true`,
     });
@@ -425,9 +257,7 @@ export abstract class StripeService {
   }
 
   static async createCustomerPortal(workspaceId: string) {
-    const workspace = await db.query.workspaces.findFirst({
-      where: and(eq(workspaces.id, workspaceId), isNull(workspaces.deleted_at)),
-    });
+    const workspace = await StripeRepository.findWorkspaceById(workspaceId);
 
     if (!workspace || !workspace.stripe_customer_id) {
       throw status(
@@ -446,7 +276,7 @@ export abstract class StripeService {
         .replace(":3002", ":3001")
         .replace(/\/v1$/, "");
 
-    const session = await stripe.billingPortal.sessions.create({
+    const session = await this.stripe.billingPortal.sessions.create({
       customer: workspace.stripe_customer_id,
       return_url: `${appUrl}/en/settings/billing`,
     });
@@ -455,7 +285,7 @@ export abstract class StripeService {
   }
 
   static async getInvoiceUrl(invoiceId: string) {
-    const invoice = await stripe.invoices.retrieve(invoiceId);
+    const invoice = await this.stripe.invoices.retrieve(invoiceId);
     return buildSuccess(
       { url: invoice.invoice_pdf || invoice.hosted_invoice_url },
       "Invoice URL retrieved",
@@ -463,9 +293,7 @@ export abstract class StripeService {
   }
 
   static async cancelSubscription(workspaceId: string) {
-    const workspace = await db.query.workspaces.findFirst({
-      where: and(eq(workspaces.id, workspaceId), isNull(workspaces.deleted_at)),
-    });
+    const workspace = await StripeRepository.findWorkspaceById(workspaceId);
 
     if (!workspace || !workspace.stripe_subscription_id) {
       throw status(
@@ -474,7 +302,7 @@ export abstract class StripeService {
       );
     }
 
-    const subscription = await stripe.subscriptions.update(
+    const subscription = await this.stripe.subscriptions.update(
       workspace.stripe_subscription_id,
       { cancel_at_period_end: true },
     );

@@ -2,11 +2,13 @@ import { Elysia, t } from "elysia";
 import { ContactsService } from "./contacts.service";
 import { ContactsModel } from "./contacts.model";
 import { authPlugin } from "../../plugins/auth";
+import { encryptionPlugin } from "../../plugins/encryption";
 import { buildError, buildSuccess } from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
 
 export const contactsController = new Elysia({ prefix: "/contacts" })
   .use(authPlugin)
+  .use(encryptionPlugin)
   .derive(({ auth }) => ({
     workspaceId: auth?.workspace_id,
     userId: auth?.user_id,

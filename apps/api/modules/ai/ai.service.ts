@@ -13,6 +13,7 @@ import { status } from "elysia";
 import { ErrorCode } from "@workspace/types";
 import { Env } from "@workspace/constants";
 import { createLogger } from "@workspace/logger";
+import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import type { ChatMessage, ChatResponse } from "./ai.dto";
 
 const log = createLogger("ai-service");
@@ -42,6 +43,15 @@ export abstract class AiService {
       });
       const newSession = await AiRepository.createSession(workspaceId, title);
       currentSessionId = newSession!.id;
+
+      await AuditLogsService.log({
+        workspace_id: workspaceId,
+        user_id: userId,
+        action: "ai.session_created",
+        entity: "ai_session",
+        entity_id: currentSessionId,
+        after: newSession,
+      });
 
       // Save previous messages if any
       for (const msg of messages.slice(0, -1)) {
@@ -120,7 +130,7 @@ export abstract class AiService {
   /**
    * Parse receipt data from image or PDF.
    */
-  static async parseReceipt(workspaceId: string, base64Image: string, mediaType: string) {
+  static async parseReceipt(workspaceId: string, userId: string, base64Image: string, mediaType: string) {
     // We need category context for the parser
     const categories = await CategoriesRepository.findMany(workspaceId, "expense");
     const categoryContext = categories.map((c: any) => `- ${c.name} (ID: ${c.id})`).join("\n");
@@ -141,6 +151,15 @@ export abstract class AiService {
             const cacheKey = `okane:category-cache:${workspaceId}:${parsed.name.toLowerCase().trim()}`;
             await redis.set(cacheKey, parsed.categoryId, { ex: 60 * 60 * 24 * 30 });
         }
+
+        await AuditLogsService.log({
+          workspace_id: workspaceId,
+          user_id: userId,
+          action: "ai.receipt_parsed",
+          entity: "vault_file", // Receipt parsing is conceptually linked to storage/vault
+          entity_id: "00000000-0000-0000-0000-000000000000",
+          after: parsed,
+        });
     }
 
     return parsed;

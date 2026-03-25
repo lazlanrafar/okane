@@ -1,6 +1,7 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "../../plugins/auth";
 import { InvoicesService } from "./invoices.service";
+import { encryptionPlugin } from "../../plugins/encryption";
 import { buildError } from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
 import {
@@ -13,6 +14,7 @@ import { buildSuccess } from "@workspace/utils";
 
 export const invoicesController = new Elysia({ prefix: "/invoices" })
   .use(authPlugin)
+  .use(encryptionPlugin)
   .derive(({ auth }) => ({
     workspaceId: auth?.workspace_id,
     userId: auth?.user_id,

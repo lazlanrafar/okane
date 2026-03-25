@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 import { authPlugin } from "../../plugins/auth";
+import { encryptionPlugin } from "../../plugins/encryption";
 import { buildSuccess, buildError } from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
 import { AiService } from "./ai.service";
@@ -8,6 +9,7 @@ import { logger } from "@workspace/logger";
 
 export const aiController = new Elysia({ prefix: "/ai" })
   .use(authPlugin)
+  .use(encryptionPlugin)
   .derive(({ auth }) => ({
     workspaceId: auth?.workspace_id,
     userId: auth?.user_id,
@@ -84,10 +86,11 @@ export const aiController = new Elysia({ prefix: "/ai" })
   )
   .post(
     "/parse-receipt",
-    async ({ body, workspaceId, set }) => {
+    async ({ body, workspaceId, userId, set }) => {
       try {
         const result = await AiService.parseReceipt(
           workspaceId!,
+          userId!,
           body.file.data,
           body.file.type,
         );

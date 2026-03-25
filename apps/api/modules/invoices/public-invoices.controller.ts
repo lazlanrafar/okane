@@ -1,10 +1,12 @@
 import { Elysia, t } from "elysia";
 import { InvoicesService } from "./invoices.service";
+import { encryptionPlugin } from "../../plugins/encryption";
 import { verifyInvoiceToken } from "./invoices.utils";
 import { buildError, buildSuccess } from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
 
 export const publicInvoicesController = new Elysia({ prefix: "/public/invoices" })
+  .use(encryptionPlugin)
   .get(
     "/:token",
     async ({ params: { token }, query }) => {

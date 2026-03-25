@@ -1,5 +1,6 @@
 import { CategoriesRepository } from "../categories/categories.repository";
 import { ContactsRepository } from "../contacts/contacts.repository";
+import { ContactsService } from "../contacts/contacts.service";
 import { DebtsService } from "../debts/debts.service";
 import { TransactionsService } from "../transactions/transactions.service";
 import { TransactionsRepository } from "../transactions/transactions.repository";
@@ -274,10 +275,14 @@ export async function executeAiTool(
           input.contactName,
         );
         if (!contact) {
-          contact = await ContactsRepository.create({
+          const res = await ContactsService.createContact(
             workspaceId,
-            name: input.contactName,
-          });
+            userId,
+            { name: input.contactName }
+          );
+          if (res.success) {
+            contact = res.data;
+          }
         }
         if (!contact)
           return { success: false, error: "Failed to resolve contact." };

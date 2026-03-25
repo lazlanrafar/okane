@@ -1,6 +1,7 @@
 import { Elysia, t } from "elysia";
 import { VaultService } from "./vault.service";
 import { authPlugin } from "../../plugins/auth";
+import { encryptionPlugin } from "../../plugins/encryption";
 import { buildPaginatedSuccess, buildSuccess, buildError } from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
 import { logger } from "@workspace/logger";
@@ -12,8 +13,10 @@ import {
 
 export const vaultController = new Elysia({ prefix: "/vault" })
   .use(authPlugin)
+  .use(encryptionPlugin)
   .derive(({ auth }) => ({
     workspaceId: auth?.workspace_id,
+    userId: auth?.user_id,
   }))
   .onBeforeHandle(({ auth, set }) => {
     if (!auth) {
@@ -41,10 +44,10 @@ export const vaultController = new Elysia({ prefix: "/vault" })
   )
   .post(
     "/upload",
-    async ({ workspaceId, body: { file }, set }) => {
+    async ({ workspaceId, userId, body: { file }, set }) => {
       try {
         const buffer = Buffer.from(await file.arrayBuffer());
-        const data = await VaultService.uploadFile(workspaceId!, {
+        const data = await VaultService.uploadFile(workspaceId!, userId!, {
           name: file.name,
           type: file.type,
           size: file.size,
@@ -70,8 +73,8 @@ export const vaultController = new Elysia({ prefix: "/vault" })
   )
   .delete(
     "/:id",
-    async ({ workspaceId, params: { id } }) => {
-      const data = await VaultService.deleteFile(workspaceId!, id);
+    async ({ workspaceId, userId, params: { id } }) => {
+      const data = await VaultService.deleteFile(workspaceId!, userId!, id);
       return buildSuccess(data, "File deleted successfully");
     },
     {
@@ -98,8 +101,8 @@ export const vaultController = new Elysia({ prefix: "/vault" })
   )
   .patch(
     "/:id/tags",
-    async ({ workspaceId, params: { id }, body: { tags } }) => {
-      const data = await VaultService.updateTags(workspaceId!, id, tags);
+    async ({ workspaceId, userId, params: { id }, body: { tags } }) => {
+      const data = await VaultService.updateTags(workspaceId!, userId!, id, tags);
       return buildSuccess(data, "Tags updated successfully");
     },
     {

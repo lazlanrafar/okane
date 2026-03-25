@@ -1,6 +1,9 @@
 import { WalletsRepository } from "./wallets.repository";
 import { WalletGroupsRepository } from "./groups/groups.repository";
-import { buildPaginatedSuccess } from "@workspace/utils";
+import { buildPaginatedSuccess, buildError } from "@workspace/utils";
+import { AuditLogsService } from "../audit-logs/audit-logs.service";
+import { status } from "elysia";
+import { ErrorCode } from "@workspace/types";
 
 export abstract class WalletsService {
   // --- Wallet Groups ---
@@ -9,30 +12,91 @@ export abstract class WalletsService {
     return WalletGroupsRepository.findMany(workspaceId);
   }
 
-  static async createGroup(workspaceId: string, data: { name: string }) {
-    return WalletGroupsRepository.create({
+  static async createGroup(workspaceId: string, userId: string, data: { name: string }) {
+    const group = await WalletGroupsRepository.create({
       workspaceId,
       ...data,
     });
+
+    if (!group) {
+        throw status(500, buildError(ErrorCode.INTERNAL_ERROR, "Failed to create wallet group"));
+    }
+
+    await AuditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "wallet_group.created",
+      entity: "wallet_group",
+      entity_id: group.id,
+      after: group,
+    });
+
+    return group;
   }
 
   static async updateGroup(
     workspaceId: string,
+    userId: string,
     id: string,
     data: { name?: string; sortOrder?: number },
   ) {
-    return WalletGroupsRepository.update(id, workspaceId, data);
+    const before = await WalletGroupsRepository.findById(id, workspaceId);
+    if (!before) {
+        throw status(404, buildError(ErrorCode.NOT_FOUND, "Wallet group not found"));
+    }
+    const group = await WalletGroupsRepository.update(id, workspaceId, data);
+
+    if (!group) {
+        throw status(500, buildError(ErrorCode.INTERNAL_ERROR, "Failed to update wallet group"));
+    }
+
+    await AuditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "wallet_group.updated",
+      entity: "wallet_group",
+      entity_id: id,
+      before,
+      after: group,
+    });
+
+    return group;
   }
 
-  static async deleteGroup(workspaceId: string, id: string) {
-    return WalletGroupsRepository.delete(id, workspaceId);
+  static async deleteGroup(workspaceId: string, userId: string, id: string) {
+    const before = await WalletGroupsRepository.findById(id, workspaceId);
+    if (!before) {
+        throw status(404, buildError(ErrorCode.NOT_FOUND, "Wallet group not found"));
+    }
+    await WalletGroupsRepository.delete(id, workspaceId);
+
+    await AuditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "wallet_group.deleted",
+      entity: "wallet_group",
+      entity_id: id,
+      before,
+    });
+
+    return true;
   }
 
   static async reorderGroups(
     workspaceId: string,
+    userId: string,
     updates: { id: string; sortOrder: number }[],
   ) {
-    return WalletGroupsRepository.reorder(workspaceId, updates);
+    await WalletGroupsRepository.reorder(workspaceId, updates);
+
+    await AuditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "wallet_group.reordered",
+      entity: "wallet_group",
+      entity_id: "00000000-0000-0000-0000-000000000000",
+      after: updates,
+    });
   }
 
   // --- Wallets ---
@@ -59,6 +123,7 @@ export abstract class WalletsService {
 
   static async createWallet(
     workspaceId: string,
+    userId: string,
     data: {
       name: string;
       groupId?: string | null;
@@ -67,15 +132,31 @@ export abstract class WalletsService {
     },
   ) {
     const balance = data.balance ? parseFloat(data.balance) : 0;
-    return WalletsRepository.create({
+    const wallet = await WalletsRepository.create({
       workspaceId,
       ...data,
       balance,
     });
+
+    if (!wallet) {
+        throw status(500, buildError(ErrorCode.INTERNAL_ERROR, "Failed to create wallet"));
+    }
+
+    await AuditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "wallet.created",
+      entity: "wallet",
+      entity_id: wallet.id,
+      after: wallet,
+    });
+
+    return wallet;
   }
 
   static async updateWallet(
     workspaceId: string,
+    userId: string,
     id: string,
     data: {
       name?: string;
@@ -89,17 +170,63 @@ export abstract class WalletsService {
     if (data.balance !== undefined) {
       updateData.balance = parseFloat(data.balance);
     }
-    return WalletsRepository.update(id, workspaceId, updateData);
+
+    const before = await WalletsRepository.findById(workspaceId, id);
+    if (!before) {
+        throw status(404, buildError(ErrorCode.NOT_FOUND, "Wallet not found"));
+    }
+    const wallet = await WalletsRepository.update(id, workspaceId, updateData);
+
+    if (!wallet) {
+        throw status(500, buildError(ErrorCode.INTERNAL_ERROR, "Failed to update wallet"));
+    }
+
+    await AuditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "wallet.updated",
+      entity: "wallet",
+      entity_id: id,
+      before,
+      after: wallet,
+    });
+
+    return wallet;
   }
 
-  static async deleteWallet(workspaceId: string, id: string) {
-    return WalletsRepository.delete(id, workspaceId);
+  static async deleteWallet(workspaceId: string, userId: string, id: string) {
+    const before = await WalletsRepository.findById(workspaceId, id);
+    if (!before) {
+        throw status(404, buildError(ErrorCode.NOT_FOUND, "Wallet not found"));
+    }
+    await WalletsRepository.delete(id, workspaceId);
+
+    await AuditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "wallet.deleted",
+      entity: "wallet",
+      entity_id: id,
+      before,
+    });
+
+    return true;
   }
 
   static async reorderWallets(
     workspaceId: string,
+    userId: string,
     updates: { id: string; sortOrder: number; groupId?: string | null }[],
   ) {
-    return WalletsRepository.reorder(workspaceId, updates);
+    await WalletsRepository.reorder(workspaceId, updates);
+
+    await AuditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "wallet.reordered",
+      entity: "wallet",
+      entity_id: "00000000-0000-0000-0000-000000000000",
+      after: updates,
+    });
   }
 }

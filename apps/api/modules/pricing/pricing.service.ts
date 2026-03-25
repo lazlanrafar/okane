@@ -5,6 +5,7 @@ import {
   buildPagination,
 } from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
+import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import type {
   CreatePricingInput,
   PricingListInput,
@@ -30,26 +31,30 @@ export abstract class PricingService {
     return buildSuccess(pricing);
   }
 
-  static async create(dto: CreatePricingInput, userId: string) {
-    const pricing = await PricingRepository.create(dto);
+  static async create(dto: CreatePricingInput, userId: string, workspaceId: string) {
+    const p = await PricingRepository.create(dto);
 
-    // Note: Pricing is a system-wide entity, so we use a specialized or null workspace_id conceptually,
-    // but the AuditLog table strictly requires workspace_id in the DB.
-    // For system features, we might need a workaround or log it under the admin's currently active workspace context.
-    // Assuming the user must be acting from within a workspace Context to hit the API:
-    // We will bypass Audit log for system-wide elements if it demands workspace_id, OR it can be omitted.
-    // Okane DB has workspace_id as NOT NULL in audit logs? Let's check.
-    // Usually, system actions log differently. We'll skip audit log for plan creation right here since we don't have workspace_id explicitly passed.
-    // Update: If we need audit logging, we'd need to pass workspace_id from the context.
+    if (!p) {
+        return buildError(ErrorCode.INTERNAL_ERROR, "Failed to create pricing plan");
+    }
+
+    await AuditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "pricing.created",
+      entity: "pricing",
+      entity_id: p.id,
+      after: p,
+    });
 
     return buildSuccess(
-      pricing,
+      p,
       "Pricing plan created successfully",
       "CREATED",
     );
   }
 
-  static async update(id: string, dto: UpdatePricingInput, userId: string) {
+  static async update(id: string, dto: UpdatePricingInput, userId: string, workspaceId: string) {
     const existing = await PricingRepository.findById(id);
     if (!existing) {
       return buildError(ErrorCode.NOT_FOUND, "Pricing plan not found");
@@ -57,10 +62,20 @@ export abstract class PricingService {
 
     const updated = await PricingRepository.update(id, dto);
 
+    await AuditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "pricing.updated",
+      entity: "pricing",
+      entity_id: id,
+      before: existing,
+      after: updated,
+    });
+
     return buildSuccess(updated);
   }
 
-  static async softDelete(id: string, userId: string) {
+  static async softDelete(id: string, userId: string, workspaceId: string) {
     const existing = await PricingRepository.findById(id);
     if (!existing) {
       return buildError(ErrorCode.NOT_FOUND, "Pricing plan not found");
@@ -68,6 +83,30 @@ export abstract class PricingService {
 
     await PricingRepository.softDelete(id);
 
+    await AuditLogsService.log({
+      workspace_id: workspaceId,
+      user_id: userId,
+      action: "pricing.deleted",
+      entity: "pricing",
+      entity_id: id,
+      before: existing,
+    });
+
     return buildSuccess(null);
+  }
+
+  static async getPublicPlans() {
+    const plans = await PricingRepository.findPublicActive();
+
+    const formattedPlans = plans.map((plan) => ({
+      id: plan.id,
+      name: plan.name,
+      description: plan.description,
+      prices: plan.prices,
+      features: plan.features,
+      is_highlighted: plan.name === "Pro",
+    }));
+
+    return buildSuccess(formattedPlans, "Pricing plans retrieved");
   }
 }

@@ -12,6 +12,8 @@ import { Elysia } from "elysia";
 // Validate environment variables early
 getEnv();
 
+import { ErrorCode } from "@workspace/types";
+import { buildError } from "@workspace/utils";
 import { staticPlugin } from "@elysiajs/static";
 import { Env } from "@workspace/constants";
 import { db } from "@workspace/database";
@@ -121,9 +123,58 @@ const app = new Elysia()
   )
   // Public routes (no auth required)
   .use(publicPricingController)
-  .onError(({ error, code }) => {
-    if (code === "NOT_FOUND") return;
-    Sentry.captureException(error);
+  // Global error handler — sanitizes and logs all unhandled exceptions
+  .onError(({ error, code, set }) => {
+    // Log fatal errors to Sentry
+    if (code !== "NOT_FOUND") {
+      Sentry.captureException(error);
+      const message = error instanceof Error ? error.message : "Handled response";
+      const stack = error instanceof Error ? error.stack : undefined;
+      
+      log.error(`[API] Unhandled Error [${code}]`, {
+        message,
+        stack,
+      });
+    }
+
+    // 1. Validation errors (TypeBox/Elysia)
+    if (code === "VALIDATION") {
+      set.status = 400;
+      return buildError(
+        ErrorCode.VALIDATION_ERROR,
+        "The request data is invalid. Please check your input.",
+      );
+    }
+
+    // 2. Resource not found
+    if (code === "NOT_FOUND") {
+      set.status = 404;
+      return buildError(ErrorCode.NOT_FOUND, "Resource not found");
+    }
+
+    // 3. Database errors (sanitize to hide implementation details)
+    const errorMsg = (error instanceof Error ? error.message : "").toLowerCase();
+    if (
+      errorMsg.includes("db") ||
+      errorMsg.includes("query") ||
+      errorMsg.includes("postgres") ||
+      errorMsg.includes("relation") ||
+      errorMsg.includes("foreign key") ||
+      errorMsg.includes("constraint")
+    ) {
+      set.status = 500;
+      return buildError(
+        ErrorCode.DATABASE_ERROR,
+        "A database error occurred. We have been notified.",
+      );
+    }
+
+    // 4. Default: Internal error
+    set.status = 500;
+    return buildError(
+      ErrorCode.INTERNAL_ERROR,
+      "An unexpected server error occurred.",
+    );
   })
   .listen(port);
 

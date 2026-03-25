@@ -16,6 +16,9 @@ export const pricingController = new Elysia({
 })
   .use(authPlugin)
   .use(encryptionPlugin)
+  .derive(({ auth }) => ({
+    workspaceId: auth?.workspace_id,
+  }))
   .get(
     "/",
     async ({ query }) => {
@@ -37,9 +40,9 @@ export const pricingController = new Elysia({
   .use(requireAdminAccess)
   .post(
     "/",
-    async ({ body, auth }) => {
+    async ({ body, auth, workspaceId }) => {
       // @ts-ignore
-      return PricingService.create(body, auth?.user_id || "system");
+      return PricingService.create(body, auth?.user_id || "system", workspaceId!);
     },
     {
       body: CreatePricingDto,
@@ -48,9 +51,9 @@ export const pricingController = new Elysia({
   )
   .patch(
     "/:id",
-    async ({ params: { id }, body, auth }) => {
+    async ({ params: { id }, body, auth, workspaceId }) => {
       // @ts-ignore
-      return PricingService.update(id, body, auth?.user_id || "system");
+      return PricingService.update(id, body, auth?.user_id || "system", workspaceId!);
     },
     {
       body: UpdatePricingDto,
@@ -59,9 +62,9 @@ export const pricingController = new Elysia({
   )
   .delete(
     "/:id",
-    async ({ params: { id }, auth }) => {
+    async ({ params: { id }, auth, workspaceId }) => {
       // @ts-ignore
-      return PricingService.softDelete(id, auth?.user_id || "system");
+      return PricingService.softDelete(id, auth?.user_id || "system", workspaceId!);
     },
     { detail: { summary: "Delete Pricing Plan", tags: ["Pricing"] } },
   );

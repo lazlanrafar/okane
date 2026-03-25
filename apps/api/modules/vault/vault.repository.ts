@@ -10,6 +10,7 @@ import {
   pricing,
   workspaces,
   ilike,
+  workspaceSettings,
 } from "@workspace/database";
 
 export abstract class VaultRepository {
@@ -123,5 +124,19 @@ export abstract class VaultRepository {
       .update(workspaces)
       .set({ vault_size_used_bytes: newSize })
       .where(eq(workspaces.id, workspaceId));
+  }
+
+  static async getWorkspaceSettings(workspaceId: string) {
+    const [settings] = await db
+      .select()
+      .from(workspaceSettings)
+      .where(
+        and(
+          eq(workspaceSettings.workspaceId, workspaceId),
+          isNull(workspaceSettings.deletedAt),
+        ),
+      )
+      .limit(1);
+    return settings ?? null;
   }
 }

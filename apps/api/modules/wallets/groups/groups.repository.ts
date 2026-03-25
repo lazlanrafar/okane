@@ -62,6 +62,21 @@ export abstract class WalletGroupsRepository {
       .orderBy(asc(walletGroups.sortOrder), desc(walletGroups.createdAt));
   }
 
+  static async findById(id: string, workspaceId: string) {
+    const [group] = await db
+      .select()
+      .from(walletGroups)
+      .where(
+        and(
+          eq(walletGroups.id, id),
+          eq(walletGroups.workspaceId, workspaceId),
+          isNull(walletGroups.deletedAt),
+        ),
+      )
+      .limit(1);
+    return group ?? null;
+  }
+
   static async reorder(
     workspaceId: string,
     updates: { id: string; sortOrder: number }[],

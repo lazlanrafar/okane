@@ -1,9 +1,11 @@
 import { Elysia } from "elysia";
+import { encryptionPlugin } from "../../plugins/encryption";
 import { requireAdminAccess } from "../system-admins/system-admins.controller";
 import { SystemMetricsModel } from "./system-metrics.dto";
 import { SystemMetricsService } from "./system-metrics.service";
 
 export const systemMetricsController = new Elysia({ prefix: "/system-metrics" })
+  .use(encryptionPlugin)
   .use(requireAdminAccess)
   .get(
     "/",
