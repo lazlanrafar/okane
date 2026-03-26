@@ -10,7 +10,7 @@ class ApiClient {
   static final ApiClient instance = ApiClient._();
 
   static const _storage = FlutterSecureStorage();
-  static const _tokenKey = 'okane_app_jwt';
+  static const _tokenKey = 'oewang_app_jwt';
 
   late final Dio _dio;
   bool _initialized = false;

@@ -4,11 +4,42 @@ import { Providers } from "@/components/providers";
 import { Toaster } from "@workspace/ui/atoms";
 import "@workspace/ui/globals.css";
 
-export const metadata: Metadata = {
-  title: "oewang – Run your business finances without manual work",
-  description:
-    "oewang is the financial OS for modern businesses. AI-powered insights, automatic categorization, real-time sync. Manage spending, send invoices, track transactions.",
-};
+import { WEBSITE_CONFIG } from "@workspace/constants";
+import { i18n } from "@/i18n-config";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const baseUrl = WEBSITE_CONFIG.url;
+
+  return {
+    title: {
+      default: WEBSITE_CONFIG.meta.title,
+      template: `%s | ${WEBSITE_CONFIG.name}`,
+    },
+    description: WEBSITE_CONFIG.meta.description,
+    metadataBase: new URL(baseUrl),
+    alternates: {
+      canonical: locale === i18n.defaultLocale ? "/" : `/${locale}`,
+      languages: Object.fromEntries(
+        i18n.locales.map((l) => [l, l === i18n.defaultLocale ? "/" : `/${l}`]),
+      ),
+    },
+    openGraph: {
+      ...WEBSITE_CONFIG.meta.og,
+      url: `${baseUrl}/${locale}`,
+      locale: locale === "en" ? "en_US" : locale === "ja" ? "ja_JP" : "id_ID",
+    },
+    twitter: WEBSITE_CONFIG.meta.twitter,
+    icons: {
+      icon: "/favicon.ico",
+      apple: "/apple-touch-icon.png",
+    },
+  };
+}
 
 export default async function RootLayout({
   children,

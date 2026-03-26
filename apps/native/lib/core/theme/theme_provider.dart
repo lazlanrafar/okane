@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Holds the user's active [ThemeMode] and persists it via SharedPreferences.
 class ThemeProvider extends ChangeNotifier {
-  static const _key = 'okane_theme_mode';
+  static const _key = 'oewang_theme_mode';
   static final ThemeProvider instance = ThemeProvider._();
 
   ThemeProvider._() {

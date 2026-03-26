@@ -4,29 +4,29 @@ import { useState } from "react";
 
 const FAQS = [
   {
-    question: "What is Okane?",
+    question: "What is Oewang?",
     answer:
-      "Okane is a financial workspace for founders and small teams. It brings transactions, wallets, and insights into one connected system so you always know what's happening in your business.",
+      "Oewang is a financial workspace for founders and small teams. It brings transactions, wallets, and insights into one connected system so you always know what's happening in your business.",
   },
   {
-    question: "Who is Okane for?",
+    question: "Who is Oewang for?",
     answer:
-      "Okane is built for solo founders, freelancers, and small teams who want clarity and control over their business finances without spending time on manual admin or spreadsheets.",
+      "Oewang is built for solo founders, freelancers, and small teams who want clarity and control over their business finances without spending time on manual admin or spreadsheets.",
   },
   {
-    question: "Do I need accounting knowledge to use Okane?",
+    question: "Do I need accounting knowledge to use Oewang?",
     answer:
-      "No. Okane is designed for day-to-day non-financial users. It helps you stay organised and in control without requiring accounting expertise.",
+      "No. Oewang is designed for day-to-day non-financial users. It helps you stay organised and in control without requiring accounting expertise.",
   },
   {
-    question: "What currencies does Okane support?",
+    question: "What currencies does Oewang support?",
     answer:
-      "Okane supports over 150 currencies with live exchange rates. You can manage international finances, set a base currency, and track sub-currencies across all your wallets.",
+      "Oewang supports over 150 currencies with live exchange rates. You can manage international finances, set a base currency, and track sub-currencies across all your wallets.",
   },
   {
     question: "How is my data protected?",
     answer:
-      "All data in Okane is encrypted end-to-end using AES-256 encryption. You control what gets connected and shared at all times. We never sell your data.",
+      "All data in Oewang is encrypted end-to-end using AES-256 encryption. You control what gets connected and shared at all times. We never sell your data.",
   },
   {
     question: "Can I export my data?",

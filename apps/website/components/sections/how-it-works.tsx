@@ -14,7 +14,7 @@ const FEATURES = [
   {
     title: "Real-time financial insights",
     subtitle:
-      "Okane explains changes in cash, revenue, and spending as they happen across all your connected accounts.",
+      "Oewang explains changes in cash, revenue, and spending as they happen across all your connected accounts.",
     icon: BarChart3,
     stat: "Live dashboards",
   },
@@ -35,7 +35,7 @@ const FEATURES = [
   {
     title: "Built for speed",
     subtitle:
-      "Every action responds in milliseconds. Okane is engineered for performance from the ground up.",
+      "Every action responds in milliseconds. Oewang is engineered for performance from the ground up.",
     icon: Zap,
     stat: "<100ms response",
   },

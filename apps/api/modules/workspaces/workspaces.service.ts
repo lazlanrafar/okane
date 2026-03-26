@@ -451,4 +451,41 @@ export abstract class WorkspacesService {
 
     return invitation.workspaceId;
   }
+
+  /**
+   * Assert that the workspace is on a specific plan tier or higher.
+   * Throws 422 if the requirement is not met.
+   */
+  static async assertPlanTier(
+    workspace_id: string,
+    requiredTier: "Pro" | "Business",
+  ) {
+    const workspace = await WorkspacesRepository.findById(workspace_id);
+    if (!workspace) {
+      throw status(
+        404,
+        buildError(ErrorCode.WORKSPACE_NOT_FOUND, "Workspace not found"),
+      );
+    }
+
+    const tierHierarchy: Record<string, number> = {
+      Starter: 0,
+      "Free Tier": 0,
+      Pro: 1,
+      Business: 2,
+    };
+    const currentTierName = workspace.plan?.name || "Starter";
+    const currentTierLevel = tierHierarchy[currentTierName] ?? 0;
+    const requiredLevel = tierHierarchy[requiredTier] ?? 1;
+
+    if (currentTierLevel < requiredLevel) {
+      throw status(
+        422,
+        buildError(
+          ErrorCode.PLAN_LIMIT_REACHED,
+          `This feature requires a ${requiredTier} plan or higher. Please upgrade to continue.`,
+        ),
+      );
+    }
+  }
 }

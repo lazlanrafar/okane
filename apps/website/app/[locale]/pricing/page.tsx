@@ -34,7 +34,7 @@ async function getPricingPlans() {
 export default async function PricingPage() {
   const cookieStore = await cookies();
   const isLoggedIn = cookieStore.has(
-    process.env.NEXT_PUBLIC_SESSION_COOKIE_NAME ?? "okane-session",
+    process.env.NEXT_PUBLIC_SESSION_COOKIE_NAME ?? "oewang-session",
   );
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const plans = await getPricingPlans();

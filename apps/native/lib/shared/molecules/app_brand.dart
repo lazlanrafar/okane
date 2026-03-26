@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 
-/// The Okane brand logo + name molecule.
+/// The Oewang brand logo + name molecule.
 class AppBrand extends StatelessWidget {
   const AppBrand({super.key, this.size = 64.0});
 
@@ -30,7 +30,7 @@ class AppBrand extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          'Okane',
+          'Oewang',
           style: TextStyle(
             color: context.colors.foreground,
             fontSize: 24,

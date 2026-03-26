@@ -19,17 +19,17 @@ Future<void> main() async {
   // 3. Initialize Supabase
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
 
-  runApp(const OkaneApp());
+  runApp(const OewangApp());
 }
 
-class OkaneApp extends StatefulWidget {
-  const OkaneApp({super.key});
+class OewangApp extends StatefulWidget {
+  const OewangApp({super.key});
 
   @override
-  State<OkaneApp> createState() => _OkaneAppState();
+  State<OewangApp> createState() => _OewangAppState();
 }
 
-class _OkaneAppState extends State<OkaneApp> {
+class _OewangAppState extends State<OewangApp> {
   final _themeProvider = ThemeProvider.instance;
 
   @override
@@ -49,7 +49,7 @@ class _OkaneAppState extends State<OkaneApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Okane',
+      title: 'Oewang',
       debugShowCheckedModeBanner: false,
       themeMode: _themeProvider.mode,
       theme: AppTheme.light,

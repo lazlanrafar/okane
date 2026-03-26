@@ -12,8 +12,6 @@ const IGNORED_LOCALE_PATHS = [
   "/favicon.ico",
   "/robots.txt",
   "/sitemap.xml",
-  "/terms",
-  "/policy",
 ];
 
 function getLocale(request: NextRequest): string | undefined {
@@ -77,11 +75,11 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getSession();
 
   // Get app session from cookie
-  const okane_session = request.cookies.get("okane-session")?.value;
+  const oewang_session = request.cookies.get("oewang-session")?.value;
 
   // Protect dashboard routes
   if (pathAfterLocale.startsWith("/overview")) {
-    if (!session || !okane_session) {
+    if (!session || !oewang_session) {
       return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
     }
 
@@ -98,7 +96,7 @@ export async function proxy(request: NextRequest) {
   if (
     (pathAfterLocale === "/login" || pathAfterLocale === "/register") &&
     session &&
-    okane_session
+    oewang_session
   ) {
     return NextResponse.redirect(new URL(`/${locale}/overview`, request.url));
   }

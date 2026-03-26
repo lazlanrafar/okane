@@ -38,7 +38,19 @@ export function BulkPaySheet({
   const router = useRouter();
   const queryClient = useQueryClient();
   const { settings, formatCurrency, dictionary: global_dict, isLoading: isDictLoading } = useAppStore() as any;
-  const dict = dictionary || global_dict?.debts;
+  const dict = (dictionary?.debts || global_dict?.debts || {}) as any;
+
+  // Defensive date formatter
+  const formatDate = (date: string | null | undefined) => {
+    if (!date) return "–";
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return "–";
+      return format(d, "MMM d, yyyy");
+    } catch {
+      return "–";
+    }
+  };
 
   // Only show outstanding debts
   const outstanding = debts.filter((d) => d.status !== "paid");
@@ -75,7 +87,7 @@ export function BulkPaySheet({
   const selectedDebts = outstanding.filter((d) => selectedIds.has(d.id));
 
   const totalToPay = selectedDebts.reduce(
-    (acc, d) => acc + Number.parseFloat(d.remainingAmount as string),
+    (acc, d) => acc + (Number.parseFloat((d.remainingAmount ?? 0) as string) || 0),
     0,
   );
 
@@ -95,7 +107,7 @@ export function BulkPaySheet({
         walletId,
         payments: selectedDebts.map((debt) => ({
           id: debt.id,
-          amount: Number.parseFloat(debt.remainingAmount as string),
+          amount: Number.parseFloat((debt.remainingAmount ?? 0) as string) || 0,
         })),
       };
 
@@ -128,7 +140,7 @@ export function BulkPaySheet({
             {dict.bulk_settlement.title}
           </SheetTitle>
           <p className="text-xs text-muted-foreground uppercase tracking-widest">
-            {contactName}
+            {contactName || "Contact"}
           </p>
         </SheetHeader>
 
@@ -164,10 +176,10 @@ export function BulkPaySheet({
               {/* Debt list */}
               <div className="divide-y divide-border/50">
                 {outstanding.map((debt) => {
-                  const amount = Number.parseFloat(debt.amount as string);
+                  const amount = Number.parseFloat((debt.amount ?? 0) as string) || 0;
                   const remaining = Number.parseFloat(
-                    debt.remainingAmount as string,
-                  );
+                    (debt.remainingAmount ?? 0) as string,
+                  ) || 0;
                   const isReceivable = debt.type === "receivable";
                   const isSelected = selectedIds.has(debt.id);
 
@@ -228,7 +240,7 @@ export function BulkPaySheet({
                             </Badge>
                           </div>
                           <span className="text-[10px] text-muted-foreground">
-                            {format(new Date(debt.createdAt), "MMM d, yyyy")}
+                            {formatDate(debt.createdAt)}
                           </span>
                         </div>
 

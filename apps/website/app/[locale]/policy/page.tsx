@@ -39,7 +39,7 @@ export default function PolicyPage() {
 
           <h3 className="text-base mt-6">Service</h3>
           <p className="text-muted-foreground leading-6 text-sm">
-            Service is the Okane application operated by Okane
+            Service is the Oewang application operated by Oewang
           </p>
 
           <h3 className="text-base mt-6">Personal Data</h3>
@@ -98,7 +98,7 @@ export default function PolicyPage() {
             Use of Data
           </h2>
           <p className="text-muted-foreground leading-6 text-sm">
-            Okane uses the collected data for various purposes:
+            Oewang uses the collected data for various purposes:
           </p>
           <ul className="list-disc pl-6 space-y-2 text-muted-foreground leading-6 text-sm">
             <li>To provide and maintain our Service</li>
@@ -128,7 +128,7 @@ export default function PolicyPage() {
             Use of Google User Data
           </h2>
           <p className="text-muted-foreground leading-6 text-sm">
-            Okane's use of information received from Google APIs will adhere to
+            Oewang's use of information received from Google APIs will adhere to
             the Google API Services User Data Policy, including the Limited Use
             requirements.
           </p>
@@ -151,13 +151,13 @@ export default function PolicyPage() {
             Legal Basis for Processing Personal Data under the GDPR
           </h2>
           <p className="text-muted-foreground leading-6 text-sm">
-            If you are from the European Economic Area (EEA), Okane legal basis
+            If you are from the European Economic Area (EEA), Oewang legal basis
             for collecting and using the personal information described in this
             Privacy Policy depends on the Personal Data we collect and the
             specific context in which we collect it.
           </p>
           <p className="text-muted-foreground leading-6 text-sm">
-            Okane may process your Personal Data because:
+            Oewang may process your Personal Data because:
           </p>
           <ul className="list-disc pl-6 space-y-2 text-muted-foreground leading-6 text-sm">
             <li>We need to perform a contract with you</li>
@@ -176,7 +176,7 @@ export default function PolicyPage() {
             Retention of Data
           </h2>
           <p className="text-muted-foreground leading-6 text-sm">
-            Okane will retain your Personal Data only for as long as is
+            Oewang will retain your Personal Data only for as long as is
             necessary for the purposes set out in this Privacy Policy. We will
             retain and use your Personal Data to the extent necessary to comply
             with our legal obligations (for example, if we are required to
@@ -184,7 +184,7 @@ export default function PolicyPage() {
             and enforce our legal agreements and policies.
           </p>
           <p className="text-muted-foreground leading-6 text-sm">
-            Okane will also retain Usage Data for internal analysis purposes.
+            Oewang will also retain Usage Data for internal analysis purposes.
             Usage Data is generally retained for a shorter period of time,
             except when this data is used to strengthen the security or to
             improve the functionality of our Service, or we are legally
@@ -213,7 +213,7 @@ export default function PolicyPage() {
             such information represents your agreement to that transfer.
           </p>
           <p className="text-muted-foreground leading-6 text-sm">
-            Okane will take all the steps reasonably necessary to ensure that
+            Oewang will take all the steps reasonably necessary to ensure that
             your data is treated securely and in accordance with this Privacy
             Policy and no transfer of your Personal Data will take place to an
             organisation or a country unless there are adequate controls in
@@ -229,7 +229,7 @@ export default function PolicyPage() {
 
           <h3 className="text-base mt-6">Business Transaction</h3>
           <p className="text-muted-foreground leading-6 text-sm">
-            If Okane is involved in a merger, acquisition or asset sale, your
+            If Oewang is involved in a merger, acquisition or asset sale, your
             Personal Data may be transferred. We will provide notice before your
             Personal Data is transferred and becomes subject to a different
             Privacy Policy.
@@ -239,7 +239,7 @@ export default function PolicyPage() {
             Disclosure for Law Enforcement
           </h3>
           <p className="text-muted-foreground leading-6 text-sm">
-            Under certain circumstances, Okane may be required to disclose your
+            Under certain circumstances, Oewang may be required to disclose your
             Personal Data if required to do so by law or in response to valid
             requests by public authorities (e.g. a court or a government
             agency).
@@ -247,12 +247,12 @@ export default function PolicyPage() {
 
           <h3 className="text-base mt-6">Legal Requirements</h3>
           <p className="text-muted-foreground leading-6 text-sm">
-            Okane may disclose your Personal Data in the good faith belief that
+            Oewang may disclose your Personal Data in the good faith belief that
             such action is necessary to:
           </p>
           <ul className="list-disc pl-6 space-y-2 text-muted-foreground leading-6 text-sm">
             <li>To comply with a legal obligation</li>
-            <li>To protect and defend the rights or property of Okane</li>
+            <li>To protect and defend the rights or property of Oewang</li>
             <li>
               To prevent or investigate possible wrongdoing in connection with
               the Service
@@ -284,7 +284,7 @@ export default function PolicyPage() {
           </h2>
           <p className="text-muted-foreground leading-6 text-sm">
             If you are a resident of the European Economic Area (EEA), you have
-            certain data protection rights. Okane aims to take reasonable steps
+            certain data protection rights. Oewang aims to take reasonable steps
             to allow you to correct, amend, delete or limit the use of your
             Personal Data.
           </p>
@@ -325,7 +325,7 @@ export default function PolicyPage() {
             </li>
             <li>
               The right to withdraw consent. You also have the right to withdraw
-              your consent at any time where Okane relied on your consent to
+              your consent at any time where Oewang relied on your consent to
               process your personal information.
             </li>
           </ul>

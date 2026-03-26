@@ -1,44 +1,47 @@
 import { MetadataRoute } from "next";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://oewang.com";
+import { i18n } from "../i18n-config";
+import { WEBSITE_CONFIG } from "@workspace/constants";
 
-  return [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/pricing`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/story`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/features`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/integrations`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/support`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
+export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = WEBSITE_CONFIG.url;
+  const routes = [
+    "",
+    "/pricing",
+    "/story",
+    "/features",
+    "/integrations",
+    "/support",
+    "/terms",
+    "/policy",
   ];
+
+  const sitemapItems: MetadataRoute.Sitemap = [];
+
+  for (const route of routes) {
+    for (const locale of i18n.locales) {
+      const isDefault = locale === i18n.defaultLocale;
+      // For default locale home page, use baseUrl directly
+      const url =
+        isDefault && route === "" ? baseUrl : `${baseUrl}/${locale}${route}`;
+
+      const priority =
+        route === ""
+          ? 1
+          : route === "/pricing"
+            ? 0.9
+            : route === "/features" || route === "/integrations"
+              ? 0.8
+              : 0.7;
+
+      sitemapItems.push({
+        url,
+        lastModified: new Date(),
+        changeFrequency: route === "" ? "weekly" : "monthly",
+        priority,
+      });
+    }
+  }
+
+  return sitemapItems;
 }

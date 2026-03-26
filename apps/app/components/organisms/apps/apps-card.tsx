@@ -15,12 +15,20 @@ import {
   ScrollArea,
   Badge,
   Markdown,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@workspace/ui";
+import { Lock } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 type App = any;
 
 export interface AppsCardProps {
-  app: App;
+  app: App & { requires_plan?: string };
+  userPlan?: string;
   isExpanded: boolean;
   onExpand: () => void;
   onClose: () => void;
@@ -39,7 +47,23 @@ export function AppsCard({
   onDisconnect,
   isInstalling,
   isDisconnecting,
+  userPlan = "Starter",
 }: AppsCardProps) {
+  const params = useParams();
+  const locale = (params?.locale as string) || "en";
+
+  const planLevels: Record<string, number> = {
+    Starter: 0,
+    "Free Tier": 0,
+    Pro: 1,
+    Business: 2,
+  };
+
+  const currentLevel = planLevels[userPlan] ?? 0;
+  const requiredLevel = app.requires_plan
+    ? planLevels[app.requires_plan] ?? 1
+    : 0;
+  const isLocked = currentLevel < requiredLevel;
   return (
     <Card className="w-full flex flex-col">
       <Sheet open={isExpanded} onOpenChange={(open) => !open && onClose()}>
@@ -84,6 +108,14 @@ export function AppsCard({
                 Beta
               </span>
             )}
+            {app.requires_plan && (
+              <Badge
+                variant="outline"
+                className="text-[10px] uppercase font-mono py-0 px-2 border-primary/30 text-primary bg-primary/5"
+              >
+                {app.requires_plan}
+              </Badge>
+            )}
           </div>
         </CardHeader>
         <CardContent className="text-xs text-muted-foreground pb-4 flex-1">
@@ -93,44 +125,51 @@ export function AppsCard({
         </CardContent>
 
         <div className="px-6 pb-6 grid grid-cols-2 gap-2 mt-auto">
-          <Button
-            variant="outline"
-            className="w-full"
-            disabled={!app.active}
-            onClick={onExpand}
-          >
-            Details
-          </Button>
-
-          {app.installUrl ? (
             <Button
               variant="outline"
               className="w-full"
-              onClick={onInstall}
               disabled={!app.active}
+              onClick={onExpand}
             >
-              {app.id === "midday-desktop" ? "Download" : "Install"}
+              Details
             </Button>
-          ) : app.installed ? (
-            <Button
-              variant="outline"
-              className="w-full bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary border-primary/20"
-              onClick={onDisconnect}
-              disabled={isDisconnecting}
-            >
-              Disconnect
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={onInstall}
-              disabled={!app.active || isInstalling}
-            >
-              Install
-            </Button>
-          )}
-        </div>
+
+            {isLocked ? (
+              <Button asChild variant="outline" className="w-full group">
+                <Link href={`/${locale}/settings/billing`}>
+                  <Lock className="mr-2 h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                  Upgrade
+                </Link>
+              </Button>
+            ) : app.installUrl ? (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={onInstall}
+                disabled={!app.active}
+              >
+                {app.id === "midday-desktop" ? "Download" : "Install"}
+              </Button>
+            ) : app.installed ? (
+              <Button
+                variant="outline"
+                className="w-full bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary border-primary/20"
+                onClick={onDisconnect}
+                disabled={isDisconnecting}
+              >
+                Disconnect
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={onInstall}
+                disabled={!app.active || isInstalling}
+              >
+                Install
+              </Button>
+            )}
+          </div>
 
         <SheetContent className="sm:max-w-[465px] h-full overflow-y-auto w-full p-0">
           <SheetHeader className="p-6 text-left">
@@ -186,7 +225,14 @@ export function AppsCard({
               </div>
 
               <div>
-                {app.installed ? (
+                {isLocked ? (
+                  <Button asChild variant="default" className="w-full font-medium">
+                    <Link href={`/${locale}/settings/billing`}>
+                      <Lock className="mr-2 h-4 w-4" />
+                      Upgrade to {app.requires_plan}
+                    </Link>
+                  </Button>
+                ) : app.installed ? (
                   <Button
                     variant="destructive"
                     className="w-full font-medium"

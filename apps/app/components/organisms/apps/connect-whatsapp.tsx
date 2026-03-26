@@ -10,11 +10,13 @@ import {
 } from "@workspace/ui";
 import { Button } from "@workspace/ui";
 import { Icons } from "@workspace/ui";
-import { Check, Copy, QrCode } from "lucide-react";
+import { Check, Copy, QrCode, Lock } from "lucide-react";
 import * as QRCode from "qrcode";
 import { useQuery } from "@tanstack/react-query";
 import { getMe } from "@workspace/modules/user/user.action";
 import { Env } from "@workspace/constants";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 export function ConnectWhatsApp() {
   const [open, setOpen] = useState(false);
@@ -30,7 +32,13 @@ export function ConnectWhatsApp() {
     },
   });
 
+  const params = useParams();
+  const locale = (params?.locale as string) || "en";
   const workspaceId = me?.user.workspace_id;
+
+  const activeWorkspace = me?.workspaces.find((w) => w.id === workspaceId);
+  const planName = activeWorkspace?.plan_name || "Starter";
+  const isPro = planName === "Pro" || planName === "Business";
   // Use a fallback if the env var is not set to ensure the dialog at least opens
   const whatsappNumber =
     type === "meta"
@@ -40,10 +48,10 @@ export function ConnectWhatsApp() {
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
   useEffect(() => {
-    if (open && workspaceId && whatsappNumber) {
+    if (open && workspaceId && whatsappNumber && isPro) {
       generateQRCode();
     }
-  }, [open, workspaceId, whatsappNumber]);
+  }, [open, workspaceId, whatsappNumber, isPro]);
 
   useEffect(() => {
     const handleOpenMeta = () => {
@@ -110,57 +118,76 @@ export function ConnectWhatsApp() {
         </div>
 
         <div className="flex flex-col items-center space-y-6 px-8">
-          <div className="relative group">
-            <div className="relative bg-white p-3 border">
-              {qrCodeUrl ? (
-                <img
-                  src={qrCodeUrl}
-                  alt="WhatsApp QR Code"
-                  className="w-[200px] h-[200px]"
-                />
-              ) : (
-                <div className="flex items-center justify-center w-[200px] h-[200px] bg-secondary/30 rounded-md">
-                  <QrCode className="h-12 w-12 text-muted-foreground animate-pulse" />
-                </div>
-              )}
+          {!isPro ? (
+            <div className="flex flex-col items-center justify-center p-8 bg-secondary/20 rounded-xl border border-dashed border-border w-full">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Lock className="h-8 w-8 text-primary" />
+              </div>
+              <h4 className="text-lg font-bold">Pro Plan Required</h4>
+              <p className="text-sm text-muted-foreground text-center mt-2 mb-6">
+                WhatsApp integration is a premium feature available on Pro and Business plans.
+              </p>
+              <Button asChild className="w-full">
+                <Link href={`/${locale}/settings/billing`}>
+                  Upgrade to Pro
+                </Link>
+              </Button>
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 w-full">
-            <Button asChild variant="default">
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center"
-              >
-                <Icons.WhatsApp className="mr-2 h-5 w-5 fill-current" />
-                <span>Open App</span>
-              </a>
-            </Button>
-            <Button
-              onClick={copyToClipboard}
-              variant="outline"
-              className="w-full border-border/50 hover:bg-secondary/50 transition-all hover:scale-[1.02]"
-            >
-              {copied ? (
-                <div className="flex items-center text-green-600">
-                  <Check className="mr-2 h-4 w-4" />
-                  <span>Copied</span>
+          ) : (
+            <>
+              <div className="relative group">
+                <div className="relative bg-white p-3 border">
+                  {qrCodeUrl ? (
+                    <img
+                      src={qrCodeUrl}
+                      alt="WhatsApp QR Code"
+                      className="w-[200px] h-[200px]"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-[200px] h-[200px] bg-secondary/30 rounded-md">
+                      <QrCode className="h-12 w-12 text-muted-foreground animate-pulse" />
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="flex items-center">
-                  <Copy className="mr-2 h-4 w-4" />
-                  <span>Copy Link</span>
-                </div>
-              )}
-            </Button>
-          </div>
+              </div>
 
-          <p className="text-xs text-muted-foreground/80 text-center leading-relaxed max-w-[280px]">
-            Once you scan or open the link, just send the prefilled message to
-            securely connect your number.
-          </p>
+              <div className="grid grid-cols-2 gap-4 w-full">
+                <Button asChild variant="default">
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center"
+                  >
+                    <Icons.WhatsApp className="mr-2 h-5 w-5 fill-current" />
+                    <span>Open App</span>
+                  </a>
+                </Button>
+                <Button
+                  onClick={copyToClipboard}
+                  variant="outline"
+                  className="w-full border-border/50 hover:bg-secondary/50 transition-all hover:scale-[1.02]"
+                >
+                  {copied ? (
+                    <div className="flex items-center text-green-600">
+                      <Check className="mr-2 h-4 w-4" />
+                      <span>Copied</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <Copy className="mr-2 h-4 w-4" />
+                      <span>Copy Link</span>
+                    </div>
+                  )}
+                </Button>
+              </div>
+
+              <p className="text-xs text-muted-foreground/80 text-center leading-relaxed max-w-[280px]">
+                Once you scan or open the link, just send the prefilled message to
+                securely connect your number.
+              </p>
+            </>
+          )}
         </div>
 
         <div className="bg-secondary/30 p-4 border-t border-border/50">

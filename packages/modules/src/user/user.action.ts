@@ -50,7 +50,7 @@ export const getMe = async (): Promise<
   ActionResponse<{ user: User; workspaces: WorkspaceWithRole[] }>
 > => {
   try {
-    // Note: token is handled by axiosInstance interceptor from okane-session cookie
+    // Note: token is handled by axiosInstance interceptor from oewang-session cookie
     const response =
       await axiosInstance.get<
         ApiResponse<{ user: User; workspaces: WorkspaceWithRole[] }>

@@ -7,6 +7,7 @@ import { Search } from "lucide-react";
 import { apps as appStoreApps } from "@workspace/integrations";
 import { useQuery } from "@tanstack/react-query";
 import { getIntegrationsAction } from "@workspace/modules/integrations/integrations.action";
+import { getMe } from "@workspace/modules/user/user.action";
 import { AppsCard } from "./apps-card";
 import { ConnectTelegram } from "./connect-telegram";
 import { ConnectWhatsApp } from "./connect-whatsapp";
@@ -27,6 +28,14 @@ export function AppsClient() {
     },
   });
 
+  const { data: me } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => {
+      const result = await getMe();
+      return result.success ? result.data : null;
+    },
+  });
+
   // Transform official apps
   const transformedOfficialApps = appStoreApps
     .filter((app) => !app.hidden)
@@ -41,6 +50,7 @@ export function AppsClient() {
       id: app.id,
       name: app.name,
       category: "category" in app ? app.category : "Integration",
+      requires_plan: app.id.startsWith("whatsapp") ? "Pro" : undefined,
       active: app.active,
       beta:
         "beta" in app && typeof app.beta === "boolean" ? app.beta : undefined,
@@ -109,6 +119,11 @@ export function AppsClient() {
     return true;
   });
 
+  const activeWorkspace = me?.workspaces.find(
+    (w) => w.id === me.user.workspace_id,
+  );
+  const planName = activeWorkspace?.plan_name || "Starter";
+
   const activeApp = allApps.find((a) => a.id === expandedApp);
 
   return (
@@ -146,6 +161,7 @@ export function AppsClient() {
           <AppsCard
             key={app.id}
             app={app}
+            userPlan={planName}
             isExpanded={expandedApp === app.id}
             onExpand={() => setExpandedApp(app.id)}
             onClose={() => setExpandedApp(null)}

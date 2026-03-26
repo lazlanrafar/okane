@@ -38,8 +38,8 @@ export default function TermsPage() {
           <p className="text-muted-foreground leading-6 text-sm">
             At the end of each Billing Cycle, your Subscription will
             automatically renew under the same conditions unless you cancel it
-            or Okane cancels it. You may cancel your Subscription through your
-            online account management page or by contacting Okane's customer
+            or Oewang cancels it. You may cancel your Subscription through your
+            online account management page or by contacting Oewang's customer
             support.
           </p>
           <p className="text-muted-foreground leading-6 text-sm">
@@ -49,7 +49,7 @@ export default function TermsPage() {
             Subscription fees to your chosen payment method.
           </p>
           <p className="text-muted-foreground leading-6 text-sm">
-            If automatic billing fails, Okane will issue an invoice and require
+            If automatic billing fails, Oewang will issue an invoice and require
             manual payment within a stated deadline.
           </p>
         </section>
@@ -59,7 +59,7 @@ export default function TermsPage() {
             2. Fee Changes
           </h2>
           <p className="text-muted-foreground leading-6 text-sm">
-            Okane may modify Subscription fees at its sole discretion. Any
+            Oewang may modify Subscription fees at its sole discretion. Any
             changes will take effect at the end of the current Billing Cycle.
           </p>
           <p className="text-muted-foreground leading-6 text-sm">
@@ -75,7 +75,7 @@ export default function TermsPage() {
           </h2>
           <p className="text-muted-foreground leading-6 text-sm">
             Refund requests may be considered on a case-by-case basis and are
-            granted at the sole discretion of Okane.
+            granted at the sole discretion of Oewang.
           </p>
         </section>
 
@@ -100,7 +100,7 @@ export default function TermsPage() {
             <li>Posting the Content does not violate any rights of others.</li>
           </ul>
           <p className="text-muted-foreground leading-6 text-sm">
-            Okane does not verify the accuracy or suitability of any financial
+            Oewang does not verify the accuracy or suitability of any financial
             or tax-related Content shared through the Service. Use of such
             Content is at your own risk.
           </p>
@@ -135,7 +135,7 @@ export default function TermsPage() {
             6. Financial and Tax Disclaimer
           </h2>
           <p className="text-muted-foreground leading-6 text-sm">
-            Okane is not a financial advisor, accountant, or tax consultant. All
+            Oewang is not a financial advisor, accountant, or tax consultant. All
             content and functionality within the Service are provided for
             general informational purposes only and do not constitute financial,
             legal, or tax advice.
@@ -147,7 +147,7 @@ export default function TermsPage() {
             with your local tax authority or a qualified professional.
           </p>
           <p className="text-muted-foreground leading-6 text-sm">
-            Okane accepts no liability for any consequences, losses, or
+            Oewang accepts no liability for any consequences, losses, or
             penalties resulting from your use of the Service for financial or
             tax purposes.
           </p>
@@ -184,7 +184,7 @@ export default function TermsPage() {
           <p className="text-muted-foreground leading-6 text-sm">
             The Service and its original content (excluding Content provided by
             users), features, and functionality are and remain the property of
-            Okane and its licensors.
+            Oewang and its licensors.
           </p>
           <p className="text-muted-foreground leading-6 text-sm">
             Our trademarks and trade dress may not be used without prior written
@@ -198,11 +198,11 @@ export default function TermsPage() {
           </h2>
           <p className="text-muted-foreground leading-6 text-sm">
             The Service may contain links to third-party websites or services
-            that are not controlled by Okane.
+            that are not controlled by Oewang.
           </p>
           <p className="text-muted-foreground leading-6 text-sm">
             We assume no responsibility for third-party content, privacy
-            policies, or practices. You agree that Okane shall not be liable for
+            policies, or practices. You agree that Oewang shall not be liable for
             any loss or damage caused by use of such content or services.
           </p>
           <p className="text-muted-foreground leading-6 text-sm">
@@ -231,7 +231,7 @@ export default function TermsPage() {
             11. Limitation of Liability
           </h2>
           <p className="text-muted-foreground leading-6 text-sm">
-            Okane and its affiliates, directors, employees, and suppliers shall
+            Oewang and its affiliates, directors, employees, and suppliers shall
             not be liable for any indirect, incidental, special, consequential,
             or punitive damages, including:
           </p>
@@ -281,7 +281,7 @@ export default function TermsPage() {
             effect.
           </p>
           <p className="text-muted-foreground leading-6 text-sm">
-            These Terms constitute the entire agreement between you and Okane
+            These Terms constitute the entire agreement between you and Oewang
             regarding the Service.
           </p>
         </section>

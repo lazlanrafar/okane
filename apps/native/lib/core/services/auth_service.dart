@@ -87,13 +87,13 @@ abstract class AuthService {
   /// callback via the deep link configured in your Supabase dashboard.
   ///
   /// Setup required in Supabase Dashboard:
-  ///   Auth → URL Configuration → Redirect URLs → add `okane://login-callback`
+  ///   Auth → URL Configuration → Redirect URLs → add `oewang://login-callback`
   ///   Auth → Providers → Google → enable + add your OAuth credentials
   static Future<AuthResult> signInWithGoogle() async {
     try {
       await _supabase.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: 'okane://login-callback',
+        redirectTo: 'oewang://login-callback',
       );
 
       // signInWithOAuth opens a browser — Supabase will call back via deep link.

@@ -1,7 +1,7 @@
 const TESTIMONIALS = [
   {
     quote:
-      "Okane replaced three different tools for us. Every transaction, wallet, and invoice is in one place. Our accountant loves it.",
+      "Oewang replaced three different tools for us. Every transaction, wallet, and invoice is in one place. Our accountant loves it.",
     name: "Aria Chen",
     role: "Founder, Flowcraft Studio",
     initials: "AC",
@@ -15,7 +15,7 @@ const TESTIMONIALS = [
   },
   {
     quote:
-      "I switched from a spreadsheet to Okane in one afternoon. The import was seamless and now I can actually see what's happening in my business.",
+      "I switched from a spreadsheet to Oewang in one afternoon. The import was seamless and now I can actually see what's happening in my business.",
     name: "Priya Kapoor",
     role: "Freelance Designer",
     initials: "PK",
@@ -52,7 +52,7 @@ export function TestimonialsSection() {
             Trusted by modern teams
           </h2>
           <p className="text-muted-foreground text-lg max-w-lg mx-auto">
-            See what founders and finance leads are saying about Okane.
+            See what founders and finance leads are saying about Oewang.
           </p>
         </div>
 

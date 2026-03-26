@@ -12,6 +12,7 @@ const serverSchema = z.object({
   APP_URL: z.string().url().optional(),
   ADMIN_URL: z.string().url().optional(),
   API_URL: z.string().url().optional(),
+  WEBSITE_URL: z.string().url().optional(),
 
   // API
   API_PORT: z.string().optional().default("3002"),
@@ -86,6 +87,7 @@ const clientSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url(),
   NEXT_PUBLIC_ADMIN_URL: z.string().url(),
   NEXT_PUBLIC_API_URL: z.string().url(),
+  NEXT_PUBLIC_WEBSITE_URL: z.string().url().optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
@@ -107,6 +109,7 @@ const clientEnv = {
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NEXT_PUBLIC_ADMIN_URL: process.env.NEXT_PUBLIC_ADMIN_URL,
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  NEXT_PUBLIC_WEBSITE_URL: process.env.NEXT_PUBLIC_WEBSITE_URL,
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
     process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,

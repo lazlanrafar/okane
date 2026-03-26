@@ -5,6 +5,7 @@ import { TransactionsService } from "../transactions/transactions.service";
 import { VaultService as vaultService } from "../vault/vault.service";
 import { WalletsRepository as walletsRepository } from "../wallets/wallets.repository";
 import { IntegrationsRepository } from "./integrations.repository";
+import { WorkspacesService } from "../workspaces/workspaces.service";
 
 export abstract class IntegrationsService {
   static async connectWhatsApp(
@@ -12,6 +13,9 @@ export abstract class IntegrationsService {
     userId: string,
     phoneNumber: string,
   ) {
+    // Plan Gating: Pro or higher
+    await WorkspacesService.assertPlanTier(workspaceId, "Pro");
+
     // Basic phone number sanitization
     const cleaned = phoneNumber.replace(/[^0-9+]/g, "");
 
@@ -30,6 +34,9 @@ export abstract class IntegrationsService {
     userId: string,
     phoneNumber: string,
   ) {
+    // Plan Gating: Pro or higher
+    await WorkspacesService.assertPlanTier(workspaceId, "Pro");
+
     const cleaned = phoneNumber.replace(/[^0-9+]/g, "");
 
     const integration = await IntegrationsRepository.upsert({

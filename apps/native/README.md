@@ -1,6 +1,6 @@
-# okane — Native App (Flutter)
+# oewang — Native App (Flutter)
 
-Mobile application for okane, built with Flutter.
+Mobile application for oewang, built with Flutter.
 
 ## Setup
 
@@ -21,7 +21,7 @@ Then scaffold the Flutter project **inside this directory**:
 
 ```bash
 cd apps/native
-flutter create --org com.okane --platforms android,ios .
+flutter create --org com.oewang --platforms android,ios .
 ```
 
 > **Why `.` at the end?** It scaffolds into the current directory instead of creating a nested sub-folder.

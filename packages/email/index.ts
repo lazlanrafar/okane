@@ -61,7 +61,7 @@ export async function sendPurchaseSuccessEmail(
   workspaceName: string,
   planName: string,
 ) {
-  const appUrl = Env.NEXT_PUBLIC_APP_URL || "https://app.okane.ai";
+  const appUrl = Env.NEXT_PUBLIC_APP_URL || "https://app.oewang.com";
   const html = renderTemplate("purchase-success", {
     userName,
     workspaceName,
@@ -80,7 +80,7 @@ export async function sendPackageExpiredEmail(
   userName: string,
   workspaceName: string,
 ) {
-  const upgradeUrl = `${Env.NEXT_PUBLIC_APP_URL || "https://app.okane.ai"}/en/settings/billing`;
+  const upgradeUrl = `${Env.NEXT_PUBLIC_APP_URL || "https://app.oewang.com"}/en/settings/billing`;
   const html = renderTemplate("package-expired", {
     userName,
     workspaceName,

@@ -71,6 +71,18 @@ export function ContactDetailSheet({
   const [isBulkPayOpen, setIsBulkPayOpen] = useState(false);
   const confirm = useConfirm();
 
+  // Defensive date formatter
+  const formatDate = (date: string | null | undefined) => {
+    if (!date) return "–";
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return "–";
+      return format(d, "MMM d, yyyy");
+    } catch {
+      return "–";
+    }
+  };
+
   const { data: debts, isLoading: debtsLoading } = useQuery({
     queryKey: ["debts", "contact", contact?.id],
     queryFn: async () => {
@@ -153,14 +165,14 @@ export function ContactDetailSheet({
     debts
       ?.filter((d) => d.type === "receivable")
       .reduce(
-        (acc, d) => acc + Number.parseFloat(d.remainingAmount as string),
+        (acc, d) => acc + (Number.parseFloat((d.remainingAmount ?? 0) as string) || 0),
         0,
       ) || 0;
   const totalPayable =
     debts
       ?.filter((d) => d.type === "payable")
       .reduce(
-        (acc, d) => acc + Number.parseFloat(d.remainingAmount as string),
+        (acc, d) => acc + (Number.parseFloat((d.remainingAmount ?? 0) as string) || 0),
         0,
       ) || 0;
 
@@ -389,10 +401,10 @@ export function ContactDetailSheet({
                 ) : debts && debts.length > 0 ? (
                   <div className="relative">
                     {debts.map((debt, index) => {
-                      const amount = Number.parseFloat(debt.amount as string);
+                      const amount = Number.parseFloat((debt.amount ?? 0) as string) || 0;
                       const remaining = Number.parseFloat(
-                        debt.remainingAmount as string,
-                      );
+                        (debt.remainingAmount ?? 0) as string,
+                      ) || 0;
                       const isReceivable = debt.type === "receivable";
                       const isLast = index === debts.length - 1;
 
@@ -452,10 +464,7 @@ export function ContactDetailSheet({
                                 </Badge>
                               </div>
                               <span className="text-[10px] text-muted-foreground shrink-0">
-                                {format(
-                                  new Date(debt.createdAt),
-                                  "MMM d, yyyy",
-                                )}
+                                {formatDate(debt.createdAt)}
                               </span>
                             </div>
 
