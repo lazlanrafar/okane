@@ -11,12 +11,20 @@ export const createCheckoutSession = async (
   priceId: string,
   workspaceId?: string,
   returnPath?: string,
+  type?: "subscription" | "payment",
+  addonType?: "ai" | "vault",
+  amount?: number,
+  addonId?: string,
 ): Promise<ActionResponse<{ url: string }>> => {
   try {
     const response = await api.post("/stripe/checkout", {
       priceId,
       workspaceId,
       returnPath,
+      type,
+      addonType,
+      amount,
+      addonId,
     });
     return {
       success: true,

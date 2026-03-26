@@ -127,6 +127,27 @@
       "when": 1774268447821,
       "tag": "0017_right_satana",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1774420455537,
+      "tag": "0018_violet_sumo",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1774436711279,
+      "tag": "0019_crazy_diamondback",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1774439433994,
+      "tag": "0020_faithful_thunderbolt",
+      "breakpoints": true
     }
   ]
 }

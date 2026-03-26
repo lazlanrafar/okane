@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 import { useAppStore } from "@/stores/app";
 import { useLocalizedRoute } from "@/utils/localized-route";
+import { useRouter } from "next/navigation";
+import { logout } from "@workspace/modules/auth/auth.action";
 
 export function NavUser({
   user,
@@ -39,6 +41,7 @@ export function NavUser({
   const { isMobile } = useSidebar();
   const { dictionary } = useAppStore();
   const { getLocalizedUrl } = useLocalizedRoute();
+  const router = useRouter();
 
   const t = (key: string) => {
     if (!key || !key.includes(".") || !dictionary) return key;
@@ -49,6 +52,10 @@ export function NavUser({
       result = result[k];
     }
     return typeof result === "string" ? result : key;
+  };
+
+  const handleNavigate = (path: string) => {
+    router.push(getLocalizedUrl(path));
   };
 
   return (
@@ -99,21 +106,21 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onSelect={() => window.location.href = getLocalizedUrl("/settings/profile")}>
+              <DropdownMenuItem onSelect={() => handleNavigate("/settings/profile")}>
                 <CircleUser />
                 {t("sidebar.account")}
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => window.location.href = getLocalizedUrl("/settings/billing")}>
+              <DropdownMenuItem onSelect={() => handleNavigate("/settings/billing")}>
                 <CreditCard />
                 {t("sidebar.billing")}
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => window.location.href = getLocalizedUrl("/settings/notifications")}>
+              <DropdownMenuItem onSelect={() => handleNavigate("/settings/notifications")}>
                 <MessageSquareDot />
                 {t("sidebar.notifications")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => window.location.href = getLocalizedUrl("/logout")}>
+            <DropdownMenuItem onSelect={() => logout()}>
               <LogOut />
               {t("sidebar.logout")}
             </DropdownMenuItem>

@@ -179,6 +179,13 @@
       "vault_storage": "Vault Storage",
       "ai_tokens": "AI Tokens",
       "available_plans": "Available Plans",
+    "addons": "Add-ons",
+    "ai_token_pack": "AI Token Pack",
+    "ai_token_pack_description": "Add one-time AI tokens to your workspace.",
+    "storage_pack": "Storage Pack",
+    "storage_pack_description": "Add one-time storage capacity to your vault.",
+    "buy_now": "Buy Now",
+    "extra_quota_active": "+{amount} {unit} extra active",
       "monthly_toggle": "Monthly",
       "annual_toggle": "Annual",
       "no_plans": "No plans available",
@@ -1064,5 +1071,12 @@
     "view_vault": "View vault",
     "navigate": "Navigate",
     "open": "Open"
+  },
+  "ai": {
+    "quota_limit_title": "AI Limit Reached",
+    "quota_limit_description": "Your workspace has reached its monthly AI token limit.",
+    "quota_reset_message": "Your tokens will reset on {date}.",
+    "upgrade_button": "Upgrade Plan",
+    "get_more_tokens": "Get More Tokens"
   }
 }

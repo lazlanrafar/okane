@@ -10,8 +10,13 @@
 
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { sql } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
+import * as dotenv from "dotenv";
+import * as path from "path";
 import { pricing } from "../schema/pricing";
+
+// Load environment variables from root
+dotenv.config({ path: path.join(__dirname, "../../../.env") });
 
 // ---------------------------------------------------------------------------
 // Plan definitions
@@ -81,6 +86,69 @@ const PLANS = [
     ],
     is_active: true,
   },
+];
+
+const ADDONS = [
+  {
+    name: "AI Token Pack (Small)",
+    description: "Extra 500,000 AI tokens for your workspace every month.",
+    prices: [
+      { currency: "usd", monthly: 1000, yearly: 10000 },
+      { currency: "idr", monthly: 155000, yearly: 1550000 },
+    ],
+    max_vault_size_mb: 0,
+    max_ai_tokens: 500000,
+    max_workspaces: 0,
+    features: ["+500,000 AI tokens monthly"],
+    is_active: true,
+    is_addon: true,
+    addon_type: "ai",
+  },
+  {
+    name: "AI Token Pack (Large)",
+    description: "Extra 1,000,000 AI tokens for your workspace every month.",
+    prices: [
+      { currency: "usd", monthly: 1800, yearly: 18000 },
+      { currency: "idr", monthly: 279000, yearly: 2790000 },
+    ],
+    max_vault_size_mb: 0,
+    max_ai_tokens: 1000000,
+    max_workspaces: 0,
+    features: ["+1,000,000 AI tokens monthly"],
+    is_active: true,
+    is_addon: true,
+    addon_type: "ai",
+  },
+  {
+    name: "Storage Pack (Small)",
+    description: "Extra 5 GB secure storage for your vault every month.",
+    prices: [
+      { currency: "usd", monthly: 500, yearly: 5000 },
+      { currency: "idr", monthly: 75000, yearly: 750000 },
+    ],
+    max_vault_size_mb: 5120,
+    max_ai_tokens: 0,
+    max_workspaces: 0,
+    features: ["+5 GB vault storage monthly"],
+    is_active: true,
+    is_addon: true,
+    addon_type: "vault",
+  },
+  {
+    name: "Storage Pack (Large)",
+    description: "Extra 20 GB secure storage for your vault every month.",
+    prices: [
+      { currency: "usd", monthly: 1500, yearly: 15000 },
+      { currency: "idr", monthly: 229000, yearly: 2290000 },
+    ],
+    max_vault_size_mb: 20480,
+    max_ai_tokens: 0,
+    max_workspaces: 0,
+    features: ["+20 GB vault storage monthly"],
+    is_active: true,
+    is_addon: true,
+    addon_type: "vault",
+  },
 ] satisfies (typeof pricing.$inferInsert)[];
 
 // ---------------------------------------------------------------------------
@@ -93,7 +161,7 @@ async function main() {
 
   console.log("🌱 Seeding pricing plans…\n");
 
-  for (const plan of PLANS) {
+  for (const plan of [...PLANS, ...ADDONS]) {
     // Check if a plan with the same name already exists (case-insensitive)
     const existing = await db.execute(
       sql`SELECT id FROM pricing WHERE lower(name) = lower(${plan.name}) AND deleted_at IS NULL LIMIT 1`,
@@ -103,6 +171,9 @@ async function main() {
       console.log(
         `⏭  Skipped: "${plan.name}" already exists (id: ${existing[0]!.id})`,
       );
+      // Update the existing plan to ensure it has the correct flags
+      await db.update(pricing).set(plan).where(eq(pricing.id, (existing[0] as any).id));
+      console.log(`✅ Updated flags for: "${plan.name}"`);
       continue;
     }
 

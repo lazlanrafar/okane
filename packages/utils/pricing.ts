@@ -71,9 +71,12 @@ export function displayPrice(
   return { label: "Free" };
 }
 
-export function getPlanLimits(plan: Pricing) {
+export function getPlanLimits(plan: Pricing, extras?: { extra_vault_size_mb?: number; extra_ai_tokens?: number }) {
+  const vaultLimitMb = (plan.max_vault_size_mb || 0) + (extras?.extra_vault_size_mb || 0);
+  const aiLimitTokens = (plan.max_ai_tokens || 0) + (extras?.extra_ai_tokens || 0);
+  
   return {
-    vaultLimitBytes: (plan.max_vault_size_mb || 0) * 1024 * 1024,
-    aiLimitTokens: plan.max_ai_tokens || 0,
+    vaultLimitBytes: vaultLimitMb * 1024 * 1024,
+    aiLimitTokens,
   };
 }

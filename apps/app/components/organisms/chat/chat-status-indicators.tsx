@@ -14,12 +14,14 @@ import {
 } from "@workspace/constants";
 import { getStatusMessage, getToolMessage } from "@workspace/utils";
 import type { AgentStatus } from "@workspace/types";
-import { Loader } from "@workspace/ui";
+import { ErrorCode } from "@workspace/types";
+import { format } from "date-fns";
 
 interface ChatStatusIndicatorsProps {
   agentStatus: AgentStatus | null;
   currentToolCall: string | null;
   status?: string;
+  error?: any;
   artifactStage?: ArtifactStage | null;
   artifactType?: ArtifactType | null;
   currentSection?: string | null;
@@ -32,6 +34,7 @@ export function ChatStatusIndicators({
   agentStatus,
   currentToolCall,
   status,
+  error,
   artifactStage,
   artifactType,
   currentSection,
@@ -45,9 +48,17 @@ export function ChatStatusIndicators({
   }
   
   if (status === "error") {
+    let errorMessage = "Message failed to send. Please try again.";
+
+    if (error?.code === ErrorCode.PLAN_LIMIT_REACHED) {
+      const resetAt = error.meta?.reset_at;
+      const formattedDate = resetAt ? format(new Date(resetAt), "PPP") : "next month";
+      errorMessage = `AI limit reached. Resets on ${formattedDate}.`;
+    }
+
     return (
       <div className="h-8 flex items-center gap-2 text-destructive">
-        <span className="text-xs font-normal">Message failed to send. Please try again.</span>
+        <span className="text-xs font-normal">{errorMessage}</span>
       </div>
     );
   }

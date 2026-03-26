@@ -37,7 +37,8 @@ export default async function ChatPage(props: Props) {
   // We'll add IDs to them for the store.
   const initialMessages = response.data.map((m, i) => {
     const parts: any[] = [{ type: "text", text: m.content }];
-    const artifact = m.attachments?.[0]?.artifact;
+    const attachment = m.attachments;
+    const artifact = Array.isArray(attachment) ? attachment[0]?.artifact : attachment?.artifact;
     
     if (artifact) {
       parts.push({

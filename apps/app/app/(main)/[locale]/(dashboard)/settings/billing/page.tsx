@@ -7,15 +7,20 @@ export default async function BillingPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const pricingResult = await getPricing();
+  const pricingResult = await getPricing({ is_addon: "false" });
+  const addonsResult = await getPricing({ is_addon: "true" });
 
   const plans = pricingResult.success
     ? (pricingResult.data?.pricingList ?? [])
     : [];
+    
+  const addons = addonsResult.success
+    ? (addonsResult.data?.pricingList ?? [])
+    : [];
 
   return (
     <div className="space-y-6">
-      <BillingView initialPlans={plans} />
+      <BillingView initialPlans={plans} initialAddons={addons} />
     </div>
   );
 }

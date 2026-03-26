@@ -51,6 +51,7 @@ export function buildError(
   code: string,
   message: string,
   request_id?: string,
+  extraMeta?: Record<string, any>,
 ): ApiResponse<null> {
   return {
     success: false,
@@ -60,6 +61,7 @@ export function buildError(
     meta: {
       timestamp: Date.now(),
       ...(request_id ? { request_id } : {}),
+      ...(extraMeta || {}),
     },
   };
 }

@@ -30,6 +30,8 @@ export const pricing = pgTable("pricing", {
   max_workspaces: integer("max_workspaces").default(1).notNull(),
   features: jsonb("features").$type<string[]>().default([]).notNull(),
   is_active: boolean("is_active").default(true).notNull(),
+  is_addon: boolean("is_addon").default(false).notNull(),
+  addon_type: text("addon_type").$type<"ai" | "vault">(),
   deleted_at: timestamp("deleted_at"),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),

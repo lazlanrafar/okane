@@ -11,6 +11,7 @@ export type ApiResponse<T> = {
     timestamp: number;
     request_id?: string;
     pagination?: PaginationMeta;
+    [key: string]: any;
   };
 };
 
@@ -19,6 +20,12 @@ export type PaginationMeta = {
   page: number;
   limit: number;
   total_pages: number;
+};
+
+export type PaginatedList<T> = {
+  rows: T[];
+  total: number;
+  meta: PaginationMeta;
 };
 
 export type PaginationQuery = {

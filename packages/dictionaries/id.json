@@ -179,6 +179,13 @@
       "vault_storage": "Penyimpanan Brankas",
       "ai_tokens": "Token AI",
       "available_plans": "Paket yang Tersedia",
+    "addons": "Tambahan",
+    "ai_token_pack": "Paket Token AI",
+    "ai_token_pack_description": "Tambahkan token AI sekali beli ke ruang kerja Anda.",
+    "storage_pack": "Paket Penyimpanan",
+    "storage_pack_description": "Tambahkan kapasitas penyimpanan sekali beli ke brankas Anda.",
+    "buy_now": "Beli Sekarang",
+    "extra_quota_active": "+{amount} {unit} ekstra aktif",
       "monthly_toggle": "Bulanan",
       "annual_toggle": "Tahunan",
       "no_plans": "Tidak ada paket yang tersedia",
@@ -1064,5 +1071,12 @@
     "view_vault": "Lihat brankas",
     "navigate": "Navigasi",
     "open": "Buka"
+  },
+  "ai": {
+    "quota_limit_title": "Batas AI Tercapai",
+    "quota_limit_description": "Workspace Anda telah mencapai batas token AI bulanan.",
+    "quota_reset_message": "Token Anda akan diatur ulang pada {date}.",
+    "upgrade_button": "Tingkatkan Paket",
+    "get_more_tokens": "Dapatkan Lebih Banyak Token"
   }
 }

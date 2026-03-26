@@ -90,7 +90,6 @@ export function SettingSidebar({
       title: sidebar.notifications,
       href: "/settings/notifications",
       icon: Bell,
-      comingSoon: true,
     },
     {
       title: sidebar.display,
@@ -179,7 +178,7 @@ export function SettingSidebar({
   return (
     <nav
       className={cn(
-        "flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1",
+        "flex flex-col overflow-y-auto max-h-[300px] lg:max-h-none space-y-1",
         className,
       )}
       {...props}

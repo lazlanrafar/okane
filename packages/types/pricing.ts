@@ -15,6 +15,8 @@ export interface Pricing {
   max_workspaces: number;
   features: string[];
   is_active: boolean;
+  is_addon: boolean;
+  addon_type: "ai" | "vault" | null;
   deleted_at: Date | null;
   created_at: Date;
   updated_at: Date;

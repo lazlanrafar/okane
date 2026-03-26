@@ -11,6 +11,7 @@ import {
   useChatId as useSDKChatId,
   useChatMessages,
   useChatStatus as useSDKChatStatus,
+  useChatError as useSDKChatError,
   useDataPart,
 } from "@ai-sdk-tools/store";
 import type { Geo } from "@vercel/functions";
@@ -42,12 +43,14 @@ export default function ChatInterface({ geo }: Props) {
   const { reset } = useChatActions();
   const { setScrollY, setIsHome } = useChatStore();
   const containerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const chatId = useMemo(() => routeChatId ?? generateId(), [routeChatId]);
   const prevChatIdRef = useRef<string | null>(routeChatId);
 
   const messages = useChatMessages();
   const status = useSDKChatStatus();
+  const error = useSDKChatError();
 
   const [, clearSuggestions] = useDataPart<{ prompts: string[] }>(
     "suggestions",
@@ -130,6 +133,13 @@ export default function ChatInterface({ geo }: Props) {
     setIsHome(effectiveIsHome);
   }, [effectiveIsHome, setIsHome]);
 
+  // Auto-scroll to bottom when messages or status change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, status]);
+
   const [, setSelectedType] = useQueryState("artifact-type", parseAsString);
 
 
@@ -178,7 +188,7 @@ export default function ChatInterface({ geo }: Props) {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-4 md:px-0 scroll-smooth">
+              <div className="flex-1 overflow-y-auto px-4 md:px-0 scroll-smooth scrollbar-hide">
                 <div className="max-w-2xl mx-auto w-full pb-32">
                   <ChatMessages
                     messages={messages}
@@ -190,6 +200,7 @@ export default function ChatInterface({ geo }: Props) {
                     agentStatus={agentStatus}
                     currentToolCall={currentToolCall}
                     status={status}
+                    error={error}
                     artifactStage={artifactStage}
                     artifactType={artifactType}
                     currentSection={currentSection}
@@ -197,6 +208,7 @@ export default function ChatInterface({ geo }: Props) {
                     hasTextContent={hasTextContent}
                     hasInsightData={hasInsightData}
                   />
+                  <div ref={messagesEndRef} />
                 </div>
               </div>
             </div>

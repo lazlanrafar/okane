@@ -25,12 +25,21 @@ export interface AiChatResponse {
   success: boolean;
   data?: ChatData;
   error?: string;
+  code?: string;
+  meta?: any;
 }
 
 export interface ChatSession {
   id: string;
   title: string;
   updatedAt: string;
+}
+
+export interface AiQuota {
+  used: number;
+  maxTokens: number;
+  stripe_current_period_end: string | null;
+  created_at: string;
 }
 
 export async function sendChatMessage(
@@ -53,6 +62,8 @@ export async function sendChatMessage(
     return {
       success: false,
       error: error.response?.data?.message ?? "Failed to get AI response",
+      code: error.response?.data?.code,
+      meta: error.response?.data?.meta,
     };
   }
 }
@@ -119,6 +130,26 @@ export async function parseReceipt(file: {
     return {
       success: false,
       error: error.response?.data?.message ?? "Failed to parse receipt",
+    };
+  }
+}
+
+export async function getAiQuota(): Promise<{
+  success: boolean;
+  data?: AiQuota;
+  error?: string;
+}> {
+  try {
+    const response = await api.get("/ai/quota");
+    const apiResponse = (response as any)._api_response;
+    return {
+      success: true,
+      data: (apiResponse?.data ?? response.data?.data) as AiQuota,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message ?? "Failed to fetch AI quota",
     };
   }
 }

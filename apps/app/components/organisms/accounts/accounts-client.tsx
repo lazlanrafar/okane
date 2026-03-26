@@ -25,6 +25,10 @@ type Props = {
   initialPage: number;
   pageSize: number;
   groups: any[];
+  initialFilters?: {
+    q: string;
+    groupId: string;
+  };
 };
 
 export function AccountsClient({
@@ -34,6 +38,7 @@ export function AccountsClient({
   initialPage,
   pageSize,
   groups: initialGroups,
+  initialFilters,
 }: Props) {
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
@@ -45,7 +50,7 @@ export function AccountsClient({
 
   const { filters, handleFilterChange, pagination, handlePaginationChange } =
     useDataTableFilter({
-      initialFilters: {
+      initialFilters: initialFilters || {
         q: "",
         groupId: "",
       },

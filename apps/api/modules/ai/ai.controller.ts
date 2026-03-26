@@ -48,6 +48,19 @@ export const aiController = new Elysia({ prefix: "/ai" })
       },
     },
   )
+  .get(
+    "/quota",
+    async ({ workspaceId }) => {
+      const quota = await AiService.getUsageAndQuota(workspaceId!);
+      return buildSuccess(quota, "Quota retrieved");
+    },
+    {
+      detail: {
+        summary: "Get AI Quota",
+        tags: ["AI"],
+      },
+    },
+  )
   .post(
     "/chat",
     async ({ body, workspaceId, userId, set }) => {

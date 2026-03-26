@@ -39,6 +39,10 @@ export abstract class PricingRepository {
       conditions.push(eq(pricing.is_active, query.is_active));
     }
 
+    if (query.is_addon !== undefined) {
+      conditions.push(eq(pricing.is_addon, query.is_addon));
+    }
+
     let orderByClause = asc(pricing.created_at);
     if (query.sortBy === "name") {
       orderByClause =
@@ -95,6 +99,8 @@ export abstract class PricingRepository {
         max_workspaces: dto.max_workspaces || 1,
         features: dto.features || [],
         is_active: dto.is_active ?? true,
+        is_addon: dto.is_addon ?? false,
+        addon_type: dto.addon_type,
       })
       .returning();
 

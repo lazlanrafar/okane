@@ -14,6 +14,7 @@ import {
   workspaces,
   debts,
   contacts,
+  workspaceAddons,
 } from "@workspace/database";
 
 export abstract class AiRepository {
@@ -276,6 +277,9 @@ export abstract class AiRepository {
       .select({
         used: workspaces.ai_tokens_used,
         maxTokens: pricing.max_ai_tokens,
+        extraTokens: workspaces.extra_ai_tokens,
+        stripe_current_period_end: workspaces.stripe_current_period_end,
+        created_at: workspaces.created_at,
       })
       .from(workspaces)
       .leftJoin(pricing, eq(workspaces.plan_id, pricing.id))
@@ -287,7 +291,37 @@ export abstract class AiRepository {
         ),
       )
       .limit(1);
-    return usageData;
+
+    if (!usageData) return null;
+
+    // Fetch active recurring AI add-ons
+    const activeAiAddons = await db
+      .select({
+        amount: workspaceAddons.amount,
+      })
+      .from(workspaceAddons)
+      .innerJoin(pricing, eq(workspaceAddons.addon_id, pricing.id))
+      .where(
+        and(
+          eq(workspaceAddons.workspace_id, workspaceId),
+          eq(workspaceAddons.status, "active"),
+          eq(pricing.addon_type, "ai"),
+          isNull(workspaceAddons.deleted_at),
+        ),
+      );
+
+    const recurringExtraAi = activeAiAddons.reduce(
+      (sum, a) => sum + (a.amount || 0),
+      0,
+    );
+
+    return {
+      ...usageData,
+      maxTokens:
+        (usageData.maxTokens || 0) +
+        (usageData.extraTokens || 0) +
+        recurringExtraAi,
+    };
   }
 
   /**

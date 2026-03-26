@@ -16,6 +16,7 @@ export const getPricing = async (params?: {
   sortBy?: string;
   sortOrder?: "asc" | "desc";
   is_active?: string;
+  is_addon?: string;
 }): Promise<
   ActionResponse<{
     pricingList: Pricing[];
@@ -24,25 +25,28 @@ export const getPricing = async (params?: {
 > => {
   try {
     const response = await api.get("/pricing", { params });
-    const apiResponse = (response as any)._api_response as ApiResponse<
-      Pricing[]
-    >;
+    const apiResponse = (response as any)._api_response as ApiResponse<{
+      pricingList: Pricing[];
+      meta: PaginationMeta;
+    }>;
 
-    if (apiResponse) {
+    if (apiResponse && apiResponse.data) {
+      const data = apiResponse.data as any;
       return {
         success: true,
         data: {
-          pricingList: apiResponse.data ?? [],
-          meta: apiResponse.meta!.pagination!,
+          pricingList: Array.isArray(data) ? data : (data.pricingList ?? []),
+          meta: apiResponse.meta?.pagination || data.meta || {},
         },
       };
     }
 
+    const rawData = response.data?.data as any;
     return {
       success: true,
       data: {
-        pricingList: response.data.data,
-        meta: response.data.meta.pagination,
+        pricingList: Array.isArray(rawData) ? rawData : (rawData?.pricingList ?? []),
+        meta: response.data?.meta?.pagination || rawData?.meta || {},
       },
     };
   } catch (error: any) {

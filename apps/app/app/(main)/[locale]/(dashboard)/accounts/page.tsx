@@ -34,10 +34,12 @@ async function AccountsPageContent({
   page: number;
   limit: number;
 }) {
-  const search =
-    typeof searchParams.search === "string" ? searchParams.search : undefined;
-  const groupId =
-    typeof searchParams.groupId === "string" ? searchParams.groupId : undefined;
+  const search = Array.isArray(searchParams.search)
+    ? searchParams.search[0]
+    : searchParams.search;
+  const groupId = Array.isArray(searchParams.groupId)
+    ? searchParams.groupId[0]
+    : searchParams.groupId;
 
   // Get initial data for SSR
   const [walletsRes, groupsRes] = await Promise.all([
@@ -59,6 +61,10 @@ async function AccountsPageContent({
       initialPage={page - 1}
       pageSize={limit}
       groups={groups}
+      initialFilters={{
+        q: search || "",
+        groupId: groupId || "",
+      }}
     />
   );
 }

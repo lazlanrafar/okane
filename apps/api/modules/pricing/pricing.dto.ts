@@ -19,6 +19,8 @@ export const CreatePricingDto = t.Object({
   max_workspaces: t.Optional(t.Number({ minimum: 1, default: 1 })),
   features: t.Optional(t.Array(t.String())),
   is_active: t.Optional(t.Boolean({ default: true })),
+  is_addon: t.Optional(t.Boolean({ default: false })),
+  addon_type: t.Optional(t.Union([t.Literal("ai"), t.Literal("vault")])),
 });
 
 export const UpdatePricingDto = t.Partial(CreatePricingDto);
@@ -40,6 +42,12 @@ export const PricingListQuery = t.Object({
   sortBy: t.Optional(t.String()),
   sortOrder: t.Optional(t.Union([t.Literal("asc"), t.Literal("desc")])),
   is_active: t.Optional(
+    t
+      .Transform(t.String())
+      .Decode((v) => v === "true")
+      .Encode((v) => v.toString()),
+  ),
+  is_addon: t.Optional(
     t
       .Transform(t.String())
       .Decode((v) => v === "true")

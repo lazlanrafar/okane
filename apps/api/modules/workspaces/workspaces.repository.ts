@@ -8,6 +8,7 @@ import {
   workspaceInvitations,
   users,
   pricing,
+  workspaceAddons,
 } from "@workspace/database";
 
 /**
@@ -42,9 +43,39 @@ export abstract class WorkspacesRepository {
 
     if (!result) return null;
 
+    // Fetch active recurring add-ons
+    const activeAddons = await db
+      .select({
+        id: pricing.id,
+        addon_type: pricing.addon_type,
+        amount: workspaceAddons.amount,
+      })
+      .from(workspaceAddons)
+      .innerJoin(pricing, eq(workspaceAddons.addon_id, pricing.id))
+      .where(
+        and(
+          eq(workspaceAddons.workspace_id, workspace_id),
+          eq(workspaceAddons.status, "active"),
+          isNull(workspaceAddons.deleted_at),
+        ),
+      );
+
+    // Sum up extra quotas from active recurring add-ons
+    const recurringExtraAi = activeAddons
+      .filter((a) => a.addon_type === "ai")
+      .reduce((sum, a) => sum + (a.amount || 0), 0);
+      
+    const recurringExtraVault = activeAddons
+      .filter((a) => a.addon_type === "vault")
+      .reduce((sum, a) => sum + (a.amount || 0), 0);
+
     return {
       ...result.workspace,
       plan: result.plan,
+      // Total extra tokens = one-time (from workspace columns) + recurring (from workspace_addons)
+      extra_ai_tokens: (result.workspace.extra_ai_tokens || 0) + recurringExtraAi,
+      extra_vault_size_mb: (result.workspace.extra_vault_size_mb || 0) + recurringExtraVault,
+      active_addons: activeAddons,
     };
   }
 

@@ -117,4 +117,18 @@ export abstract class StripeRepository {
       .limit(1);
     return plan;
   }
+
+  static async findWorkspaceBySubscriptionId(subscriptionId: string) {
+    const [workspace] = await db
+      .select()
+      .from(workspaces)
+      .where(
+        and(
+          eq(workspaces.stripe_subscription_id, subscriptionId),
+          isNull(workspaces.deleted_at),
+        ),
+      )
+      .limit(1);
+    return workspace;
+  }
 }

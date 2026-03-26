@@ -131,7 +131,10 @@ export function ChatProviderWrapper({ children, initialMessages }: Props) {
                 setChatId(response.data.sessionId);
               }
             } else {
-              throw new Error(response.error || "Failed to get AI response");
+              const errorObj = new Error(response.error || "Failed to get AI response") as any;
+              errorObj.code = response.code;
+              errorObj.meta = response.meta;
+              throw errorObj;
             }
           } catch (error: any) {
             state.setError(error);

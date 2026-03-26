@@ -18,6 +18,7 @@ import {
 } from "@workspace/ui";
 import { getPreference } from "@/server/server-actions";
 import { SearchDialog } from "@/components/organisms/search/search-dialog";
+import { NotificationBell } from "@/components/organisms/layout/notification-bell";
 
 async function getUserAndWorkspaces() {
   const result = await getMe();
@@ -62,8 +63,8 @@ export default async function Layout({
             "sticky top-0 z-50 overflow-hidden rounded-t-[inherit] bg-background/50 backdrop-blur-md",
           )}
         >
-          <div className="flex w-full items-center justify-between px-4 lg:px-6">
-            <div className="flex items-center gap-1 lg:gap-2">
+          <div className="flex w-full items-center justify-between px-4 lg:px-6 gap-3">
+            <div className="flex items-center gap-1 lg:gap-2 flex-1">
               <SidebarTrigger className="-ml-1" />
               <Separator
                 orientation="vertical"
@@ -71,10 +72,9 @@ export default async function Layout({
               />
               <SearchDialog />
             </div>
-            <div className="flex items-center gap-2">
-              {/* <LayoutControls /> */}
-              {/* <ThemeSwitcher /> */}
-              {current_user && (
+            {current_user && (
+              <>
+                <NotificationBell />
                 <AccountSwitcher
                   user={{
                     id: current_user.id,
@@ -83,8 +83,8 @@ export default async function Layout({
                     avatar: current_user.profile_picture || "",
                   }}
                 />
-              )}
-            </div>
+              </>
+            )}
           </div>
         </header>
         <div className="flex flex-col flex-1 min-h-0 p-4 md:p-6 relative overflow-y-auto">

@@ -1,16 +1,35 @@
-import { db } from "../client";
-import { pricing } from "../schema/pricing";
-import { eq } from "drizzle-orm";
-import Stripe from "stripe";
-import "dotenv/config";
-import { CURRENCY_CONFIG } from "../../utils/currency";
+import * as dotenv from "dotenv";
+import * as path from "path";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2024-12-18.acacia" as any, // Bypass TS error for unknown API versions
-});
+// Load environment variables from root
+dotenv.config({ path: path.join(__dirname, "../../../.env") });
+
+import { pricing } from "../schema/pricing";
+import { eq, and, isNull } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import Stripe from "stripe";
+import { CURRENCY_CONFIG } from "../../utils/currency";
 
 async function main() {
   console.log("🚀 Setting up Stripe products and prices...");
+
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error("DATABASE_URL is not set");
+  }
+
+  const client = postgres(url, { prepare: false });
+  const db = drizzle(client, { schema: { pricing } });
+
+  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeKey) {
+    throw new Error("STRIPE_SECRET_KEY is not set");
+  }
+
+  const stripe = new Stripe(stripeKey, {
+    apiVersion: "2024-12-18.acacia" as any,
+  });
 
   const plans = await db
     .select()
@@ -48,7 +67,8 @@ async function main() {
       let stripe_yearly_id = priceObj.stripe_yearly_id;
 
       // Create Monthly Price
-      if (monthly > 0 && !stripe_monthly_id) {
+      const isMonthlyPlaceholder = stripe_monthly_id && !stripe_monthly_id.startsWith("price_1");
+      if (monthly > 0 && (!stripe_monthly_id || isMonthlyPlaceholder)) {
         const config = CURRENCY_CONFIG[currency.toLowerCase()] || { divisor: 100 };
         const stripeAmount = Math.round(monthly * (100 / config.divisor));
 
@@ -65,7 +85,8 @@ async function main() {
       }
 
       // Create Yearly Price
-      if (yearly > 0 && !stripe_yearly_id) {
+      const isYearlyPlaceholder = stripe_yearly_id && !stripe_yearly_id.startsWith("price_1");
+      if (yearly > 0 && (!stripe_yearly_id || isYearlyPlaceholder)) {
         const config = CURRENCY_CONFIG[currency.toLowerCase()] || { divisor: 100 };
         const stripeAmount = Math.round(yearly * (100 / config.divisor));
 

@@ -48,6 +48,15 @@ export const stripeController = new Elysia({
         auth.user_id,
         body.priceId,
         body.returnPath,
+        {
+          mode: body.type === "payment" ? "payment" : "subscription",
+          metadata: {
+            type: body.addonId ? "addon" : (body.type ?? "plan"),
+            addonId: body.addonId ?? null,
+            addonType: body.addonType ?? null,
+            amount: body.amount?.toString() ?? null,
+          },
+        },
       );
     },
     {
@@ -55,6 +64,10 @@ export const stripeController = new Elysia({
         priceId: t.String(),
         workspaceId: t.Optional(t.String()),
         returnPath: t.Optional(t.String()),
+        type: t.Optional(t.Union([t.Literal("subscription"), t.Literal("payment")])),
+        addonId: t.Optional(t.String()),
+        addonType: t.Optional(t.Union([t.Literal("ai"), t.Literal("vault")])),
+        amount: t.Optional(t.Number()),
       }),
       detail: { summary: "Create Checkout Session", tags: ["Stripe"] },
     },

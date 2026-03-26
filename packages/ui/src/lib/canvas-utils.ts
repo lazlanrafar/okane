@@ -10,7 +10,13 @@ export function formatCurrencyAmount(amount: number, currency: string, locale?: 
 }
 
 export function shouldShowChart(stage?: string) {
-  return stage === "chart" || stage === "complete";
+  return (
+    stage === "chart" ||
+    stage === "complete" ||
+    stage === "chart_ready" ||
+    stage === "metrics_ready" ||
+    stage === "analysis_ready"
+  );
 }
 
 export function shouldShowMetricsSkeleton(stage?: string) {
@@ -18,5 +24,5 @@ export function shouldShowMetricsSkeleton(stage?: string) {
 }
 
 export function shouldShowSummarySkeleton(stage?: string) {
-  return stage !== "complete";
+  return stage !== "complete" && stage !== "analysis_ready";
 }

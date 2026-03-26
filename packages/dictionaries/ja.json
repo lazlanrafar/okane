@@ -179,6 +179,13 @@
       "vault_storage": "保管庫ストレージ",
       "ai_tokens": "AIトークン",
       "available_plans": "利用可能なプラン",
+    "addons": "アドオン",
+    "ai_token_pack": "AIトークンパック",
+    "ai_token_pack_description": "ワークスペースに1回限りのAIトークンを追加します。",
+    "storage_pack": "ストレージパック",
+    "storage_pack_description": "ワークスペースに1回限りのストレージ容量を追加します。",
+    "buy_now": "今すぐ購入",
+    "extra_quota_active": "+{amount} {unit} エクストラが有効",
       "monthly_toggle": "月払い",
       "annual_toggle": "年払い",
       "no_plans": "利用可能なプランはありません",
@@ -1064,5 +1071,12 @@
     "view_vault": "保管庫を表示",
     "navigate": "ナビゲート",
     "open": "開く"
+  },
+  "ai": {
+    "quota_limit_title": "AIの使用制限に達しました",
+    "quota_limit_description": "ワークスペースの月間AIトークン制限に達しました。",
+    "quota_reset_message": "トークンは{date}にリセットされます。",
+    "upgrade_button": "プランをアップグレード",
+    "get_more_tokens": "トークンを追加"
   }
 }

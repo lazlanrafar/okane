@@ -5,6 +5,8 @@ import type { Elysia } from "elysia";
 import { ErrorCode } from "@workspace/types";
 import { buildError } from "@workspace/utils";
 
+import { appendFileSync } from "fs";
+
 /**
  * Encryption plugin — symmetric encryption for production.
  * 1. Decrypts request bodies if 'x-encrypted' header is present.
@@ -12,34 +14,35 @@ import { buildError } from "@workspace/utils";
  */
 export const encryptionPlugin = (app: Elysia) =>
   app
-    .onBeforeHandle(({ body, headers, set }) => {
-      const isEncrypted = headers["x-encrypted"] === "true";
-
-      if (isEncrypted && body && typeof body === "object" && "data" in body) {
+    .onParse(async ({ request, contentType }) => {
+      if (
+        contentType === "application/json" &&
+        request.headers.get("x-encrypted") === "true"
+      ) {
         const secret = Env.ENCRYPTION_KEY;
-
         if (!secret) {
-          console.error("Encryption key missing, cannot decrypt request");
-          set.status = 500;
-          return buildError(
-            ErrorCode.INTERNAL_ERROR,
-            "Server configuration error",
-          );
+          return;
         }
 
         try {
-          const decrypted = decrypt((body as any).data, secret);
-          // Replace the body with the decrypted content
-          // We need to mutate the body object so subsequent hooks/controllers see the decrypted version
-          const parsed = JSON.parse(decrypted);
-          Object.keys(body).forEach((key) => delete (body as any)[key]);
-          Object.assign(body as any, parsed);
-        } catch (error) {
-          console.error("Decryption failed:", error);
-          set.status = 400;
-          return buildError(ErrorCode.INVALID_INPUT, "Invalid encrypted data");
+          const body = await request.json();
+          if (body && typeof body === "object" && "data" in body) {
+            const decrypted = decrypt(body.data, secret);
+            const parsed = JSON.parse(decrypted);
+            return parsed;
+          }
+        } catch (error: any) {
+          console.error("[Encryption] Parse/Decrypt failed:", error);
+          // Return undefined to let other parsers try or fail later
+          return;
         }
       }
+    })
+    .onTransform(({ path, headers }) => {
+      const isEncrypted = headers["x-encrypted"] === "true";
+      console.log(
+        `[Encryption] Request phase: onTransform, path: ${path}, isEncrypted: ${isEncrypted}`,
+      );
     })
     .mapResponse(({ response, set: _set, path }) => {
       if (path && (path.startsWith("/swagger") || path.startsWith("/health")))
@@ -62,7 +65,9 @@ export const encryptionPlugin = (app: Elysia) =>
         try {
           const encrypted = encrypt(JSON.stringify(response), secret);
           return new Response(JSON.stringify({ data: encrypted }), {
+            status: typeof _set.status === "number" ? _set.status : 200,
             headers: {
+              ...(_set.headers as Record<string, string>),
               "Content-Type": "application/json",
               "x-encrypted": "true",
             },

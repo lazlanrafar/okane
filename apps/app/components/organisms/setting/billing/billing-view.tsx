@@ -33,6 +33,8 @@ import {
   getPlanLimits,
   getStripePrice,
 } from "@workspace/utils";
+import Link from "next/link";
+import { useLocalizedRoute } from "@/utils/localized-route";
 
 function BillingSkeleton() {
   return (
@@ -63,7 +65,13 @@ function BillingSkeleton() {
   );
 }
 
-export function BillingView({ initialPlans }: { initialPlans: Pricing[] }) {
+export function BillingView({ 
+  initialPlans,
+  initialAddons = []
+}: { 
+  initialPlans: Pricing[];
+  initialAddons?: Pricing[];
+}) {
   const {
     workspace,
     settings,
@@ -76,7 +84,10 @@ export function BillingView({ initialPlans }: { initialPlans: Pricing[] }) {
   const [history, setHistory] = React.useState<Order[]>([]);
   const [loadingHistory, setLoadingHistory] = React.useState(true);
 
+  const { getLocalizedUrl } = useLocalizedRoute();
   const currency = settings?.mainCurrencyCode?.toLowerCase() || "usd";
+
+  const workspaceId = workspace?.id;
 
   React.useEffect(() => {
     async function fetchHistory() {
@@ -90,8 +101,22 @@ export function BillingView({ initialPlans }: { initialPlans: Pricing[] }) {
   }, []);
 
   const checkoutMutation = useMutation({
-    mutationFn: async (priceId: string) => {
-      const result = await createCheckoutSession(priceId);
+    mutationFn: async (params: {
+      priceId: string;
+      type?: "subscription" | "payment";
+      addonId?: string;
+      addonType?: "ai" | "vault";
+      amount?: number;
+    }) => {
+      const result = await createCheckoutSession(
+        params.priceId,
+        workspaceId,
+        "/settings/billing",
+        params.type,
+        params.addonType,
+        params.amount,
+        params.addonId,
+      );
       if (!result.success) throw new Error(result.error);
       return result.data;
     },
@@ -159,7 +184,10 @@ export function BillingView({ initialPlans }: { initialPlans: Pricing[] }) {
     prices: [],
   }) as Pricing;
 
-  const { vaultLimitBytes, aiLimitTokens } = getPlanLimits(currentPlan);
+  const { vaultLimitBytes, aiLimitTokens } = getPlanLimits(currentPlan, {
+    extra_vault_size_mb: workspace?.extra_vault_size_mb,
+    extra_ai_tokens: workspace?.extra_ai_tokens,
+  });
   const vaultProgress = Math.min(100, (vaultUsed / vaultLimitBytes) * 100);
   const aiProgress = Math.min(100, (aiUsed / aiLimitTokens) * 100);
 
@@ -179,55 +207,105 @@ export function BillingView({ initialPlans }: { initialPlans: Pricing[] }) {
 
       <Separator className="rounded-none" />
 
-      {/* Current Plan + Manage */}
-      <div className="flex items-center justify-between bg-accent/5 p-4 border  rounded-none relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-          <Zap className="h-20 w-20" />
+      {/* Current Plan Hero Card */}
+      <Card className="rounded-none shadow-none border bg-accent/5 overflow-hidden relative group">
+        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+          <Zap className="h-32 w-32" />
         </div>
-        <div className="space-y-0.5 relative z-10">
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest leading-none mb-1">
-            {dict.current_plan}
-          </p>
-          <div className="flex items-center gap-2">
-            <p className="text-xl font-medium tracking-tight">
-              {currentPlan.name}
-            </p>
-            {workspace?.stripe_subscription_id && (
+        <CardHeader className="p-6 pb-2 relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="space-y-1">
               <Badge
-                variant="secondary"
-                className="rounded-none text-[9px] h-4 px-1.5 font-normal tracking-wide uppercase bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                variant="outline"
+                className="rounded-none text-[10px] uppercase tracking-widest px-2 h-5 font-semibold bg-background border"
               >
-                {dictionary.settings.common.active}
+                {dict.current_plan}
               </Badge>
-            )}
+              <div className="flex items-center gap-3">
+                <h3 className="text-2xl font-medium tracking-tight">
+                  {currentPlan.name}
+                </h3>
+                {workspace?.stripe_subscription_id && (
+                  <Badge
+                    variant="secondary"
+                    className="rounded-none text-[9px] h-4 px-1.5 font-medium tracking-wide uppercase bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                  >
+                    {dictionary.settings.common.active}
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="flex items-baseline justify-end gap-1">
+                <span className="text-3xl font-serif tracking-tight font-medium">
+                  {displayPrice(currentPlan, billingCycle, { currency }).label}
+                </span>
+                {currentPlan.name.toLowerCase() !== "starter" && (
+                  <span className="text-xs text-muted-foreground uppercase">
+                    / {billingCycle === "monthly" ? dict.mo : dict.yr}
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
+                {billingCycle === "annual" ? dict.annual_toggle : dict.monthly_toggle}
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="relative z-10">
-          {workspace?.stripe_subscription_id ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => portalMutation.mutate()}
-              disabled={portalMutation.isPending}
-              className="rounded-none text-xs h-8 font-normal bg-background border hover:bg-accent/5 transition-colors"
-            >
-              <CreditCard className="mr-2 h-3.5 w-3.5" />
-              {portalMutation.isPending
-                ? dictionary.settings.common.opening
-                : dict.manage_subscription}
-            </Button>
-          ) : (
-            <Badge
-              variant="outline"
-              className="rounded-none text-[10px] uppercase tracking-wider px-3 h-8 font-normal border bg-background"
-            >
-              {dict.free_plan}
-            </Badge>
-          )}
-        </div>
-      </div>
+        </CardHeader>
+        <CardContent className="p-6 pt-2 pb-6 relative z-10">
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-sm">
+                {currentPlan.description}
+              </p>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                {(currentPlan.features || []).slice(0, 8).map((feature: string, i: number) => (
+                  <li key={i} className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                    <span className="truncate">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex flex-col justify-end gap-3 sm:flex-row h-fit self-end">
+              {workspace?.stripe_subscription_id ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => portalMutation.mutate()}
+                    disabled={portalMutation.isPending}
+                    className="rounded-none text-xs h-9 px-6 font-normal bg-background border hover:bg-accent/5 transition-colors"
+                  >
+                    <CreditCard className="mr-2 h-3.5 w-3.5" />
+                    {portalMutation.isPending
+                      ? dictionary.settings.common.opening
+                      : dict.manage_subscription}
+                  </Button>
+                  <Button
+                    asChild
+                    className="rounded-none text-xs h-9 px-6 font-medium shadow-sm"
+                  >
+                    <Link href={getLocalizedUrl("/upgrade")}>
+                        {dict.upgrade || "Upgrade Plan"}
+                    </Link>
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  asChild
+                  className="rounded-none text-xs h-9 px-8 font-medium shadow-sm"
+                >
+                  <Link href={getLocalizedUrl("/upgrade")}>
+                    {dict.upgrade || "View Plans"}
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Usage */}
+      {/* Usage Indicators */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Vault */}
         <Card className="rounded-none shadow-none border bg-background">
@@ -238,10 +316,15 @@ export function BillingView({ initialPlans }: { initialPlans: Pricing[] }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0 space-y-4">
-            <div className="text-2xl font-serif tracking-tight font-medium">
-              {formatBytes(vaultUsed)}
-              <span className="text-sm font-normal text-muted-foreground ml-1.5">
-                / {currentPlan.max_vault_size_mb} MB
+            <div className="flex items-baseline justify-between">
+              <div className="text-2xl font-serif tracking-tight font-medium">
+                {formatBytes(vaultUsed)}
+                <span className="text-xs font-normal text-muted-foreground ml-1.5 uppercase">
+                  / {currentPlan.max_vault_size_mb} MB
+                </span>
+              </div>
+              <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest">
+                {vaultProgress.toFixed(0)}%
               </span>
             </div>
             <div className="space-y-2">
@@ -250,9 +333,7 @@ export function BillingView({ initialPlans }: { initialPlans: Pricing[] }) {
                 className="h-1 rounded-none bg-muted/40"
               />
               <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
-                <span>
-                  {vaultProgress.toFixed(1)}% {dictionary.settings.common.used}
-                </span>
+                <span>{dictionary.settings.common.used}</span>
                 <span>
                   {formatBytes(vaultLimitBytes - vaultUsed)}{" "}
                   {dictionary.settings.common.remaining}
@@ -271,10 +352,15 @@ export function BillingView({ initialPlans }: { initialPlans: Pricing[] }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0 space-y-4">
-            <div className="text-2xl font-serif tracking-tight font-medium">
-              {aiUsed.toLocaleString()}
-              <span className="text-sm font-normal text-muted-foreground ml-1.5">
-                / {currentPlan.max_ai_tokens.toLocaleString()}
+            <div className="flex items-baseline justify-between">
+              <div className="text-2xl font-serif tracking-tight font-medium">
+                {aiUsed.toLocaleString()}
+                <span className="text-xs font-normal text-muted-foreground ml-1.5 uppercase">
+                  / {currentPlan.max_ai_tokens.toLocaleString()}
+                </span>
+              </div>
+              <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest">
+                {aiProgress.toFixed(0)}%
               </span>
             </div>
             <div className="space-y-2">
@@ -283,9 +369,7 @@ export function BillingView({ initialPlans }: { initialPlans: Pricing[] }) {
                 className="h-1 rounded-none bg-muted/40"
               />
               <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
-                <span>
-                  {aiProgress.toFixed(1)}% {dictionary.settings.common.used}
-                </span>
+                <span>{dictionary.settings.common.used}</span>
                 <span>
                   {(aiLimitTokens - aiUsed).toLocaleString()}{" "}
                   {dictionary.settings.common.remaining}
@@ -296,159 +380,98 @@ export function BillingView({ initialPlans }: { initialPlans: Pricing[] }) {
         </Card>
       </div>
 
-      {/* Plans */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between border-b pb-2">
+      {/* Add-ons List (Horizontal Rows) */}
+      <div className="space-y-4">
+        <div className="border-b pb-2">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-            {dict.available_plans}
+            {dict.addons || "Monthly Add-ons"}
           </p>
-          {/* Billing cycle toggle */}
-          <div className="flex border  bg-background">
-            <button
-              type="button"
-              onClick={() => setBillingCycle("monthly")}
-              className={cn(
-                "px-4 py-1.5 text-[10px] uppercase tracking-wider transition-all font-medium",
-                billingCycle === "monthly"
-                  ? "bg-foreground text-background"
-                  : "text-muted-foreground hover:bg-accent/5",
-              )}
-            >
-              {dict.monthly_toggle}
-            </button>
-            <button
-              type="button"
-              onClick={() => setBillingCycle("annual")}
-              className={cn(
-                "px-4 py-1.5 text-[10px] uppercase tracking-wider transition-all border-l border font-medium",
-                billingCycle === "annual"
-                  ? "bg-foreground text-background"
-                  : "text-muted-foreground hover:bg-accent/5",
-              )}
-            >
-              {dict.annual_toggle}
-            </button>
-          </div>
         </div>
+        <div className="flex flex-col gap-3">
+          {initialAddons.map((addon) => {
+            const price = displayPrice(addon, "monthly", {
+              currency,
+              compact: true,
+            });
+            const priceId = getStripePrice(addon, "monthly", currency);
+            const isActive = workspace?.active_addons?.some((a: any) => a.id === addon.id);
 
-        {sortedPlans.length === 0 ? (
-          <p className="text-xs text-muted-foreground py-8 text-center border -dashed rounded-none bg-accent/5">
-            {dict.no_plans}
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {sortedPlans.map((plan) => {
-              const isCurrent = workspace?.plan_id === plan.id;
-              const isStarter = plan.name.toLowerCase() === "starter";
-              const canDowngrade =
-                isStarter && workspace?.stripe_subscription_id;
-
-              const price = displayPrice(plan, billingCycle, {
-                currency,
-                compact: true,
-              });
-              const priceId = getStripePrice(plan, billingCycle, currency);
-
-              return (
-                <Card
-                  key={plan.id}
-                  className={cn(
-                    "rounded-none shadow-none flex flex-col transition-all border group relative",
-                    isCurrent && "border-foreground ring-1 ring-foreground/10",
-                    !isCurrent &&
-                      "hover:border-foreground/40 hover:bg-accent/5",
-                  )}
-                >
-                  <CardHeader className="p-5 pb-3">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <CardTitle className="text-sm font-medium tracking-tight uppercase group-hover:text-primary transition-colors">
-                        {plan.name}
-                      </CardTitle>
-                      {isCurrent && (
-                        <Badge
-                          variant="outline"
-                          className="rounded-none text-[9px] uppercase tracking-widest px-1.5 py-0 border-foreground bg-foreground text-background font-semibold"
-                        >
-                          {dictionary.settings.common.current}
-                        </Badge>
-                      )}
+            return (
+              <Card key={addon.id} className={cn(
+                "rounded-none shadow-none border bg-background hover:bg-accent/5 transition-all p-4",
+                isActive && "opacity-80"
+              )}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className={cn(
+                        "size-10 flex items-center justify-center shrink-0 border",
+                        addon.addon_type === "ai" ? "bg-amber-500/5 text-amber-500 border-amber-500/20" : "bg-emerald-500/5 text-emerald-500 border-emerald-500/20"
+                    )}>
+                        {addon.addon_type === "ai" ? <Zap className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
                     </div>
-                    <CardDescription className="text-xs line-clamp-2 leading-relaxed h-10">
-                      {plan.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-5 pt-0 flex-1 space-y-6">
-                    <div className="flex items-baseline gap-1 pt-4 border-t">
-                      <span className="text-2xl font-serif tracking-tight font-medium">
-                        {price.label}
-                      </span>
-                      {plan.name.toLowerCase() !== "starter" && (
-                        <span className="text-xs text-muted-foreground font-medium">
-                          / {billingCycle === "monthly" ? dict.mo : dict.yr}
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium tracking-tight">
+                            {addon.name}
                         </span>
-                      )}
+                        {isActive && (
+                            <Badge variant="secondary" className={cn(
+                            "rounded-none text-[8px] h-3.5 px-1 font-mono uppercase",
+                            addon.addon_type === "ai" ? "bg-amber-500/10 text-amber-600" : "bg-emerald-500/10 text-emerald-600"
+                            )}>
+                            {dictionary?.settings?.common?.active || "Active"}
+                            </Badge>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground line-clamp-1 max-w-md">
+                        {addon.description}
+                      </p>
                     </div>
-                    <ul className="space-y-2.5">
-                      {(plan.features || [])
-                        .slice(0, 6)
-                        .map((feature: string, i: number) => (
-                          <li
-                            key={i}
-                            className="flex items-start gap-2.5 text-[11px] text-muted-foreground leading-snug"
-                          >
-                            <Check className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                    </ul>
-                  </CardContent>
-                  <CardFooter className="p-5 pt-0">
-                    <Button
-                      className={cn(
-                        "w-full h-9 text-[10px] uppercase tracking-widest rounded-none font-semibold transition-all",
-                        isCurrent && !canDowngrade
-                          ? "bg-muted text-muted-foreground border-transparent"
-                          : "shadow-sm",
-                      )}
-                      variant={
-                        isCurrent && !canDowngrade ? "secondary" : "default"
-                      }
-                      disabled={
-                        (isCurrent && !canDowngrade) ||
-                        checkoutMutation.isPending ||
-                        downgradeMutation.isPending ||
-                        (!priceId && !isStarter)
-                      }
-                      onClick={() => {
-                        if (canDowngrade) {
-                          if (confirm(dict.downgrade_confirm)) {
-                            downgradeMutation.mutate();
-                          }
-                        } else if (!isCurrent && priceId) {
-                          checkoutMutation.mutate(priceId);
-                        }
-                      }}
+                  </div>
+
+                  <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-10">
+                    <div className="text-right whitespace-nowrap">
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium mb-0.5">
+                            {addon.addon_type === "ai" ? "Quota" : "Storage"}
+                        </p>
+                        <p className="text-xs font-serif font-medium">
+                            {addon.addon_type === "ai" 
+                            ? `+${addon.max_ai_tokens?.toLocaleString()}`
+                            : `+${addon.max_vault_size_mb} MB`
+                            }
+                        </p>
+                    </div>
+                    
+                    <div className="text-right whitespace-nowrap min-w-[80px]">
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium mb-0.5">
+                            {dict.price || "Price"}
+                        </p>
+                        <p className="text-xs font-serif font-medium">
+                            {price.label} <span className="text-[9px] font-normal text-muted-foreground">/ {dict.mo}</span>
+                        </p>
+                    </div>
+
+                    <Button 
+                      size="sm" 
+                      variant={isActive ? "outline" : "default"}
+                      className="rounded-none text-[10px] uppercase tracking-widest h-8 px-5"
+                      disabled={checkoutMutation.isPending || isActive}
+                      onClick={() => checkoutMutation.mutate({ 
+                        priceId: priceId!, 
+                        type: "subscription",
+                        addonId: addon.id,
+                        addonType: addon.addon_type as any,
+                        amount: addon.addon_type === "ai" ? addon.max_ai_tokens : addon.max_vault_size_mb
+                      })}
                     >
-                      {isCurrent
-                        ? canDowngrade
-                          ? dict.upgrade
-                          : dict.current_plan
-                        : canDowngrade
-                          ? downgradeMutation.isPending
-                            ? dictionary.settings.common.processing
-                            : dict.upgrade
-                          : checkoutMutation.isPending
-                            ? dictionary.settings.common.connecting
-                            : isStarter
-                              ? dict.free_plan
-                              : dict.get_started}
+                      {isActive ? (dictionary?.settings?.common?.active || "Active") : (dict.buy_now || "Buy Now")}
                     </Button>
-                  </CardFooter>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
       {/* Billing history */}
@@ -543,7 +566,7 @@ export function BillingView({ initialPlans }: { initialPlans: Pricing[] }) {
                               downloadMutation.variables ===
                                 order.stripe_invoice_id
                                 ? "..."
-                                : dictionary.settings.common.view_pdf}
+                                : (dictionary?.settings?.common?.view_pdf || "View PDF")}
                             </Button>
                           )}
                         </td>
@@ -558,10 +581,10 @@ export function BillingView({ initialPlans }: { initialPlans: Pricing[] }) {
                   <CreditCard className="h-6 w-6 text-muted-foreground" />
                 </div>
                 <p className="text-xs font-semibold uppercase tracking-widest mb-1">
-                  {dict.history.no_history}
+                   {dict.history.no_history}
                 </p>
                 <p className="text-[11px] text-muted-foreground max-w-[200px] mx-auto leading-relaxed">
-                  {dict.history.no_history_description}
+                   {dict.history.no_history_description}
                 </p>
               </div>
             )}

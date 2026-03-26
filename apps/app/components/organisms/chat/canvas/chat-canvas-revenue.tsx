@@ -95,7 +95,7 @@ export function RevenueCanvas() {
                   { label: "Average", type: "pattern" },
                 ],
               }}
-              isLoading={!data || !stage}
+              isLoading={(stage as any) === "loading"}
               height="20rem"
             >
               <RevenueTrendChart

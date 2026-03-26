@@ -34,6 +34,8 @@ import { ChatWebSearchButton } from "./chat-web-search-button";
 import { ChatCommandMenu } from "./chat-command-menu";
 import { ChatSuggestionButton } from "./chat-suggestion-button";
 import { sendChatMessage } from "@workspace/modules/ai/ai.action";
+import { useAiQuota } from "@/hooks/use-ai-quota";
+import { QuotaLimitCard } from "./quota-limit-card";
 
 export interface ChatInputMessage extends PromptInputMessage {
   metadata?: {
@@ -88,6 +90,8 @@ export function ChatInput() {
     resetCommandState,
     scrollY,
   } = useChatStore();
+
+  const { isExceeded, loading: quotaLoading } = useAiQuota();
 
   const prevShowCommands = useRef(showCommands);
   const prevHistoryOpen = useRef(isHistoryOpen);
@@ -354,6 +358,7 @@ export function ChatInput() {
           maxWidth: containerMaxWidth,
         }}
       >
+        <QuotaLimitCard />
         <ChatCommandMenu />
         <ChatHistoryDropdown />
 
@@ -424,11 +429,13 @@ export function ChatInput() {
                     }}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
+                    disabled={isExceeded}
                     className={cn(
                       "w-full h-full border-none bg-transparent resize-none outline-none whitespace-nowrap overflow-hidden text-ellipsis transition-all duration-300",
                       targetMinimizationFactor > 0.4 &&
                         !input &&
                         "text-center placeholder:text-center",
+                      isExceeded && "opacity-50 cursor-not-allowed",
                     )}
                     onKeyDown={(e) => {
                       // Handle Enter key for commands
@@ -551,7 +558,8 @@ export function ChatInput() {
                           : (!input && !status) ||
                             isUploading ||
                             isRecording ||
-                            isProcessing
+                            isProcessing ||
+                            isExceeded
                       }
                       status={status}
                       onClick={

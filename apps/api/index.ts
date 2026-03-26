@@ -35,6 +35,8 @@ import { stripeController } from "./modules/stripe/stripe.controller";
 import { systemAdminsController } from "./modules/system-admins/system-admins.controller";
 import { systemMetricsController } from "./modules/system-metrics/system-metrics.controller";
 import { transactions } from "./modules/transactions/transactions.controller";
+import { notificationsController } from "./modules/notifications/notifications.controller";
+import { notificationSettingsController } from "./modules/notification-settings/notification-settings.controller";
 import { usersController } from "./modules/users/users.controller";
 import { vaultController } from "./modules/vault/vault.controller";
 import { walletsController } from "./modules/wallets/wallets.controller";
@@ -119,18 +121,21 @@ const app = new Elysia()
       .use(invoicesController)
       .use(publicInvoicesController)
       .use(contactsController)
-      .use(debtsController),
+      .use(debtsController)
+      .use(notificationsController)
+      .use(notificationSettingsController),
   )
   // Public routes (no auth required)
   .use(publicPricingController)
   // Global error handler — sanitizes and logs all unhandled exceptions
-  .onError(({ error, code, set }) => {
+  .onError(({ error, code, set, path }) => {
     // Log fatal errors to Sentry
     if (code !== "NOT_FOUND") {
       Sentry.captureException(error);
-      const message = error instanceof Error ? error.message : "Handled response";
+      const message =
+        error instanceof Error ? error.message : "Handled response";
       const stack = error instanceof Error ? error.stack : undefined;
-      
+
       log.error(`[API] Unhandled Error [${code}]`, {
         message,
         stack,
@@ -139,6 +144,11 @@ const app = new Elysia()
 
     // 1. Validation errors (TypeBox/Elysia)
     if (code === "VALIDATION") {
+      log.error("[API] Validation Error", {
+        body: (error as any).body,
+        headers: (error as any).headers,
+        summary: (error as any).summary,
+      });
       set.status = 400;
       return buildError(
         ErrorCode.VALIDATION_ERROR,
@@ -152,7 +162,31 @@ const app = new Elysia()
       return buildError(ErrorCode.NOT_FOUND, "Resource not found");
     }
 
-    // 3. Database errors (sanitize to hide implementation details)
+    // 3. Handle explicit status() calls (number strings) or Error with status property
+    const numericCode = typeof code === 'string' ? parseInt(code, 10) : NaN;
+    if (!isNaN(numericCode) && numericCode >= 400 && numericCode < 600) {
+      set.status = numericCode;
+      
+      // If the error body is already a buildError result (ApiResponse)
+      if (error && typeof error === 'object' && 'success' in error && 'code' in error) {
+        return error;
+      }
+
+      // If it's a wrapped error response
+      if (error && typeof (error as any).data === 'object' && (error as any).data !== null) {
+          return (error as any).data;
+      }
+
+      const message = error instanceof Error ? error.message : "An error occurred";
+      const errorCode = (error as any).code || ErrorCode.INTERNAL_ERROR;
+
+      return buildError(
+        String(errorCode),
+        message,
+      );
+    }
+
+    // 4. Database errors (sanitize to hide implementation details)
     const errorMsg = (error instanceof Error ? error.message : "").toLowerCase();
     if (
       errorMsg.includes("db") ||
@@ -169,7 +203,7 @@ const app = new Elysia()
       );
     }
 
-    // 4. Default: Internal error
+    // 5. Default: Internal error
     set.status = 500;
     return buildError(
       ErrorCode.INTERNAL_ERROR,

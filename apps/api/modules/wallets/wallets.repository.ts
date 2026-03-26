@@ -106,11 +106,11 @@ export abstract class WalletsRepository {
       conditions.push(like(wallets.name, `%${filters.search}%`));
     }
 
-    if (filters?.groupId) {
+    if (filters?.groupId && filters.groupId !== "") {
       if (filters.groupId === "none") {
         conditions.push(isNull(wallets.groupId));
       } else {
-        conditions.push(eq(wallets.groupId, filters.groupId));
+        conditions.push(eq(wallets.groupId, sql`${filters.groupId}::uuid`));
       }
     }
 

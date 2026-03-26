@@ -1,11 +1,21 @@
-import { redirect } from "next/navigation";
-import type { Locale } from "@/i18n-config";
+import { UpgradeView } from "@/components/organisms/setting/upgrade/upgrade-view";
+import { getPricing } from "@workspace/modules/pricing/pricing.action";
 
 export default async function UpgradePage({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-  redirect(`/${locale}/settings/billing`);
+  await params;
+  const pricingResult = await getPricing({ is_addon: "false" });
+
+  const plans = pricingResult.success
+    ? (pricingResult.data?.pricingList ?? [])
+    : [];
+
+  return (
+    <div className="space-y-6">
+      <UpgradeView initialPlans={plans} />
+    </div>
+  );
 }

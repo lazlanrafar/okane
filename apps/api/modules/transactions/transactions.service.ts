@@ -12,6 +12,7 @@ import {
   buildSuccess,
   buildError,
 } from "@workspace/utils";
+import { NotificationsService } from "../notifications/notifications.service";
 import { status } from "elysia";
 
 export abstract class TransactionsService {
@@ -66,6 +67,15 @@ export abstract class TransactionsService {
       entity: "transaction",
       entity_id: transaction.id,
       after: transaction,
+    });
+
+    await NotificationsService.create({
+      workspace_id: workspaceId,
+      user_id: userId,
+      type: "transaction.created",
+      title: "New Transaction",
+      message: `A new ${body.type} of ${amount} was recorded.`,
+      link: "/transactions",
     });
 
     return buildSuccess(

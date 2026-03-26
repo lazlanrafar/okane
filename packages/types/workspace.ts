@@ -14,6 +14,9 @@ export type Workspace = {
   stripe_current_period_end?: string | null;
   ai_tokens_used: number;
   vault_size_used_bytes: number;
+  extra_ai_tokens: number;
+  extra_vault_size_mb: number;
+  active_addons?: (Pricing & { stripe_subscription_id: string })[];
   plan?: Pricing | null;
   created_at: string;
   updated_at: string;

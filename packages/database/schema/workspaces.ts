@@ -22,6 +22,8 @@ export const workspaces = pgTable("workspaces", {
   vault_size_used_bytes: bigint("vault_size_used_bytes", { mode: "number" })
     .default(0)
     .notNull(),
+  extra_ai_tokens: integer("extra_ai_tokens").default(0).notNull(),
+  extra_vault_size_mb: integer("extra_vault_size_mb").default(0).notNull(),
   deleted_at: timestamp("deleted_at"),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),

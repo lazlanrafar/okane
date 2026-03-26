@@ -15,7 +15,6 @@ import { Env } from "@workspace/constants";
 import { createLogger } from "@workspace/logger";
 import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import type { ChatMessage, ChatResponse } from "./ai.dto";
-
 const log = createLogger("ai-service");
 
 export abstract class AiService {
@@ -36,11 +35,14 @@ export abstract class AiService {
 
     // 1. Session Management
     if (!currentSessionId) {
-      const title = await AiOrchestrator.generateTitle(latestUserMessage.content, {
+      const title = await AiOrchestrator.generateTitle(
+        latestUserMessage.content,
+        {
           geminiKey: Env.GEMINI_API_KEY,
           openaiKey: Env.OPENAI_API_KEY,
           anthropicKey: Env.ANTHROPIC_API_KEY,
-      });
+        }
+      );
       const newSession = await AiRepository.createSession(workspaceId, title);
       currentSessionId = newSession!.id;
 
@@ -81,37 +83,71 @@ export abstract class AiService {
 
     // 3. Quota Check
     const usageData = await AiRepository.getUsageAndQuota(workspaceId);
-    if (!usageData) throw status(404, buildError(ErrorCode.WORKSPACE_NOT_FOUND, "Workspace not found"));
+    if (!usageData) {
+      throw status(
+        404,
+        buildError(ErrorCode.WORKSPACE_NOT_FOUND, "Workspace not found")
+      );
+    }
 
     const maxTokens = usageData.maxTokens ?? 5000;
     const currentTokens = Number(usageData.used);
 
-    if (currentTokens >= maxTokens && workspaceId !== "b45ad588-6758-43a4-8c26-1d80f3b0ab9f") {
-      throw status(422, buildError(ErrorCode.PLAN_LIMIT_REACHED, `Monthly AI Token limit exceeded. Max: ${maxTokens} tokens.`));
+    if (
+      currentTokens >= maxTokens &&
+      workspaceId !== "b45ad588-6758-43a4-8c26-1d80f3b0ab9f"
+    ) {
+      // Calculate reset date
+      let resetAt = usageData.stripe_current_period_end;
+
+      if (!resetAt) {
+        // Default to same day next month
+        const now = new Date();
+        const createdAt = new Date(usageData.created_at);
+        resetAt = new Date(now.getFullYear(), now.getMonth() + 1, createdAt.getDate());
+      }
+
+      throw status(
+        422,
+        buildError(
+          ErrorCode.PLAN_LIMIT_REACHED,
+          `Monthly AI Token limit exceeded. Max: ${maxTokens} tokens.`,
+          undefined,
+          { reset_at: resetAt.toISOString() }
+        )
+      );
     }
 
     // 4. Orchestrate
-    const response = await AiOrchestrator.chat(
-      consolidatedMessages,
-      {
-        workspaceId,
-        userId,
-        geminiKey: Env.GEMINI_API_KEY,
-        openaiKey: Env.OPENAI_API_KEY,
-        anthropicKey: Env.ANTHROPIC_API_KEY,
-      },
-      {
-          executeTransactionAction: (name, args) => executeAiTool(name, args, workspaceId, userId),
-          executeDebtAction: (name, args) => executeAiTool(name, args, workspaceId, userId),
-          executeAnalysisAction: (name, args) => executeAiTool(name, args, workspaceId, userId),
-      }
-    );
+    let response;
+    try {
+      response = await AiOrchestrator.chat(
+        consolidatedMessages,
+        {
+          workspaceId,
+          userId,
+          geminiKey: Env.GEMINI_API_KEY,
+          openaiKey: Env.OPENAI_API_KEY,
+          anthropicKey: Env.ANTHROPIC_API_KEY,
+        },
+        {
+          executeTransactionAction: (name, args) =>
+            executeAiTool(name, args, workspaceId, userId),
+          executeDebtAction: (name, args) =>
+            executeAiTool(name, args, workspaceId, userId),
+          executeAnalysisAction: (name, args) =>
+            executeAiTool(name, args, workspaceId, userId),
+        }
+      );
+    } catch (error: any) {
+      throw error;
+    }
 
     // 5. Save Response & Token Usage
     await AiRepository.saveMessage(
-      currentSessionId, 
-      workspaceId, 
-      "assistant", 
+      currentSessionId,
+      workspaceId,
+      "assistant" as const,
       response.reply,
       response.artifact ? { artifact: response.artifact } : undefined
     );
@@ -171,5 +207,9 @@ export abstract class AiService {
 
   static async getSessionMessages(sessionId: string, workspaceId: string) {
     return AiRepository.getSessionMessages(sessionId, workspaceId);
+  }
+
+  static async getUsageAndQuota(workspaceId: string) {
+    return AiRepository.getUsageAndQuota(workspaceId);
   }
 }
