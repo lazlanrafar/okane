@@ -4,13 +4,13 @@ import "./instrument";
 import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 import * as Sentry from "@sentry/bun";
-import { getEnv } from "@workspace/constants";
+import { getApiEnv } from "./config/env";
 import { createLogger } from "@workspace/logger";
 import { sql } from "drizzle-orm";
 import { Elysia } from "elysia";
 
-// Validate environment variables early
-getEnv();
+// Validate API environment variables early
+getApiEnv();
 
 import { ErrorCode } from "@workspace/types";
 import { buildError } from "@workspace/utils";

@@ -32,8 +32,12 @@ export async function generateMetadata({
       ...WEBSITE_CONFIG.meta.og,
       url: `${baseUrl}/${locale}`,
       locale: locale === "en" ? "en_US" : locale === "ja" ? "ja_JP" : "id_ID",
+      images: [...WEBSITE_CONFIG.meta.og.images],
     },
-    twitter: WEBSITE_CONFIG.meta.twitter,
+    twitter: {
+      ...WEBSITE_CONFIG.meta.twitter,
+      images: [...WEBSITE_CONFIG.meta.twitter.images],
+    },
     icons: {
       icon: "/favicon.ico",
       apple: "/apple-touch-icon.png",

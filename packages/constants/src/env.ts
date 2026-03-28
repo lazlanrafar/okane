@@ -169,75 +169,15 @@ export const getEnv = () => {
       }
     }
 
-    // Validate both client and server schemas on the server
-    const parsedServer = serverSchema.safeParse(process.env);
-    const parsedClient = clientSchema.safeParse(clientEnv);
-
-    if (!parsedServer.success || !parsedClient.success) {
-      // In Next.js static builds, we might not have the full server environment.
-      // Skip strict server validation if it fails during the build step, unless we actually want to fail.
-      
-      const serverErrors = !parsedServer.success ? (parsedServer as any).error.format() : null;
-      const clientErrors = !parsedClient.success ? (parsedClient as any).error.format() : null;
-
-      console.error(
-        "❌ Invalid environment variables:",
-        JSON.stringify(
-          {
-            server: serverErrors,
-            client: clientErrors,
-          },
-          null,
-          2,
-        ),
-      );
-      
-      // LOG ALL KEYS PRESENT IN process.env FOR DEBUG
-      console.log("🔍 getEnv: process.env keys:", Object.keys(process.env).filter(k => k.includes("URL") || k.includes("KEY") || k.includes("SECRET") || k.includes("NEXT_PUBLIC")).join(", "));
-      console.log("🔍 getEnv: clientEnv keys:", Object.keys(clientEnv).join(", "));
-      
-      // LOG ACTUAL MISSING FIELDS ONE BY ONE
-      if (serverErrors) {
-        Object.keys(serverErrors).forEach(key => {
-          if (key !== '_errors') {
-            console.error(`  - SERVER: ${key} is invalid!`);
-          }
-        });
-      }
-      if (clientErrors) {
-        Object.keys(clientErrors).forEach(key => {
-          if (key !== '_errors') {
-            console.error(`  - CLIENT: ${key} is invalid!`);
-          }
-        });
-      }
-
-      if (!isSkipValidation) {
-        throw new Error("Invalid environment variables");
-      } else {
-        console.warn(
-          "⚠️ Skipping hard validation failure because we are in a build step.",
-        );
-      }
-    }
-
+    // The actual validation is deferred to the individual applications
+    // (e.g. apps/api/config/env.ts, apps/app/env.ts)
     _env = {
-      ...(parsedServer.data || {}),
-      ...(parsedClient.data || {}),
+      ...process.env,
+      ...clientEnv,
     } as any;
   } else {
-    // Validate only client schema on the client
-    const parsedClient = clientSchema.safeParse(clientEnv);
-
-    if (!parsedClient.success) {
-      console.error(
-        "❌ Invalid environment variables:",
-        JSON.stringify(parsedClient.error.format(), null, 2),
-      );
-      throw new Error("Invalid environment variables");
-    }
-
-    _env = parsedClient.data as any; // Cast because server vars aren't available
+    // Client-side environment reads rely strictly on clientEnv static resolution
+    _env = clientEnv as any;
   }
 
   return _env;
