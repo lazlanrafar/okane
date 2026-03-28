@@ -8,9 +8,17 @@ import { syncUser } from "@workspace/modules/user/user.action";
 import { Env } from "@workspace/constants";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/overview";
+
+  // In Railway, request.url resolves to the internal address (localhost:3000).
+  // The real public domain is in x-forwarded-host set by Railway's reverse proxy.
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
+  const origin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : Env.NEXT_PUBLIC_ADMIN_URL ?? Env.NEXT_PUBLIC_APP_URL;
 
   if (code) {
     const supabase = await createClient();
