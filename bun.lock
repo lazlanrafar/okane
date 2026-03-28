@@ -206,10 +206,6 @@
         "typescript": "catalog:",
       },
     },
-    "apps/studio": {
-      "name": "@workspace/studio",
-      "version": "1.0.0",
-    },
     "apps/website": {
       "name": "website",
       "version": "1.0.0",
@@ -1642,8 +1638,6 @@
     "@workspace/modules": ["@workspace/modules@workspace:packages/modules"],
 
     "@workspace/redis": ["@workspace/redis@workspace:packages/redis"],
-
-    "@workspace/studio": ["@workspace/studio@workspace:apps/studio"],
 
     "@workspace/supabase": ["@workspace/supabase@workspace:packages/supabase"],
 
