@@ -43,3 +43,9 @@ export interface CreatePricingInput {
 }
 
 export type UpdatePricingInput = Partial<CreatePricingInput>;
+
+export type SystemAdminPlan = {
+  id: string;
+  name: string;
+  is_active: boolean;
+};

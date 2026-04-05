@@ -36,3 +36,15 @@ export type WorkspaceWithRole = Workspace & {
   max_workspaces?: number | null;
 };
 
+export type SystemAdminWorkspace = {
+  id: string;
+  name: string;
+  slug: string;
+  plan_id?: string | null;
+  plan_status: string;
+  plan_name?: string | null;
+  created_at: string;
+  ai_tokens_used: number;
+  vault_size_used_bytes: number;
+};
+
