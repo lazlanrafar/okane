@@ -71,15 +71,10 @@ export function QuotaLimitCard() {
               </div>
             </div>
 
-            <Link
-              href={getLocalizedUrl("/settings/billing")}
-              className="w-full md:w-auto"
-            >
-              <Button className="cursor-pointer">
-                {dict.upgrade_button}
-                <Zap className="ml-2 h-4 w-4 fill-current" />
-              </Button>
-            </Link>
+            <Button disabled className="w-full md:w-auto">
+              {dictionary?.settings?.common?.coming_soon || "Coming Soon"}
+              <Zap className="ml-2 h-4 w-4 fill-current" />
+            </Button>
           </div>
         </div>
       </motion.div>

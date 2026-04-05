@@ -307,7 +307,7 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
                         ? "Connecting..."
                         : plan.name.toLowerCase() === "starter"
                           ? "Selected Plan"
-                          : "Get Started"}
+                          : (dictionary?.settings?.common?.coming_soon || "Coming Soon")}
                   </Button>
                 </div>
               </motion.div>

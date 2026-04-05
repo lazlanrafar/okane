@@ -191,12 +191,10 @@ export abstract class XenditService {
     },
   ) {
     // SECURITY: Disable checkout while payment gateway is not yet approved
-    throw status(
-      422,
-      buildError(
-        ErrorCode.PAYMENT_GATEWAY_NOT_READY,
-        "Checkout is temporarily disabled while we await payment gateway approval. Please try again later."
-      )
+    return buildError(
+      ErrorCode.PAYMENT_GATEWAY_NOT_READY,
+      "Checkout is temporarily disabled while we await payment gateway approval. Please try again later.",
+      "UNPROCESSABLE_ENTITY", // status 422
     );
 
     const workspace = await XenditRepository.findWorkspaceById(workspaceId);
@@ -213,26 +211,26 @@ export abstract class XenditService {
 
     // If amount is missing, try to fetch it from the database based on priceId
     if (!amount && priceId) {
+      const pid = priceId as string;
+      
       // 1. Try to find by UUID (if priceId is a UUID)
-      if (isUuid(priceId)) {
-        const plan = await XenditRepository.findPlanById(priceId);
+      if (isUuid(pid)) {
+        const plan = await XenditRepository.findPlanById(pid);
         if (plan) {
-          // If it's a manual amount or we need a default price from the plan
-          // Currently, plans have multiple prices (monthly/yearly), so we still need findPlanByXenditProductId 
-          // to know which specific price was selected if using Xendit IDs.
+          // Add logic if needed
         }
       }
 
       // 2. Try to find the plan by Xendit price ID (this is the most common case for fixed plans)
-      const planByXenditId = await XenditRepository.findPlanByXenditProductId(priceId);
+      const planByXenditId = await XenditRepository.findPlanByXenditProductId(pid);
       if (planByXenditId) {
-        const matchingPrice = planByXenditId.prices.find(
-          (p) => p.xendit_monthly_id === priceId || p.xendit_yearly_id === priceId || p.xendit_product_id === priceId
+        const matchingPrice = planByXenditId!.prices.find(
+          (p) => p.xendit_monthly_id === pid || p.xendit_yearly_id === pid || p.xendit_product_id === pid
         );
         if (matchingPrice) {
-          amount = matchingPrice.xendit_monthly_id === priceId ? matchingPrice.monthly : 
-                   matchingPrice.xendit_yearly_id === priceId ? matchingPrice.yearly : 
-                   matchingPrice.monthly;
+          amount = matchingPrice!.xendit_monthly_id === pid ? (matchingPrice!.monthly || 0) : 
+                   matchingPrice!.xendit_yearly_id === pid ? (matchingPrice!.yearly || 0) : 
+                   (matchingPrice!.monthly || 0);
         }
       }
     }
@@ -241,17 +239,17 @@ export abstract class XenditService {
       logger.warn("[Xendit] Could not determine amount for checkout", { priceId, workspaceId });
     }
 
-    const description = `Payment for ${workspace.name}`;
+    const description = `Payment for ${workspace?.name || "Workspace"}`;
 
     try {
       // If it's a one-off payment (addon)
       if (options?.metadata?.type === "payment") {
         const payload = {
-          external_id: `${workspaceId}:addon:${options.metadata.addonId || 'unknown'}:${Date.now()}`,
+          external_id: `${workspaceId}:addon:${options?.metadata?.addonId || 'unknown'}:${Date.now()}`,
           amount,
           description,
           customer: {
-            given_names: workspace.name,
+            given_names: workspace?.name || "Customer",
             email: owner?.email,
             mobile_number: owner?.mobile,
           },
@@ -259,7 +257,7 @@ export abstract class XenditService {
           failure_redirect_url: `${appUrl}${returnPath ?? "/en/settings/billing"}?success=false`,
           items: [
             {
-              name: options.metadata.addonType === "ai" ? "AI Tokens Addon" : "Vault Storage Addon",
+              name: options?.metadata?.addonType === "ai" ? "AI Tokens Addon" : "Vault Storage Addon",
               quantity: 1,
               price: amount,
             },
@@ -272,20 +270,15 @@ export abstract class XenditService {
 
       // If it's a subscription
       if (options?.metadata?.type === "subscription") {
-        // For subscriptions, we can also use an invoice with recurring metadata 
-        // OR the recurring API. Let's use Invoice for simplicity and better UX (redirect based).
         const payload = {
-          external_id: `${workspaceId}:subscription:${priceId}:${Date.now()}`,
+          external_id: `${workspaceId}:subscription:${priceId || 'unknown'}:${Date.now()}`,
           amount,
-          description: `Subscription Plan for ${workspace.name}`,
+          description: `Subscription Plan for ${workspace?.name || "Workspace"}`,
           customer: {
-            given_names: workspace.name,
+            given_names: workspace?.name || "Customer",
             email: owner?.email,
           },
           success_redirect_url: `${appUrl}${returnPath ?? "/en/settings/billing"}?success=true`,
-          // Xendit has special support for creating recurring from an invoice
-          // For now, we'll just handle the initial payment and setup recurring via webhook or 
-          // direct subscription API if token is saved.
         };
 
         const response = await this.xenditRequest("POST", "/v2/invoices", payload);
@@ -304,7 +297,11 @@ export abstract class XenditService {
   static async cancelSubscription(workspaceId: string) {
     const workspace = await XenditRepository.findWorkspaceById(workspaceId);
 
-    if (!workspace || !workspace.xendit_subscription_id) {
+    if (!workspace) {
+      throw status(404, buildError(ErrorCode.NOT_FOUND, "Workspace not found"));
+    }
+
+    if (!workspace.xendit_subscription_id) {
       throw status(
         400,
         buildError(ErrorCode.VALIDATION_ERROR, "No active subscription found"),
