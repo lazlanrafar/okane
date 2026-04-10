@@ -957,6 +957,7 @@ export function TransactionsClient({
         wallets={wallets}
         onSuccess={() => {
           setIsImportOpen(false);
+          refetch();
         }}
       />
     </div>

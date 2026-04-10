@@ -267,6 +267,7 @@ export abstract class IntegrationsService {
   }
 
   static async handleTelegramWebhook(payload: Record<string, any>) {
+    console.log("[Telegram Webhook] Received payload:", JSON.stringify(payload));
     const message = payload.message;
     if (!message) return "OK";
 

@@ -7,6 +7,7 @@ export const getInitials = (str: string): string => {
       .split(/\s+/)
       .filter(Boolean)
       .map((word) => word[0])
+      .slice(0, 2)
       .join("")
       .toUpperCase() || "?"
   );

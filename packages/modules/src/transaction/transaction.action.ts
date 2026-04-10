@@ -1,4 +1,5 @@
 "use server";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import type {
   ActionResponse,
@@ -77,7 +78,10 @@ export const createTransaction = async (
       "/transactions",
       data,
     );
-    return { success: true, data: response.data.data as Transaction };
+    const result = response.data.data as Transaction;
+    revalidatePath("/transactions");
+    revalidateTag("transactions");
+    return { success: true, data: result };
   } catch (error: any) {
     return {
       success: false,
@@ -105,6 +109,9 @@ export const bulkCreateTransactions = async (
       };
     }
 
+    revalidatePath("/transactions");
+    revalidateTag("transactions");
+
     return {
       success: true,
       data: result,
@@ -130,6 +137,8 @@ export const updateTransaction = async (
     const apiResponse = (response as any)
       ._api_response as ApiResponse<Transaction>;
     const transaction = apiResponse?.data ?? response.data?.data;
+    revalidatePath("/transactions");
+    revalidateTag("transactions");
     return { success: true, data: transaction as Transaction };
   } catch (error: any) {
     return {
@@ -144,6 +153,8 @@ export const deleteTransaction = async (
 ): Promise<ActionResponse<void>> => {
   try {
     await api.delete(`/transactions/${id}`);
+    revalidatePath("/transactions");
+    revalidateTag("transactions");
     return { success: true, data: undefined };
   } catch (error: any) {
     return {
@@ -163,6 +174,8 @@ export const bulkDeleteTransactions = async (
     // assume a standard DELETE /transactions?ids=... if preferred.
     // Let's assume a loop for maximum compatibility unless I see a bulk endpoint.
     await Promise.all(ids.map((id) => api.delete(`/transactions/${id}`)));
+    revalidatePath("/transactions");
+    revalidateTag("transactions");
     return { success: true, data: undefined };
   } catch (error: any) {
     return {

@@ -1,9 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { Combobox, Spinner, cn } from "@workspace/ui";
+import {
+  Combobox,
+  Spinner,
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+  cn,
+} from "@workspace/ui";
 import { User } from "lucide-react";
 import { getWorkspaceMembers } from "@workspace/modules/client";
+import { getInitials } from "@workspace/utils";
 import { useQuery } from "@tanstack/react-query";
 
 interface Member {
@@ -92,35 +100,25 @@ export function SelectUser({
       className={className}
       renderSelectedItem={(item: any) => (
         <div className="flex items-center space-x-2">
-          {item.image ? (
-            <img
-              src={item.image}
-              alt={item.label}
-              className="w-6 h-6 rounded-full shrink-0 object-cover"
-            />
-          ) : (
-            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
-              <User className="h-3 w-3 text-muted-foreground" />
-            </div>
-          )}
-          <span className="text-left truncate max-w-[90%] font-medium">
+          <Avatar className="w-6 h-6">
+            <AvatarImage src={item.image} alt={item.label} />
+            <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+              {getInitials(item.label)}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-left truncate max-w-[90%] font-medium text-xs">
             {item.label}
           </span>
         </div>
       )}
       renderListItem={({ item }: { item: any }) => (
         <div className="flex items-center gap-2 overflow-hidden">
-          {item.image ? (
-            <img
-              src={item.image}
-              alt={item.label}
-              className="w-6 h-6 rounded-full shrink-0 object-cover"
-            />
-          ) : (
-            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
-              <User className="h-3 w-3 text-muted-foreground" />
-            </div>
-          )}
+          <Avatar className="w-6 h-6">
+            <AvatarImage src={item.image} alt={item.label} />
+            <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+              {getInitials(item.label)}
+            </AvatarFallback>
+          </Avatar>
           <div className="flex flex-col truncate">
             <span className="font-medium truncate text-xs">{item.label}</span>
             <span className="text-[10px] text-muted-foreground truncate">
