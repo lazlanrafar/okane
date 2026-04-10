@@ -8,6 +8,7 @@ import {
   DataTable,
   DataTableColumnsVisibility,
   DataTableFilter,
+  DataTableEmptyState,
 } from "@workspace/ui";
 import { AccountFormSheet } from "./account-form-sheet";
 import { AccountDetailSheet } from "./account-detail-sheet";
@@ -232,7 +233,16 @@ export function AccountsClient({
             columns: ["name"],
             startFromColumn: 0,
           }}
-          emptyMessage={dictionary.accounts.empty_message}
+          emptyMessage={
+            <DataTableEmptyState
+              title={dictionary.accounts.empty.title}
+              description={dictionary.accounts.empty.description}
+              action={{
+                label: dictionary.accounts.empty.action,
+                onClick: handleCreate,
+              }}
+            />
+          }
           infiniteScroll={true}
           fetchNextPage={fetchNextPage}
           hasNextPage={hasNextPage}

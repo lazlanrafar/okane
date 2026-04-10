@@ -16,6 +16,7 @@ import {
   ScrollArea,
   Separator,
   Skeleton,
+  DataTableEmptyState,
 } from "@workspace/ui";
 import { useAppStore } from "@/stores/app";
 import {
@@ -348,27 +349,26 @@ export function VaultClient() {
           ) : (
             <>
               {files.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center py-20">
-              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                <Search className="h-6 w-6 text-muted-foreground/40" />
-              </div>
-              <h3 className="font-semibold">{t.empty.title}</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-[250px]">
-                {search
-                  ? t.empty.no_results.replace("{search}", search)
-                  : t.empty.get_started}
-              </p>
-              {search && (
-                <Button
-                  variant="link"
-                  className="mt-2 text-xs"
-                  onClick={() => setSearch("")}
-                >
-                  {t.empty.clear_search}
-                </Button>
-              )}
-            </div>
-          ) : view === "list" ? (
+                <DataTableEmptyState
+                  title={t.empty.title}
+                  description={
+                    search
+                      ? t.empty.no_results.replace("{search}", search)
+                      : t.empty.get_started
+                  }
+                  action={
+                    search
+                      ? {
+                          label: t.empty.clear_search,
+                          onClick: () => setSearch(""),
+                        }
+                      : {
+                          label: t.empty.action,
+                          onClick: () => fileInputRef.current?.click(),
+                        }
+                  }
+                />
+              ) : view === "list" ? (
             <VaultItemList
               files={files}
               selectedFileId={selectedFile?.id}

@@ -39,6 +39,11 @@
     "created_date_description": "Tanggal akun ini pertama kali dibuat dalam sistem.",
     "updated": "Diperbarui",
     "empty_message": "Tidak ada akun ditemukan.",
+    "empty": {
+      "title": "Belum ada akun",
+      "description": "Buat akun pertama Anda untuk mulai melacak saldo Anda.",
+      "action": "Tambah Akun Pertama"
+    },
     "table": {
       "name": "Nama",
       "group": "Grup",
@@ -751,6 +756,11 @@
     "save_transaction": "Simpan Transaksi",
     "upload_receipts": "Unggah struk",
     "empty_message": "Tidak ada transaksi ditemukan.",
+    "empty": {
+      "title": "Belum ada transaksi",
+      "description": "Mulai lacak pemasukan dan pengeluaran Anda dengan menambahkan transaksi pertama.",
+      "action": "Tambah Transaksi"
+    },
     "delete_title": "Hapus transaksi?",
     "delete_description": "Apakah Anda yakin ingin menghapus transaksi ini?",
     "delete_confirm": "Hapus",
@@ -954,7 +964,8 @@
       "title": "Tidak ada file ditemukan",
       "no_results": "Tidak ada hasil untuk \"{search}\". Coba kata kunci lain.",
       "get_started": "Unggah file pertama Anda untuk memulai.",
-      "clear_search": "Hapus pencarian"
+      "clear_search": "Hapus pencarian",
+      "action": "Unggah File"
     },
     "storage": {
       "usage": "{used} / {limit} MB",
@@ -1091,5 +1102,32 @@
     "quota_reset_message": "Token Anda akan diatur ulang pada {date}.",
     "upgrade_button": "Tingkatkan Paket",
     "get_more_tokens": "Dapatkan Lebih Banyak Token"
+  },
+  "invoices": {
+    "title": "Faktur",
+    "search_placeholder": "Cari faktur...",
+    "add_button": "Faktur Baru",
+    "empty": {
+      "title": "Belum ada faktur",
+      "description": "Buat dan kelola faktur profesional Anda dengan mudah.",
+      "action": "Buat Faktur Pertama"
+    },
+    "summary": {
+      "total": "Total Faktur",
+      "open": "Terbuka",
+      "open_desc": "Draft + Belum Dibayar",
+      "overdue": "Terlambat",
+      "overdue_desc": "Melewati tanggal jatuh tempo",
+      "paid": "Dibayar",
+      "paid_desc": "Selesai"
+    },
+    "toasts": {
+      "deleted": "Faktur dihapus",
+      "delete_failed": "Gagal menghapus faktur",
+      "created": "Faktur berhasil dibuat",
+      "create_failed": "Gagal membuat faktur",
+      "updated": "Faktur diperbarui",
+      "update_failed": "Gagal memperbarui faktur"
+    }
   }
 }

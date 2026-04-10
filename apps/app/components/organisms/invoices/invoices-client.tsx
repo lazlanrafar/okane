@@ -6,6 +6,7 @@ import {
   DataTable,
   DataTableColumnsVisibility,
   DataTableFilter,
+  DataTableEmptyState,
 } from "@workspace/ui";
 import { InvoiceFormSheet } from "./invoice-form-sheet";
 import { InvoiceDetailSheet } from "./invoice-detail-sheet";
@@ -22,6 +23,7 @@ import {
 } from "@workspace/modules/client";
 import { useDataTableFilter } from "@/hooks/use-data-table-filter";
 import { useInvoicesStore } from "@/stores/invoices";
+import { useAppStore } from "@/stores/app";
 import { toast } from "sonner";
 
 type InvoiceRow = Invoice & {
@@ -33,6 +35,7 @@ interface Props {
 }
 
 export function InvoicesClient({ initialData }: Props) {
+  const { dictionary } = useAppStore();
   const queryClient = useQueryClient();
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
@@ -72,6 +75,7 @@ export function InvoicesClient({ initialData }: Props) {
       staleTime: 60000,
       refetchOnWindowFocus: false,
     });
+  if (!dictionary) return null;
 
   const allInvoices: InvoiceRow[] =
     data?.pages.flatMap((p: any) => {
@@ -181,7 +185,7 @@ export function InvoicesClient({ initialData }: Props) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="p-6 flex flex-col gap-1 border border-border">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
-            Total Invoices
+            {dictionary.invoices.summary.total}
           </span>
           <span className="text-3xl font-serif font-medium tracking-tight">
             {allInvoices.length}
@@ -189,34 +193,34 @@ export function InvoicesClient({ initialData }: Props) {
         </div>
         <div className="p-6 flex flex-col gap-1 border border-border">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
-            Open
+            {dictionary.invoices.summary.open}
           </span>
           <span className="text-3xl font-serif font-medium tracking-tight text-yellow-600 dark:text-yellow-400">
             {openCount}
           </span>
           <span className="text-[10px] text-muted-foreground">
-            Draft + Unpaid
+            {dictionary.invoices.summary.open_desc}
           </span>
         </div>
         <div className="p-6 flex flex-col gap-1 border border-border">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
-            Overdue
+            {dictionary.invoices.summary.overdue}
           </span>
           <span className="text-3xl font-serif font-medium tracking-tight text-red-600 dark:text-red-400">
             {overdueCount}
           </span>
           <span className="text-[10px] text-muted-foreground">
-            Past due date
+            {dictionary.invoices.summary.overdue_desc}
           </span>
         </div>
         <div className="p-6 flex flex-col gap-1 border border-border">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
-            Paid
+            {dictionary.invoices.summary.paid}
           </span>
           <span className="text-3xl font-serif font-medium tracking-tight text-emerald-600 dark:text-emerald-400">
             {paidCount}
           </span>
-          <span className="text-[10px] text-muted-foreground">Completed</span>
+          <span className="text-[10px] text-muted-foreground">{dictionary.invoices.summary.paid_desc}</span>
         </div>
       </div>
 
@@ -226,7 +230,7 @@ export function InvoicesClient({ initialData }: Props) {
           <DataTableFilter
             filters={filters}
             onFilterChange={handleFilterChange as any}
-            placeholder="Search invoices..."
+            placeholder={dictionary.invoices.search_placeholder}
             showDateFilter={false}
             showAmountFilter={false}
             className="w-full bg-transparent border-none p-0 focus-visible:ring-0"
@@ -242,7 +246,7 @@ export function InvoicesClient({ initialData }: Props) {
             }}
           >
             <Plus className="h-4 w-4" />
-            New Invoice
+            {dictionary.invoices.add_button}
           </Button>
         </div>
       </div>
@@ -255,7 +259,19 @@ export function InvoicesClient({ initialData }: Props) {
           setColumns={setColumns}
           tableId="invoices"
           hFull
-          emptyMessage="No invoices yet. Create your first invoice to get started."
+          emptyMessage={
+            <DataTableEmptyState
+              title={dictionary.invoices.empty.title}
+              description={dictionary.invoices.empty.description}
+              action={{
+                label: dictionary.invoices.empty.action,
+                onClick: () => {
+                  setEditInvoice(null);
+                  setIsFormSheetOpen(true);
+                },
+              }}
+            />
+          }
           meta={{
             onRowClick: handleRowClick,
           }}

@@ -6,6 +6,7 @@ import {
   DataTable,
   DataTableColumnsVisibility,
   DataTableFilter,
+  DataTableEmptyState,
 } from "@workspace/ui";
 import { ContactFormSheet } from "./contact-form-sheet";
 import { ContactDetailSheet } from "./contact-detail-sheet";
@@ -191,7 +192,19 @@ export function ContactsClient({ initialData }: Props) {
           setColumns={setColumns}
           tableId="contacts"
           hFull
-          emptyMessage={dictionary.contacts.empty.description}
+          emptyMessage={
+            <DataTableEmptyState
+              title={dictionary.contacts.empty.title}
+              description={dictionary.contacts.empty.description}
+              action={{
+                label: dictionary.contacts.empty.action,
+                onClick: () => {
+                  setEditContact(null);
+                  setIsFormSheetOpen(true);
+                },
+              }}
+            />
+          }
           infiniteScroll={true}
           fetchNextPage={fetchNextPage}
           hasNextPage={hasNextPage}

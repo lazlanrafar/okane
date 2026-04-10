@@ -7,6 +7,7 @@ import {
   DataTable,
   DataTableColumnsVisibility,
   DataTableFilter,
+  DataTableEmptyState,
   VirtualRow,
   DataTableRow,
   Icons,
@@ -616,7 +617,16 @@ export function TransactionsClient({
               startFromColumn: 0,
             }}
             nonClickableColumns={nonClickableColumns}
-            emptyMessage={dictionary.transactions.empty_message}
+            emptyMessage={
+              <DataTableEmptyState
+                title={dictionary.transactions.empty.title}
+                description={dictionary.transactions.empty.description}
+                action={{
+                  label: dictionary.transactions.empty.action,
+                  onClick: handleCreate,
+                }}
+              />
+            }
             infiniteScroll={true}
             fetchNextPage={fetchNextPage}
             hasNextPage={hasNextPage}
