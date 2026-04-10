@@ -53,22 +53,26 @@ export const useAppStore = create<AppState>()((set, get) => ({
     const { settings } = get();
     const option = INCOME_EXPENSES_COLOR_OPTIONS.find(
       (o) => o.value === settings?.incomeExpensesColor,
-    );
+    ) || INCOME_EXPENSES_COLOR_OPTIONS[0];
 
-    if (type === "income") {
-      return option?.incomeColor as string;
+    const normalizedType = type?.toLowerCase();
+
+    if (normalizedType === "income" || normalizedType === "transfer-in") {
+      return (option?.incomeColor as string) || "text-blue-600 dark:text-blue-400";
     }
 
-    if (type === "expense") {
-      return option?.expensesColor as string;
+    if (normalizedType === "expense" || normalizedType === "transfer-out") {
+      return (option?.expensesColor as string) || "text-red-600 dark:text-red-400";
     }
 
-    if (type === "transfer") {
+    if (normalizedType === "transfer") {
       return "text-foreground";
     }
 
     return "text-muted-foreground";
   },
+  // Tailwind Safelist (ensure dynamic bg- classes are bundled):
+  // bg-blue-600 dark:bg-blue-400 bg-red-600 dark:bg-red-400
   formatCurrency: (amount, options) => {
     const { settings } = get();
     return formatCurrencyUtil(amount, settings, options);

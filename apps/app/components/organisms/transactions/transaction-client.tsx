@@ -103,27 +103,22 @@ export function TransactionsClient({
   const [uploadedReceiptId, setUploadedReceiptId] = useState<string | null>(
     null,
   );
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [columns, setColumns] = useState<any[]>([]);
-  const { settings, formatCurrency, getTransactionColor, dictionary } = useAppStore();
   const [activeTab, setActiveTab] = useState<"all" | "review" | "none">("all");
+  const [activeGroupIndex, setActiveGroupIndex] = useState<number | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const queryClient = useQueryClient();
+  const { settings, formatCurrency, getTransactionColor, dictionary } = useAppStore();
   const { rowSelection, setRowSelection } = useTransactionsStore();
   const confirm = useConfirm();
-
 
   const [transactionId, setTransactionId] = useQueryState(
     "transactionId",
     parseAsString.withDefault("").withOptions({ shallow: true }),
   );
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [activeGroupIndex, setActiveGroupIndex] = useState<number | null>(null);
-
-  const queryClient = useQueryClient();
-  const { settings: appSettings, formatCurrency: appFormatCurrency, dictionary: appDictionary } = useAppStore();
-
-  if (!appDictionary) return null;
 
   const [groupBy, setGroupBy] = useQueryState(
     "groupBy",
@@ -135,7 +130,7 @@ export function TransactionsClient({
       q: "",
       type: "",
       walletId: "",
-      categoryId: "",
+      categoryId: [],
       startDate: startOfMonth(new Date()).toISOString(),
       endDate: endOfMonth(new Date()).toISOString(),
     },
@@ -143,6 +138,7 @@ export function TransactionsClient({
   });
 
   const [mountFilters] = useState(filters);
+
   const isInitial = useMemo(() => {
     return (
       JSON.stringify(filters) === JSON.stringify(mountFilters) &&
@@ -234,7 +230,7 @@ export function TransactionsClient({
       refetch();
     },
     onError: (error: any) => {
-      toast.error(error.message || dictionary?.transactions?.toasts?.delete_failed || "Failed to delete transaction");
+      toast.error(error.message || dictionary?.transactions?.errors?.process_failed || "Failed to delete transaction");
     },
   });
 
@@ -361,7 +357,7 @@ export function TransactionsClient({
       setIsDetailOpen(false);
       setSelectedTransaction(undefined);
     }
-  }, [transactionId, transactions, isDetailOpen]);
+  }, [transactionId, transactions, isDetailOpen, selectedTransaction]);
 
   useReactEffect(() => {
     // Scroll handling is now managed by DataTable scrollTop prop.
@@ -395,6 +391,76 @@ export function TransactionsClient({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isDetailOpen, transactionId, transactions, setTransactionId]);
+
+  const getBGColor = (type: string) => {
+    const color = getTransactionColor(type);
+    if (!color || color === "text-foreground") return "bg-muted-foreground";
+    return color.replaceAll("text-", "bg-");
+  };
+
+  const typeOptions = useMemo(
+    () => [
+      {
+        id: "income",
+        name: dictionary?.transactions?.types?.income || "Income",
+        colorClass: getBGColor("income"),
+      },
+      {
+        id: "expense",
+        name: dictionary?.transactions?.types?.expense || "Expense",
+        colorClass: getBGColor("expense"),
+      },
+      {
+        id: "transfer",
+        name: dictionary?.transactions?.types?.transfer || "Transfer",
+        colorClass: getBGColor("transfer"),
+      },
+    ],
+    [dictionary, getTransactionColor],
+  );
+
+  const categoryOptions = useMemo(() => {
+    return categories
+      .sort((a, b) => {
+        if (a.type !== b.type) return a.type.localeCompare(b.type);
+        return a.name.localeCompare(b.name);
+      })
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        colorClass: getBGColor(c.type),
+      }));
+  }, [categories, getTransactionColor]);
+
+  const facets = useMemo(
+    () => {
+      if (!dictionary) return [];
+      
+      return [
+        {
+          id: "type",
+          label: dictionary.transactions.type_label,
+          icon: Icons.Status,
+          options: typeOptions,
+        },
+        {
+          id: "categoryId",
+          label: dictionary.transactions.category,
+          icon: Icons.Category,
+          multiple: true,
+          options: categoryOptions,
+        },
+      ];
+    },
+    [dictionary, typeOptions, categoryOptions],
+  );
+
+  const nonClickableColumns = useMemo(
+    () => new Set(["select", "actions", "category", "assignee", "account"]),
+    [],
+  );
+
+  if (!dictionary) return <TransactionTableSkeleton hideHeader />;
 
   const handleCreate = () => {
     setSelectedTransaction(undefined);
@@ -483,19 +549,6 @@ export function TransactionsClient({
     }
   };
 
-  const typeOptions = useMemo(() => [
-    { id: "income", name: dictionary?.transactions?.types?.income || "Income" },
-    { id: "expense", name: dictionary?.transactions?.types?.expense || "Expense" },
-    { id: "transfer", name: dictionary?.transactions?.types?.transfer || "Transfer" },
-  ], [dictionary]);
-
-  const nonClickableColumns = useMemo(
-    () => new Set(["select", "actions", "category", "assignee", "account"]),
-    [],
-  );
-
-  if (!dictionary) return <TransactionTableSkeleton hideHeader />;
-
   return (
     <div className="flex w-full flex-col h-full gap-4">
       {/* Search and Actions Header */}
@@ -507,9 +560,7 @@ export function TransactionsClient({
             placeholder={dictionary.transactions.search_placeholder}
             showDateFilter={false}
             showAmountFilter={false}
-            statusOptions={typeOptions}
-            statusKey="type"
-            statusLabel={dictionary.transactions.type_label}
+            facets={facets}
             excludeKeys={["startDate", "endDate"]}
             className="w-full bg-transparent border-none p-0 focus-visible:ring-0"
           />

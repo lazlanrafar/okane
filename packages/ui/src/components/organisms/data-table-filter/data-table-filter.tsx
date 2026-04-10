@@ -11,8 +11,10 @@ import {
   DropdownMenuSubContent,
   DropdownMenuPortal,
   Icons,
+  type IconType,
   Input,
 } from "../../atoms";
+import { Combobox, type ComboboxItem } from "../../atoms/combobox";
 import { cn } from "../../../lib/utils";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { FilterList, type FilterOption } from "./filter-list";
@@ -23,10 +25,19 @@ import {
 import { parseISO } from "date-fns";
 import type { DateRange } from "react-day-picker";
 
+export interface DataTableFilterFacet {
+  id: string;
+  label: string;
+  icon?: IconType;
+  options: { id: string; name: string; colorClass?: string }[];
+  multiple?: boolean;
+}
+
 interface DataTableFilterProps {
   placeholder?: string;
   filters: Record<string, any>;
   onFilterChange: (filters: Record<string, any>) => void;
+  facets?: DataTableFilterFacet[];
   statusOptions?: FilterOption[];
   statusKey?: string;
   statusLabel?: string;
@@ -74,6 +85,7 @@ export function DataTableFilter({
   placeholder = "Search...",
   filters,
   onFilterChange,
+  facets,
   statusOptions,
   statusKey = "status",
   statusLabel = "Status",
@@ -220,7 +232,100 @@ export function DataTableFilter({
                 </FilterMenuItem>
               )}
 
-              {statusOptions && (
+              {facets?.map((facet) => (
+                <FilterMenuItem
+                  key={facet.id}
+                  icon={facet.icon}
+                  label={facet.label}
+                >
+                   <div className="p-0 min-w-[200px]">
+                    <Combobox
+                      headless
+                      multiple={facet.multiple}
+                      items={facet.options.map((o) => ({
+                        id: o.id,
+                        label: o.name,
+                        colorClass: o.colorClass,
+                      }))}
+                      selectedItem={
+                        !facet.multiple
+                          ? facet.options
+                              .map((o) => ({
+                                id: o.id,
+                                label: o.name,
+                                colorClass: o.colorClass,
+                              }))
+                              .find((o) => o.id === filters[facet.id]) ||
+                            undefined
+                          : undefined
+                      }
+                      selectedItems={
+                        facet.multiple
+                          ? facet.options
+                              .filter((o) =>
+                                (Array.isArray(filters[facet.id])
+                                  ? filters[facet.id]
+                                  : []
+                                ).includes(o.id),
+                              )
+                              .map((o) => ({
+                                id: o.id,
+                                label: o.name,
+                                colorClass: o.colorClass,
+                              }))
+                          : []
+                      }
+                      onSelect={(item) => {
+                        if (facet.multiple) {
+                          const currentValues = Array.isArray(filters[facet.id])
+                            ? [...filters[facet.id]]
+                            : [];
+                          const index = currentValues.indexOf(item.id);
+                          if (index > -1) {
+                            currentValues.splice(index, 1);
+                          } else {
+                            currentValues.push(item.id);
+                          }
+                          onFilterChange({
+                            ...filters,
+                            [facet.id]:
+                              currentValues.length > 0 ? currentValues : null,
+                          });
+                        } else {
+                          onFilterChange({
+                            ...filters,
+                            [facet.id]:
+                              filters[facet.id] === item.id ? null : item.id,
+                          });
+                        }
+                      }}
+                      searchPlaceholder={`Search ${facet.label.toLowerCase()}...`}
+                      className="border-none shadow-none focus-visible:ring-0"
+                      renderListItem={({ item, isChecked }) => (
+                        <div className="flex items-center w-full">
+                          <Icons.Check
+                            className={cn(
+                              "mr-2 h-3.5 w-3.5 shrink-0",
+                              isChecked ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          {(item as any).colorClass && (
+                            <div
+                              className={cn(
+                                "w-2.5 h-2.5 rounded-[2px] shrink-0 mr-2",
+                                (item as any).colorClass,
+                              )}
+                            />
+                          )}
+                          <span className="truncate flex-1">{item.label}</span>
+                        </div>
+                      )}
+                    />
+                  </div>
+                </FilterMenuItem>
+              ))}
+
+              {!facets && statusOptions && (
                 <FilterMenuItem icon={Icons.Status} label={statusLabel}>
                   <div className="p-1 min-w-[180px]">
                     {statusOptions.map((option) => (
@@ -327,6 +432,7 @@ export function DataTableFilter({
         filters={filters}
         loading={isLoading}
         onRemove={handleRemoveFilter}
+        facets={facets}
         statusFilters={statusOptions}
         statusKey={statusKey}
         excludeKeys={excludeKeys}

@@ -27,12 +27,14 @@ type Props<T> = {
   items: T[];
   onSelect: (item: T) => void;
   selectedItem?: T;
-  renderSelectedItem?: (selectedItem: T) => React.ReactNode;
-  renderOnCreate?: (value: string) => React.ReactNode;
+  selectedItems?: T[];
+  multiple?: boolean;
+  renderSelectedItem?: (selectedItem: T | T[]) => React.ReactNode;
   renderListItem?: (listItem: {
     isChecked: boolean;
     item: T;
   }) => React.ReactNode;
+  renderOnCreate?: (value: string) => React.ReactNode;
   emptyResults?: React.ReactNode;
   popoverProps?: React.ComponentProps<typeof PopoverContent>;
   disabled?: boolean;
@@ -51,7 +53,9 @@ export function Combobox<T extends ComboboxItem>({
   items,
   onSelect,
   selectedItem: incomingSelectedItem,
-  renderSelectedItem = (item) => item.label,
+  selectedItems: incomingSelectedItems,
+  multiple,
+  renderSelectedItem = (item) => (Array.isArray(item) ? item.map(i => i.label).join(", ") : item.label),
   renderListItem,
   renderOnCreate,
   emptyResults,
@@ -67,9 +71,12 @@ export function Combobox<T extends ComboboxItem>({
   const [internalSelectedItem, setInternalSelectedItem] = React.useState<
     T | undefined
   >();
+  const [internalSelectedItems, setInternalSelectedItems] = React.useState<T[]>(
+    [],
+  );
   const [inputValue, setInputValue] = React.useState("");
-
   const selectedItem = incomingSelectedItem ?? internalSelectedItem;
+  const selectedItems = incomingSelectedItems ?? internalSelectedItems;
 
   const filteredItems = items.filter((item) =>
     item.label.toLowerCase().includes(inputValue.toLowerCase()),
@@ -90,7 +97,9 @@ export function Combobox<T extends ComboboxItem>({
       <CommandGroup>
         <CommandList className="max-h-[225px] overflow-auto">
           {filteredItems.map((item) => {
-            const isChecked = selectedItem?.id === item.id;
+            const isChecked = multiple
+              ? selectedItems.some((i) => i.id === item.id)
+              : selectedItem?.id === item.id;
 
             return (
               <CommandItem
@@ -105,10 +114,24 @@ export function Combobox<T extends ComboboxItem>({
                     return;
                   }
 
-                  onSelect(foundItem);
-                  setInternalSelectedItem(foundItem);
-                  setOpen(false);
-                  setInputValue("");
+                  if (multiple) {
+                    onSelect(foundItem);
+                    const isAlreadySelected = selectedItems.some(
+                      (i) => i.id === foundItem.id,
+                    );
+                    if (isAlreadySelected) {
+                      setInternalSelectedItems(
+                        selectedItems.filter((i) => i.id !== foundItem.id),
+                      );
+                    } else {
+                      setInternalSelectedItems([...selectedItems, foundItem]);
+                    }
+                  } else {
+                    onSelect(foundItem);
+                    setInternalSelectedItem(foundItem);
+                    setOpen(false);
+                    setInputValue("");
+                  }
                 }}
               >
                 {renderListItem ? (
@@ -175,7 +198,15 @@ export function Combobox<T extends ComboboxItem>({
             className="w-full justify-between relative font-normal"
           >
             <span className="truncate text-ellipsis pr-3">
-              {selectedItem ? (
+              {multiple ? (
+                selectedItems.length > 0 ? (
+                  <span className="items-center overflow-hidden whitespace-nowrap text-ellipsis block">
+                    {renderSelectedItem ? renderSelectedItem(selectedItems) : null}
+                  </span>
+                ) : (
+                  (placeholder ?? "Select items...")
+                )
+              ) : selectedItem ? (
                 <span className="items-center overflow-hidden whitespace-nowrap text-ellipsis block">
                   {renderSelectedItem
                     ? renderSelectedItem(selectedItem)

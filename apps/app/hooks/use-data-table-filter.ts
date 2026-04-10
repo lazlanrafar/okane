@@ -30,12 +30,15 @@ export function useDataTableFilter<T extends Record<string, any>>({
   const [filters, setFilters] = useState<T>(() => {
     const currentFilters = { ...initialFilters };
     for (const key in initialFilters) {
-      if (key === "q") {
-        currentFilters[key as keyof T] =
-          (searchParams.get("search") as any) || initialFilters[key];
+      const paramKey = key === "q" ? "search" : key;
+      const isArrayDefault = Array.isArray(initialFilters[key]);
+      
+      if (isArrayDefault) {
+        const values = searchParams.getAll(paramKey);
+        currentFilters[key as keyof T] = (values.length > 0 ? values : initialFilters[key]) as any;
       } else {
-        currentFilters[key as keyof T] =
-          (searchParams.get(key) as any) || initialFilters[key];
+        const value = searchParams.get(paramKey);
+        currentFilters[key as keyof T] = (value || initialFilters[key]) as any;
       }
     }
     return currentFilters;
@@ -70,9 +73,19 @@ export function useDataTableFilter<T extends Record<string, any>>({
         const paramKey = key === "q" ? "search" : key;
         const currentValue = params.get(paramKey);
 
-        if (value) {
-          if (currentValue !== value.toString()) {
-            params.set(paramKey, value.toString());
+        if (value !== undefined && value !== null && value !== "") {
+          if (Array.isArray(value)) {
+            const currentValues = params.getAll(paramKey);
+            if (JSON.stringify([...currentValues].sort()) !== JSON.stringify([...value].map(String).sort())) {
+              params.delete(paramKey);
+              for (const v of value as any[]) {
+                params.append(paramKey, String(v));
+              }
+              params.set("page", "1");
+              hasChanges = true;
+            }
+          } else if (currentValue !== String(value)) {
+            params.set(paramKey, String(value));
             params.set("page", "1");
             hasChanges = true;
           }

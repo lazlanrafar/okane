@@ -130,9 +130,9 @@ export abstract class TransactionsRepository {
     params: {
       page: number;
       limit: number;
-      type?: string;
-      walletId?: string;
-      categoryId?: string;
+      type?: string | string[];
+      walletId?: string | string[];
+      categoryId?: string | string[];
       startDate?: string;
       endDate?: string;
       search?: string;
@@ -148,13 +148,25 @@ export abstract class TransactionsRepository {
     ];
 
     if (params.type) {
-      filters.push(eq(transactions.type, params.type));
+      if (Array.isArray(params.type)) {
+        filters.push(inArray(transactions.type, params.type));
+      } else {
+        filters.push(eq(transactions.type, params.type));
+      }
     }
     if (params.walletId) {
-      filters.push(eq(transactions.walletId, params.walletId));
+      if (Array.isArray(params.walletId)) {
+        filters.push(inArray(transactions.walletId, params.walletId));
+      } else {
+        filters.push(eq(transactions.walletId, params.walletId));
+      }
     }
     if (params.categoryId) {
-      filters.push(eq(transactions.categoryId, params.categoryId));
+      if (Array.isArray(params.categoryId)) {
+        filters.push(inArray(transactions.categoryId, params.categoryId));
+      } else {
+        filters.push(eq(transactions.categoryId, params.categoryId));
+      }
     }
     if (params.startDate) {
       filters.push(gte(transactions.date, params.startDate));

@@ -4,17 +4,21 @@ import { Badge, Button, Icons, Skeleton } from "../../atoms";
 import { format } from "date-fns";
 import { useMemo } from "react";
 
+import { DataTableFilterFacet } from "./data-table-filter";
+
 export type FilterKey = "status" | "date" | "q";
 
 export interface FilterOption {
   id: string;
   name: string;
+  colorClass?: string;
 }
 
 interface Props {
   filters: Record<string, any>;
   loading?: boolean;
   onRemove: (key: string) => void;
+  facets?: DataTableFilterFacet[];
   statusFilters?: FilterOption[];
   statusKey?: string;
   excludeKeys?: string[];
@@ -24,11 +28,25 @@ export function FilterList({
   filters,
   loading,
   onRemove,
+  facets,
   statusFilters,
   statusKey = "status",
   excludeKeys,
 }: Props) {
   const renderFilterValue = (key: string, value: any) => {
+    // Check facets first
+    if (facets) {
+      const facet = facets.find((f) => f.id === key);
+      if (facet) {
+        if (Array.isArray(value)) {
+          return value
+            .map((v) => facet.options.find((o) => o.id === v)?.name || v)
+            .join(", ");
+        }
+        return facet.options.find((o) => o.id === value)?.name || value;
+      }
+    }
+
     switch (key) {
       case "status":
       case statusKey:

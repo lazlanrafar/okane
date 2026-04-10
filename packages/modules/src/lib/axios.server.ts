@@ -9,6 +9,22 @@ export const axiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  paramsSerializer: {
+    serialize: (params) => {
+      const searchParams = new URLSearchParams();
+      for (const key in params) {
+        const value = params[key];
+        if (value === undefined || value === null || value === "") continue;
+
+        if (Array.isArray(value)) {
+          value.forEach((v) => searchParams.append(key, String(v)));
+        } else {
+          searchParams.set(key, String(value));
+        }
+      }
+      return searchParams.toString();
+    },
+  },
 });
 
 // Request interceptor — attaches the app JWT from cookies

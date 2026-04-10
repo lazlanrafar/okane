@@ -12,9 +12,9 @@ import { axiosInstance as api } from "../lib/axios.server";
 export const getTransactions = async (params: {
   page?: number;
   limit?: number;
-  type?: string;
-  walletId?: string;
-  categoryId?: string;
+  type?: string | string[];
+  walletId?: string | string[];
+  categoryId?: string | string[];
   startDate?: string;
   endDate?: string;
   search?: string;

@@ -78,7 +78,7 @@ export const TransactionModel = {
       ]),
     ),
     walletId: t.Optional(t.String()),
-    categoryId: t.Optional(t.String()),
+    categoryId: t.Optional(t.Union([t.String(), t.Array(t.String())])),
     startDate: t.Optional(t.String()),
     endDate: t.Optional(t.String()),
     search: t.Optional(t.String()),
