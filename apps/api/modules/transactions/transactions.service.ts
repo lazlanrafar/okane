@@ -13,6 +13,7 @@ import {
   buildError,
 } from "@workspace/utils";
 import { NotificationsService } from "../notifications/notifications.service";
+import { RealtimeService } from "../realtime/realtime.service";
 import { status } from "elysia";
 
 export abstract class TransactionsService {
@@ -77,6 +78,9 @@ export abstract class TransactionsService {
       message: `A new ${body.type} of ${amount} was recorded.`,
       link: "/transactions",
     });
+    
+    RealtimeService.notifyValueChange(workspaceId, "transactions");
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
 
     return buildSuccess(
       transaction,
@@ -155,6 +159,11 @@ export abstract class TransactionsService {
       } catch (err: any) {
         errors.push({ item, error: err.message });
       }
+    }
+
+    if (results.length > 0) {
+      RealtimeService.notifyValueChange(workspaceId, "transactions");
+      RealtimeService.notifyValueChange(workspaceId, "wallets");
     }
 
     return buildSuccess(
@@ -312,6 +321,9 @@ export abstract class TransactionsService {
       after: updated,
     });
 
+    RealtimeService.notifyValueChange(workspaceId, "transactions");
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
+
     return buildSuccess(updated, "Transaction updated successfully");
   }
 
@@ -361,6 +373,9 @@ export abstract class TransactionsService {
       entity_id: id,
       before: transaction,
     });
+
+    RealtimeService.notifyValueChange(workspaceId, "transactions");
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
 
     return buildSuccess(null, "Transaction deleted successfully");
   }

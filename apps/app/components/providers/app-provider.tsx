@@ -7,6 +7,7 @@ import { getActiveWorkspace } from "@workspace/modules/workspace/workspace.actio
 import { getMe } from "@workspace/modules/user/user.action";
 import { useAppStore, type AppState } from "../../stores/app";
 import type { Dictionary } from "@workspace/dictionaries";
+import { useRealtime } from "../../hooks/use-realtime";
 
 export function AppProvider({
   children,
@@ -21,6 +22,9 @@ export function AppProvider({
   const setSubCurrencies = useAppStore((state: AppState) => state.setSubCurrencies);
   const setDictionary = useAppStore((state: AppState) => state.setDictionary);
   const setIsLoading = useAppStore((state: AppState) => state.setIsLoading);
+  
+  // Initialize Realtime Sync
+  useRealtime();
 
   const { data: userData, isLoading: isUserLoading } = useQuery({
     queryKey: ["user", "me"],

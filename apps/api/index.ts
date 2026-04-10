@@ -45,6 +45,8 @@ import { authPlugin } from "./plugins/auth";
 import { encryptionPlugin } from "./plugins/encryption";
 import { loggerPlugin } from "./plugins/logger";
 import { rateLimitPlugin } from "./plugins/rate-limit";
+import { RealtimeService } from "./modules/realtime/realtime.service";
+import { getAuth } from "./plugins/auth";
 
 const log = createLogger("api");
 const port = Env.API_PORT ?? 3001;
@@ -123,7 +125,49 @@ const app = new Elysia()
       .use(contactsController)
       .use(debtsController)
       .use(notificationsController)
-      .use(notificationSettingsController),
+      .use(notificationSettingsController)
+      .derive(async ({ query, auth }) => {
+        // If already authenticated via header from authPlugin, use it
+        if (auth) return { wsAuth: auth };
+        
+        const token = query.token;
+        if (!token) return { wsAuth: null };
+        
+        return { wsAuth: await getAuth(token) };
+      })
+      .ws("/realtime", {
+        beforeHandle({ wsAuth }) {
+          if (!wsAuth) {
+            log.warn("[WS] Attempted connection with missing or invalid token");
+            return new Response("Unauthorized", { status: 401 });
+          }
+        },
+        open(ws) {
+          const workspace_id = ws.data.wsAuth?.workspace_id;
+          if (workspace_id) {
+            ws.subscribe(workspace_id);
+            log.info(
+              `[WS] Client connected and subscribed to workspace: ${workspace_id}`,
+            );
+          } else {
+            log.warn("[WS] Client connected but has no workspace_id mapped");
+          }
+        },
+        message(ws, message: any) {
+          if (message === "ping") {
+            ws.send("pong");
+          }
+        },
+        close(ws) {
+          const workspace_id = ws.data.wsAuth?.workspace_id;
+          if (workspace_id) {
+            ws.unsubscribe(workspace_id);
+            log.info(
+              `[WS] Client disconnected from workspace: ${workspace_id}`,
+            );
+          }
+        },
+      })
   )
   // Public routes (no auth required)
   .use(publicPricingController)
@@ -169,28 +213,37 @@ const app = new Elysia()
     // 3. Handle explicit status() calls (number strings) or Error with status property
     if (!isNaN(numericCode) && numericCode >= 400 && numericCode < 600) {
       set.status = numericCode;
-      
+
       // If the error body is already a buildError result (ApiResponse)
-      if (error && typeof error === 'object' && 'success' in error && 'code' in error) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "success" in error &&
+        "code" in error
+      ) {
         return error;
       }
 
       // If it's a wrapped error response
-      if (error && typeof (error as any).data === 'object' && (error as any).data !== null) {
-          return (error as any).data;
+      if (
+        error &&
+        typeof (error as any).data === "object" &&
+        (error as any).data !== null
+      ) {
+        return (error as any).data;
       }
 
-      const message = error instanceof Error ? error.message : "An error occurred";
+      const message =
+        error instanceof Error ? error.message : "An error occurred";
       const errorCode = (error as any).code || ErrorCode.INTERNAL_ERROR;
 
-      return buildError(
-        String(errorCode),
-        message,
-      );
+      return buildError(String(errorCode), message);
     }
 
     // 4. Database errors (sanitize to hide implementation details)
-    const errorMsg = (error instanceof Error ? error.message : "").toLowerCase();
+    const errorMsg = (
+      error instanceof Error ? error.message : ""
+    ).toLowerCase();
     if (
       errorMsg.includes("db") ||
       errorMsg.includes("query") ||
@@ -206,7 +259,6 @@ const app = new Elysia()
       );
     }
 
-    // 5. Default: Internal error
     set.status = 500;
     return buildError(
       ErrorCode.INTERNAL_ERROR,
@@ -214,6 +266,16 @@ const app = new Elysia()
     );
   })
   .listen(port);
+
+// Initialize Realtime Brodcaster
+RealtimeService.onDataChanged(({ workspaceId, type }) => {
+  log.info(`[Realtime] Publishing event '${type}' to workspace '${workspaceId}'`);
+  const published = app.server?.publish(
+    workspaceId,
+    JSON.stringify({ type, timestamp: Date.now() }),
+  );
+  log.info(`[Realtime] Publish result (subscribers count): ${published}`);
+});
 
 log.info(`🚀 oewang API running at http://localhost:${port}`);
 log.info(`📖 Swagger docs at http://localhost:${port}/swagger`);

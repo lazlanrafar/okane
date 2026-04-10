@@ -4,6 +4,7 @@ import { buildPaginatedSuccess, buildError } from "@workspace/utils";
 import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import { status } from "elysia";
 import { ErrorCode } from "@workspace/types";
+import { RealtimeService } from "../realtime/realtime.service";
 
 export abstract class WalletsService {
   // --- Wallet Groups ---
@@ -30,6 +31,8 @@ export abstract class WalletsService {
       entity_id: group.id,
       after: group,
     });
+
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
 
     return group;
   }
@@ -60,6 +63,8 @@ export abstract class WalletsService {
       after: group,
     });
 
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
+
     return group;
   }
 
@@ -79,6 +84,8 @@ export abstract class WalletsService {
       before,
     });
 
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
+
     return true;
   }
 
@@ -97,6 +104,8 @@ export abstract class WalletsService {
       entity_id: "00000000-0000-0000-0000-000000000000",
       after: updates,
     });
+
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
   }
 
   // --- Wallets ---
@@ -151,6 +160,8 @@ export abstract class WalletsService {
       after: wallet,
     });
 
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
+
     return wallet;
   }
 
@@ -191,6 +202,8 @@ export abstract class WalletsService {
       after: wallet,
     });
 
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
+
     return wallet;
   }
 
@@ -210,6 +223,8 @@ export abstract class WalletsService {
       before,
     });
 
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
+
     return true;
   }
 
@@ -228,5 +243,7 @@ export abstract class WalletsService {
       entity_id: "00000000-0000-0000-0000-000000000000",
       after: updates,
     });
+
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
   }
 }

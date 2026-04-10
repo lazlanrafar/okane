@@ -3,6 +3,7 @@ import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import { buildSuccess, buildError } from "@workspace/utils";
 import { status } from "elysia";
 import { ErrorCode } from "@workspace/types";
+import { RealtimeService } from "../realtime/realtime.service";
 import type {
   CreateCategoryInput,
   UpdateCategoryInput,
@@ -37,6 +38,8 @@ export abstract class CategoriesService {
       after: category,
     });
 
+    RealtimeService.notifyValueChange(workspaceId, "categories");
+
     return buildSuccess(category, "Category created successfully", "CREATED");
   }
 
@@ -70,6 +73,8 @@ export abstract class CategoriesService {
       after: updated,
     });
 
+    RealtimeService.notifyValueChange(workspaceId, "categories");
+
     return buildSuccess(updated, "Category updated successfully");
   }
 
@@ -88,6 +93,8 @@ export abstract class CategoriesService {
       entity_id: "00000000-0000-0000-0000-000000000000",
       after: data.updates,
     });
+
+    RealtimeService.notifyValueChange(workspaceId, "categories");
 
     return buildSuccess(null, "Categories reordered successfully");
   }
@@ -108,6 +115,8 @@ export abstract class CategoriesService {
       entity_id: id,
       before: category,
     });
+
+    RealtimeService.notifyValueChange(workspaceId, "categories");
 
     return buildSuccess(null, "Category deleted successfully");
   }
