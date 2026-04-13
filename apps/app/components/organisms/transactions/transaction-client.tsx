@@ -133,6 +133,9 @@ export function TransactionsClient({
       categoryId: [],
       startDate: startOfMonth(new Date()).toISOString(),
       endDate: endOfMonth(new Date()).toISOString(),
+      minAmount: null,
+      maxAmount: null,
+      attachments: null,
     },
     debounceMs: 500,
   });
@@ -164,6 +167,9 @@ export function TransactionsClient({
         categoryId: filters.categoryId || undefined,
         startDate: filters.startDate || undefined,
         endDate: filters.endDate || undefined,
+        minAmount: filters.minAmount || undefined,
+        maxAmount: filters.maxAmount || undefined,
+        hasAttachments: filters.attachments === "include" ? true : filters.attachments === "exclude" ? false : undefined,
         search: filters.q || undefined,
         uncategorized: activeTab === "review",
       } as any);
@@ -432,6 +438,25 @@ export function TransactionsClient({
       }));
   }, [categories, getTransactionColor]);
 
+  const walletOptions = useMemo(() => {
+    return wallets
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((w) => ({
+        id: w.id,
+        name: w.name,
+      }));
+  }, [wallets]);
+
+  const attachmentsFilters = useMemo(() => [
+    { id: "include", name: dictionary?.transactions?.filter?.has_attachments || "Has attachments" },
+    { id: "exclude", name: dictionary?.transactions?.filter?.no_attachments || "No attachments" },
+  ], [dictionary]);
+
+  const manualFilters = useMemo(() => [
+    { id: "include", name: dictionary?.transactions?.filter?.manual || "Manual" },
+    { id: "exclude", name: dictionary?.transactions?.filter?.bank_connection || "Bank connection" },
+  ], [dictionary]);
+
   const facets = useMemo(
     () => {
       if (!dictionary) return [];
@@ -450,9 +475,16 @@ export function TransactionsClient({
           multiple: true,
           options: categoryOptions,
         },
+        {
+          id: "walletId",
+          label: dictionary.transactions.account,
+          icon: Icons.Accounts,
+          multiple: true,
+          options: walletOptions,
+        },
       ];
     },
-    [dictionary, typeOptions, categoryOptions],
+    [dictionary, typeOptions, categoryOptions, walletOptions],
   );
 
   const nonClickableColumns = useMemo(
@@ -559,10 +591,16 @@ export function TransactionsClient({
             onFilterChange={handleFilterChange as any}
             placeholder={dictionary.transactions.search_placeholder}
             showDateFilter={false}
-            showAmountFilter={false}
+            showAmountFilter={true}
+            showAttachments={true}
+            showSource={true}
             facets={facets}
+            attachmentsFilters={attachmentsFilters}
+            manualFilters={manualFilters}
             excludeKeys={["startDate", "endDate"]}
             className="w-full bg-transparent border-none p-0 focus-visible:ring-0"
+            categories={categories}
+            accounts={wallets}
           />
         </div>
 

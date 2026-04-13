@@ -17,6 +17,9 @@ export const getTransactions = async (params: {
   categoryId?: string | string[];
   startDate?: string;
   endDate?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  hasAttachments?: boolean;
   search?: string;
   uncategorized?: boolean;
 }): Promise<ApiResponse<Transaction[]>> => {

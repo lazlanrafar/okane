@@ -2,6 +2,7 @@
 
 import {
   Button,
+  Input,
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -12,7 +13,6 @@ import {
   DropdownMenuPortal,
   Icons,
   type IconType,
-  Input,
 } from "../../atoms";
 import { Combobox, type ComboboxItem } from "../../atoms/combobox";
 import { cn } from "../../../lib/utils";
@@ -48,6 +48,15 @@ interface DataTableFilterProps {
   isLoading?: boolean;
   className?: string;
   excludeKeys?: string[];
+  categories?: { id: string; name: string; slug?: string | null }[];
+  accounts?: { id: string; name: string; currency: string }[];
+  members?: { id: string; name: string }[];
+  customers?: { id: string; name: string }[];
+  attachmentsFilters?: FilterOption[];
+  recurringFilters?: FilterOption[];
+  manualFilters?: FilterOption[];
+  tags?: { id: string; name: string; slug?: string }[];
+  amountRange?: [number, number];
 }
 
 function FilterMenuItem({
@@ -96,6 +105,15 @@ export function DataTableFilter({
   showAttachments,
   showSource,
   excludeKeys,
+  categories,
+  accounts,
+  members,
+  customers,
+  attachmentsFilters,
+  recurringFilters,
+  manualFilters,
+  tags,
+  amountRange,
 }: DataTableFilterProps) {
   const [searchValue, setSearchValue] = useState(filters.q || "");
   const [isOpen, setIsOpen] = useState(false);
@@ -141,12 +159,8 @@ export function DataTableFilter({
     };
   }, [filters.start, filters.end]);
 
-  const handleRemoveFilter = (key: string) => {
-    if (key === "date") {
-      onFilterChange({ ...filters, start: null, end: null });
-    } else {
-      onFilterChange({ ...filters, [key]: null });
-    }
+  const handleRemoveFilter = (removedFilters: { [key: string]: null }) => {
+    onFilterChange({ ...filters, ...removedFilters });
   };
 
   const hasActiveFilters = useMemo(() => {
@@ -226,8 +240,41 @@ export function DataTableFilter({
 
               {showAmountFilter && (
                 <FilterMenuItem icon={Icons.Amount} label="Amount">
-                  <div className="p-4 text-center text-[10px] text-muted-foreground font-medium uppercase tracking-widest opacity-50">
-                    Amount range UI coming soon
+                  <div className="p-3 flex flex-col gap-3 min-w-[200px]">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase px-0.5">
+                        Min amount
+                      </span>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        className="h-8 text-xs rounded-none border-secondary/50 focus:border-foreground transition-colors"
+                        value={filters.minAmount || ""}
+                        onChange={(e) =>
+                          onFilterChange({
+                            ...filters,
+                            minAmount: e.target.value || null,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase px-0.5">
+                        Max amount
+                      </span>
+                      <Input
+                        type="number"
+                        placeholder="Unlimited"
+                        className="h-8 text-xs rounded-none border-secondary/50 focus:border-foreground transition-colors"
+                        value={filters.maxAmount || ""}
+                        onChange={(e) =>
+                          onFilterChange({
+                            ...filters,
+                            maxAmount: e.target.value || null,
+                          })
+                        }
+                      />
+                    </div>
                   </div>
                 </FilterMenuItem>
               )}
@@ -433,9 +480,16 @@ export function DataTableFilter({
         loading={isLoading}
         onRemove={handleRemoveFilter}
         facets={facets}
+        categories={categories}
+        accounts={accounts}
+        members={members}
+        customers={customers}
+        tags={tags}
         statusFilters={statusOptions}
-        statusKey={statusKey}
-        excludeKeys={excludeKeys}
+        attachmentsFilters={attachmentsFilters}
+        recurringFilters={recurringFilters}
+        manualFilters={manualFilters}
+        amountRange={amountRange}
       />
     </div>
   );

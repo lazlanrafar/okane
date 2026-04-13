@@ -135,6 +135,9 @@ export abstract class TransactionsRepository {
       categoryId?: string | string[];
       startDate?: string;
       endDate?: string;
+      minAmount?: number;
+      maxAmount?: number;
+      hasAttachments?: boolean;
       search?: string;
       uncategorized?: boolean;
     },
@@ -173,6 +176,29 @@ export abstract class TransactionsRepository {
     }
     if (params.endDate) {
       filters.push(lte(transactions.date, params.endDate));
+    }
+    if (params.minAmount !== undefined) {
+      filters.push(gte(transactions.amount, String(params.minAmount)));
+    }
+    if (params.maxAmount !== undefined) {
+      filters.push(lte(transactions.amount, String(params.maxAmount)));
+    }
+    if (params.hasAttachments !== undefined) {
+      const existsSubquery = db
+        .select({ id: transactionAttachments.id })
+        .from(transactionAttachments)
+        .where(
+          and(
+            eq(transactionAttachments.transactionId, transactions.id),
+            isNull(transactionAttachments.deletedAt),
+          ),
+        );
+
+      if (params.hasAttachments) {
+        filters.push(sql`exists (${existsSubquery})`);
+      } else {
+        filters.push(sql`not exists (${existsSubquery})`);
+      }
     }
     if (params.search) {
       filters.push(

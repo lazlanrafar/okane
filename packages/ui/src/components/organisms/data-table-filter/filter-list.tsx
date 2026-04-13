@@ -1,12 +1,52 @@
 "use client";
 
 import { Badge, Button, Icons, Skeleton } from "../../atoms";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useMemo } from "react";
-
 import { DataTableFilterFacet } from "./data-table-filter";
 
-export type FilterKey = "status" | "date" | "q";
+export type FilterKey =
+  | "start"
+  | "end"
+  | "minAmount"
+  | "maxAmount"
+  | "attachments"
+  | "recurring"
+  | "statuses"
+  | "categories"
+  | "tags"
+  | "accounts"
+  | "customers"
+  | "assignees"
+  | "owners"
+  | "status"
+  | "manual"
+  | "type"
+  | "q"
+  | "page"
+  | "limit";
+
+export type FilterValue = {
+  start: string;
+  end: string;
+  minAmount: number;
+  maxAmount: number;
+  attachments: string;
+  recurring: string[] | boolean;
+  statuses: string[];
+  categories: string[];
+  tags: string[];
+  accounts: string[];
+  customers: string[];
+  assignees: string[];
+  owners: string[];
+  status: string;
+  manual: string;
+  type: string;
+  q: string;
+  page: number;
+  limit: number;
+};
 
 export interface FilterOption {
   id: string;
@@ -17,24 +57,48 @@ export interface FilterOption {
 interface Props {
   filters: Record<string, any>;
   loading?: boolean;
-  onRemove: (key: string) => void;
+  onRemove: (filters: { [key: string]: null }) => void;
   facets?: DataTableFilterFacet[];
+  categories?: { id: string; name: string; slug?: string | null }[];
+  accounts?: { id: string; name: string; currency: string }[];
+  members?: { id: string; name: string }[];
+  customers?: { id: string; name: string }[];
   statusFilters?: FilterOption[];
-  statusKey?: string;
-  excludeKeys?: string[];
+  attachmentsFilters?: FilterOption[];
+  recurringFilters?: FilterOption[];
+  manualFilters?: FilterOption[];
+  tags?: { id: string; name: string; slug?: string }[];
+  amountRange?: [number, number];
 }
+
+const formatDateRange = (start: Date, end: Date) => {
+  const startFormat = format(start, "MMM d");
+  const endFormat = format(end, "MMM d, yyyy");
+  return `${startFormat} - ${endFormat}`;
+};
+
+const formatAccountName = (account: { name?: string; currency?: string }) => {
+  if (!account.name) return "Unknown Account";
+  return `${account.name}${account.currency ? ` (${account.currency.toUpperCase()})` : ""}`;
+};
 
 export function FilterList({
   filters,
   loading,
   onRemove,
   facets,
+  categories,
+  accounts,
+  members,
+  customers,
+  tags,
   statusFilters,
-  statusKey = "status",
-  excludeKeys,
+  attachmentsFilters,
+  recurringFilters,
+  manualFilters,
 }: Props) {
-  const renderFilterValue = (key: string, value: any) => {
-    // Check facets first
+  const renderFilter = (key: string, value: any) => {
+    // Check facets first for compatibility
     if (facets) {
       const facet = facets.find((f) => f.id === key);
       if (facet) {
@@ -48,58 +112,143 @@ export function FilterList({
     }
 
     switch (key) {
-      case "status":
-      case statusKey:
-        return statusFilters?.find((f) => f.id === value)?.name || value;
-      case "date":
-        if (value?.from && value?.to) {
-          return `${format(new Date(value.from), "MMM d")} - ${format(new Date(value.to), "MMM d, yyyy")}`;
+      case "start": {
+        if (value && filters.end) {
+          return formatDateRange(parseISO(value), parseISO(filters.end));
         }
-        if (value?.from) return format(new Date(value.from), "MMM d, yyyy");
-        return null;
-      default:
+        return value && format(parseISO(value), "MMM d, yyyy");
+      }
+
+      case "minAmount": {
+        if (filters.maxAmount) return null; // Handled by maxAmount case below
+        return `Min: ${Number(value).toLocaleString()}`;
+      }
+      case "maxAmount": {
+        if (filters.minAmount) {
+          return `${Number(filters.minAmount).toLocaleString()} - ${Number(value).toLocaleString()}`;
+        }
+        return `Max: ${Number(value).toLocaleString()}`;
+      }
+
+      case "attachments": {
+        return attachmentsFilters?.find((filter) => filter.id === value)?.name;
+      }
+
+      case "recurring": {
+        if (typeof value === "boolean") {
+          return value ? "Recurring" : "One-time";
+        }
+        return (value as string[])
+          ?.map(
+            (slug) =>
+              recurringFilters?.find((filter) => filter.id === slug)?.name,
+          )
+          .join(", ");
+      }
+
+      case "statuses": {
+        if (!value) return null;
+        return (value as string[])
+          .map(
+            (status) =>
+              statusFilters?.find((filter) => filter.id === status)?.name,
+          )
+          .join(", ");
+      }
+
+      case "status": {
+        if (!value) return null;
+        return statusFilters?.find((filter) => filter.id === value)?.name;
+      }
+
+      case "categories": {
+        if (!value) return null;
+        return (value as string[])
+          .map(
+            (id) =>
+              categories?.find((c) => c.id === id || c.slug === id)?.name || id,
+          )
+          .join(", ");
+      }
+
+      case "tags": {
+        if (!value) return null;
+        return (value as string[])
+          .map(
+            (id) =>
+              tags?.find((tag) => tag?.id === id || tag?.slug === id)?.name || id,
+          )
+          .join(", ");
+      }
+
+      case "accounts": {
+        if (!value) return null;
+        return (value as string[])
+          .map((id) => {
+            const account = accounts?.find((account) => account.id === id);
+            return account ? formatAccountName(account) : id;
+          })
+          .join(", ");
+      }
+
+      case "customers": {
+        if (!value) return null;
+        return (value as string[])
+          .map((id) => customers?.find((c) => c.id === id)?.name || id)
+          .join(", ");
+      }
+
+      case "assignees":
+      case "owners": {
+        if (!value) return null;
+        return (value as string[])
+          .map((id) => members?.find((m) => m.id === id)?.name || id)
+          .join(", ");
+      }
+
+      case "manual": {
+        return manualFilters?.find((filter) => filter.id === value)?.name;
+      }
+
+      case "type": {
+        if (value === "income") return "In";
+        if (value === "expense") return "Out";
         return value;
+      }
+
+      default:
+        return String(value);
     }
+  };
+  const handleOnRemove = (key: string) => {
+    if (key === "start" || key === "end") {
+      onRemove({ start: null, end: null });
+      return;
+    }
+
+    if (key === "minAmount" || key === "maxAmount") {
+      onRemove({ minAmount: null, maxAmount: null });
+      return;
+    }
+
+    onRemove({ [key]: null });
   };
 
   const activeFilters = useMemo(() => {
-    const list: [string, any][] = [];
-    const processedKeys = new Set<string>();
-
-    if (excludeKeys) {
-      for (const key of excludeKeys) {
-        processedKeys.add(key);
-      }
-    }
-
-    if (filters.start || filters.end) {
-      if (!processedKeys.has("start") && !processedKeys.has("end")) {
-        list.push(["date", { from: filters.start, to: filters.end }]);
-      }
-      processedKeys.add("start");
-      processedKeys.add("end");
-    }
-
-    Object.entries(filters).forEach(([key, value]) => {
-      if (
-        !processedKeys.has(key) &&
+    return Object.entries(filters).filter(
+      ([key, value]) =>
         value !== null &&
         value !== undefined &&
         value !== "" &&
+        key !== "end" &&
         key !== "q" &&
         key !== "page" &&
-        key !== "limit"
-      ) {
-        list.push([key, value]);
-      }
-    });
-
-    return list;
-  }, [filters, excludeKeys]);
+        key !== "limit",
+    );
+  }, [filters]);
 
   if (activeFilters.length === 0 && !loading) return null;
 
-  // _ to be space weAre to be We Are
   const textCapitalize = (text: string) => {
     return text
       .replace(/_/g, " ")
@@ -116,19 +265,19 @@ export function FilterList({
       ) : (
         <ul className="flex gap-2">
           {activeFilters.map(([key, value]) => {
-            const displayValue = renderFilterValue(key, value);
+            const displayValue = renderFilter(key, value);
             if (!displayValue) return null;
 
             return (
               <li key={key}>
                 <Button
+                  className="h-9 px-2 bg-secondary hover:bg-secondary font-normal text-muted-foreground/80 flex space-x-1 items-center group rounded-none"
+                  onClick={() => handleOnRemove(key)}
                   variant="secondary"
-                  className="h-9 px-2 bg-secondary hover:bg-secondary font-normal flex space-x-1 items-center group rounded-none"
-                  onClick={() => onRemove(key)}
                 >
                   <Icons.Clear className="scale-0 size-auto group-hover:scale-100 transition-all w-0 group-hover:w-4" />
                   <span className="text-[11px] font-medium text-foreground/90 whitespace-nowrap">
-                    {textCapitalize(key)}: {textCapitalize(displayValue)}
+                    {textCapitalize(key)}: {displayValue}
                   </span>
                 </Button>
               </li>

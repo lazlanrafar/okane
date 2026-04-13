@@ -798,6 +798,12 @@
     "add_or_upload": "Add or upload files",
     "click_to_browse": "Click to browse",
     "drag_drop": "or drag and drop files here",
+    "filter": {
+      "has_attachments": "Has attachments",
+      "no_attachments": "No attachments",
+      "manual": "Manual",
+      "bank_connection": "Bank connection"
+    },
     "upload_hint": "Images, PDFs, and spreadsheets from your computer or Vault",
     "loading_debts": "Loading debts...",
     "types": {
