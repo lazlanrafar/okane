@@ -22,7 +22,7 @@ import {
 } from "@workspace/ui";
 import { Check, Info, Sparkles, Rocket, Zap, ShieldCheck } from "lucide-react";
 import { getPricing } from "@workspace/modules/pricing/pricing.action";
-import { createCheckoutSession } from "@workspace/modules/xendit/xendit.action";
+import { createCheckoutSession } from "@workspace/modules/mayar/mayar.action";
 import { toast } from "sonner";
 import {
   displayPrice,
@@ -323,7 +323,7 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
             <ShieldCheck className="h-8 w-8 mx-auto text-primary" />
             <h4 className="font-bold">Secure Checkout</h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Encrypted payments processed via Xendit.
+              Encrypted payments processed via Mayar.
             </p>
           </div>
           <div className="space-y-2">

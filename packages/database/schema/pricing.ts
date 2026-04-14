@@ -18,14 +18,14 @@ export const pricing = pgTable("pricing", {
         currency: string;
         monthly: number;
         yearly: number;
-        xendit_monthly_id?: string;
-        xendit_yearly_id?: string;
-        xendit_product_id?: string;
+        mayar_monthly_id?: string;
+        mayar_yearly_id?: string;
+        mayar_product_id?: string;
       }[]
     >()
     .default([])
     .notNull(),
-  xendit_product_id: text("xendit_product_id"),
+  mayar_product_id: text("mayar_product_id"),
   max_vault_size_mb: integer("max_vault_size_mb").default(100).notNull(),
   max_ai_tokens: integer("max_ai_tokens").default(100).notNull(),
   max_workspaces: integer("max_workspaces").default(1).notNull(),

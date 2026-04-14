@@ -43,5 +43,8 @@
     "radix-ui": "1.4.3",
     "drizzle-orm": "0.45.1",
     "nuqs": "2.8.9"
+  },
+  "dependencies": {
+    "pg": "^8.20.0"
   }
 }

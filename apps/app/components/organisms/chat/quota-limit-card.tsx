@@ -24,8 +24,8 @@ export function QuotaLimitCard() {
     upgrade_button: "Upgrade Plan",
   };
 
-  const resetDate = quota.xendit_current_period_end
-    ? new Date(quota.xendit_current_period_end).toLocaleDateString(undefined, {
+  const resetDate = quota.plan_current_period_end
+    ? new Date(quota.plan_current_period_end).toLocaleDateString(undefined, {
         month: "short",
         day: "numeric",
         year: "numeric",

@@ -31,7 +31,7 @@ import { ordersController } from "./modules/orders/orders.controller";
 import { pricingController } from "./modules/pricing/pricing.controller";
 import { publicPricingController } from "./modules/pricing/public-pricing.controller";
 import { settingsController } from "./modules/settings/settings.controller";
-import { xenditController } from "./modules/xendit/xendit.controller";
+import { mayarController } from "./modules/mayar/mayar.controller";
 import { systemAdminsController } from "./modules/system-admins/system-admins.controller";
 import { systemMetricsController } from "./modules/system-metrics/system-metrics.controller";
 import { transactions } from "./modules/transactions/transactions.controller";
@@ -117,7 +117,7 @@ const app = new Elysia()
       .use(integrationsController)
       .use(systemAdminsController)
       .use(pricingController)
-      .use(xenditController)
+      .use(mayarController)
       .use(ordersController)
       .use(systemMetricsController)
       .use(invoicesController)

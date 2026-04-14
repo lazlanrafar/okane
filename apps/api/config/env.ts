@@ -25,25 +25,17 @@ const apiEnvSchema = z.object({
   UPSTASH_REDIS_REST_URL: z.string().min(1).optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
 
-  // Xendit
-  XENDIT_SECRET_KEY: z.string().superRefine((val, ctx) => {
+  // Mayar
+  MAYAR_API_KEY: z.string().superRefine((val, ctx) => {
     if (process.env.NODE_ENV === "production" && !val) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "XENDIT_SECRET_KEY is required in production",
-        path: ["XENDIT_SECRET_KEY"],
+        message: "MAYAR_API_KEY is required in production",
+        path: ["MAYAR_API_KEY"],
       });
     }
   }).optional(),
-  XENDIT_CALLBACK_TOKEN: z.string().superRefine((val, ctx) => {
-    if (process.env.NODE_ENV === "production" && !val) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "XENDIT_CALLBACK_TOKEN is required in production",
-        path: ["XENDIT_CALLBACK_TOKEN"],
-      });
-    }
-  }).optional(),
+  MAYAR_WEBHOOK_TOKEN: z.string().optional(),
 
   // AI
   OPENAI_API_KEY: z.string().min(1).optional(),

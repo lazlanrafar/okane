@@ -15,9 +15,9 @@ export const workspaces = pgTable("workspaces", {
   country: text("country"),
   plan_id: uuid("plan_id").references(() => pricing.id),
   plan_status: text("plan_status").default("free").notNull(),
-  xendit_customer_id: text("xendit_customer_id").unique(),
-  xendit_subscription_id: text("xendit_subscription_id").unique(),
-  xendit_current_period_end: timestamp("xendit_current_period_end"),
+  mayar_customer_email: text("mayar_customer_email"),
+  mayar_transaction_id: text("mayar_transaction_id").unique(),
+  plan_current_period_end: timestamp("plan_current_period_end"),
   ai_tokens_used: integer("ai_tokens_used").default(0).notNull(),
   vault_size_used_bytes: bigint("vault_size_used_bytes", { mode: "number" })
     .default(0)

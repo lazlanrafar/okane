@@ -1,30 +1,29 @@
-import { Elysia, t } from "elysia";
-import { XenditService } from "./xendit.service";
-import { CreateXenditCheckoutDto, XenditWebhookDto } from "./xendit.dto";
+import { Elysia } from "elysia";
+import { MayarService } from "./mayar.service";
+import { CreateMayarCheckoutDto, MayarWebhookDto } from "./mayar.dto";
 import { authPlugin } from "../../plugins/auth";
 import { buildError } from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
 
-export const xenditController = new Elysia({
-  prefix: "/xendit",
-  name: "xendit.controller",
+export const mayarController = new Elysia({
+  prefix: "/mayar",
+  name: "mayar.controller",
 })
   .post(
     "/webhook",
-    async ({ request, body }) => {
-      const callbackToken = request.headers.get("x-callback-token") || "";
-
+    async ({ body, headers }) => {
       try {
-        await XenditService.handleWebhook(body, callbackToken);
+        const token = headers["x-mayar-token"];
+        await MayarService.handleWebhook(body, token);
         return { success: true };
       } catch (err: any) {
-        console.error("[Xendit Webhook Error]", err.stack || err.message);
+        console.error("[Mayar Webhook Error]", err.stack || err.message);
         return { success: false, error: err.message };
       }
     },
-    { 
-       body: XenditWebhookDto,
-       detail: { summary: "Xendit Webhook", tags: ["Xendit"] } 
+    {
+      body: MayarWebhookDto,
+      detail: { summary: "Mayar Webhook", tags: ["Mayar"] },
     },
   )
   .use(authPlugin)
@@ -32,10 +31,10 @@ export const xenditController = new Elysia({
     "/checkout",
     async ({ body, auth, status }) => {
       if (!auth) return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
-      
+
       const { priceId, workspaceId, returnPath, type, addonType, amount, addonId } = body;
-      
-      return XenditService.createCheckoutSession(
+
+      return MayarService.createCheckoutSession(
         workspaceId || auth.workspace_id,
         auth.user_id,
         priceId,
@@ -51,31 +50,31 @@ export const xenditController = new Elysia({
       );
     },
     {
-      body: CreateXenditCheckoutDto,
-      detail: { summary: "Create Xendit Checkout Session", tags: ["Xendit"] },
+      body: CreateMayarCheckoutDto,
+      detail: { summary: "Create Mayar Checkout Session", tags: ["Mayar"] },
     },
   )
   .post(
     "/portal",
     async ({ auth, status }) => {
       if (!auth) return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
-      // Placeholder for now
+      // Redirect to billing settings — Mayar manages subscriptions via their dashboard
       return { url: `${process.env.NEXT_PUBLIC_APP_URL}/en/settings/billing` };
     },
-    { detail: { summary: "Create Customer Portal", tags: ["Xendit"] } },
+    { detail: { summary: "Customer Portal Redirect", tags: ["Mayar"] } },
   )
   .get(
     "/invoices/:id",
     async ({ params }) => {
-      return XenditService.getInvoiceUrl(params.id);
+      return MayarService.getInvoiceUrl(params.id);
     },
-    { detail: { summary: "Get Invoice URL", tags: ["Xendit"] } },
+    { detail: { summary: "Get Invoice URL", tags: ["Mayar"] } },
   )
   .post(
     "/cancel-subscription",
     async ({ auth, status }) => {
       if (!auth) return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
-      return XenditService.cancelSubscription(auth.workspace_id);
+      return MayarService.cancelSubscription(auth.workspace_id);
     },
-    { detail: { summary: "Cancel Subscription", tags: ["Xendit"] } },
+    { detail: { summary: "Cancel Subscription", tags: ["Mayar"] } },
   );

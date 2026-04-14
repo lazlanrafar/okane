@@ -18,7 +18,7 @@ import type { Pricing } from "@workspace/types";
 import {
   createCheckoutSession,
   cancelSubscription,
-} from "@workspace/modules/xendit/xendit.action";
+} from "@workspace/modules/mayar/mayar.action";
 import { toast } from "sonner";
 import { useAppStore } from "@/stores/app";
 import { Separator } from "@workspace/ui";
@@ -129,7 +129,7 @@ export function UpgradeView({ initialPlans }: { initialPlans: Pricing[] }) {
               const isCurrent = currentPlanId === plan.id;
               const isStarter = plan.name.toLowerCase() === "starter";
               const canDowngrade =
-                isStarter && workspace?.xendit_subscription_id;
+                isStarter && workspace?.mayar_transaction_id;
 
               const price = displayPrice(plan, billingCycle, {
                 currency,

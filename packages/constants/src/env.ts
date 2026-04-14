@@ -30,9 +30,9 @@ const serverSchema = z.object({
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().optional().default("7d"),
 
-  // Xendit
-  XENDIT_SECRET_KEY: z.string().optional(),
-  XENDIT_CALLBACK_TOKEN: z.string().optional(),
+  // Mayar
+  MAYAR_API_KEY: z.string().optional(),
+  MAYAR_WEBHOOK_TOKEN: z.string().optional(),
 
   // AI
   OPENAI_API_KEY: z.string().min(1).optional().or(z.literal("")),

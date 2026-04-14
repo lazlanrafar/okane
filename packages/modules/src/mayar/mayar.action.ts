@@ -4,7 +4,7 @@ import { axiosInstance as api } from "../lib/axios.server";
 import type { ActionResponse } from "@workspace/types";
 
 /**
- * Xendit actions — REST wrappers for Xendit endpoints.
+ * Mayar actions — REST wrappers for Mayar payment gateway endpoints.
  */
 
 export const createCheckoutSession = async (
@@ -17,7 +17,7 @@ export const createCheckoutSession = async (
   addonId?: string,
 ): Promise<ActionResponse<{ url: string }>> => {
   try {
-    const response = await api.post("/xendit/checkout", {
+    const response = await api.post("/mayar/checkout", {
       priceId,
       workspaceId,
       returnPath,
@@ -43,7 +43,7 @@ export const createCustomerPortal = async (): Promise<
   ActionResponse<{ url: string }>
 > => {
   try {
-    const response = await api.post("/xendit/portal");
+    const response = await api.post("/mayar/portal");
     return {
       success: true,
       data: response.data.data,
@@ -58,7 +58,7 @@ export const createCustomerPortal = async (): Promise<
 
 export const cancelSubscription = async (): Promise<ActionResponse<any>> => {
   try {
-    const response = await api.post("/xendit/cancel-subscription");
+    const response = await api.post("/mayar/cancel-subscription");
     return {
       success: true,
       data: response.data.data,
@@ -72,10 +72,10 @@ export const cancelSubscription = async (): Promise<ActionResponse<any>> => {
 };
 
 export const getInvoiceUrl = async (
-  invoiceId: string,
+  transactionId: string,
 ): Promise<ActionResponse<{ url: string }>> => {
   try {
-    const response = await api.get(`/xendit/invoices/${invoiceId}`);
+    const response = await api.get(`/mayar/invoices/${transactionId}`);
     return {
       success: true,
       data: response.data.data,

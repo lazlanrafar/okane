@@ -22,7 +22,7 @@ import {
   createCustomerPortal,
   cancelSubscription,
   getInvoiceUrl,
-} from "@workspace/modules/xendit/xendit.action";
+} from "@workspace/modules/mayar/mayar.action";
 import { getBillingHistory } from "@workspace/modules/orders/orders.action";
 import { toast } from "sonner";
 import { useAppStore } from "@/stores/app";
@@ -225,7 +225,7 @@ export function BillingView({
                 <h3 className="text-2xl font-medium tracking-tight">
                   {currentPlan.name}
                 </h3>
-                {workspace?.xendit_subscription_id && (
+                {workspace?.mayar_transaction_id && (
                   <Badge
                     variant="secondary"
                     className="rounded-none text-[9px] h-4 px-1.5 font-medium tracking-wide uppercase bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
@@ -268,7 +268,7 @@ export function BillingView({
               </ul>
             </div>
             <div className="flex flex-col justify-end gap-3 sm:flex-row h-fit self-end">
-              {workspace?.xendit_subscription_id ? (
+              {workspace?.mayar_transaction_id ? (
                 <>
                   <Button
                     variant="outline"
@@ -543,21 +543,21 @@ export function BillingView({
                           </Badge>
                         </td>
                         <td className="p-4 text-right">
-                          {order.xendit_invoice_id && (
+                          {order.mayar_invoice_id && (
                             <Button
                               variant="outline"
                               size="sm"
                               className="h-7 px-3 text-[10px] uppercase tracking-widest rounded-none border font-medium hover:bg-foreground hover:text-background transition-all"
                               onClick={() =>
                                 downloadMutation.mutate(
-                                  order.xendit_invoice_id!,
+                                  order.mayar_invoice_id!,
                                 )
                               }
                               disabled={downloadMutation.isPending}
                             >
                               {downloadMutation.isPending &&
                               downloadMutation.variables ===
-                                order.xendit_invoice_id
+                                order.mayar_invoice_id
                                 ? "..."
                                 : (dictionary?.settings?.common?.view_pdf || "View PDF")}
                             </Button>

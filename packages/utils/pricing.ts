@@ -27,12 +27,12 @@ export function getGatewayPrice(
   const price = plan.prices?.find((p) => p.currency === currency);
   if (!price) return null;
   
-  if (billing === "annual" && price.xendit_yearly_id)
-    return price.xendit_yearly_id;
-  if (billing === "monthly" && price.xendit_monthly_id)
-    return price.xendit_monthly_id;
-  if (billing === "addon" && price.xendit_product_id)
-    return price.xendit_product_id;
+  if (billing === "annual" && price.mayar_yearly_id)
+    return price.mayar_yearly_id;
+  if (billing === "monthly" && price.mayar_monthly_id)
+    return price.mayar_monthly_id;
+  if (billing === "addon" && price.mayar_product_id)
+    return price.mayar_product_id;
 
   return null;
 }
