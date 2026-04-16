@@ -50,6 +50,7 @@ export function SelectFile() {
             // Convert to JSON with headers
             const jsonData = XLSX.utils.sheet_to_json(worksheet, {
               defval: "",
+              raw: false,
             });
 
             if (jsonData.length < 1) {

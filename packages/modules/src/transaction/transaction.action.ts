@@ -104,14 +104,25 @@ export const createTransaction = async (
 
 export const bulkCreateTransactions = async (
   data: Partial<Transaction>[],
-): Promise<ActionResponse<{ imported: number; failed: number }>> => {
+): Promise<
+  ActionResponse<{
+    imported: number;
+    failed: number;
+    failures?: { index: number; reason: string }[];
+  }>
+> => {
   try {
     const response = await api.post<
-      ApiResponse<{ imported: number; failed: number }>
+      ApiResponse<{
+        imported: number;
+        failed: number;
+        failures?: { index: number; reason: string }[];
+      }>
     >("/transactions/bulk", data);
     const apiResponse = (response as any)._api_response as ApiResponse<{
       imported: number;
       failed: number;
+      failures?: { index: number; reason: string }[];
     }>;
     const result = apiResponse?.data ?? response.data?.data;
     if (!result) {
@@ -178,17 +189,19 @@ export const deleteTransaction = async (
 
 export const bulkDeleteTransactions = async (
   ids: string[],
-): Promise<ActionResponse<void>> => {
+): Promise<ActionResponse<{ deleted: number }>> => {
   try {
-    // Check if backend supports bulk delete, otherwise loop (safer for now if unsure)
-    // Most REST APIs for bulk use POST /bulk-delete or similar,
-    // but without seeing controller, I'll provide a loop as fallback or
-    // assume a standard DELETE /transactions?ids=... if preferred.
-    // Let's assume a loop for maximum compatibility unless I see a bulk endpoint.
-    await Promise.all(ids.map((id) => api.delete(`/transactions/${id}`)));
+    const response = await api.post<ApiResponse<{ deleted: number }>>(
+      "/transactions/bulk-delete",
+      { ids },
+    );
+    const apiResponse = (response as any)._api_response as ApiResponse<{
+      deleted: number;
+    }>;
+    const result = apiResponse?.data ?? response.data?.data;
     revalidatePath("/transactions");
     revalidateTag("transactions", "profile");
-    return { success: true, data: undefined };
+    return { success: true, data: result || { deleted: 0 } };
   } catch (error: any) {
     return {
       success: false,

@@ -51,10 +51,11 @@ export abstract class TransactionsRepository {
 
   static async createMany(
     data: (typeof transactions.$inferInsert)[],
+    tx: any = db,
   ): Promise<Transaction[]> {
     if (data.length === 0) return [];
 
-    const results = await db.insert(transactions).values(data).returning();
+    const results = await tx.insert(transactions).values(data).returning();
 
     return results.map(
       (transaction) =>
@@ -352,6 +353,28 @@ export abstract class TransactionsRepository {
       .returning();
 
     return transaction as unknown as Transaction | undefined;
+  }
+
+  static async deleteMany(
+    workspaceId: string,
+    ids: string[],
+    tx: any = db,
+  ): Promise<Transaction[]> {
+    if (ids.length === 0) return [];
+    
+    const results = await tx
+      .update(transactions)
+      .set({ deletedAt: new Date().toISOString() })
+      .where(
+        and(
+          eq(transactions.workspaceId, workspaceId),
+          inArray(transactions.id, ids),
+          isNull(transactions.deletedAt),
+        ),
+      )
+      .returning();
+
+    return results as unknown as Transaction[];
   }
 
   // ── Attachments ──────────────────────────────────────────────────────────

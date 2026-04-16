@@ -43,6 +43,9 @@ export const TransactionModel = {
       attachmentIds: t.Optional(t.Array(t.String())),
     }),
   ),
+  bulkDelete: t.Object({
+    ids: t.Array(t.String()),
+  }),
   update: t.Object({
     walletId: t.Optional(t.String()),
     toWalletId: t.Optional(t.String()),
