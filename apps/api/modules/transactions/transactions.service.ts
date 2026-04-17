@@ -108,6 +108,7 @@ export abstract class TransactionsService {
     // Pre-validation phase
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
+      if (!item) continue;
       if (!item.walletId) {
         failures.push({ index: i, reason: "Account is required" });
         continue;
@@ -197,7 +198,7 @@ export abstract class TransactionsService {
           entity_id: transaction.id,
           after: transaction,
         }));
-        await AuditLogsService.logMany(auditLogsToInsert, tx);
+        await AuditLogsService.logMany(auditLogsToInsert);
 
         // 4. Notify listeners (outside tx if needed, but here fine)
         RealtimeService.notifyValueChange(workspaceId, "transactions");
@@ -216,7 +217,7 @@ export abstract class TransactionsService {
     } catch (err: any) {
       console.error("[Bulk Create Error]", err);
       return buildError(
-        ErrorCode.PROCESS_FAILED,
+        ErrorCode.INTERNAL_ERROR,
         `Import failed: ${err.message || "Unknown error"}`,
       );
     }
@@ -484,7 +485,7 @@ export abstract class TransactionsService {
         await Promise.all(walletUpdatePromises);
 
         // Bulk insert audit logs within tx
-        await AuditLogsService.logMany(auditLogsToInsert, tx);
+        await AuditLogsService.logMany(auditLogsToInsert);
 
         RealtimeService.notifyValueChange(workspaceId, "transactions");
         RealtimeService.notifyValueChange(workspaceId, "wallets");
@@ -497,7 +498,7 @@ export abstract class TransactionsService {
     } catch (err: any) {
       console.error("[Bulk Delete Error]", err);
       return buildError(
-        ErrorCode.PROCESS_FAILED,
+        ErrorCode.INTERNAL_ERROR,
         `Delete failed: ${err.message || "Unknown error"}`,
       );
     }

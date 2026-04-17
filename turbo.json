@@ -21,8 +21,11 @@
     "NEXT_PUBLIC_SUPABASE_URL",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY"
   ],
-  "globalPassThroughEnv": ["NODE_ENV"],
+  "globalPassThroughEnv": ["NODE_ENV", "PLAYWRIGHT_*"],
   "tasks": {
+    "test:e2e": {
+      "dependsOn": ["^build"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],

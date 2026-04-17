@@ -1,0 +1,14 @@
+{
+  "name": "@workspace/playwright",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.ts",
+  "types": "index.ts",
+  "dependencies": {
+    "@playwright/test": "^1.59.1"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "@workspace/typescript-config": "workspace:*"
+  }
+}

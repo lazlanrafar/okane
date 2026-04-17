@@ -58,7 +58,7 @@ export abstract class TransactionsRepository {
     const results = await tx.insert(transactions).values(data).returning();
 
     return results.map(
-      (transaction) =>
+      (transaction: any) =>
         ({
           ...transaction,
           date: transaction.date,
