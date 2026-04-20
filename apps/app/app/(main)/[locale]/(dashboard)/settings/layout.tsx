@@ -20,7 +20,7 @@ export default async function SettingsLayout({
         <aside className="overflow-y-auto lg:w-1/5">
           <SettingSidebar dictionary={dictionary.settings} />
         </aside>
-        <div className="flex-1 overflow-y-auto lg:max-w-2xl">{children}</div>
+        <div className="flex-1 overflow-y-auto lg:max-w-3xl">{children}</div>
       </div>
     </div>
   );

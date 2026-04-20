@@ -209,6 +209,18 @@
         "action": "Action",
         "no_history": "No billing history",
         "no_history_description": "You haven't made any purchases yet."
+      },
+      "success": {
+        "title": "Payment Successful",
+        "description": "Thank you for your purchase! Your workspace has been upgraded successfully.",
+        "back_to_dashboard": "Back to Dashboard",
+        "view_billing": "View Billing"
+      },
+      "failed": {
+        "title": "Payment Failed",
+        "description": "We couldn't process your payment. Please try again or contact support if the problem persists.",
+        "try_again": "Try Again",
+        "back_to_pricing": "Back to Pricing"
       }
     },
     "profile": {

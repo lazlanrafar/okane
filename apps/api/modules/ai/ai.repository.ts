@@ -8,6 +8,7 @@ import {
   aiMessages,
   workspaces,
   pricing,
+  workspaceAddons,
   sql,
 } from "@workspace/database";
 
@@ -101,9 +102,30 @@ export abstract class AiRepository {
 
     if (!row) return null;
 
+    // Sum up recurring AI addons
+    const activeAddons = await db
+      .select({
+        maxTokens: pricing.max_ai_tokens,
+      })
+      .from(workspaceAddons)
+      .innerJoin(pricing, eq(workspaceAddons.addon_id, pricing.id))
+      .where(
+        and(
+          eq(workspaceAddons.workspace_id, workspaceId),
+          eq(workspaceAddons.status, "active"),
+          eq(pricing.addon_type, "ai"),
+          isNull(workspaceAddons.deleted_at),
+        ),
+      );
+
+    const recurringExtraAi = activeAddons.reduce(
+      (sum, a) => sum + (a.maxTokens || 0),
+      0,
+    );
+
     return {
       used: row.used,
-      maxTokens: (row.maxTokens || 0) + row.extra,
+      maxTokens: (row.maxTokens || 0) + row.extra + recurringExtraAi,
       plan_current_period_end: row.plan_current_period_end,
       created_at: row.created_at,
     };

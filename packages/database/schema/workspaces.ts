@@ -24,6 +24,7 @@ export const workspaces = pgTable("workspaces", {
     .notNull(),
   extra_ai_tokens: integer("extra_ai_tokens").default(0).notNull(),
   extra_vault_size_mb: integer("extra_vault_size_mb").default(0).notNull(),
+  storage_violation_at: timestamp("storage_violation_at"),
   deleted_at: timestamp("deleted_at"),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),

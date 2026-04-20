@@ -31,6 +31,7 @@ const serverSchema = z.object({
   JWT_EXPIRES_IN: z.string().optional().default("7d"),
 
   // Mayar
+  MAYAR_API_URL: z.string().url().optional(),
   MAYAR_API_KEY: z.string().optional(),
   MAYAR_WEBHOOK_TOKEN: z.string().optional(),
 

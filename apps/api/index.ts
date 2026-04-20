@@ -173,7 +173,12 @@ const app = new Elysia()
   .use(publicPricingController)
   // Global error handler — sanitizes and logs all unhandled exceptions
   .onError(({ error, code, set, path }) => {
-    const numericCode = typeof code === "string" ? parseInt(code, 10) : NaN;
+    const numericCode =
+      typeof code === "number"
+        ? code
+        : typeof code === "string"
+          ? parseInt(code, 10)
+          : NaN;
     const isClientError =
       !isNaN(numericCode) && (numericCode === 401 || numericCode === 403);
 
@@ -227,14 +232,17 @@ const app = new Elysia()
       // If it's a wrapped error response
       if (
         error &&
-        typeof (error as any).data === "object" &&
-        (error as any).data !== null
+        typeof error === "object" &&
+        "success" in error &&
+        "code" in error
       ) {
-        return (error as any).data;
+        return error;
       }
 
       const message =
-        error instanceof Error ? error.message : "An error occurred";
+        error instanceof Error
+          ? error.message
+          : (error as any)?.message || "An error occurred";
       const errorCode = (error as any).code || ErrorCode.INTERNAL_ERROR;
 
       return buildError(String(errorCode), message);

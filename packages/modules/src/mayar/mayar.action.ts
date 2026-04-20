@@ -16,6 +16,7 @@ export const createCheckoutSession = async (
   amount?: number,
   addonId?: string,
   billing?: "monthly" | "annual",
+  locale?: string,
 ): Promise<ActionResponse<{ url: string }>> => {
   try {
     const response = await api.post("/mayar/checkout", {
@@ -27,6 +28,7 @@ export const createCheckoutSession = async (
       amount,
       addonId,
       billing,
+      locale,
     });
     return {
       success: true,
@@ -86,6 +88,37 @@ export const getInvoiceUrl = async (
     return {
       success: false,
       error: error.response?.data?.message || "Failed to get invoice URL",
+    };
+  }
+};
+
+export const cancelAddonAction = async (
+  addonId: string,
+): Promise<ActionResponse<any>> => {
+  try {
+    const response = await api.post("/mayar/cancel-addon", { addonId });
+    return {
+      success: true,
+      data: response.data.data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to cancel addon",
+    };
+  }
+};
+export const sendMagicLinkAction = async (): Promise<ActionResponse<any>> => {
+  try {
+    const response = await api.post("/mayar/portal/magic-link");
+    return {
+      success: true,
+      data: response.data.data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to send magic link",
     };
   }
 };

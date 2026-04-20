@@ -209,6 +209,18 @@
         "action": "アクション",
         "no_history": "請求履歴はありません",
         "no_history_description": "まだ購入履歴がありません。"
+      },
+      "success": {
+        "title": "お支払い完了",
+        "description": "ご購入ありがとうございます！ワークスペースのアップグレードが正常に完了しました。",
+        "back_to_dashboard": "ダッシュボードに戻る",
+        "view_billing": "請求を表示"
+      },
+      "failed": {
+        "title": "お支払い失敗",
+        "description": "お支払いを処理できませんでした。もう一度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。",
+        "try_again": "再試行",
+        "back_to_pricing": "価格設定に戻る"
       }
     },
     "profile": {

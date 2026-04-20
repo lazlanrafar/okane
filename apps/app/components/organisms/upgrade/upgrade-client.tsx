@@ -182,7 +182,8 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full mt-8">
           {sortedPlans.map((plan, idx) => {
             const isPro = plan.name.toLowerCase() === "pro";
-            const isCurrent = workspace?.plan_id === plan.id;
+            const isStarter = plan.name.toLowerCase() === "starter";
+            const isCurrent = workspace?.plan_id === plan.id || (workspace?.plan_id === null && isStarter);
             const price = displayPrice(plan, billingCycle, { currency });
             const savings = annualSavingsPct(plan, currency);
             const priceId = getGatewayPrice(plan, billingCycle, currency);

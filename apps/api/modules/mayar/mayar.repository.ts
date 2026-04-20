@@ -146,4 +146,43 @@ export abstract class MayarRepository {
       .returning();
     return addon;
   }
+
+  static async findAllPlans() {
+    return db
+      .select()
+      .from(pricing)
+      .where(isNull(pricing.deleted_at));
+  }
+
+  static async findAddon(workspaceId: string, addonId: string) {
+    const [addon] = await db
+      .select()
+      .from(workspaceAddons)
+      .where(
+        and(
+          eq(workspaceAddons.workspace_id, workspaceId),
+          eq(workspaceAddons.addon_id, addonId),
+          isNull(workspaceAddons.deleted_at),
+        ),
+      )
+      .limit(1);
+    return addon;
+  }
+
+  static async updateAddonStatus(
+    workspaceId: string,
+    addonId: string,
+    status: "active" | "cancelled" | "past_due" | "unpaid",
+  ) {
+    await db
+      .update(workspaceAddons)
+      .set({ status, updated_at: new Date() })
+      .where(
+        and(
+          eq(workspaceAddons.workspace_id, workspaceId),
+          eq(workspaceAddons.addon_id, addonId),
+          isNull(workspaceAddons.deleted_at),
+        ),
+      );
+  }
 }

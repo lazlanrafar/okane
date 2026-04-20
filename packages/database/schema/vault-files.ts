@@ -21,5 +21,6 @@ export const vaultFiles = pgTable("vault_files", {
   metadata: text("metadata"), // JSON string
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  inactive_at: timestamp("inactive_at"),
   deletedAt: timestamp("deleted_at"),
 });

@@ -9,6 +9,11 @@ export const CreateMayarCheckoutDto = t.Object({
   amount: t.Optional(t.Number()),
   addonId: t.Optional(t.String()),
   billing: t.Optional(t.Enum({ monthly: "monthly", annual: "annual" })),
+  locale: t.Optional(t.String()),
 });
 
 export const MayarWebhookDto = t.Any();
+
+export const CancelAddonDto = t.Object({
+  addonId: t.String(),
+});

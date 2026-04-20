@@ -10,6 +10,7 @@ import {
   pricing,
   workspaces,
   ilike,
+  workspaceAddons,
   workspaceSettings,
 } from "@workspace/database";
 
@@ -22,6 +23,7 @@ export abstract class VaultRepository {
         and(
           eq(vaultFiles.workspaceId, workspaceId),
           isNull(vaultFiles.deletedAt),
+          isNull(vaultFiles.inactive_at),
           ...(data?.search
             ? [ilike(vaultFiles.name, `%${data.search}%`)]
             : []),
@@ -72,6 +74,7 @@ export abstract class VaultRepository {
         and(
           eq(vaultFiles.workspaceId, workspaceId),
           isNull(vaultFiles.deletedAt),
+          isNull(vaultFiles.inactive_at),
           ...(search ? [ilike(vaultFiles.name, `%${search}%`)] : []),
         ),
       )
@@ -107,22 +110,59 @@ export abstract class VaultRepository {
   }
 
   static async getUsageAndQuota(workspaceId: string) {
-    const [usageData] = await db
+    const [row] = await db
       .select({
         used: workspaces.vault_size_used_bytes,
+        extra: workspaces.extra_vault_size_mb,
         maxMb: pricing.max_vault_size_mb,
+        storage_violation_at: workspaces.storage_violation_at,
       })
       .from(workspaces)
       .leftJoin(pricing, eq(workspaces.plan_id, pricing.id))
       .where(eq(workspaces.id, workspaceId))
       .limit(1);
-    return usageData;
+
+    if (!row) return null;
+
+    // Sum up recurring Vault addons
+    const activeAddons = await db
+      .select({
+        maxMb: pricing.max_vault_size_mb,
+      })
+      .from(workspaceAddons)
+      .innerJoin(pricing, eq(workspaceAddons.addon_id, pricing.id))
+      .where(
+        and(
+          eq(workspaceAddons.workspace_id, workspaceId),
+          eq(workspaceAddons.status, "active"),
+          eq(pricing.addon_type, "vault"),
+          isNull(workspaceAddons.deleted_at),
+        ),
+      );
+
+    const recurringExtraVault = activeAddons.reduce(
+      (sum, a) => sum + (a.maxMb || 0),
+      0,
+    );
+
+    return {
+      used: row.used,
+      maxMb: (row.maxMb || 0) + row.extra + recurringExtraVault,
+      storage_violation_at: row.storage_violation_at,
+    };
   }
 
   static async updateVaultSize(workspaceId: string, newSize: number) {
     await db
       .update(workspaces)
       .set({ vault_size_used_bytes: newSize })
+      .where(eq(workspaces.id, workspaceId));
+  }
+
+  static async updateWorkspaceSubscription(workspaceId: string, data: any) {
+    await db
+      .update(workspaces)
+      .set(data)
       .where(eq(workspaces.id, workspaceId));
   }
 
@@ -138,5 +178,45 @@ export abstract class VaultRepository {
       )
       .limit(1);
     return settings ?? null;
+  }
+
+  static async bulkSetFilesInactive(workspaceId: string, isInactive: boolean) {
+    await db
+      .update(vaultFiles)
+      .set({ inactive_at: isInactive ? new Date() : null })
+      .where(
+        and(
+          eq(vaultFiles.workspaceId, workspaceId),
+          isNull(vaultFiles.deletedAt),
+        ),
+      );
+  }
+
+  static async findAllWorkspacesWithUsage() {
+    const ws = await db
+      .select({
+        id: workspaces.id,
+        vault_size_used_bytes: workspaces.vault_size_used_bytes,
+        extra_vault_size_mb: workspaces.extra_vault_size_mb,
+        storage_violation_at: workspaces.storage_violation_at,
+      })
+      .from(workspaces)
+      .where(isNull(workspaces.deleted_at));
+
+    const results = [];
+
+    for (const w of ws) {
+      const quota = await this.getUsageAndQuota(w.id);
+      if (quota) {
+        results.push({
+          workspaceId: w.id,
+          used: Number(w.vault_size_used_bytes),
+          maxMb: quota.maxMb,
+          storage_violation_at: w.storage_violation_at,
+        });
+      }
+    }
+
+    return results;
   }
 }

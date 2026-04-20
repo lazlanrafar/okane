@@ -26,6 +26,7 @@ const apiEnvSchema = z.object({
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
 
   // Mayar
+  MAYAR_API_URL: z.string().url().optional(),
   MAYAR_API_KEY: z.string().superRefine((val, ctx) => {
     if (process.env.NODE_ENV === "production" && !val) {
       ctx.addIssue({

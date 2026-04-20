@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { MayarService } from "./mayar.service";
-import { CreateMayarCheckoutDto, MayarWebhookDto } from "./mayar.dto";
+import { CreateMayarCheckoutDto, MayarWebhookDto, CancelAddonDto } from "./mayar.dto";
 import { authPlugin } from "../../plugins/auth";
 import { buildError } from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
@@ -13,7 +13,11 @@ export const mayarController = new Elysia({
     "/webhook",
     async ({ body, headers }) => {
       try {
-        const token = headers["x-mayar-token"];
+
+        const token =
+          headers["x-mayar-token"] ||
+          headers["x-callback-token"] ||
+          headers["authorization"];
         await MayarService.handleWebhook(body, token);
         return { success: true };
       } catch (err: any) {
@@ -28,11 +32,41 @@ export const mayarController = new Elysia({
   )
   .use(authPlugin)
   .post(
+    "/portal/magic-link",
+    async ({ jwt_payload }) => {
+      // Find workspace owner or customer email from workspace context
+      const workspace = await MayarRepository.findWorkspaceById(
+        jwt_payload.workspace_id,
+      );
+      const email = workspace?.mayar_customer_email;
+
+      if (!email) {
+        throw status(
+          404,
+          buildError(ErrorCode.NOT_FOUND, "No customer billing email found for this workspace"),
+        );
+      }
+
+      return await MayarService.sendCustomerPortalMagicLink(email);
+    },
+  )
+  .post(
     "/checkout",
     async ({ body, auth, status }) => {
-      if (!auth) return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      if (!auth)
+        return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
 
-      const { priceId, workspaceId, returnPath, type, addonType, amount, addonId, billing } = body;
+      const {
+        priceId,
+        workspaceId,
+        returnPath,
+        type,
+        addonType,
+        amount,
+        addonId,
+        billing,
+        locale,
+      } = body;
 
       return MayarService.createCheckoutSession(
         workspaceId || auth.workspace_id,
@@ -46,6 +80,7 @@ export const mayarController = new Elysia({
             amount,
             addonId,
             billing,
+            locale,
           },
         },
       );
@@ -58,11 +93,23 @@ export const mayarController = new Elysia({
   .post(
     "/portal",
     async ({ auth, status }) => {
-      if (!auth) return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
-      // Redirect to billing settings — Mayar manages subscriptions via their dashboard
-      return { url: `${process.env.NEXT_PUBLIC_APP_URL}/en/settings/billing` };
+      if (!auth)
+        return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      
+      return MayarService.createCustomerPortal(auth.email);
     },
     { detail: { summary: "Customer Portal Redirect", tags: ["Mayar"] } },
+  )
+  .post(
+    "/sync",
+    async ({ auth, status }) => {
+      if (!auth)
+        return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      
+      await MayarService.syncWorkspaceInvoices(auth.workspace_id, auth.email || "");
+      return { success: true };
+    },
+    { detail: { summary: "Sync Workspace Invoices", tags: ["Mayar"] } },
   )
   .get(
     "/invoices/:id",
@@ -74,8 +121,28 @@ export const mayarController = new Elysia({
   .post(
     "/cancel-subscription",
     async ({ auth, status }) => {
-      if (!auth) return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      if (!auth)
+        return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       return MayarService.cancelSubscription(auth.workspace_id);
     },
     { detail: { summary: "Cancel Subscription", tags: ["Mayar"] } },
+  )
+  .post(
+    "/cancel-addon",
+    async ({ auth, body, status }) => {
+      if (!auth)
+        return status(
+          401,
+          buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"),
+        );
+      return MayarService.cancelAddon(
+        auth.workspace_id,
+        body.addonId,
+        auth.user_id,
+      );
+    },
+    {
+      body: CancelAddonDto,
+      detail: { summary: "Cancel Add-on", tags: ["Mayar"] },
+    },
   );
