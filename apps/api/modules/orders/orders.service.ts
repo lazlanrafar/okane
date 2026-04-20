@@ -12,21 +12,21 @@ export abstract class OrdersService {
     data: {
       workspace_id: string;
       user_id?: string;
-      xendit_payment_id?: string;
-      xendit_invoice_id?: string;
-      xendit_subscription_id?: string;
+      mayar_payment_id?: string;
+      mayar_invoice_id?: string;
+      mayar_transaction_id?: string;
       amount: number;
       currency: string;
       status: string;
     },
     tx?: any,
   ) {
-    // If invoice ID exists (Xendit), try updating first
-    const invoiceId = data.xendit_invoice_id;
+    // If invoice ID exists (Mayar), try updating first
+    const invoiceId = data.mayar_invoice_id;
     if (invoiceId) {
       const existing = await OrdersRepository.findByInvoiceId(invoiceId);
       if (existing) {
-        const updated = await OrdersRepository.updateByXenditInvoiceId(
+        const updated = await OrdersRepository.updateByMayarInvoiceId(
           invoiceId,
           { status: data.status, amount: data.amount, currency: data.currency }
         );
@@ -39,7 +39,7 @@ export abstract class OrdersService {
   }
 
   static async updateOrderFromInvoiceId(invoiceId: string, status: string) {
-    const updated = await OrdersRepository.updateByXenditInvoiceId(invoiceId, { status });
+    const updated = await OrdersRepository.updateByMayarInvoiceId(invoiceId, { status });
 
     if (!updated) {
       return buildError(ErrorCode.NOT_FOUND, "Order not found");
@@ -81,6 +81,7 @@ export abstract class OrdersService {
     }
     return buildSuccess(order, "Order details fetched");
   }
+
   static async getWorkspaceOrders(workspaceId: string) {
     const orders = await OrdersRepository.findByWorkspaceId(workspaceId);
     return buildSuccess(orders, "Workspace orders fetched");

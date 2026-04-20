@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Button,
   Card,
@@ -13,16 +13,21 @@ import {
   Skeleton,
   Progress,
   Badge,
+  Alert,
+  AlertTitle,
+  AlertDescription,
   cn,
 } from "@workspace/ui";
-import { Check, Zap, CreditCard, Shield } from "lucide-react";
+import { Check, Zap, CreditCard, Shield, AlertCircle } from "lucide-react";
 import type { Pricing, Order } from "@workspace/types";
 import {
   createCheckoutSession,
   createCustomerPortal,
   cancelSubscription,
   getInvoiceUrl,
-} from "@workspace/modules/xendit/xendit.action";
+  cancelAddonAction,
+  sendMagicLinkAction,
+} from "@workspace/modules/mayar/mayar.action";
 import { getBillingHistory } from "@workspace/modules/orders/orders.action";
 import { toast } from "sonner";
 import { useAppStore } from "@/stores/app";
@@ -33,8 +38,10 @@ import {
   getPlanLimits,
   getGatewayPrice,
 } from "@workspace/utils";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocalizedRoute } from "@/utils/localized-route";
+import { useConfirm } from "@/components/providers/confirm-modal-provider";
 
 function BillingSkeleton() {
   return (
@@ -84,6 +91,9 @@ export function BillingView({
   const [history, setHistory] = React.useState<Order[]>([]);
   const [loadingHistory, setLoadingHistory] = React.useState(true);
 
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const { getLocalizedUrl } = useLocalizedRoute();
   const currency = settings?.mainCurrencyCode?.toLowerCase() || "usd";
 
@@ -116,6 +126,7 @@ export function BillingView({
         params.addonType,
         params.amount,
         params.addonId,
+        billingCycle,
       );
       if (!result.success) throw new Error(result.error);
       return result.data;
@@ -128,12 +139,14 @@ export function BillingView({
 
   const portalMutation = useMutation({
     mutationFn: async () => {
-      const result = await createCustomerPortal();
+      const result = await sendMagicLinkAction();
       if (!result.success) throw new Error(result.error);
       return result.data;
     },
-    onSuccess: (data) => {
-      if (data.url) window.location.href = data.url;
+    onSuccess: () => {
+      toast.info("Access link sent!", {
+        description: "A secure link has been sent to your email to access the portal",
+      });
     },
     onError: (error: any) => toast.error(error.message),
   });
@@ -162,6 +175,20 @@ export function BillingView({
     onError: (error: any) => toast.error(error.message),
   });
 
+  const cancelAddonMutation = useMutation({
+    mutationFn: async (addonId: string) => {
+      const result = await cancelAddonAction(addonId);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    },
+    onSuccess: () => {
+      toast.success("Add-on scheduled for deactivation");
+      queryClient.invalidateQueries({ queryKey: ["workspace", "active"] });
+      router.refresh();
+    },
+    onError: (error: any) => toast.error(error.message),
+  });
+
   if (!dictionary || isDictLoading) {
     return <BillingSkeleton />;
   }
@@ -176,13 +203,15 @@ export function BillingView({
   const vaultUsed = workspace?.vault_size_used_bytes || 0;
   const aiUsed = workspace?.ai_tokens_used || 0;
 
-  const currentPlan = (initialPlans?.find((p) => p.id === currentPlanId) || {
+  const starterPlan = (initialPlans || []).find((p) => p.name.toLowerCase() === "starter") || {
     name: "Starter",
     max_vault_size_mb: 50,
     max_ai_tokens: 50,
     features: [],
     prices: [],
-  }) as Pricing;
+  };
+
+  const currentPlan = (initialPlans?.find((p) => p.id === currentPlanId) || starterPlan) as Pricing;
 
   const { vaultLimitBytes, aiLimitTokens } = getPlanLimits(currentPlan, {
     extra_vault_size_mb: workspace?.extra_vault_size_mb,
@@ -190,6 +219,8 @@ export function BillingView({
   });
   const vaultProgress = Math.min(100, (vaultUsed / vaultLimitBytes) * 100);
   const aiProgress = Math.min(100, (aiUsed / aiLimitTokens) * 100);
+  const isOverStorageLimit = vaultUsed > vaultLimitBytes;
+  const storageViolationAt = workspace?.storage_violation_at ? new Date(workspace.storage_violation_at) : null;
 
   const sortedPlans = [...(initialPlans || [])].sort((a, b) => {
     const order = ["starter", "pro", "business"];
@@ -206,6 +237,18 @@ export function BillingView({
       </div>
 
       <Separator className="rounded-none" />
+
+      {isOverStorageLimit && (
+        <Alert variant="destructive" className="rounded-none border-destructive/50 bg-destructive/5">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle className="text-xs font-semibold uppercase tracking-widest">
+            {dict.storage_limit_exceeded || "Storage Limit Exceeded"}
+          </AlertTitle>
+          <AlertDescription className="text-[11px] mt-1 opacity-90 leading-relaxed">
+            {dict.storage_grace_period_desc || "Your workspace is currently over its storage limit. Files will be kept for 30 days before being inactivated and eventually deleted. Please upgrade your plan or free up space to avoid data loss."}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Current Plan Hero Card */}
       <Card className="rounded-none shadow-none border bg-accent/5 overflow-hidden relative group">
@@ -225,7 +268,7 @@ export function BillingView({
                 <h3 className="text-2xl font-medium tracking-tight">
                   {currentPlan.name}
                 </h3>
-                {workspace?.xendit_subscription_id && (
+                {workspace?.mayar_transaction_id && (
                   <Badge
                     variant="secondary"
                     className="rounded-none text-[9px] h-4 px-1.5 font-medium tracking-wide uppercase bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
@@ -268,7 +311,7 @@ export function BillingView({
               </ul>
             </div>
             <div className="flex flex-col justify-end gap-3 sm:flex-row h-fit self-end">
-              {workspace?.xendit_subscription_id ? (
+              {workspace?.mayar_transaction_id ? (
                 <>
                   <Button
                     variant="outline"
@@ -320,7 +363,7 @@ export function BillingView({
               <div className="text-2xl font-serif tracking-tight font-medium">
                 {formatBytes(vaultUsed)}
                 <span className="text-xs font-normal text-muted-foreground ml-1.5 uppercase">
-                  / {currentPlan.max_vault_size_mb} MB
+                  / {formatBytes(vaultLimitBytes)}
                 </span>
               </div>
               <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest">
@@ -335,7 +378,7 @@ export function BillingView({
               <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
                 <span>{dictionary.settings.common.used}</span>
                 <span>
-                  {formatBytes(vaultLimitBytes - vaultUsed)}{" "}
+                  {formatBytes(Math.max(0, vaultLimitBytes - vaultUsed))}{" "}
                   {dictionary.settings.common.remaining}
                 </span>
               </div>
@@ -356,7 +399,7 @@ export function BillingView({
               <div className="text-2xl font-serif tracking-tight font-medium">
                 {aiUsed.toLocaleString()}
                 <span className="text-xs font-normal text-muted-foreground ml-1.5 uppercase">
-                  / {currentPlan.max_ai_tokens.toLocaleString()}
+                  / {aiLimitTokens.toLocaleString()}
                 </span>
               </div>
               <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest">
@@ -371,7 +414,7 @@ export function BillingView({
               <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
                 <span>{dictionary.settings.common.used}</span>
                 <span>
-                  {(aiLimitTokens - aiUsed).toLocaleString()}{" "}
+                  {Math.max(0, aiLimitTokens - aiUsed).toLocaleString()}{" "}
                   {dictionary.settings.common.remaining}
                 </span>
               </div>
@@ -395,6 +438,7 @@ export function BillingView({
             });
             const priceId = getGatewayPrice(addon, "addon", currency);
             const isActive = workspace?.active_addons?.some((a: any) => a.id === addon.id);
+            const addonData = workspace?.active_addons?.find((a: any) => a.id === addon.id);
 
             return (
               <Card key={addon.id} className={cn(
@@ -441,6 +485,22 @@ export function BillingView({
                             }
                         </p>
                     </div>
+
+                    {isActive && workspace?.active_addons?.find((a: any) => a.id === addon.id)?.status === "cancelled" && (
+                        <div className="text-right whitespace-nowrap">
+                            <p className="text-[9px] text-destructive uppercase tracking-widest font-medium mb-0.5">
+                                {dict.deactivating_at || "Deactivating at"}
+                            </p>
+                            <p className="text-xs font-medium text-destructive">
+                                {(() => {
+                                    if (!addonData) return null;
+                                    const date = new Date(addonData.created_at);
+                                    date.setMonth(date.getMonth() + 1);
+                                    return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+                                })()}
+                            </p>
+                        </div>
+                    )}
                     
                     <div className="text-right whitespace-nowrap min-w-[80px]">
                         <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium mb-0.5">
@@ -455,9 +515,41 @@ export function BillingView({
                       size="sm" 
                       variant={isActive ? "outline" : "default"}
                       className="rounded-none text-[10px] uppercase tracking-widest h-8 px-5"
-                      disabled={true}
+                      disabled={checkoutMutation.isPending || cancelAddonMutation.isPending}
+                      onClick={async () => {
+                        if (isActive) {
+                          if (addonData?.status === "active") {
+                            const ok = await confirm({
+                                title: dictionary?.settings?.billing?.deactivate_addon_title || "Deactivate Add-on",
+                                description: dictionary?.settings?.billing?.deactivate_addon_desc || "Are you sure you want to deactivate this add-on? It will remain active until the end of your current billing cycle.",
+                                confirmLabel: dict.deactivate || "Deactivate",
+                                destructive: true,
+                            });
+                            
+                            if (ok) {
+                                cancelAddonMutation.mutate(addon.id);
+                            }
+                          }
+                        } else if (priceId) {
+                          checkoutMutation.mutate({
+                            priceId,
+                            type: "payment",
+                            addonId: addon.id,
+                            addonType: addon.addon_type as "ai" | "vault",
+                            amount: addon.prices?.find((p) => p.currency === currency)?.monthly,
+                          });
+                        }
+                      }}
                     >
-                      {isActive ? (dictionary?.settings?.common?.active || "Active") : (dictionary?.settings?.common?.coming_soon || "Coming Soon")}
+                      {isActive 
+                        ? (addonData?.status === "cancelled" 
+                            ? (dictionary?.settings?.common?.cancelled || "Cancelled")
+                            : cancelAddonMutation.isPending && cancelAddonMutation.variables === addon.id
+                                ? "..."
+                                : (dict.deactivate || "Deactivate"))
+                        : checkoutMutation.isPending 
+                          ? (dictionary?.settings?.common?.processing || "Processing...") 
+                          : (dict.purchase || dict.get_started || "Purchase")}
                     </Button>
                   </div>
                 </div>
@@ -543,21 +635,21 @@ export function BillingView({
                           </Badge>
                         </td>
                         <td className="p-4 text-right">
-                          {order.xendit_invoice_id && (
+                          {order.mayar_invoice_id && (
                             <Button
                               variant="outline"
                               size="sm"
                               className="h-7 px-3 text-[10px] uppercase tracking-widest rounded-none border font-medium hover:bg-foreground hover:text-background transition-all"
                               onClick={() =>
                                 downloadMutation.mutate(
-                                  order.xendit_invoice_id!,
+                                  order.mayar_invoice_id!,
                                 )
                               }
                               disabled={downloadMutation.isPending}
                             >
                               {downloadMutation.isPending &&
                               downloadMutation.variables ===
-                                order.xendit_invoice_id
+                                order.mayar_invoice_id
                                 ? "..."
                                 : (dictionary?.settings?.common?.view_pdf || "View PDF")}
                             </Button>

@@ -51,13 +51,14 @@ export abstract class TransactionsRepository {
 
   static async createMany(
     data: (typeof transactions.$inferInsert)[],
+    tx: any = db,
   ): Promise<Transaction[]> {
     if (data.length === 0) return [];
 
-    const results = await db.insert(transactions).values(data).returning();
+    const results = await tx.insert(transactions).values(data).returning();
 
     return results.map(
-      (transaction) =>
+      (transaction: any) =>
         ({
           ...transaction,
           date: transaction.date,
@@ -130,11 +131,14 @@ export abstract class TransactionsRepository {
     params: {
       page: number;
       limit: number;
-      type?: string;
-      walletId?: string;
-      categoryId?: string;
+      type?: string | string[];
+      walletId?: string | string[];
+      categoryId?: string | string[];
       startDate?: string;
       endDate?: string;
+      minAmount?: number;
+      maxAmount?: number;
+      hasAttachments?: boolean;
       search?: string;
       uncategorized?: boolean;
     },
@@ -148,19 +152,54 @@ export abstract class TransactionsRepository {
     ];
 
     if (params.type) {
-      filters.push(eq(transactions.type, params.type));
+      if (Array.isArray(params.type)) {
+        filters.push(inArray(transactions.type, params.type));
+      } else {
+        filters.push(eq(transactions.type, params.type));
+      }
     }
     if (params.walletId) {
-      filters.push(eq(transactions.walletId, params.walletId));
+      if (Array.isArray(params.walletId)) {
+        filters.push(inArray(transactions.walletId, params.walletId));
+      } else {
+        filters.push(eq(transactions.walletId, params.walletId));
+      }
     }
     if (params.categoryId) {
-      filters.push(eq(transactions.categoryId, params.categoryId));
+      if (Array.isArray(params.categoryId)) {
+        filters.push(inArray(transactions.categoryId, params.categoryId));
+      } else {
+        filters.push(eq(transactions.categoryId, params.categoryId));
+      }
     }
     if (params.startDate) {
       filters.push(gte(transactions.date, params.startDate));
     }
     if (params.endDate) {
       filters.push(lte(transactions.date, params.endDate));
+    }
+    if (params.minAmount !== undefined) {
+      filters.push(gte(transactions.amount, String(params.minAmount)));
+    }
+    if (params.maxAmount !== undefined) {
+      filters.push(lte(transactions.amount, String(params.maxAmount)));
+    }
+    if (params.hasAttachments !== undefined) {
+      const existsSubquery = db
+        .select({ id: transactionAttachments.id })
+        .from(transactionAttachments)
+        .where(
+          and(
+            eq(transactionAttachments.transactionId, transactions.id),
+            isNull(transactionAttachments.deletedAt),
+          ),
+        );
+
+      if (params.hasAttachments) {
+        filters.push(sql`exists (${existsSubquery})`);
+      } else {
+        filters.push(sql`not exists (${existsSubquery})`);
+      }
     }
     if (params.search) {
       filters.push(
@@ -314,6 +353,28 @@ export abstract class TransactionsRepository {
       .returning();
 
     return transaction as unknown as Transaction | undefined;
+  }
+
+  static async deleteMany(
+    workspaceId: string,
+    ids: string[],
+    tx: any = db,
+  ): Promise<Transaction[]> {
+    if (ids.length === 0) return [];
+    
+    const results = await tx
+      .update(transactions)
+      .set({ deletedAt: new Date().toISOString() })
+      .where(
+        and(
+          eq(transactions.workspaceId, workspaceId),
+          inArray(transactions.id, ids),
+          isNull(transactions.deletedAt),
+        ),
+      )
+      .returning();
+
+    return results as unknown as Transaction[];
   }
 
   // ── Attachments ──────────────────────────────────────────────────────────

@@ -9,14 +9,14 @@ export type Workspace = {
   country?: string | null;
   plan_id?: string | null;
   plan_status: string;
-  xendit_customer_id?: string | null;
-  xendit_subscription_id?: string | null;
-  xendit_current_period_end?: string | null;
+  mayar_customer_email?: string | null;
+  mayar_transaction_id?: string | null;
+  plan_current_period_end?: string | null;
   ai_tokens_used: number;
   vault_size_used_bytes: number;
   extra_ai_tokens: number;
   extra_vault_size_mb: number;
-  active_addons?: (Pricing & { xendit_subscription_id: string })[];
+  active_addons?: (Pricing & { mayar_transaction_id: string })[];
   plan?: Pricing | null;
   created_at: string;
   updated_at: string;
@@ -47,4 +47,3 @@ export type SystemAdminWorkspace = {
   ai_tokens_used: number;
   vault_size_used_bytes: number;
 };
-

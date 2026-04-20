@@ -4,7 +4,7 @@ import { axiosInstance as api } from "../lib/axios.server";
 import type { ActionResponse } from "@workspace/types";
 
 /**
- * Xendit actions — REST wrappers for Xendit endpoints.
+ * Mayar actions — REST wrappers for Mayar payment gateway endpoints.
  */
 
 export const createCheckoutSession = async (
@@ -15,9 +15,11 @@ export const createCheckoutSession = async (
   addonType?: "ai" | "vault",
   amount?: number,
   addonId?: string,
+  billing?: "monthly" | "annual",
+  locale?: string,
 ): Promise<ActionResponse<{ url: string }>> => {
   try {
-    const response = await api.post("/xendit/checkout", {
+    const response = await api.post("/mayar/checkout", {
       priceId,
       workspaceId,
       returnPath,
@@ -25,6 +27,8 @@ export const createCheckoutSession = async (
       addonType,
       amount,
       addonId,
+      billing,
+      locale,
     });
     return {
       success: true,
@@ -43,7 +47,7 @@ export const createCustomerPortal = async (): Promise<
   ActionResponse<{ url: string }>
 > => {
   try {
-    const response = await api.post("/xendit/portal");
+    const response = await api.post("/mayar/portal");
     return {
       success: true,
       data: response.data.data,
@@ -58,7 +62,7 @@ export const createCustomerPortal = async (): Promise<
 
 export const cancelSubscription = async (): Promise<ActionResponse<any>> => {
   try {
-    const response = await api.post("/xendit/cancel-subscription");
+    const response = await api.post("/mayar/cancel-subscription");
     return {
       success: true,
       data: response.data.data,
@@ -72,10 +76,10 @@ export const cancelSubscription = async (): Promise<ActionResponse<any>> => {
 };
 
 export const getInvoiceUrl = async (
-  invoiceId: string,
+  transactionId: string,
 ): Promise<ActionResponse<{ url: string }>> => {
   try {
-    const response = await api.get(`/xendit/invoices/${invoiceId}`);
+    const response = await api.get(`/mayar/invoices/${transactionId}`);
     return {
       success: true,
       data: response.data.data,
@@ -84,6 +88,37 @@ export const getInvoiceUrl = async (
     return {
       success: false,
       error: error.response?.data?.message || "Failed to get invoice URL",
+    };
+  }
+};
+
+export const cancelAddonAction = async (
+  addonId: string,
+): Promise<ActionResponse<any>> => {
+  try {
+    const response = await api.post("/mayar/cancel-addon", { addonId });
+    return {
+      success: true,
+      data: response.data.data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to cancel addon",
+    };
+  }
+};
+export const sendMagicLinkAction = async (): Promise<ActionResponse<any>> => {
+  try {
+    const response = await api.post("/mayar/portal/magic-link");
+    return {
+      success: true,
+      data: response.data.data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to send magic link",
     };
   }
 };

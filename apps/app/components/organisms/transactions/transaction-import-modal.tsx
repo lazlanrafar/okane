@@ -83,6 +83,9 @@ export function ImportModal({
   });
   const [importedCount, setImportedCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
+  const [importFailures, setImportFailures] = useState<
+    { index: number; reason: string }[]
+  >([]);
 
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -194,21 +197,26 @@ export function ImportModal({
 
     try {
       // Helper to parse date dd/mm/yyyy
-      const parseDate = (dateStr: string) => {
+      const parseDate = (dateStr: any) => {
         if (!dateStr) return new Date().toISOString();
-        const parts = dateStr.split("/");
-        if (parts.length === 3) {
-          const y = parts[2] || new Date().getFullYear().toString();
-          const m = parts[1] || "01";
-          const d = parts[0] || "01";
-          return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}T12:00:00Z`;
+        const str = String(dateStr);
+        const parts = str.split("/");
+        try {
+          if (parts.length === 3) {
+            const y = parts[2] || new Date().getFullYear().toString();
+            const m = parts[1] || "01";
+            const d = parts[0] || "01";
+            return new Date(`${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}T12:00:00Z`).toISOString();
+          }
+          return new Date(str).toISOString();
+        } catch (e) {
+          return new Date().toISOString();
         }
-        return new Date(dateStr).toISOString();
       };
 
       const transactionsToCreate = (firstRows || []).map((row) => {
         const rawAmount = row[data.amount] || "0";
-        const amount = parseFloat(rawAmount.replace(/[^0-9.-]/g, ""));
+        const amount = parseFloat(String(rawAmount).replace(/[^0-9.-]/g, ""));
 
         // Resolve type from value mapping
         const typeValue = data.type ? row[data.type] : undefined;
@@ -244,16 +252,25 @@ export function ImportModal({
 
       if (res.success && res.data) {
         setImportedCount(res.data.imported);
-        setStep("success");
-        await queryClient.invalidateQueries({ queryKey: ["transactions"] });
-        onSuccess();
-        router.refresh();
+        setImportFailures(res.data.failures || []);
+        
+        if (res.data.imported > 0) {
+          setStep("success");
+          await queryClient.invalidateQueries({ queryKey: ["transactions"] });
+          onSuccess();
+          router.refresh();
+        } else {
+          setErrorMessage("All transactions failed to import");
+          setStep("error");
+        }
       } else {
         setErrorMessage(res.error || "Failed to import transactions");
+        setImportFailures([]);
         setStep("error");
       }
-    } catch (error) {
-      setErrorMessage("An unexpected error occurred during import");
+    } catch (error: any) {
+      console.error("[Import Error]", error);
+      setErrorMessage(error?.message || "An unexpected error occurred during import");
       setStep("error");
     }
   };
@@ -310,7 +327,7 @@ export function ImportModal({
                   </button>
                 )}
                 <DialogTitle className="font-medium">
-                  {step === "select" && "Select CSV File"}
+                  {step === "select" && "Select File"}
                   {step === "mapping" && "Field Mapping"}
                   {step === "mapping-values" && "Value Mapping"}
                   {step === "summary" && "Import Summary"}
@@ -323,9 +340,9 @@ export function ImportModal({
                 {step === "select" &&
                   "Upload your transaction file to get started."}
                 {step === "mapping" &&
-                  "Map your CSV columns to the appropriate transaction fields."}
+                  "Map your file columns to the appropriate transaction fields."}
                 {step === "mapping-values" &&
-                  "Match CSV values to your accounts and categories."}
+                  "Match values from your file to your accounts and categories."}
                 {step === "summary" &&
                   "Review your import settings and confirm."}
               </DialogDescription>
@@ -455,13 +472,29 @@ export function ImportModal({
                   <p className="text-sm text-muted-foreground">
                     Successfully imported {importedCount} transactions.
                   </p>
+                  {importFailures.length > 0 && (
+                    <div className="mt-4 p-3 bg-amber-500/5 border border-amber-500/10 rounded-lg text-left">
+                      <p className="text-xs font-semibold text-amber-600 mb-2 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {importFailures.length} rows skipped due to errors:
+                      </p>
+                      <ul className="text-[11px] text-muted-foreground space-y-1 max-h-[150px] overflow-y-auto pr-2">
+                        {importFailures.map((f, i) => (
+                          <li key={i} className="flex gap-2">
+                            <span className="font-medium text-foreground/70 w-12 shrink-0">Row {f.index + 1}:</span>
+                            <span>{f.reason}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 <Button onClick={() => handleClose(false)} className="mt-4">
                   Close
                 </Button>
               </div>
             )}
-
+ 
             {step === "error" && (
               <div className="flex flex-col items-center justify-center py-8 gap-4 text-center">
                 <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -472,6 +505,26 @@ export function ImportModal({
                   <p className="text-sm text-muted-foreground max-w-[300px]">
                     {errorMessage}
                   </p>
+                  {importFailures.length > 0 && (
+                    <div className="mt-4 p-3 bg-destructive/5 border border-destructive/10 rounded-lg text-left max-w-[350px]">
+                      <p className="text-xs font-semibold text-destructive/80 mb-2">
+                        Common issues:
+                      </p>
+                      <ul className="text-[11px] text-muted-foreground space-y-1 max-h-[150px] overflow-y-auto pr-2">
+                        {importFailures.slice(0, 10).map((f, i) => (
+                          <li key={i} className="flex gap-2">
+                            <span className="font-medium text-foreground/70 w-12 shrink-0">Row {f.index + 1}:</span>
+                            <span>{f.reason}</span>
+                          </li>
+                        ))}
+                        {importFailures.length > 10 && (
+                          <li className="text-center pt-1 font-medium italic">
+                            ...and {importFailures.length - 10} more rows
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 <Button
                   onClick={() => setStep("summary")}

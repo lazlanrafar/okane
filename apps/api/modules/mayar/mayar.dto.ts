@@ -1,6 +1,6 @@
 import { t } from "elysia";
 
-export const CreateXenditCheckoutDto = t.Object({
+export const CreateMayarCheckoutDto = t.Object({
   priceId: t.Optional(t.String()),
   workspaceId: t.Optional(t.String()),
   returnPath: t.Optional(t.String()),
@@ -8,6 +8,12 @@ export const CreateXenditCheckoutDto = t.Object({
   addonType: t.Optional(t.Enum({ ai: "ai", vault: "vault" })),
   amount: t.Optional(t.Number()),
   addonId: t.Optional(t.String()),
+  billing: t.Optional(t.Enum({ monthly: "monthly", annual: "annual" })),
+  locale: t.Optional(t.String()),
 });
 
-export const XenditWebhookDto = t.Any();
+export const MayarWebhookDto = t.Any();
+
+export const CancelAddonDto = t.Object({
+  addonId: t.String(),
+});

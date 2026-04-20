@@ -72,81 +72,85 @@ async function verifyJwt(token: string): Promise<{
  * 1. Try to verify as app JWT first (has user_id + workspace_id)
  * 2. If that fails, try Supabase token exchange (for initial login flow)
  */
+export async function getAuth(token: string) {
+  // Try app JWT first
+  const jwt_payload = await verifyJwt(token);
+  if (jwt_payload) {
+    return jwt_payload;
+  }
+
+  // Fallback: try Supabase token
+  try {
+    const supabase = createClient();
+
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      return null;
+    }
+
+    // Look up workspace membership
+    const [membership] = await db
+      .select()
+      .from(user_workspaces)
+      .where(eq(user_workspaces.user_id, user.id))
+      .limit(1);
+
+    // Look up user record for workspace_id and is_super_admin
+    const [db_user] = await db
+      .select({
+        workspace_id: users.workspace_id,
+        system_role: users.system_role,
+      })
+      .from(users)
+      .where(eq(users.id, user.id))
+      .limit(1);
+
+    const workspace_id = db_user?.workspace_id ?? membership?.workspace_id ?? null;
+
+    return {
+      user_id: user.id,
+      workspace_id: workspace_id ?? "",
+      email: user.email!,
+      system_role: db_user?.system_role || user.app_metadata?.system_role || "user",
+    } as const;
+  } catch (e) {
+    return null;
+  }
+}
+
 export const authPlugin = new Elysia({ name: "auth" })
-  .derive(async ({ headers }) => {
+  .derive(async ({ headers, cookie }) => {
+    // 1. Check Authorization header
     const authorization = headers.authorization;
-    if (!authorization) {
-      return { auth: null };
-    }
-
-    const token = authorization.split(" ")[1];
-    if (!token) {
-      return { auth: null };
-    }
-
-    // Try app JWT first
-    const jwt_payload = await verifyJwt(token);
-    if (jwt_payload) {
-      return { auth: jwt_payload };
-    }
-
-    // Fallback: try Supabase token
-    try {
-      const supabase = createClient();
-
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser(token);
-
-      if (error) {
-        return { auth: null };
+    if (authorization) {
+      const token = authorization.split(" ")[1];
+      if (token) {
+        const auth = await getAuth(token);
+        if (auth) return { auth };
       }
-
-      if (!user) {
-        return { auth: null };
-      }
-
-      // Look up workspace membership
-      const [membership] = await db
-        .select()
-        .from(user_workspaces)
-        .where(eq(user_workspaces.user_id, user.id))
-        .limit(1);
-
-      // Look up user record for workspace_id and is_super_admin
-      const [db_user] = await db
-        .select({
-          workspace_id: users.workspace_id,
-          system_role: users.system_role,
-        })
-        .from(users)
-        .where(eq(users.id, user.id))
-        .limit(1);
-
-      const workspace_id =
-        db_user?.workspace_id ?? membership?.workspace_id ?? null;
-
-      if (!workspace_id) {
-        const log = (await import("@workspace/logger")).createLogger("auth");
-        log.warn("Auth fallback successful but no workspace_id found", {
-          user_id: user.id,
-          email: user.email,
-        });
-      }
-
-      return {
-        auth: {
-          user_id: user.id,
-          workspace_id: workspace_id ?? "",
-          email: user.email!,
-          system_role:
-            db_user?.system_role || user.app_metadata?.system_role || "user",
-        },
-      };
-    } catch (e) {
-      return { auth: null };
     }
+
+    // 2. Check explicitly provided cookie from Elysia
+    if (cookie && cookie["oewang-session"]?.value) {
+      const auth = await getAuth(cookie["oewang-session"].value as string);
+      if (auth) return { auth };
+    }
+
+    // 3. Manually parse cookie header if needed (fallback)
+    const cookieHeader = headers.cookie;
+    if (cookieHeader) {
+      const match = cookieHeader.match(/(?:^|;\s*)oewang-session=([^;]*)/);
+      if (match && match[1]) {
+        const auth = await getAuth(match[1]);
+        if (auth) return { auth };
+      }
+    }
+
+    return { auth: null };
   })
   .as("scoped");
 

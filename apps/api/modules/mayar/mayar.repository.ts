@@ -13,7 +13,7 @@ import {
   workspaceAddons,
 } from "@workspace/database";
 
-export abstract class XenditRepository {
+export abstract class MayarRepository {
   static async isEventProcessed(eventId: string): Promise<boolean> {
     const [existing] = await db
       .select({ id: webhook_events.id })
@@ -27,15 +27,15 @@ export abstract class XenditRepository {
     await db.insert(webhook_events).values({ id: eventId }).onConflictDoNothing();
   }
 
-  static async findPlanByXenditProductId(productId: string) {
+  static async findPlanByMayarProductId(productId: string) {
     const [plan] = await db
       .select()
       .from(pricing)
       .where(
         and(
           or(
-            sql`${pricing.prices} @> ${JSON.stringify([{ xendit_monthly_id: productId }])}::jsonb`,
-            sql`${pricing.prices} @> ${JSON.stringify([{ xendit_yearly_id: productId }])}::jsonb`
+            sql`${pricing.prices} @> ${JSON.stringify([{ mayar_monthly_id: productId }])}::jsonb`,
+            sql`${pricing.prices} @> ${JSON.stringify([{ mayar_yearly_id: productId }])}::jsonb`
           ),
           isNull(pricing.deleted_at),
         ),
@@ -56,13 +56,13 @@ export abstract class XenditRepository {
       );
   }
 
-  static async updateWorkspaceSubscriptionByCustomerId(customerId: string, data: any) {
+  static async updateWorkspaceSubscriptionByCustomerEmail(customerEmail: string, data: any) {
     await db
       .update(workspaces)
       .set(data)
       .where(
         and(
-          eq(workspaces.xendit_customer_id, customerId),
+          eq(workspaces.mayar_customer_email, customerEmail),
           isNull(workspaces.deleted_at),
         ),
       );
@@ -77,13 +77,13 @@ export abstract class XenditRepository {
     return workspace;
   }
 
-  static async findWorkspaceByCustomerId(customerId: string) {
+  static async findWorkspaceByCustomerEmail(customerEmail: string) {
     const [workspace] = await db
       .select()
       .from(workspaces)
       .where(
         and(
-          eq(workspaces.xendit_customer_id, customerId),
+          eq(workspaces.mayar_customer_email, customerEmail),
           isNull(workspaces.deleted_at),
         ),
       )
@@ -93,7 +93,7 @@ export abstract class XenditRepository {
 
   static async findWorkspaceOwner(workspaceId: string) {
     const [owner] = await db
-      .select({ 
+      .select({
         id: users.id,
         email: users.email,
         name: users.name,
@@ -121,28 +121,68 @@ export abstract class XenditRepository {
     return plan;
   }
 
-  static async findWorkspaceBySubscriptionId(subscriptionId: string) {
+  static async findWorkspaceByTransactionId(transactionId: string) {
     const [workspace] = await db
       .select()
       .from(workspaces)
       .where(
         and(
-          eq(workspaces.xendit_subscription_id, subscriptionId),
+          eq(workspaces.mayar_transaction_id, transactionId),
           isNull(workspaces.deleted_at),
         ),
       )
       .limit(1);
     return workspace;
   }
+
   static async upsertWorkspaceAddon(data: typeof workspaceAddons.$inferInsert) {
     const [addon] = await db
       .insert(workspaceAddons)
       .values(data)
       .onConflictDoUpdate({
-        target: workspaceAddons.xendit_subscription_id,
+        target: workspaceAddons.mayar_transaction_id,
         set: { ...data, updated_at: new Date() },
       })
       .returning();
     return addon;
+  }
+
+  static async findAllPlans() {
+    return db
+      .select()
+      .from(pricing)
+      .where(isNull(pricing.deleted_at));
+  }
+
+  static async findAddon(workspaceId: string, addonId: string) {
+    const [addon] = await db
+      .select()
+      .from(workspaceAddons)
+      .where(
+        and(
+          eq(workspaceAddons.workspace_id, workspaceId),
+          eq(workspaceAddons.addon_id, addonId),
+          isNull(workspaceAddons.deleted_at),
+        ),
+      )
+      .limit(1);
+    return addon;
+  }
+
+  static async updateAddonStatus(
+    workspaceId: string,
+    addonId: string,
+    status: "active" | "cancelled" | "past_due" | "unpaid",
+  ) {
+    await db
+      .update(workspaceAddons)
+      .set({ status, updated_at: new Date() })
+      .where(
+        and(
+          eq(workspaceAddons.workspace_id, workspaceId),
+          eq(workspaceAddons.addon_id, addonId),
+          isNull(workspaceAddons.deleted_at),
+        ),
+      );
   }
 }

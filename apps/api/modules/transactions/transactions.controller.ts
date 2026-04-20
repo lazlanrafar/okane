@@ -71,6 +71,27 @@ export const transactions = new Elysia({
       },
     },
   )
+  .post(
+    "/bulk-delete",
+    async ({ auth, body }) => {
+      if (!auth?.workspace_id) {
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      }
+      return TransactionsService.bulkDelete(
+        auth.workspace_id,
+        auth.user_id,
+        body.ids,
+      );
+    },
+    {
+      body: TransactionModel.bulkDelete,
+      detail: {
+        summary: "Bulk delete transactions",
+        description: "Soft-deletes multiple transactions in one request and recalculates balances.",
+        tags: ["Transactions"],
+      },
+    },
+  )
   .put(
     "/:id",
     async ({ auth, params: { id }, body }) => {

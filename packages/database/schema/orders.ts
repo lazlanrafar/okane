@@ -19,9 +19,9 @@ export const orders = pgTable(
     sequence_number: serial("sequence_number").notNull(),
     workspace_id: uuid("workspace_id").references(() => workspaces.id),
     user_id: uuid("user_id").references(() => users.id),
-    xendit_payment_id: text("xendit_payment_id"),
-    xendit_invoice_id: text("xendit_invoice_id"),
-    xendit_subscription_id: text("xendit_subscription_id"),
+    mayar_payment_id: text("mayar_payment_id"),
+    mayar_invoice_id: text("mayar_invoice_id"),
+    mayar_transaction_id: text("mayar_transaction_id"),
     amount: integer("amount").notNull(),
     currency: text("currency").notNull(),
     status: text("status").notNull(),
@@ -31,6 +31,6 @@ export const orders = pgTable(
     deleted_at: timestamp("deleted_at"),
   },
   (table) => [
-    uniqueIndex("orders_xendit_invoice_id_unique").on(table.xendit_invoice_id),
+    uniqueIndex("orders_mayar_invoice_id_unique").on(table.mayar_invoice_id),
   ],
 );

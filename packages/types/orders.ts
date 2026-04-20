@@ -3,9 +3,9 @@ export interface Order {
   code: string;
   workspace_id: string | null;
   user_id: string | null;
-  xendit_payment_id: string | null;
-  xendit_invoice_id: string | null;
-  xendit_subscription_id: string | null;
+  mayar_payment_id: string | null;
+  mayar_invoice_id: string | null;
+  mayar_transaction_id: string | null;
   amount: number;
   currency: string;
   status: string;
@@ -23,7 +23,7 @@ export interface AdminOrderListing {
   workspaceName: string | null;
   userName: string | null;
   userEmail: string | null;
-  xendit_payment_id: string | null;
-  xendit_invoice_id: string | null;
-  xendit_subscription_id: string | null;
+  mayar_payment_id: string | null;
+  mayar_invoice_id: string | null;
+  mayar_transaction_id: string | null;
 }

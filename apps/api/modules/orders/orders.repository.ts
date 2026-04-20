@@ -23,27 +23,26 @@ export abstract class OrdersRepository {
     return order;
   }
 
-
-  static async updateByXenditInvoiceId(
+  static async updateByMayarInvoiceId(
     invoiceId: string,
     data: Partial<typeof orders.$inferInsert>,
   ) {
     const [order] = await db
       .update(orders)
       .set({ ...data, updated_at: new Date() })
-      .where(eq(orders.xendit_invoice_id, invoiceId))
+      .where(eq(orders.mayar_invoice_id, invoiceId))
       .returning();
     return order;
   }
 
-  static async updateByPaymentIntentId(
-    paymentIntentId: string,
+  static async updateByMayarPaymentId(
+    paymentId: string,
     data: Partial<typeof orders.$inferInsert>,
   ) {
     const [order] = await db
       .update(orders)
       .set({ ...data, updated_at: new Date() })
-      .where(eq(orders.xendit_payment_id, paymentIntentId))
+      .where(eq(orders.mayar_payment_id, paymentId))
       .returning();
     return order;
   }
@@ -80,15 +79,15 @@ export abstract class OrdersRepository {
     if (attachments === "include") {
       conditions.push(
         or(
-          sql`${orders.xendit_invoice_id} IS NOT NULL`,
-          sql`${orders.xendit_payment_id} IS NOT NULL`
+          sql`${orders.mayar_invoice_id} IS NOT NULL`,
+          sql`${orders.mayar_payment_id} IS NOT NULL`
         )
       );
     } else if (attachments === "exclude") {
       conditions.push(
         and(
-          sql`${orders.xendit_invoice_id} IS NULL`,
-          sql`${orders.xendit_payment_id} IS NULL`
+          sql`${orders.mayar_invoice_id} IS NULL`,
+          sql`${orders.mayar_payment_id} IS NULL`
         )
       );
     }
@@ -131,9 +130,9 @@ export abstract class OrdersRepository {
         workspaceName: workspaces.name,
         userName: users.name,
         userEmail: users.email,
-        xendit_payment_id: orders.xendit_payment_id,
-        xendit_invoice_id: orders.xendit_invoice_id,
-        xendit_subscription_id: orders.xendit_subscription_id,
+        mayar_payment_id: orders.mayar_payment_id,
+        mayar_invoice_id: orders.mayar_invoice_id,
+        mayar_transaction_id: orders.mayar_transaction_id,
       })
       .from(orders)
       .leftJoin(workspaces, eq(orders.workspace_id, workspaces.id))
@@ -161,13 +160,14 @@ export abstract class OrdersRepository {
       .from(orders)
       .where(
         and(
-          eq(orders.xendit_invoice_id, invoiceId),
+          eq(orders.mayar_invoice_id, invoiceId),
           isNull(orders.deleted_at)
         )
       )
       .limit(1);
     return order ?? null;
   }
+
   static async findByWorkspaceId(workspaceId: string) {
     return await db
       .select({
@@ -175,9 +175,9 @@ export abstract class OrdersRepository {
         code: sql<string>`'INV' || to_char(${orders.created_at}, 'IYYY') || lpad(${orders.sequence_number}::text, 4, '0')`,
         workspace_id: orders.workspace_id,
         user_id: orders.user_id,
-        xendit_payment_id: orders.xendit_payment_id,
-        xendit_invoice_id: orders.xendit_invoice_id,
-        xendit_subscription_id: orders.xendit_subscription_id,
+        mayar_payment_id: orders.mayar_payment_id,
+        mayar_invoice_id: orders.mayar_invoice_id,
+        mayar_transaction_id: orders.mayar_transaction_id,
         amount: orders.amount,
         currency: orders.currency,
         status: orders.status,

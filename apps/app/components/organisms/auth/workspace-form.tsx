@@ -15,7 +15,7 @@ import {
 } from "@workspace/ui";
 import type { Pricing } from "@workspace/types";
 import { onboardingCreateWorkspaceAction } from "@workspace/modules/auth/auth.action";
-import { createCheckoutSession } from "@workspace/modules/xendit/xendit.action";
+import { createCheckoutSession } from "@workspace/modules/mayar/mayar.action";
 import { Check, ArrowLeft, Loader2 } from "lucide-react";
 import {
   isFree,
@@ -146,11 +146,11 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
       return;
     }
 
-    // Step 3: Paid plan — get the Xendit price ID and open checkout
+    // Step 3: Paid plan — get the Mayar price ID and open checkout
     const gatewayPrice = getGatewayPrice(selectedPlan, billing, billingCurrency);
 
     if (!gatewayPrice) {
-      // Plan chosen but no Xendit price ID configured yet — skip checkout gracefully
+      // Plan chosen but no Mayar price ID configured yet — skip checkout gracefully
       setLoadingMsg("Redirecting…");
       router.push(`/${locale}/overview`);
       return;
@@ -173,7 +173,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
       return;
     }
 
-    // Redirect to Xendit-hosted checkout
+    // Redirect to Mayar-hosted checkout
     window.location.href = checkoutResult.data.url;
   };
 

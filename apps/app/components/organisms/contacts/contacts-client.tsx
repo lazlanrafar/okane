@@ -6,13 +6,14 @@ import {
   DataTable,
   DataTableColumnsVisibility,
   DataTableFilter,
+  DataTableEmptyState,
 } from "@workspace/ui";
 import { ContactFormSheet } from "./contact-form-sheet";
 import { ContactDetailSheet } from "./contact-detail-sheet";
 import { getContactColumns } from "./contact-columns";
 import type { Contact } from "@workspace/types";
 import { Plus } from "lucide-react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { getContacts } from "@workspace/modules/client";
 import { useDataTableFilter } from "@/hooks/use-data-table-filter";
 import { useContactsStore } from "@/stores/contacts";
@@ -23,7 +24,11 @@ interface Props {
 }
 
 export function ContactsClient({ initialData }: Props) {
+  const queryClient = useQueryClient();
   const { dictionary } = useAppStore();
+
+  if (!dictionary) return null;
+
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(
@@ -191,7 +196,19 @@ export function ContactsClient({ initialData }: Props) {
           setColumns={setColumns}
           tableId="contacts"
           hFull
-          emptyMessage={dictionary.contacts.empty.description}
+          emptyMessage={
+            <DataTableEmptyState
+              title={dictionary.contacts.empty.title}
+              description={dictionary.contacts.empty.description}
+              action={{
+                label: dictionary.contacts.empty.action,
+                onClick: () => {
+                  setEditContact(null);
+                  setIsFormSheetOpen(true);
+                },
+              }}
+            />
+          }
           infiniteScroll={true}
           fetchNextPage={fetchNextPage}
           hasNextPage={hasNextPage}

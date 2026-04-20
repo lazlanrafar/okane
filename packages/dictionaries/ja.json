@@ -39,6 +39,11 @@
     "created_date_description": "このアカウントがシステムで最初に作成された日付。",
     "updated": "更新済み",
     "empty_message": "アカウントが見つかりません。",
+    "empty": {
+      "title": "アカウントがまだありません",
+      "description": "残高の追跡を開始するには、最初のアカウントを作成してください。",
+      "action": "最初のアカウントを追加"
+    },
     "table": {
       "name": "名前",
       "group": "グループ",
@@ -204,6 +209,18 @@
         "action": "アクション",
         "no_history": "請求履歴はありません",
         "no_history_description": "まだ購入履歴がありません。"
+      },
+      "success": {
+        "title": "お支払い完了",
+        "description": "ご購入ありがとうございます！ワークスペースのアップグレードが正常に完了しました。",
+        "back_to_dashboard": "ダッシュボードに戻る",
+        "view_billing": "請求を表示"
+      },
+      "failed": {
+        "title": "お支払い失敗",
+        "description": "お支払いを処理できませんでした。もう一度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。",
+        "try_again": "再試行",
+        "back_to_pricing": "価格設定に戻る"
       }
     },
     "profile": {
@@ -748,6 +765,11 @@
     "save_transaction": "取引を保存",
     "upload_receipts": "レシートをアップロード",
     "empty_message": "取引が見つかりません。",
+    "empty": {
+      "title": "取引がまだありません",
+      "description": "最初の取引を追加して、収支の追跡を開始しましょう。",
+      "action": "取引を追加"
+    },
     "delete_title": "取引を削除しますか？",
     "delete_description": "この取引を削除してもよろしいですか？",
     "delete_confirm": "削除",
@@ -949,9 +971,10 @@
     },
     "empty": {
       "title": "ファイルが見つかりません",
-      "no_results": "\"{search}\" の結果はありません。別のキーワードを試してください。",
-      "get_started": "最初のファイルをアップロードして始めましょう。",
-      "clear_search": "検索をクリア"
+      "no_results": "「{search}」の結果はありません。別のキーワードを試してください。",
+      "get_started": "最初にファイルをアップロードして始めましょう。",
+      "clear_search": "検索をクリア",
+      "action": "ファイルをアップロード"
     },
     "storage": {
       "usage": "{used} / {limit} MB",
@@ -1087,6 +1110,33 @@
     "quota_limit_description": "ワークスペースの月間AIトークン制限に達しました。",
     "quota_reset_message": "トークンは{date}にリセットされます。",
     "upgrade_button": "プランをアップグレード",
-    "get_more_tokens": "トークンを追加"
+    "get_more_tokens": "トークンをさらに取得"
+  },
+  "invoices": {
+    "title": "請求書",
+    "search_placeholder": "請求書を検索...",
+    "add_button": "新規請求書",
+    "empty": {
+      "title": "請求書がまだありません",
+      "description": "プロフェッショナルな請求書を簡単に作成・管理できます。",
+      "action": "最初の請求書を作成"
+    },
+    "summary": {
+      "total": "請求書の合計",
+      "open": "未決済",
+      "open_desc": "下書き + 未払い",
+      "overdue": "期限切れ",
+      "overdue_desc": "支払期限を過ぎたもの",
+      "paid": "支払い済み",
+      "paid_desc": "完了"
+    },
+    "toasts": {
+      "deleted": "請求書を削除しました",
+      "delete_failed": "請求書の削除に失敗しました",
+      "created": "請求書が正常に作成されました",
+      "create_failed": "請求書の作成に失敗しました",
+      "updated": "請求書を更新しました",
+      "update_failed": "請求書の更新に失敗しました"
+    }
   }
 }

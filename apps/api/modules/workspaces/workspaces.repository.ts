@@ -3,6 +3,7 @@ import {
   eq,
   and,
   isNull,
+  inArray,
   workspaces,
   user_workspaces,
   workspaceInvitations,
@@ -43,19 +44,23 @@ export abstract class WorkspacesRepository {
 
     if (!result) return null;
 
-    // Fetch active recurring add-ons
+    // Fetch active recurring add-ons with their quotas
     const activeAddons = await db
       .select({
         id: pricing.id,
         addon_type: pricing.addon_type,
+        max_ai_tokens: pricing.max_ai_tokens,
+        max_vault_size_mb: pricing.max_vault_size_mb,
         amount: workspaceAddons.amount,
+        status: workspaceAddons.status,
+        created_at: workspaceAddons.created_at,
       })
       .from(workspaceAddons)
       .innerJoin(pricing, eq(workspaceAddons.addon_id, pricing.id))
       .where(
         and(
           eq(workspaceAddons.workspace_id, workspace_id),
-          eq(workspaceAddons.status, "active"),
+          inArray(workspaceAddons.status, ["active", "cancelled"]),
           isNull(workspaceAddons.deleted_at),
         ),
       );
@@ -63,11 +68,11 @@ export abstract class WorkspacesRepository {
     // Sum up extra quotas from active recurring add-ons
     const recurringExtraAi = activeAddons
       .filter((a) => a.addon_type === "ai")
-      .reduce((sum, a) => sum + (a.amount || 0), 0);
+      .reduce((sum, a) => sum + (a.max_ai_tokens || 0), 0);
       
     const recurringExtraVault = activeAddons
       .filter((a) => a.addon_type === "vault")
-      .reduce((sum, a) => sum + (a.amount || 0), 0);
+      .reduce((sum, a) => sum + (a.max_vault_size_mb || 0), 0);
 
     return {
       ...result.workspace,

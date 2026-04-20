@@ -45,7 +45,12 @@ export const encryptionPlugin = (app: Elysia) =>
       );
     })
     .mapResponse(({ response, set: _set, path }) => {
-      if (path && (path.startsWith("/swagger") || path.startsWith("/health")))
+      if (
+        path &&
+        (path.startsWith("/swagger") ||
+          path.startsWith("/health") ||
+          path.includes("/mayar/webhook"))
+      )
         return;
 
       // Only encrypt JSON responses

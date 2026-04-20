@@ -26,6 +26,26 @@ export abstract class AuditLogsService {
     });
   }
 
+  static async logMany(dataArray: {
+    workspace_id: string;
+    user_id: string;
+    action: string;
+    entity: string;
+    entity_id: string;
+    before?: unknown;
+    after?: unknown;
+  }[]) {
+    if (dataArray.length === 0) return;
+
+    const sanitizedArray = dataArray.map(data => ({
+      ...data,
+      before: this.sanitize(data.before),
+      after: this.sanitize(data.after),
+    }));
+
+    await AuditLogsRepository.createMany(sanitizedArray);
+  }
+
   /**
    * Remove sensitive fields from audit log payloads.
    */

@@ -12,7 +12,9 @@ import {
   buildSuccess,
   buildError,
 } from "@workspace/utils";
+import { db } from "@workspace/database";
 import { NotificationsService } from "../notifications/notifications.service";
+import { RealtimeService } from "../realtime/realtime.service";
 import { status } from "elysia";
 
 export abstract class TransactionsService {
@@ -77,6 +79,9 @@ export abstract class TransactionsService {
       message: `A new ${body.type} of ${amount} was recorded.`,
       link: "/transactions",
     });
+    
+    RealtimeService.notifyValueChange(workspaceId, "transactions");
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
 
     return buildSuccess(
       transaction,
@@ -90,81 +95,132 @@ export abstract class TransactionsService {
     userId: string,
     items: CreateTransactionInput[],
   ) {
-    const results: any[] = [];
-    const errors: any[] = [];
+    if (items.length === 0) {
+      return buildSuccess(
+        { imported: 0, failed: 0, transactions: [], failures: [] },
+        "Successfully imported 0 transactions",
+      );
+    }
 
-    // Process in a loop to ensure balance updates and audit logs are handled correctly
-    // We could optimize this later with bulk DB operations, but correctness
-    // of balances is priority.
-    for (const item of items) {
-      try {
-        const amount =
-          typeof item.amount === "number"
-            ? item.amount.toString()
-            : item.amount;
-        const toWalletId = item.toWalletId || undefined;
-        const categoryId = item.categoryId || undefined;
-        const assignedUserId = item.assignedUserId || userId;
-        const { attachmentIds, ...dbBody } = item;
+    const failures: { index: number; reason: string }[] = [];
+    const validItems: { index: number; item: CreateTransactionInput }[] = [];
 
-        const transaction = await TransactionsRepository.create({
-          ...dbBody,
-          workspaceId,
-          amount,
-          toWalletId,
-          categoryId,
-          assignedUserId,
-        });
+    // Pre-validation phase
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (!item) continue;
+      if (!item.walletId) {
+        failures.push({ index: i, reason: "Account is required" });
+        continue;
+      }
+      if (!item.amount || isNaN(Number(item.amount))) {
+        failures.push({ index: i, reason: "Invalid amount" });
+        continue;
+      }
+      if (!item.date) {
+        failures.push({ index: i, reason: "Date is required" });
+        continue;
+      }
+      if (!item.type) {
+        failures.push({ index: i, reason: "Type is required" });
+        continue;
+      }
+      validItems.push({ index: i, item });
+    }
 
-        const val = Number(amount);
-        if (item.type === "expense") {
-          await WalletsRepository.updateBalance(
-            item.walletId,
+    if (validItems.length === 0) {
+      return buildSuccess(
+        { imported: 0, failed: failures.length, transactions: [], failures },
+        "All transactions failed validation",
+      );
+    }
+
+    try {
+      return await db.transaction(async (tx) => {
+        const walletDeltas: Record<string, number> = {};
+        const dbTransactionsToInsert: any[] = [];
+
+        for (const { item } of validItems) {
+          const amountStr =
+            typeof item.amount === "number"
+              ? item.amount.toString()
+              : item.amount;
+          const toWalletId = item.toWalletId || undefined;
+          const categoryId = item.categoryId || undefined;
+          const assignedUserId = item.assignedUserId || userId;
+          const { attachmentIds, ...dbBody } = item;
+
+          dbTransactionsToInsert.push({
+            ...dbBody,
             workspaceId,
-            -val,
-          );
-        } else if (item.type === "income") {
-          await WalletsRepository.updateBalance(
-            item.walletId,
-            workspaceId,
-            val,
-          );
-        } else if (item.type === "transfer" && item.toWalletId) {
-          await WalletsRepository.updateBalance(
-            item.walletId,
-            workspaceId,
-            -val,
-          );
-          await WalletsRepository.updateBalance(
-            item.toWalletId,
-            workspaceId,
-            val,
-          );
+            amount: amountStr,
+            toWalletId,
+            categoryId,
+            assignedUserId,
+          });
+
+          const val = Number(amountStr);
+          if (item.type === "expense") {
+            walletDeltas[item.walletId] =
+              (walletDeltas[item.walletId] || 0) - val;
+          } else if (item.type === "income") {
+            walletDeltas[item.walletId] =
+              (walletDeltas[item.walletId] || 0) + val;
+          } else if (item.type === "transfer" && item.toWalletId) {
+            walletDeltas[item.walletId] =
+              (walletDeltas[item.walletId] || 0) - val;
+            walletDeltas[item.toWalletId] =
+              (walletDeltas[item.toWalletId] || 0) + val;
+          }
         }
 
-        await AuditLogsService.log({
+        // 1. Bulk insert transactions
+        const results = await TransactionsRepository.createMany(
+          dbTransactionsToInsert,
+          tx,
+        );
+
+        // 2. Apply batched wallet balance updates
+        const walletUpdatePromises = Object.entries(walletDeltas).map(
+          ([wId, diff]) => {
+            if (diff === 0) return Promise.resolve();
+            return WalletsRepository.updateBalance(wId, workspaceId, diff, tx);
+          },
+        );
+        await Promise.all(walletUpdatePromises);
+
+        // 3. Prepare and bulk insert audit logs
+        const auditLogsToInsert = results.map((transaction) => ({
           workspace_id: workspaceId,
           user_id: userId,
           action: "transaction.imported",
           entity: "transaction",
           entity_id: transaction.id,
           after: transaction,
-        });
+        }));
+        await AuditLogsService.logMany(auditLogsToInsert);
 
-        results.push(transaction);
-      } catch (err: any) {
-        errors.push({ item, error: err.message });
-      }
+        // 4. Notify listeners (outside tx if needed, but here fine)
+        RealtimeService.notifyValueChange(workspaceId, "transactions");
+        RealtimeService.notifyValueChange(workspaceId, "wallets");
+
+        return buildSuccess(
+          {
+            imported: results.length,
+            failed: failures.length,
+            transactions: results,
+            failures,
+          },
+          `Successfully imported ${results.length} transactions`,
+        );
+      });
+    } catch (err: any) {
+      console.error("[Bulk Create Error]", err);
+      return buildError(
+        ErrorCode.INTERNAL_ERROR,
+        `Import failed: ${err.message || "Unknown error"}`,
+      );
     }
-
-    return buildSuccess(
-      {
-        imported: results.length,
-        failed: errors.length,
-        transactions: results,
-      },
-      `Successfully imported ${results.length} transactions`,
-    );
   }
 
   static async list(workspaceId: string, query: GetTransactionsQueryInput) {
@@ -312,6 +368,9 @@ export abstract class TransactionsService {
       after: updated,
     });
 
+    RealtimeService.notifyValueChange(workspaceId, "transactions");
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
+
     return buildSuccess(updated, "Transaction updated successfully");
   }
 
@@ -362,7 +421,87 @@ export abstract class TransactionsService {
       before: transaction,
     });
 
+    RealtimeService.notifyValueChange(workspaceId, "transactions");
+    RealtimeService.notifyValueChange(workspaceId, "wallets");
+
     return buildSuccess(null, "Transaction deleted successfully");
+  }
+
+  static async bulkDelete(workspaceId: string, userId: string, ids: string[]) {
+    if (ids.length === 0) {
+      return buildSuccess({ deleted: 0 }, "No transactions to delete");
+    }
+
+    try {
+      return await db.transaction(async (tx) => {
+        // Attempt to soft-delete them all in one operation within the transaction
+        const deletedTransactions = await TransactionsRepository.deleteMany(
+          workspaceId,
+          ids,
+          tx,
+        );
+
+        if (deletedTransactions.length === 0) {
+          return buildSuccess({ deleted: 0 }, "No matching transactions found");
+        }
+
+        const walletDeltas: Record<string, number> = {};
+        const auditLogsToInsert: any[] = [];
+
+        // Calculate reverse net wallet changes
+        for (const transaction of deletedTransactions) {
+          const val = Number(transaction.amount);
+
+          if (transaction.type === "expense") {
+            walletDeltas[transaction.walletId] =
+              (walletDeltas[transaction.walletId] || 0) + val;
+          } else if (transaction.type === "income") {
+            walletDeltas[transaction.walletId] =
+              (walletDeltas[transaction.walletId] || 0) - val;
+          } else if (transaction.type === "transfer" && transaction.toWalletId) {
+            walletDeltas[transaction.walletId] =
+              (walletDeltas[transaction.walletId] || 0) + val;
+            walletDeltas[transaction.toWalletId] =
+              (walletDeltas[transaction.toWalletId] || 0) - val;
+          }
+
+          auditLogsToInsert.push({
+            workspace_id: workspaceId,
+            user_id: userId,
+            action: "transaction.deleted",
+            entity: "transaction",
+            entity_id: transaction.id,
+            before: transaction,
+          });
+        }
+
+        // Apply batched wallet balance updates safely via Promise.all within tx
+        const walletUpdatePromises = Object.entries(walletDeltas).map(
+          ([wId, diff]) => {
+            if (diff === 0) return Promise.resolve();
+            return WalletsRepository.updateBalance(wId, workspaceId, diff, tx);
+          },
+        );
+        await Promise.all(walletUpdatePromises);
+
+        // Bulk insert audit logs within tx
+        await AuditLogsService.logMany(auditLogsToInsert);
+
+        RealtimeService.notifyValueChange(workspaceId, "transactions");
+        RealtimeService.notifyValueChange(workspaceId, "wallets");
+
+        return buildSuccess(
+          { deleted: deletedTransactions.length },
+          `Successfully deleted ${deletedTransactions.length} transactions`,
+        );
+      });
+    } catch (err: any) {
+      console.error("[Bulk Delete Error]", err);
+      return buildError(
+        ErrorCode.INTERNAL_ERROR,
+        `Delete failed: ${err.message || "Unknown error"}`,
+      );
+    }
   }
 
   static async getDebts(workspaceId: string, id: string) {

@@ -22,7 +22,7 @@ import {
 } from "@workspace/ui";
 import { Check, Info, Sparkles, Rocket, Zap, ShieldCheck } from "lucide-react";
 import { getPricing } from "@workspace/modules/pricing/pricing.action";
-import { createCheckoutSession } from "@workspace/modules/xendit/xendit.action";
+import { createCheckoutSession } from "@workspace/modules/mayar/mayar.action";
 import { toast } from "sonner";
 import {
   displayPrice,
@@ -182,7 +182,8 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full mt-8">
           {sortedPlans.map((plan, idx) => {
             const isPro = plan.name.toLowerCase() === "pro";
-            const isCurrent = workspace?.plan_id === plan.id;
+            const isStarter = plan.name.toLowerCase() === "starter";
+            const isCurrent = workspace?.plan_id === plan.id || (workspace?.plan_id === null && isStarter);
             const price = displayPrice(plan, billingCycle, { currency });
             const savings = annualSavingsPct(plan, currency);
             const priceId = getGatewayPrice(plan, billingCycle, currency);
@@ -323,7 +324,7 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
             <ShieldCheck className="h-8 w-8 mx-auto text-primary" />
             <h4 className="font-bold">Secure Checkout</h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Encrypted payments processed via Xendit.
+              Encrypted payments processed via Mayar.
             </p>
           </div>
           <div className="space-y-2">

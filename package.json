@@ -10,7 +10,8 @@
     "migrate": "turbo run migrate",
     "db:push": "bun run --cwd packages/database push",
     "db:seed": "bun run --cwd packages/database seed",
-    "mcp": "bun run --cwd apps/api mcp.ts"
+    "mcp": "bun run --cwd apps/api mcp.ts",
+    "test:e2e": "turbo run test:e2e"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
@@ -43,5 +44,8 @@
     "radix-ui": "1.4.3",
     "drizzle-orm": "0.45.1",
     "nuqs": "2.8.9"
+  },
+  "dependencies": {
+    "pg": "^8.20.0"
   }
 }

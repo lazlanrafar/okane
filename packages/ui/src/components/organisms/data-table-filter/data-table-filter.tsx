@@ -2,6 +2,7 @@
 
 import {
   Button,
+  Input,
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -11,8 +12,9 @@ import {
   DropdownMenuSubContent,
   DropdownMenuPortal,
   Icons,
-  Input,
+  type IconType,
 } from "../../atoms";
+import { Combobox, type ComboboxItem } from "../../atoms/combobox";
 import { cn } from "../../../lib/utils";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { FilterList, type FilterOption } from "./filter-list";
@@ -23,10 +25,19 @@ import {
 import { parseISO } from "date-fns";
 import type { DateRange } from "react-day-picker";
 
+export interface DataTableFilterFacet {
+  id: string;
+  label: string;
+  icon?: IconType;
+  options: { id: string; name: string; colorClass?: string }[];
+  multiple?: boolean;
+}
+
 interface DataTableFilterProps {
   placeholder?: string;
   filters: Record<string, any>;
   onFilterChange: (filters: Record<string, any>) => void;
+  facets?: DataTableFilterFacet[];
   statusOptions?: FilterOption[];
   statusKey?: string;
   statusLabel?: string;
@@ -37,6 +48,15 @@ interface DataTableFilterProps {
   isLoading?: boolean;
   className?: string;
   excludeKeys?: string[];
+  categories?: { id: string; name: string; slug?: string | null }[];
+  accounts?: { id: string; name: string; currency: string }[];
+  members?: { id: string; name: string }[];
+  customers?: { id: string; name: string }[];
+  attachmentsFilters?: FilterOption[];
+  recurringFilters?: FilterOption[];
+  manualFilters?: FilterOption[];
+  tags?: { id: string; name: string; slug?: string }[];
+  amountRange?: [number, number];
 }
 
 function FilterMenuItem({
@@ -74,6 +94,7 @@ export function DataTableFilter({
   placeholder = "Search...",
   filters,
   onFilterChange,
+  facets,
   statusOptions,
   statusKey = "status",
   statusLabel = "Status",
@@ -84,6 +105,15 @@ export function DataTableFilter({
   showAttachments,
   showSource,
   excludeKeys,
+  categories,
+  accounts,
+  members,
+  customers,
+  attachmentsFilters,
+  recurringFilters,
+  manualFilters,
+  tags,
+  amountRange,
 }: DataTableFilterProps) {
   const [searchValue, setSearchValue] = useState(filters.q || "");
   const [isOpen, setIsOpen] = useState(false);
@@ -129,12 +159,8 @@ export function DataTableFilter({
     };
   }, [filters.start, filters.end]);
 
-  const handleRemoveFilter = (key: string) => {
-    if (key === "date") {
-      onFilterChange({ ...filters, start: null, end: null });
-    } else {
-      onFilterChange({ ...filters, [key]: null });
-    }
+  const handleRemoveFilter = (removedFilters: { [key: string]: null }) => {
+    onFilterChange({ ...filters, ...removedFilters });
   };
 
   const hasActiveFilters = useMemo(() => {
@@ -214,13 +240,139 @@ export function DataTableFilter({
 
               {showAmountFilter && (
                 <FilterMenuItem icon={Icons.Amount} label="Amount">
-                  <div className="p-4 text-center text-[10px] text-muted-foreground font-medium uppercase tracking-widest opacity-50">
-                    Amount range UI coming soon
+                  <div className="p-3 flex flex-col gap-3 min-w-[200px]">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase px-0.5">
+                        Min amount
+                      </span>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        className="h-8 text-xs rounded-none border-secondary/50 focus:border-foreground transition-colors"
+                        value={filters.minAmount || ""}
+                        onChange={(e) =>
+                          onFilterChange({
+                            ...filters,
+                            minAmount: e.target.value || null,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase px-0.5">
+                        Max amount
+                      </span>
+                      <Input
+                        type="number"
+                        placeholder="Unlimited"
+                        className="h-8 text-xs rounded-none border-secondary/50 focus:border-foreground transition-colors"
+                        value={filters.maxAmount || ""}
+                        onChange={(e) =>
+                          onFilterChange({
+                            ...filters,
+                            maxAmount: e.target.value || null,
+                          })
+                        }
+                      />
+                    </div>
                   </div>
                 </FilterMenuItem>
               )}
 
-              {statusOptions && (
+              {facets?.map((facet) => (
+                <FilterMenuItem
+                  key={facet.id}
+                  icon={facet.icon}
+                  label={facet.label}
+                >
+                   <div className="p-0 min-w-[200px]">
+                    <Combobox
+                      headless
+                      multiple={facet.multiple}
+                      items={facet.options.map((o) => ({
+                        id: o.id,
+                        label: o.name,
+                        colorClass: o.colorClass,
+                      }))}
+                      selectedItem={
+                        !facet.multiple
+                          ? facet.options
+                              .map((o) => ({
+                                id: o.id,
+                                label: o.name,
+                                colorClass: o.colorClass,
+                              }))
+                              .find((o) => o.id === filters[facet.id]) ||
+                            undefined
+                          : undefined
+                      }
+                      selectedItems={
+                        facet.multiple
+                          ? facet.options
+                              .filter((o) =>
+                                (Array.isArray(filters[facet.id])
+                                  ? filters[facet.id]
+                                  : []
+                                ).includes(o.id),
+                              )
+                              .map((o) => ({
+                                id: o.id,
+                                label: o.name,
+                                colorClass: o.colorClass,
+                              }))
+                          : []
+                      }
+                      onSelect={(item) => {
+                        if (facet.multiple) {
+                          const currentValues = Array.isArray(filters[facet.id])
+                            ? [...filters[facet.id]]
+                            : [];
+                          const index = currentValues.indexOf(item.id);
+                          if (index > -1) {
+                            currentValues.splice(index, 1);
+                          } else {
+                            currentValues.push(item.id);
+                          }
+                          onFilterChange({
+                            ...filters,
+                            [facet.id]:
+                              currentValues.length > 0 ? currentValues : null,
+                          });
+                        } else {
+                          onFilterChange({
+                            ...filters,
+                            [facet.id]:
+                              filters[facet.id] === item.id ? null : item.id,
+                          });
+                        }
+                      }}
+                      searchPlaceholder={`Search ${facet.label.toLowerCase()}...`}
+                      className="border-none shadow-none focus-visible:ring-0"
+                      renderListItem={({ item, isChecked }) => (
+                        <div className="flex items-center w-full">
+                          <Icons.Check
+                            className={cn(
+                              "mr-2 h-3.5 w-3.5 shrink-0",
+                              isChecked ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          {(item as any).colorClass && (
+                            <div
+                              className={cn(
+                                "w-2.5 h-2.5 rounded-[2px] shrink-0 mr-2",
+                                (item as any).colorClass,
+                              )}
+                            />
+                          )}
+                          <span className="truncate flex-1">{item.label}</span>
+                        </div>
+                      )}
+                    />
+                  </div>
+                </FilterMenuItem>
+              ))}
+
+              {!facets && statusOptions && (
                 <FilterMenuItem icon={Icons.Status} label={statusLabel}>
                   <div className="p-1 min-w-[180px]">
                     {statusOptions.map((option) => (
@@ -327,9 +479,19 @@ export function DataTableFilter({
         filters={filters}
         loading={isLoading}
         onRemove={handleRemoveFilter}
+        facets={facets}
+        categories={categories}
+        accounts={accounts}
+        members={members}
+        customers={customers}
+        tags={tags}
         statusFilters={statusOptions}
-        statusKey={statusKey}
+        attachmentsFilters={attachmentsFilters}
+        recurringFilters={recurringFilters}
+        manualFilters={manualFilters}
+        amountRange={amountRange}
         excludeKeys={excludeKeys}
+        showDateFilter={showDateFilter}
       />
     </div>
   );

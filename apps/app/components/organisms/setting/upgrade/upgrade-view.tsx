@@ -18,13 +18,13 @@ import type { Pricing } from "@workspace/types";
 import {
   createCheckoutSession,
   cancelSubscription,
-} from "@workspace/modules/xendit/xendit.action";
+} from "@workspace/modules/mayar/mayar.action";
 import { toast } from "sonner";
 import { useAppStore } from "@/stores/app";
 import { Separator } from "@workspace/ui";
 import { displayPrice, getGatewayPrice } from "@workspace/utils";
 
-export function UpgradeView({ initialPlans }: { initialPlans: Pricing[] }) {
+export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[]; locale: string }) {
   const { workspace, settings, dictionary } = useAppStore() as any;
   const [billingCycle, setBillingCycle] = React.useState<"monthly" | "annual">(
     "monthly",
@@ -45,6 +45,11 @@ export function UpgradeView({ initialPlans }: { initialPlans: Pricing[] }) {
         workspaceId,
         "/settings/billing",
         params.type,
+        undefined, // addonType
+        undefined, // amount
+        undefined, // addonId
+        billingCycle,
+        locale,
       );
       if (!result.success) throw new Error(result.error);
       return result.data;
@@ -126,10 +131,10 @@ export function UpgradeView({ initialPlans }: { initialPlans: Pricing[] }) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {sortedPlans.map((plan, i) => {
-              const isCurrent = currentPlanId === plan.id;
               const isStarter = plan.name.toLowerCase() === "starter";
+              const isCurrent = currentPlanId === plan.id || (currentPlanId === null && isStarter);
               const canDowngrade =
-                isStarter && workspace?.xendit_subscription_id;
+                isStarter && workspace?.mayar_transaction_id;
 
               const price = displayPrice(plan, billingCycle, {
                 currency,
@@ -203,7 +208,6 @@ export function UpgradeView({ initialPlans }: { initialPlans: Pricing[] }) {
                         isCurrent && !canDowngrade ? "secondary" : "default"
                       }
                       disabled={
-                        plan.name.toLowerCase() !== "starter" ||
                         (isCurrent && !canDowngrade) ||
                         checkoutMutation.isPending ||
                         downgradeMutation.isPending ||
@@ -219,9 +223,7 @@ export function UpgradeView({ initialPlans }: { initialPlans: Pricing[] }) {
                         }
                       }}
                     >
-                      {plan.name.toLowerCase() !== "starter" ? (
-                        <span>{dictionary?.settings?.common?.coming_soon || "Coming Soon"}</span>
-                      ) : isCurrent ? (
+                      {isCurrent ? (
                         canDowngrade ? (
                           dict.upgrade
                         ) : (

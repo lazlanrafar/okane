@@ -1,4 +1,14 @@
 "use server";
+import { revalidatePath, revalidateTag as nextRevalidateTag } from "next/cache";
+
+/**
+ * Type-safe wrapper for revalidateTag to satisfy the Next.js 16 compiler 
+ * requirements while clearing IDE errors caused by signature discrepancies.
+ */
+const revalidateTag = (nextRevalidateTag as unknown) as (
+  tag: string,
+  profile: string,
+) => void;
 
 import type {
   ActionResponse,
@@ -11,11 +21,14 @@ import { axiosInstance as api } from "../lib/axios.server";
 export const getTransactions = async (params: {
   page?: number;
   limit?: number;
-  type?: string;
-  walletId?: string;
-  categoryId?: string;
+  type?: string | string[];
+  walletId?: string | string[];
+  categoryId?: string | string[];
   startDate?: string;
   endDate?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  hasAttachments?: boolean;
   search?: string;
   uncategorized?: boolean;
 }): Promise<ApiResponse<Transaction[]>> => {
@@ -77,7 +90,10 @@ export const createTransaction = async (
       "/transactions",
       data,
     );
-    return { success: true, data: response.data.data as Transaction };
+    const result = response.data.data as Transaction;
+    revalidatePath("/transactions");
+    revalidateTag("transactions", "profile");
+    return { success: true, data: result };
   } catch (error: any) {
     return {
       success: false,
@@ -88,14 +104,25 @@ export const createTransaction = async (
 
 export const bulkCreateTransactions = async (
   data: Partial<Transaction>[],
-): Promise<ActionResponse<{ imported: number; failed: number }>> => {
+): Promise<
+  ActionResponse<{
+    imported: number;
+    failed: number;
+    failures?: { index: number; reason: string }[];
+  }>
+> => {
   try {
     const response = await api.post<
-      ApiResponse<{ imported: number; failed: number }>
+      ApiResponse<{
+        imported: number;
+        failed: number;
+        failures?: { index: number; reason: string }[];
+      }>
     >("/transactions/bulk", data);
     const apiResponse = (response as any)._api_response as ApiResponse<{
       imported: number;
       failed: number;
+      failures?: { index: number; reason: string }[];
     }>;
     const result = apiResponse?.data ?? response.data?.data;
     if (!result) {
@@ -104,6 +131,9 @@ export const bulkCreateTransactions = async (
         error: "Failed to bulk create transactions: No data returned",
       };
     }
+
+    revalidatePath("/transactions");
+    revalidateTag("transactions", "profile");
 
     return {
       success: true,
@@ -130,6 +160,8 @@ export const updateTransaction = async (
     const apiResponse = (response as any)
       ._api_response as ApiResponse<Transaction>;
     const transaction = apiResponse?.data ?? response.data?.data;
+    revalidatePath("/transactions");
+    revalidateTag("transactions", "profile");
     return { success: true, data: transaction as Transaction };
   } catch (error: any) {
     return {
@@ -144,6 +176,8 @@ export const deleteTransaction = async (
 ): Promise<ActionResponse<void>> => {
   try {
     await api.delete(`/transactions/${id}`);
+    revalidatePath("/transactions");
+    revalidateTag("transactions", "profile");
     return { success: true, data: undefined };
   } catch (error: any) {
     return {
@@ -155,15 +189,19 @@ export const deleteTransaction = async (
 
 export const bulkDeleteTransactions = async (
   ids: string[],
-): Promise<ActionResponse<void>> => {
+): Promise<ActionResponse<{ deleted: number }>> => {
   try {
-    // Check if backend supports bulk delete, otherwise loop (safer for now if unsure)
-    // Most REST APIs for bulk use POST /bulk-delete or similar,
-    // but without seeing controller, I'll provide a loop as fallback or
-    // assume a standard DELETE /transactions?ids=... if preferred.
-    // Let's assume a loop for maximum compatibility unless I see a bulk endpoint.
-    await Promise.all(ids.map((id) => api.delete(`/transactions/${id}`)));
-    return { success: true, data: undefined };
+    const response = await api.post<ApiResponse<{ deleted: number }>>(
+      "/transactions/bulk-delete",
+      { ids },
+    );
+    const apiResponse = (response as any)._api_response as ApiResponse<{
+      deleted: number;
+    }>;
+    const result = apiResponse?.data ?? response.data?.data;
+    revalidatePath("/transactions");
+    revalidateTag("transactions", "profile");
+    return { success: true, data: result || { deleted: 0 } };
   } catch (error: any) {
     return {
       success: false,

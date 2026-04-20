@@ -11,7 +11,7 @@ export default async function UpgradePage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  await params;
+  const { locale } = await params;
   const pricingResult = await getPricing({ is_addon: "false" });
 
   const plans = pricingResult.success
@@ -20,7 +20,7 @@ export default async function UpgradePage({
 
   return (
     <div className="space-y-6">
-      <UpgradeView initialPlans={plans} />
+      <UpgradeView initialPlans={plans} locale={locale} />
     </div>
   );
 }

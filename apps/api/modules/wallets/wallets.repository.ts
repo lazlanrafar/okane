@@ -210,8 +210,13 @@ export abstract class WalletsRepository {
       );
   }
 
-  static async updateBalance(id: string, workspaceId: string, amount: number) {
-    const [wallet] = await db
+  static async updateBalance(
+    id: string,
+    workspaceId: string,
+    amount: number,
+    tx: any = db,
+  ) {
+    const [wallet] = await tx
       .update(wallets)
       .set({
         balance: sql`${wallets.balance} + ${amount}`,

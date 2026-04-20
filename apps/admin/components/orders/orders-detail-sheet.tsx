@@ -130,33 +130,33 @@ export function OrdersDetailSheet() {
 
             <div className="mt-6 mb-2">
               <Label className="mb-4 block font-medium text-md">
-                Xendit Information
+                Mayar Information
               </Label>
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <Label className="mb-2 block text-muted-foreground">
-                    Xendit Invoice ID
+                    Mayar Invoice ID
                   </Label>
                   <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
-                    {selectedOrder.xendit_invoice_id || "N/A"}
+                    {selectedOrder.mayar_invoice_id || "N/A"}
                   </div>
                 </div>
 
                 <div>
                   <Label className="mb-2 block text-muted-foreground">
-                    Xendit Subscription ID
+                    Mayar Transaction ID
                   </Label>
                   <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
-                    {selectedOrder.xendit_subscription_id || "N/A"}
+                    {selectedOrder.mayar_transaction_id || "N/A"}
                   </div>
                 </div>
 
                 <div>
                   <Label className="mb-2 block text-muted-foreground">
-                    Xendit Payment ID
+                    Mayar Payment ID
                   </Label>
                   <div className="h-[36px] flex items-center text-sm font-mono bg-muted/10 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
-                    {selectedOrder.xendit_payment_id || "N/A"}
+                    {selectedOrder.mayar_payment_id || "N/A"}
                   </div>
                 </div>
               </div>

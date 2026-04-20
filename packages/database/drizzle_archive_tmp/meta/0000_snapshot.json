@@ -1,6 +1,6 @@
 {
-  "id": "63b6e81f-3ae2-4658-990d-8162e7c08361",
-  "prevId": "e25d4943-f375-4fd4-8c47-73312621e402",
+  "id": "125d40b7-5e39-4c6b-a547-5ebb996e15c8",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1291,26 +1291,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "mayar_subscription_id": {
-          "name": "mayar_subscription_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "xendit_payment_id": {
-          "name": "xendit_payment_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "xendit_invoice_id": {
-          "name": "xendit_invoice_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "xendit_subscription_id": {
-          "name": "xendit_subscription_id",
+        "mayar_transaction_id": {
+          "name": "mayar_transaction_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -1367,21 +1349,6 @@
           "columns": [
             {
               "expression": "mayar_invoice_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "orders_xendit_invoice_id_unique": {
-          "name": "orders_xendit_invoice_id_unique",
-          "columns": [
-            {
-              "expression": "xendit_invoice_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1457,8 +1424,8 @@
           "notNull": true,
           "default": "'[]'::jsonb"
         },
-        "xendit_product_id": {
-          "name": "xendit_product_id",
+        "mayar_product_id": {
+          "name": "mayar_product_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -1622,6 +1589,177 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.transaction_items": {
+      "name": "transaction_items",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "workspace_id": {
+          "name": "workspace_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "brand": {
+          "name": "brand",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "numeric(10, 3)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "unit": {
+          "name": "unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "unit_price": {
+          "name": "unit_price",
+          "type": "numeric(19, 4)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(19, 4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "transaction_items_workspace_id_idx": {
+          "name": "transaction_items_workspace_id_idx",
+          "columns": [
+            {
+              "expression": "workspace_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "transaction_items_transaction_id_idx": {
+          "name": "transaction_items_transaction_id_idx",
+          "columns": [
+            {
+              "expression": "transaction_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "transaction_items_workspace_id_workspaces_id_fk": {
+          "name": "transaction_items_workspace_id_workspaces_id_fk",
+          "tableFrom": "transaction_items",
+          "tableTo": "workspaces",
+          "columnsFrom": [
+            "workspace_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "transaction_items_transaction_id_transactions_id_fk": {
+          "name": "transaction_items_transaction_id_transactions_id_fk",
+          "tableFrom": "transaction_items",
+          "tableTo": "transactions",
+          "columnsFrom": [
+            "transaction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "transaction_items_category_id_categories_id_fk": {
+          "name": "transaction_items_category_id_categories_id_fk",
+          "tableFrom": "transaction_items",
+          "tableTo": "categories",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -2341,14 +2479,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "mayar_subscription_id": {
-          "name": "mayar_subscription_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "xendit_subscription_id": {
-          "name": "xendit_subscription_id",
+        "mayar_transaction_id": {
+          "name": "mayar_transaction_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -2418,18 +2550,11 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "workspace_addons_mayar_subscription_id_unique": {
-          "name": "workspace_addons_mayar_subscription_id_unique",
+        "workspace_addons_mayar_transaction_id_unique": {
+          "name": "workspace_addons_mayar_transaction_id_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "mayar_subscription_id"
-          ]
-        },
-        "workspace_addons_xendit_subscription_id_unique": {
-          "name": "workspace_addons_xendit_subscription_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "xendit_subscription_id"
+            "mayar_transaction_id"
           ]
         }
       },
@@ -2938,20 +3063,20 @@
           "notNull": true,
           "default": "'free'"
         },
-        "xendit_customer_id": {
-          "name": "xendit_customer_id",
+        "mayar_customer_email": {
+          "name": "mayar_customer_email",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "xendit_subscription_id": {
-          "name": "xendit_subscription_id",
+        "mayar_transaction_id": {
+          "name": "mayar_transaction_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "xendit_current_period_end": {
-          "name": "xendit_current_period_end",
+        "plan_current_period_end": {
+          "name": "plan_current_period_end",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
@@ -3030,18 +3155,11 @@
             "slug"
           ]
         },
-        "workspaces_xendit_customer_id_unique": {
-          "name": "workspaces_xendit_customer_id_unique",
+        "workspaces_mayar_transaction_id_unique": {
+          "name": "workspaces_mayar_transaction_id_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "xendit_customer_id"
-          ]
-        },
-        "workspaces_xendit_subscription_id_unique": {
-          "name": "workspaces_xendit_subscription_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "xendit_subscription_id"
+            "mayar_transaction_id"
           ]
         }
       },
