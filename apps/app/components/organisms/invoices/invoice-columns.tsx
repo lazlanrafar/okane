@@ -48,16 +48,20 @@ type InvoiceRow = Invoice & {
 interface InvoiceColumnsOptions {
   onEdit?: (invoice: InvoiceRow) => void;
   onDelete?: (invoice: InvoiceRow) => void;
+  dictionary: any;
 }
 
 export function buildInvoiceColumns({
   onEdit,
   onDelete,
-}: InvoiceColumnsOptions = {}): ColumnDef<InvoiceRow>[] {
+  dictionary,
+}: InvoiceColumnsOptions): ColumnDef<InvoiceRow>[] {
+  const dict = dictionary?.invoices;
+
   return [
     {
       id: "invoiceNumber",
-      header: "Invoice No.",
+      header: dict?.columns?.invoice_number || "Invoice No.",
       accessorKey: "invoiceNumber",
       size: 180,
       cell: ({ row }) => (
@@ -68,21 +72,22 @@ export function buildInvoiceColumns({
     },
     {
       id: "status",
-      header: "Status",
+      header: dict?.columns?.status || "Status",
       accessorKey: "status",
       size: 120,
       cell: ({ row }) => {
         const status = row.original.status;
         return (
           <Badge variant="outline" className={STATUS_STYLES[status] ?? ""}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {dict?.statuses?.[status] ||
+              status.charAt(0).toUpperCase() + status.slice(1)}
           </Badge>
         );
       },
     },
     {
       id: "contact",
-      header: "Contact",
+      header: dict?.columns?.contact || "Contact",
       size: 220,
       cell: ({ row }) => {
         const name = (row.original as any).contact?.name ?? "-";
@@ -91,7 +96,7 @@ export function buildInvoiceColumns({
     },
     {
       id: "amount",
-      header: "Amount",
+      header: dict?.columns?.amount || "Amount",
       accessorKey: "amount",
       size: 140,
       cell: ({ row }) => (
@@ -102,7 +107,7 @@ export function buildInvoiceColumns({
     },
     {
       id: "issueDate",
-      header: "Issue Date",
+      header: dict?.columns?.issue_date || "Issue Date",
       accessorKey: "issueDate",
       size: 130,
       cell: ({ row }) => (
@@ -111,7 +116,7 @@ export function buildInvoiceColumns({
     },
     {
       id: "dueDate",
-      header: "Due Date",
+      header: dict?.columns?.due_date || "Due Date",
       accessorKey: "dueDate",
       size: 130,
       cell: ({ row }) => (
@@ -120,7 +125,7 @@ export function buildInvoiceColumns({
     },
     {
       id: "actions",
-      header: "Actions",
+      header: dict?.columns?.actions || "Actions",
       size: 100,
       enableHiding: false,
       cell: ({ row }) => (
@@ -133,7 +138,7 @@ export function buildInvoiceColumns({
           <DropdownMenuContent align="end">
             {onEdit && (
               <DropdownMenuItem onClick={() => onEdit(row.original)}>
-                Edit
+                {dict?.actions?.edit || "Edit"}
               </DropdownMenuItem>
             )}
             {onDelete && (
@@ -141,7 +146,7 @@ export function buildInvoiceColumns({
                 className="text-destructive"
                 onClick={() => onDelete(row.original)}
               >
-                Delete
+                {dict?.actions?.delete || "Delete"}
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>

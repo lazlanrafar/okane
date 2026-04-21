@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Debts",
 };
 import type { Wallet } from "@workspace/types";
-import { getWallets, getDebts, type DebtWithContact } from "@workspace/modules/server";
+import { getWallets, getDebts, type DebtWithContact, getTransactionSettings } from "@workspace/modules/server";
 import { DebtsClient } from "@/components/organisms/debts/debts-client";
 import { DebtTableSkeleton } from "@/components/organisms/debts/debt-table-skeleton";
 import { getDictionary } from "@/get-dictionary";
@@ -29,11 +29,13 @@ async function DebtsPageContent({ locale }: { locale: Locale }) {
   const dictionary = await getDictionary(locale);
   let initialDebts: DebtWithContact[] = [];
   let initialWallets: Wallet[] = [];
+  let settings: any = null;
 
   try {
-    const [debtsRes, walletsRes] = await Promise.all([
+    const [debtsRes, walletsRes, settingsRes] = await Promise.all([
       getDebts(),
       getWallets(),
+      getTransactionSettings(),
     ]);
 
     if (debtsRes?.success && debtsRes?.data) {
@@ -42,6 +44,10 @@ async function DebtsPageContent({ locale }: { locale: Locale }) {
 
     if (walletsRes?.success && walletsRes?.data) {
       initialWallets = walletsRes.data;
+    }
+
+    if (settingsRes?.success && settingsRes?.data) {
+      settings = settingsRes.data;
     }
   } catch (error) {
     console.error("Failed to fetch initial data for debts page:", error);
@@ -52,6 +58,7 @@ async function DebtsPageContent({ locale }: { locale: Locale }) {
       initialData={initialDebts}
       wallets={initialWallets}
       dictionary={dictionary}
+      settings={settings}
     />
   );
 }

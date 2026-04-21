@@ -179,7 +179,7 @@ export function ChatMessages({
                         >
                           <PaperclipIcon className="size-4 shrink-0 text-muted-foreground" />
                           <span className="text-sm font-medium">
-                            {file.filename || "Unknown file"}
+                            {file.filename || dictionary.common?.na || "Unknown file"}
                           </span>
                         </div>
                       );

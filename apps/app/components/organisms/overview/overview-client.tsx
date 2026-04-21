@@ -36,6 +36,8 @@ interface OverviewClientProps {
   expenseCategoryData: CategoryBreakdownPoint[];
   incomeCategoryData: CategoryBreakdownPoint[];
   settings?: any;
+  dictionary: any;
+  locale: string;
 }
 
 export function OverviewClient({
@@ -46,11 +48,11 @@ export function OverviewClient({
   burnRateData,
   expenseCategoryData,
   incomeCategoryData,
+  dictionary,
 }: OverviewClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { dictionary } = useAppStore();
 
   const activeTab = searchParams.get("tab") || defaultTab;
 
@@ -131,9 +133,9 @@ export function OverviewClient({
         )}
         aria-hidden={isChatActive}
       >
-        {/* OverviewCards is self-fetching — no props needed */}
+        {/* OverviewCards is self-fetching — but now needs dictionary prop */}
         <TabsContent value="overview" className="flex-1 mt-0">
-          <OverviewCards />
+          <OverviewCards dictionary={dictionary} />
         </TabsContent>
         <TabsContent value="metrics" className="flex-1 mt-0">
           <OverviewMetrics
@@ -142,6 +144,7 @@ export function OverviewClient({
             burnRateData={burnRateData}
             expenseCategoryData={expenseCategoryData}
             incomeCategoryData={incomeCategoryData}
+            dictionary={dictionary}
           />
         </TabsContent>
       </div>

@@ -17,9 +17,7 @@ interface Props {
   dictionary: any;
 }
 
-export function AppsClient({ dictionary: dict }: Props) {
-  const { dictionary: storeDict } = useAppStore() as any;
-  const dictionary = dict || storeDict;
+export function AppsClient({ dictionary }: Props) {
   const t = dictionary?.apps;
 
   const router = useRouter();
@@ -191,6 +189,7 @@ export function AppsClient({ dictionary: dict }: Props) {
             isExpanded={expandedApp === app.id}
             onExpand={() => setExpandedApp(app.id)}
             onClose={() => setExpandedApp(null)}
+            dictionary={dictionary}
             onInstall={async () => {
               if (app.onInitialize) {
                 await app.onInitialize({

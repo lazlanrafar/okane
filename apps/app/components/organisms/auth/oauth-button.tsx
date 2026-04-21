@@ -19,12 +19,9 @@ export function OAuthButton({
   provider,
   className,
   label,
-  dictionary: dict,
+  dictionary,
   ...props
 }: OAuthButtonProps) {
-  const { dictionary: storeDict } = useAppStore();
-  const dictionary = dict || storeDict;
-
   const icon = provider === "google" ? siGoogle : siGithub;
   const defaultLabel =
     provider === "google"

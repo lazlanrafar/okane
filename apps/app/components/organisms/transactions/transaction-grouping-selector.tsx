@@ -15,12 +15,14 @@ export type GroupByInterval = "none" | "daily" | "weekly" | "monthly";
 interface Props {
   value: GroupByInterval;
   onValueChange: (value: GroupByInterval) => void;
+  dictionary: any;
 }
 
-export function TransactionGroupingSelector({ value, onValueChange }: Props) {
-  const { dictionary } = useAppStore();
-
-  if (!dictionary) return null;
+export function TransactionGroupingSelector({
+  value,
+  onValueChange,
+  dictionary,
+}: Props) {
 
   return (
     <Select

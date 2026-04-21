@@ -30,9 +30,10 @@ const Canvas = dynamic(
 
 type Props = {
   geo?: Geo;
+  dictionary: any;
 };
 
-export default function ChatInterface({ geo }: Props) {
+export default function ChatInterface({ geo, dictionary }: Props) {
   const { state: sidebarState } = useSidebar();
   const {
     chatId: routeChatId,
@@ -183,7 +184,7 @@ export default function ChatInterface({ geo }: Props) {
               >
                 <div className="bg-background/80 dark:bg-background/50 backdrop-blur-sm">
                   <div className="mx-auto w-full px-4 md:px-0">
-                    <ChatHeader />
+                    <ChatHeader dictionary={dictionary} />
                   </div>
                 </div>
               </div>
@@ -195,6 +196,7 @@ export default function ChatInterface({ geo }: Props) {
                     isStreaming={
                       status === "streaming" || status === "submitted"
                     }
+                    dictionary={dictionary}
                   />
                   <ChatStatusIndicators
                     agentStatus={agentStatus}

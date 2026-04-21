@@ -32,7 +32,7 @@ import { useLocalizedRoute } from "@/utils/localized-route";
 import { isValid } from "date-fns";
 
 
-export function SearchDialog() {
+export function SearchDialog({ dictionary }: { dictionary: any }) {
   const { isOpen, setOpen } = useSearchStore();
   const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -40,7 +40,7 @@ export function SearchDialog() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [debounceDelay, setDebounceDelay] = useState(200);
   const [isFetching, setIsFetching] = useState(false);
-  const { settings, formatCurrency, dictionary } = useAppStore();
+  const { settings, formatCurrency } = useAppStore();
   const { getLocalizedUrl } = useLocalizedRoute();
 
 

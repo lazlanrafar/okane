@@ -35,9 +35,11 @@ type WorkspaceData = {
 export function WorkspaceSwitcher({
   workspaces,
   activeWorkspaceId,
+  dictionary,
 }: {
   workspaces: WorkspaceData[];
   activeWorkspaceId?: string | null;
+  dictionary: any;
 }) {
   const { isMobile } = useSidebar();
   const [activeWorkspace, setActiveWorkspace] = React.useState(
@@ -48,7 +50,6 @@ export function WorkspaceSwitcher({
 
   const [isSwitching, setIsSwitching] = React.useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
-  const { dictionary } = useAppStore();
   const { getLocalizedUrl } = useLocalizedRoute();
 
   const t = (key: string, variables?: Record<string, string | number>) => {
@@ -194,6 +195,7 @@ export function WorkspaceSwitcher({
       <CreateWorkspaceDialog
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
+        dictionary={dictionary}
       />
     </SidebarMenu>
   );

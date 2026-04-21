@@ -9,9 +9,11 @@ import { useMemo } from "react";
 
 interface InvoiceActivityProps {
   invoiceId: string;
+  dictionary: any;
 }
 
-export function InvoiceActivity({ invoiceId }: InvoiceActivityProps) {
+export function InvoiceActivity({ invoiceId, dictionary }: InvoiceActivityProps) {
+  const dict = dictionary?.invoices;
   const { data: response, isLoading } = useQuery({
     queryKey: ["invoice-activity", invoiceId],
     queryFn: () => getInvoiceActivity(invoiceId),
@@ -43,7 +45,7 @@ export function InvoiceActivity({ invoiceId }: InvoiceActivityProps) {
           <History className="h-5 w-5 text-muted-foreground/60" />
         </div>
         <p className="text-sm text-muted-foreground font-medium tracking-tight italic">
-          No activity recorded yet
+          {dict?.details?.no_activity || "No activity recorded yet"}
         </p>
       </div>
     );
@@ -81,9 +83,9 @@ export function InvoiceActivity({ invoiceId }: InvoiceActivityProps) {
             <div className="flex items-center justify-between gap-4">
               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest font-mono">
                 {activity.action === "invoice.created"
-                  ? "Created"
+                  ? dict?.activities?.created || "Created"
                   : activity.action === "invoice.updated"
-                    ? "Updated"
+                    ? dict?.activities?.updated || "Updated"
                     : activity.action.replace("invoice.", "").replace("_", " ")}
               </span>
               <span className="text-[9px] text-muted-foreground/40 font-bold uppercase tracking-[0.2em] font-mono">
@@ -92,16 +94,16 @@ export function InvoiceActivity({ invoiceId }: InvoiceActivityProps) {
             </div>
 
             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60 font-mono italic opacity-70">
-              <span>by</span>
+              <span>{dictionary?.common?.by || "by"}</span>
               <span className="font-bold text-foreground not-italic">
-                {activity.user?.name || activity.user?.email || "System"}
+                {activity.user?.name || activity.user?.email || dictionary?.common?.system || "System"}
               </span>
             </div>
 
             {activity.action === "invoice.updated" &&
               activity.before &&
               activity.after && (
-                <ActivityDiff before={activity.before} after={activity.after} />
+                <ActivityDiff before={activity.before} after={activity.after} dict={dict} />
               )}
           </div>
         </div>
@@ -110,7 +112,7 @@ export function InvoiceActivity({ invoiceId }: InvoiceActivityProps) {
   );
 }
 
-function ActivityDiff({ before, after }: { before: any; after: any }) {
+function ActivityDiff({ before, after, dict }: { before: any; after: any; dict: any }) {
   const changes = useMemo(() => {
     const diffs: Array<{ field: string; from: any; to: any }> = [];
     const keys = ["status", "amount", "dueDate", "contactId", "isPublic"];
@@ -132,8 +134,10 @@ function ActivityDiff({ before, after }: { before: any; after: any }) {
           key={change.field}
           className="text-[10px] flex items-center gap-2 font-mono"
         >
-          <span className="text-muted-foreground/60 uppercase tracking-tighter w-16 shrink-0">
-            {change.field.replace(/([A-Z])/g, " $1")}
+          <span className="text-muted-foreground/60 uppercase tracking-tighter w-20 shrink-0">
+            {dict?.columns?.[change.field.replace(/([A-Z])/g, "_$1").toLowerCase()] || 
+             dict?.details?.[change.field.replace(/([A-Z])/g, "_$1").toLowerCase()] || 
+             change.field.replace(/([A-Z])/g, " $1")}
           </span>
           <div className="flex items-center gap-2 overflow-hidden">
             <span className="line-through text-muted-foreground/40 truncate max-w-[80px]">

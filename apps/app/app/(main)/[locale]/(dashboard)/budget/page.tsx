@@ -1,29 +1,63 @@
-import { getDictionary } from "@/get-dictionary";
-import type { Locale } from "@/i18n-config";
+import { Suspense } from "react";
+import { getBudgetStatus } from "@workspace/modules/server";
+import { BudgetClient } from "@/components/organisms/budgets/budget-client";
+import { BudgetSkeleton } from "@/components/organisms/budgets/budget-skeleton";
+import { Hydrated } from "@/components/shared/hydrated";
 import type { Metadata } from "next";
+
+import { getDictionary } from "@/get-dictionary";
+import { Locale } from "@/i18n-config";
 
 export const metadata: Metadata = {
   title: "Budget",
 };
 
-export default async function BudgetPage({
-  params,
-}: {
+export default async function BudgetPage(props: {
   params: Promise<{ locale: Locale }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { locale } = await params;
-  const dictionary = await getDictionary(locale);
+  const { locale } = await props.params;
+  const searchParams = await props.searchParams;
 
   return (
-    <div className="flex-1 flex items-center justify-center p-8">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <h1 className="text-2xl font-serif font-medium">
-          {dictionary.sidebar.budget}
-        </h1>
-        <p className="text-muted-foreground">
-          {dictionary.sidebar.coming_soon}
-        </p>
+    <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col bg-background no-scrollbar">
+      <div className="flex-1 min-h-0 no-scrollbar">
+        <Suspense fallback={<BudgetSkeleton />}>
+          <BudgetPageContent
+            locale={locale}
+            searchParams={searchParams}
+          />
+        </Suspense>
       </div>
     </div>
+  );
+}
+
+async function BudgetPageContent({
+  locale,
+  searchParams,
+}: {
+  locale: Locale;
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const month = Number(searchParams.month) || undefined;
+  const year = Number(searchParams.year) || undefined;
+
+  // Get initial data for SSR
+  const [budgetRes, dictionary] = await Promise.all([
+    getBudgetStatus({ month, year }),
+    getDictionary(locale),
+  ]);
+
+  const budgetStatus = Array.isArray(budgetRes?.data) ? budgetRes.data : [];
+
+  return (
+    <Hydrated fallback={<BudgetSkeleton />}>
+      <BudgetClient
+        initialData={budgetStatus}
+        dictionary={dictionary}
+        locale={locale}
+      />
+    </Hydrated>
   );
 }

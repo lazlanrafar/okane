@@ -30,10 +30,12 @@ type UserData = {
 export function AppSidebar({
   currentUser,
   workspaces,
+  dictionary,
   ...rest
 }: React.ComponentProps<typeof Sidebar> & {
   currentUser: UserData | null;
   workspaces: WorkspaceData[];
+  dictionary: any;
 }) {
   const { sidebarVariant, sidebarCollapsible, isSynced } = usePreferencesStore(
     useShallow((s) => ({
@@ -49,10 +51,14 @@ export function AppSidebar({
   return (
     <Sidebar {...rest} variant={variant} collapsible={collapsible}>
       <SidebarHeader>
-        <WorkspaceSwitcher workspaces={workspaces} activeWorkspaceId={currentUser?.workspace_id} />
+        <WorkspaceSwitcher 
+          workspaces={workspaces} 
+          activeWorkspaceId={currentUser?.workspace_id} 
+          dictionary={dictionary}
+        />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={sidebarItems} />
+        <NavMain items={sidebarItems} dictionary={dictionary} />
       </SidebarContent>
       <SidebarFooter>
         {currentUser && (
@@ -62,6 +68,7 @@ export function AppSidebar({
               email: currentUser.email,
               avatar: currentUser.profile_picture || "",
             }}
+            dictionary={dictionary}
           />
         )}
       </SidebarFooter>

@@ -242,11 +242,9 @@ export function AccountFormSheet({
   walletId,
   onSuccess,
   groups = [],
-  dictionaryByProps,
+  dictionary,
 }: AccountSheetProps) {
   const [mounted, setMounted] = React.useState(false);
-  const { dictionary: storeDict } = useAppStore() as any;
-  const dictionary = dictionaryByProps || storeDict;
 
   const [wallet, setWallet] = React.useState<Wallet | undefined>();
 

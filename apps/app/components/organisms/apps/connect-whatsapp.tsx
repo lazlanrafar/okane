@@ -20,8 +20,7 @@ import { useParams } from "next/navigation";
 
 import { useAppStore } from "@/stores/app";
 
-export function ConnectWhatsApp() {
-  const { dictionary } = useAppStore();
+export function ConnectWhatsApp({ dictionary }: { dictionary: any }) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<"meta" | "twilio">("meta");
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");

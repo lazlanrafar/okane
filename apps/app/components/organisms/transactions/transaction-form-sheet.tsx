@@ -125,7 +125,7 @@ export function TransactionFormSheet({
   onOpenChange,
   transaction,
   onSuccess,
-  dictionary: dict,
+  dictionary,
 }: Props) {
   const [mounted, setMounted] = useState(false);
   const queryClient = useQueryClient();
@@ -135,8 +135,7 @@ export function TransactionFormSheet({
   );
   const [attachments, setAttachments] = useState<VaultFileRef[]>([]);
   const [vaultPickerOpen, setVaultPickerOpen] = useState(false);
-  const { settings, user, dictionary: storeDict } = useAppStore() as any;
-  const dictionary = dict || storeDict;
+  const { settings, user } = useAppStore() as any;
 
   useEffect(() => {
     setMounted(true);

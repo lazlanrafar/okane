@@ -17,20 +17,20 @@ import { DebtFormSheet } from "./debt-form-sheet";
 import { DebtDetailSheet } from "./debt-detail-sheet";
 import { DebtBulkEditBar } from "./debt-bulk-edit-bar";
 import { ContactDetailSheet } from "../contacts/contact-detail-sheet";
-import { useAppStore } from "@/stores/app";
 import { useDebtsStore } from "@/stores/debts";
 import { useDataTableFilter } from "@/hooks/use-data-table-filter";
 import { useConfirm } from "@/components/providers/confirm-modal-provider";
 import { toast } from "sonner";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
 interface Props {
   initialData: DebtWithContact[];
   wallets: Wallet[];
   dictionary: any;
+  settings: any;
 }
 
-export function DebtsClient({ initialData, wallets, dictionary }: Props) {
+export function DebtsClient({ initialData, wallets, dictionary, settings }: Props) {
   const router = useRouter();
   const [columns, setColumns] = useState<any[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -39,7 +39,8 @@ export function DebtsClient({ initialData, wallets, dictionary }: Props) {
   const [selectedDebt, setSelectedDebt] = useState<DebtWithContact | undefined>();
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   
-  const { settings, formatCurrency } = useAppStore();
+  const formatCurrency = (amount: number, options?: any) =>
+    formatCurrencyUtil(amount, settings, options);
   const { rowSelection, setRowSelection } = useDebtsStore();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
@@ -221,7 +222,7 @@ export function DebtsClient({ initialData, wallets, dictionary }: Props) {
           }
           hFull
         />
-        <DebtBulkEditBar />
+        <DebtBulkEditBar dictionary={dictionary} />
       </div>
 
       <DebtFormSheet
@@ -264,6 +265,7 @@ export function DebtsClient({ initialData, wallets, dictionary }: Props) {
         }}
         onDebtClick={handleRowClick}
         dictionary={dictionary}
+        settings={settings}
       />
     </div>
   );

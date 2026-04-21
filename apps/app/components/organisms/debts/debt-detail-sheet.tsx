@@ -39,8 +39,8 @@ export function DebtDetailSheet({
   dictionary,
 }: Props) {
   const [paymentFormOpen, setPaymentFormOpen] = useState(false);
-  const { settings, formatCurrency, dictionary: global_dict, isLoading: isDictLoading } = useAppStore() as any;
-  const dict = (dictionary?.debts || global_dict?.debts) as any;
+  const { settings, formatCurrency } = useAppStore() as any;
+  const dict = dictionary?.debts;
 
   if (!debt) return null;
 

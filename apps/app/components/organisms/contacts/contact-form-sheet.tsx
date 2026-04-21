@@ -30,7 +30,6 @@ import { createContact, updateContact } from "@workspace/modules/client";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Contact } from "@workspace/types";
 import { X } from "lucide-react";
-import { useAppStore } from "@/stores/app";
 
 const getContactSchema = (dictionary: any) =>
   z.object({
@@ -140,13 +139,11 @@ export function ContactFormSheet({
   open,
   onClose,
   contact,
-  dictionary: dict,
+  dictionary,
 }: Props) {
   const [mounted, setMounted] = useState(false);
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { dictionary: storeDict } = useAppStore();
-  const dictionary = dict || storeDict;
 
   useEffect(() => {
     setMounted(true);
@@ -259,7 +256,7 @@ export function ContactFormSheet({
         );
       }
     } catch {
-      toast.error("An unexpected error occurred");
+      toast.error(dictionary.common.error);
     } finally {
       setIsSubmitting(false);
     }
@@ -337,17 +334,16 @@ export function ContactFormSheet({
                       />
 
                       {/* Billing Emails */}
-                      <div className="space-y-1.5">
+                      <div className="space-y-1">
                         <label className="text-xs text-muted-foreground font-normal">
-                          Billing Emails (BCC)
+                          {dictionary.contacts.form.billing_emails_label}
                         </label>
                         <BillingEmailsInput
                           value={billingEmails}
                           onChange={setBillingEmails}
                         />
                         <p className="text-[10px] text-muted-foreground">
-                          {dictionary.contacts.form.email_placeholder_details ||
-                            "Additional emails to BCC when sending invoices. Press Enter or comma to add."}
+                          {dictionary.contacts.form.billing_emails_desc}
                         </p>
                       </div>
 
@@ -376,10 +372,15 @@ export function ContactFormSheet({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-xs text-muted-foreground font-normal">
-                              Website
+                              {dictionary.contacts.form.website_label}
                             </FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="acme.com" />
+                              <Input
+                                {...field}
+                                placeholder={
+                                  dictionary.contacts.form.website_placeholder
+                                }
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -391,10 +392,15 @@ export function ContactFormSheet({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-xs text-muted-foreground font-normal">
-                              Contact Person
+                              {dictionary.contacts.form.contact_person_label}
                             </FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="John Doe" />
+                              <Input
+                                {...field}
+                                placeholder={
+                                  dictionary.contacts.form.contact_person_placeholder
+                                }
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -435,10 +441,15 @@ export function ContactFormSheet({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-xs text-muted-foreground font-normal">
-                              Address Line 2
+                              {dictionary.contacts.form.address_line_2_label}
                             </FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="Suite 100" />
+                              <Input
+                                {...field}
+                                placeholder={
+                                  dictionary.contacts.form.address_line_2_placeholder
+                                }
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -451,10 +462,13 @@ export function ContactFormSheet({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-xs text-muted-foreground font-normal">
-                                City
+                                {dictionary.contacts.form.city_label}
                               </FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="New York" />
+                                <Input
+                                  {...field}
+                                  placeholder={dictionary.contacts.form.city_placeholder}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -466,10 +480,15 @@ export function ContactFormSheet({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-xs text-muted-foreground font-normal">
-                                State
+                                {dictionary.contacts.form.state_label}
                               </FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="NY" />
+                                <Input
+                                  {...field}
+                                  placeholder={
+                                    dictionary.contacts.form.state_placeholder
+                                  }
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -483,10 +502,15 @@ export function ContactFormSheet({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-xs text-muted-foreground font-normal">
-                                Country
+                                {dictionary.contacts.form.country_label}
                               </FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="United States" />
+                                <Input
+                                  {...field}
+                                  placeholder={
+                                    dictionary.contacts.form.country_placeholder
+                                  }
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -498,10 +522,15 @@ export function ContactFormSheet({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-xs text-muted-foreground font-normal">
-                                ZIP Code
+                                {dictionary.contacts.form.zip_code_label}
                               </FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="10001" />
+                                <Input
+                                  {...field}
+                                  placeholder={
+                                    dictionary.contacts.form.zip_code_placeholder
+                                  }
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -514,10 +543,15 @@ export function ContactFormSheet({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-xs text-muted-foreground font-normal">
-                              Tax ID / VAT Number
+                              {dictionary.contacts.form.tax_id_label}
                             </FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="US123456789" />
+                              <Input
+                                {...field}
+                                placeholder={
+                                  dictionary.contacts.form.tax_id_placeholder
+                                }
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

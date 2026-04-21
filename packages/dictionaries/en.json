@@ -924,6 +924,8 @@
       "email": "Email",
       "phone": "Phone",
       "address": "Address",
+      "website": "Website",
+      "location": "Location",
       "created_at": "Joined At",
       "actions": "Actions"
     },
@@ -949,8 +951,26 @@
       "email_placeholder": "john@example.com",
       "phone_label": "Phone",
       "phone_placeholder": "+1 234 567 890",
+      "website_label": "Website",
+      "website_placeholder": "acme.com",
+      "contact_person_label": "Contact Person",
+      "contact_person_placeholder": "John Doe",
       "address_label": "Address",
-      "address_placeholder": "123 Main St, City",
+      "address_placeholder": "123 Main St",
+      "address_line_2_label": "Address Line 2",
+      "address_line_2_placeholder": "Suite 100",
+      "city_label": "City",
+      "city_placeholder": "New York",
+      "state_label": "State",
+      "state_placeholder": "NY",
+      "country_label": "Country",
+      "country_placeholder": "United States",
+      "zip_code_label": "ZIP Code",
+      "zip_code_placeholder": "10001",
+      "tax_id_label": "Tax ID / VAT Number",
+      "tax_id_placeholder": "US123456789",
+      "billing_emails_label": "Billing Emails (BCC)",
+      "billing_emails_desc": "Additional emails to BCC when sending invoices. Press Enter or comma to add.",
       "notes_label": "Notes",
       "notes_placeholder": "Additional information...",
       "save": "Save Changes",
@@ -1194,6 +1214,12 @@
       "create_failed": "Failed to create invoice",
       "updated": "Invoice updated",
       "update_failed": "Failed to update invoice"
+    },
+    "chat": {
+      "new_chat": "New chat",
+      "placeholder": "Ask anything...",
+      "search_placeholder": "Search the web...",
+      "esc": "Esc"
     }
   }
 }

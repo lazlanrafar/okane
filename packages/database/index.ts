@@ -4,6 +4,7 @@ export * from "./schema/ai-messages";
 export * from "./schema/ai-sessions";
 export * from "./schema/articles";
 export * from "./schema/audit-logs";
+export * from "./schema/budgets";
 export * from "./schema/categories";
 export * from "./schema/contacts";
 export * from "./schema/debt-payments";

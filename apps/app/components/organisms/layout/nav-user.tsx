@@ -31,15 +31,16 @@ import { logout } from "@workspace/modules/auth/auth.action";
 
 export function NavUser({
   user,
+  dictionary,
 }: {
   readonly user: {
     readonly name: string;
     readonly email: string;
     readonly avatar: string;
   };
+  readonly dictionary: any;
 }) {
   const { isMobile } = useSidebar();
-  const { dictionary } = useAppStore();
   const { getLocalizedUrl } = useLocalizedRoute();
   const router = useRouter();
 

@@ -14,14 +14,16 @@ export function OverviewMetrics({
   burnRateData,
   incomeCategoryData,
   expenseCategoryData,
+  dictionary,
 }: {
   incomeData: ChartDataPoint[];
   expenseData: ChartDataPoint[];
   burnRateData: ChartDataPoint[];
   incomeCategoryData: CategoryBreakdownPoint[];
   expenseCategoryData: CategoryBreakdownPoint[];
+  dictionary: any;
 }) {
-  const { formatCurrency, dictionary } = useAppStore();
+  const { formatCurrency } = useAppStore();
 
   if (!dictionary) return null;
 

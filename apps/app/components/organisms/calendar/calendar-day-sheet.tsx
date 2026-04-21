@@ -12,6 +12,7 @@ interface CalendarDaySheetProps {
   onOpenChange: (open: boolean) => void;
   transactions: Transaction[];
   debts: (Debt & { contactName: string })[];
+  dictionary: any;
 }
 
 export function CalendarDaySheet({
@@ -20,9 +21,10 @@ export function CalendarDaySheet({
   onOpenChange,
   transactions,
   debts,
+  dictionary,
 }: CalendarDaySheetProps) {
   const router = useRouter();
-  const { formatCurrency, getTransactionColor, dictionary } = useAppStore();
+  const { formatCurrency, getTransactionColor } = useAppStore();
 
   if (!dictionary) return null;
   const t = dictionary.calendar.sheet;

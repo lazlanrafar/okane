@@ -37,6 +37,7 @@ export interface AppsCardProps {
   onDisconnect?: () => void;
   isInstalling?: boolean;
   isDisconnecting?: boolean;
+  dictionary: any;
 }
 
 export function AppsCard({
@@ -49,8 +50,8 @@ export function AppsCard({
   isInstalling,
   isDisconnecting,
   userPlan = "Starter",
+  dictionary,
 }: AppsCardProps) {
-  const { dictionary } = useAppStore();
   const params = useParams();
   const locale = (params?.locale as string) || "en";
 

@@ -49,9 +49,8 @@ const getFormSchema = (dictionary: any) => {
     });
 };
 
-export function RegisterForm() {
+export function RegisterForm({ dictionary }: { dictionary: any }) {
   const [is_pending, start_transition] = useTransition();
-  const { dictionary } = useAppStore();
 
   const form = useForm<z.infer<ReturnType<typeof getFormSchema>>>({
     resolver: zodResolver(getFormSchema(dictionary) as any),

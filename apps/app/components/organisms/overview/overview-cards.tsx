@@ -39,9 +39,9 @@ function TrendSkeleton() {
   return <Skeleton className="h-3 w-24 mt-1" />;
 }
 
-export function OverviewCards() {
+export function OverviewCards({ dictionary }: { dictionary: any }) {
   const { sendMessage } = useChatActions();
-  const { formatCurrency, dictionary } = useAppStore();
+  const { formatCurrency } = useAppStore();
 
   if (!dictionary) return null;
 

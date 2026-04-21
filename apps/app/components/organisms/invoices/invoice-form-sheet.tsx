@@ -294,6 +294,7 @@ interface InvoiceFormSheetProps {
     data: CreateInvoiceData,
     isSilent?: boolean,
   ) => Promise<Invoice | boolean>;
+  dictionary: any;
 }
 
 export function InvoiceFormSheet({
@@ -302,7 +303,9 @@ export function InvoiceFormSheet({
   invoice,
   onSuccess,
   onSubmit,
+  dictionary,
 }: InvoiceFormSheetProps) {
+  const dict = dictionary?.invoices;
   const [loading, setLoading] = useState(false);
   const isEditing = !!invoice;
 
@@ -554,12 +557,12 @@ export function InvoiceFormSheet({
                 {/* Meta block */}
                 <div className="flex flex-col gap-1 w-[240px]">
                   <h1 className="text-3xl font-serif tracking-tight mb-4">
-                    Invoice
+                    {dict?.details?.title || "Invoice"}
                   </h1>
 
                   <div className="grid grid-cols-[80px_1fr] items-center gap-2">
                     <span className="text-[11px] text-muted-foreground">
-                      Invoice No:
+                      {dict?.details?.number || "Invoice No"}:
                     </span>
                     <FormField
                       control={form.control as any}
@@ -581,7 +584,7 @@ export function InvoiceFormSheet({
 
                   <div className="grid grid-cols-[80px_1fr] items-center gap-2">
                     <span className="text-[11px] text-muted-foreground">
-                      Issue Date:
+                      {dict?.details?.issued || "Issue Date"}:
                     </span>
                     <FormField
                       control={form.control as any}
@@ -603,7 +606,7 @@ export function InvoiceFormSheet({
 
                   <div className="grid grid-cols-[80px_1fr] items-center gap-2">
                     <span className="text-[11px] text-muted-foreground">
-                      Due Date:
+                      {dict?.details?.due || "Due Date"}:
                     </span>
                     <FormField
                       control={form.control as any}
@@ -649,7 +652,7 @@ export function InvoiceFormSheet({
                 {/* From Details */}
                 <div className="flex flex-col gap-2">
                   <span className="text-[11px] text-muted-foreground">
-                    From
+                    {dict?.details?.from || "From"}
                   </span>
                   <FormField
                     control={form.control as any}
@@ -659,7 +662,7 @@ export function InvoiceFormSheet({
                         <FormControl>
                           <HashTextarea
                             hasValue={!!field.value}
-                            placeholder="Your Company Details..."
+                            placeholder={dict?.placeholders?.from_details || "Your Company Details..."}
                             {...field}
                           />
                         </FormControl>
@@ -670,7 +673,7 @@ export function InvoiceFormSheet({
 
                 {/* To Details (Customer) */}
                 <div className="flex flex-col gap-2">
-                  <span className="text-[11px] text-muted-foreground">To</span>
+                  <span className="text-[11px] text-muted-foreground">{dict?.details?.bill_to || "To"}</span>
                   <FormField
                     control={form.control as any}
                     name="contactId"
@@ -679,7 +682,7 @@ export function InvoiceFormSheet({
                         <SelectContact
                           value={field.value}
                           onChange={field.onChange}
-                          placeholder="Select contact"
+                          placeholder={dict?.placeholders?.select_contact || "Select contact"}
                         />
                         <FormMessage />
                       </FormItem>
@@ -700,21 +703,21 @@ export function InvoiceFormSheet({
                   )}
                 >
                   <span className="text-[11px] text-muted-foreground">
-                    Description
+                    {dict?.columns?.description || "Description"}
                   </span>
                   <span className="text-[11px] text-muted-foreground text-right pr-2">
-                    Quantity
+                    {dict?.columns?.qty || "Quantity"}
                   </span>
                   <span className="text-[11px] text-muted-foreground text-right pr-2">
-                    Price
+                    {dict?.columns?.rate || "Price"}
                   </span>
                   {showLineItemTax && (
                     <span className="text-[11px] text-muted-foreground text-right pr-2">
-                      Tax (%)
+                      {dict?.columns?.tax || "Tax"} (%)
                     </span>
                   )}
                   <span className="text-[11px] text-muted-foreground text-right">
-                    Total
+                    {dict?.columns?.amount || "Total"}
                   </span>
                   <span></span>
                 </div>
@@ -852,15 +855,17 @@ export function InvoiceFormSheet({
                   })}
                 </div>
 
+                {/* ADD ITEM BUTTON */}
                 <div className="mt-4">
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="gap-2 text-[11px] text-muted-foreground hover:text-foreground h-7 px-2 -ml-2 transition-colors"
+                    className="gap-2 text-xs text-muted-foreground hover:text-foreground h-8 -ml-2"
                     onClick={() => append({ name: "", quantity: 1, price: 0 })}
                   >
-                    <Plus className="h-3 w-3" /> Add item
+                    <Plus className="h-3 w-3" />
+                    {dict?.actions?.add_item || "Add Item"}
                   </Button>
                 </div>
               </div>
@@ -872,7 +877,7 @@ export function InvoiceFormSheet({
                   <div className="w-[300px] flex flex-col pt-2">
                     <div className="flex justify-between items-center py-1.5 border-b border-transparent">
                       <span className="text-[11px] text-muted-foreground">
-                        Subtotal
+                        {dict?.details?.subtotal || "Subtotal"}
                       </span>
                       <span className="text-xs text-muted-foreground tabular-nums font-mono">
                         {new Intl.NumberFormat(undefined, {
@@ -881,11 +886,12 @@ export function InvoiceFormSheet({
                         }).format(subtotal)}
                       </span>
                     </div>
+
                     {showVat && (
                       <div className="flex justify-between items-center py-1.5">
                         <div className="flex items-center gap-2">
                           <span className="text-[11px] text-muted-foreground">
-                            VAT (%)
+                            {dict?.details?.vat || "VAT"} (%)
                           </span>
                           <FormField
                             control={form.control}
@@ -922,7 +928,7 @@ export function InvoiceFormSheet({
                     {showLineItemTax && (
                       <div className="flex justify-between items-center py-1.5">
                         <span className="text-[11px] text-muted-foreground">
-                          Line item tax
+                          {dict?.settings?.line_item_tax || "Line item tax"}
                         </span>
                         <span className="text-xs text-muted-foreground tabular-nums font-mono">
                           {new Intl.NumberFormat(undefined, {
@@ -937,7 +943,7 @@ export function InvoiceFormSheet({
                       <div className="flex justify-between items-center py-1.5">
                         <div className="flex items-center gap-2">
                           <span className="text-[11px] text-muted-foreground">
-                            Discount (%)
+                            {dict?.details?.discount || "Discount"} (%)
                           </span>
                           <FormField
                             control={form.control}
@@ -973,7 +979,7 @@ export function InvoiceFormSheet({
                     )}
 
                     <div className="flex justify-between items-center py-4 mt-2 border-t">
-                      <span className="text-[13px] font-medium">Total</span>
+                      <span className="text-[13px] font-medium">{dict?.details?.total || "Total"}</span>
                       <span className="text-xl font-medium font-serif tracking-tight">
                         {new Intl.NumberFormat(undefined, {
                           style: "currency",
@@ -989,7 +995,7 @@ export function InvoiceFormSheet({
                   <div className="grid grid-cols-2 gap-8">
                     <div className="flex flex-col gap-2">
                       <span className="text-[11px] text-muted-foreground">
-                        Payment Details
+                         {dict?.details?.payment_details || "Payment Details"}
                       </span>
                       <FormField
                         control={form.control}
@@ -999,7 +1005,7 @@ export function InvoiceFormSheet({
                             <FormControl>
                               <HashTextarea
                                 hasValue={!!field.value}
-                                placeholder="Bank account, PayPal, etc..."
+                                placeholder={dict?.placeholders?.payment_details || "Bank account, PayPal, etc..."}
                                 {...field}
                               />
                             </FormControl>
@@ -1009,7 +1015,7 @@ export function InvoiceFormSheet({
                     </div>
                     <div className="flex flex-col gap-2">
                       <span className="text-[11px] text-muted-foreground">
-                        Note
+                        {dict?.details?.note || "Note"}
                       </span>
                       <FormField
                         control={form.control}
@@ -1019,7 +1025,7 @@ export function InvoiceFormSheet({
                             <FormControl>
                               <HashTextarea
                                 hasValue={!!field.value}
-                                placeholder="Thank you for your business!"
+                                placeholder={dict?.placeholders?.note || "Thank you for your business!"}
                                 {...field}
                               />
                             </FormControl>
@@ -1044,14 +1050,15 @@ export function InvoiceFormSheet({
               }
               onRename={() => {
                 const newName = prompt(
-                  "Enter template name:",
+                  dict?.actions?.rename_template || "Enter template name:",
                   form.getValues("templateName"),
                 );
                 if (newName) form.setValue("templateName", newName);
               }}
+              dictionary={dictionary}
             />
             <div className="flex items-center gap-1.5 px-3 py-1.5 border rounded-md bg-muted/30">
-              <span className="text-xs font-medium">Template:</span>
+              <span className="text-xs font-medium">{dict?.details?.template_label || "Template"}:</span>
               <span className="text-xs text-muted-foreground">
                 {form.watch("templateName")}
               </span>
@@ -1064,10 +1071,14 @@ export function InvoiceFormSheet({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {dictionary?.common?.cancel || "Cancel"}
             </Button>
             <Button type="submit" form="invoice-form" disabled={loading}>
-              {loading ? "Saving..." : isEditing ? "Save" : "Create"}
+              {loading 
+                ? (dictionary?.common?.saving || "Saving...") 
+                : isEditing 
+                  ? (dictionary?.common?.save || "Save") 
+                  : (dictionary?.common?.create || "Create")}
             </Button>
           </div>
         </div>

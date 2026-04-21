@@ -32,6 +32,7 @@ import { logout } from "@workspace/modules/auth/auth.action";
 
 export function AccountSwitcher({
   user,
+  dictionary,
 }: {
   readonly user: {
     readonly id: string;
@@ -39,6 +40,7 @@ export function AccountSwitcher({
     readonly email: string;
     readonly avatar: string;
   };
+  readonly dictionary: any;
 }) {
   const themeMode = usePreferencesStore((s) => s.themeMode);
   const setThemeMode = usePreferencesStore((s) => s.setThemeMode);
@@ -98,25 +100,25 @@ export function AccountSwitcher({
             <DropdownMenuSubTrigger>
               <Sun className="dark:hidden" />
               <Moon className="hidden dark:block" />
-              Theme
+              {dictionary?.settings?.appearance?.theme?.title || "Theme"}
               <span className="ml-auto text-muted-foreground text-xs capitalize">
-                {themeMode}
+                {dictionary?.settings?.appearance?.theme?.[themeMode] || themeMode}
               </span>
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent className="min-w-32">
               <DropdownMenuItem onClick={() => handleThemeChange("light")}>
                 <Sun />
-                Light
+                {dictionary?.settings?.appearance?.theme?.light || "Light"}
                 {themeMode === "light" && <Check className="ml-auto size-4" />}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleThemeChange("dark")}>
                 <Moon />
-                Dark
+                {dictionary?.settings?.appearance?.theme?.dark || "Dark"}
                 {themeMode === "dark" && <Check className="ml-auto size-4" />}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleThemeChange("system")}>
                 <Monitor />
-                System
+                {dictionary?.settings?.appearance?.theme?.system || "System"}
                 {themeMode === "system" && <Check className="ml-auto size-4" />}
               </DropdownMenuItem>
             </DropdownMenuSubContent>
@@ -125,7 +127,7 @@ export function AccountSwitcher({
         <DropdownMenuSeparator />
         <DropdownMenuItem className="text-red" onClick={() => logout()}>
           <LogOut className="text-red" />
-          Log out
+          {dictionary?.sidebar?.logout || "Log out"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -944,6 +944,8 @@
       "email": "メールアドレス",
       "phone": "電話番号",
       "address": "住所",
+      "website": "ウェブサイト",
+      "location": "場所",
       "created_at": "登録日",
       "actions": "アクション"
     },
@@ -969,8 +971,26 @@
       "email_placeholder": "yamada@example.com",
       "phone_label": "電話番号",
       "phone_placeholder": "090-1234-5678",
+      "website_label": "ウェブサイト",
+      "website_placeholder": "acme.com",
+      "contact_person_label": "担当者名",
+      "contact_person_placeholder": "山田 太郎",
       "address_label": "住所",
       "address_placeholder": "東京都千代田区1-2-3",
+      "address_line_2_label": "住所2",
+      "address_line_2_placeholder": "ビル名・部屋番号",
+      "city_label": "市区町村",
+      "city_placeholder": "千代田区",
+      "state_label": "都道府県",
+      "state_placeholder": "東京都",
+      "country_label": "国",
+      "country_placeholder": "日本",
+      "zip_code_label": "郵便番号",
+      "zip_code_placeholder": "100-0001",
+      "tax_id_label": "登録番号 / VAT番号",
+      "tax_id_placeholder": "T1234567890123",
+      "billing_emails_label": "請求先メールアドレス (BCC)",
+      "billing_emails_desc": "請求書送信時にBCCに追加するアドレス。Enterまたはカンマで区切って入力してください。",
       "notes_label": "メモ",
       "notes_placeholder": "追加情報...",
       "save": "変更を保存",
@@ -1187,6 +1207,12 @@
       "create_failed": "請求書の作成に失敗しました",
       "updated": "請求書を更新しました",
       "update_failed": "請求書の更新に失敗しました"
+    },
+    "chat": {
+      "new_chat": "新しいチャット",
+      "placeholder": "何でも聞いてください...",
+      "search_placeholder": "ウェブで検索...",
+      "esc": "Esc"
     }
   }
 }

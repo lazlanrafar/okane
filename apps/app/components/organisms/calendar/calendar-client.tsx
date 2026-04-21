@@ -50,10 +50,8 @@ interface Props {
   dictionary: any;
 }
 
-export function CalendarClient({ dictionary }: { dictionary: any }) {
-  const { dictionary: storeDict } = useAppStore();
-  const dict = dictionary || storeDict;
-  const t = dict?.calendar;
+export function CalendarClient({ dictionary }: Props) {
+  const t = dictionary?.calendar;
   const queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
@@ -325,6 +323,7 @@ export function CalendarClient({ dictionary }: { dictionary: any }) {
               (!d.dueDate &&
                 d.createdAt?.startsWith(format(selectedDate, "yyyy-MM-dd")))),
         )}
+        dictionary={dictionary}
       />
     </div>
   );

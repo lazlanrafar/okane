@@ -19,6 +19,7 @@ import { Env } from "@workspace/constants";
 import { db } from "@workspace/database";
 import { aiController } from "./modules/ai/ai.controller";
 import { authController } from "./modules/auth/auth.controller";
+import { budgets } from "./modules/budgets/budgets.controller";
 import { categoriesController } from "./modules/categories/categories.controller";
 import { contactsController } from "./modules/contacts/contacts.controller";
 import { debtsController } from "./modules/debts/debts.controller";
@@ -109,6 +110,7 @@ const app = new Elysia()
       .use(authController)
       .use(settingsController)
       .use(categoriesController)
+      .use(budgets)
       .use(walletsController)
       .use(vaultController)
       .use(transactions)
@@ -126,20 +128,35 @@ const app = new Elysia()
       .use(debtsController)
       .use(notificationsController)
       .use(notificationSettingsController)
-      .derive(async ({ query, auth }) => {
-        // If already authenticated via header from authPlugin, use it
-        if (auth) return { wsAuth: auth };
+      .derive(async ({ query, auth, request }) => {
+        // Log basic info about the incoming connection attempt
+        const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
+        
+        // If already authenticated via header/cookie from authPlugin, use it
+        if (auth) {
+          log.info(`[WS] Authenticated connection from ${ip} (User: ${auth.user_id})`);
+          return { wsAuth: auth };
+        }
         
         const token = query.token;
-        if (!token) return { wsAuth: null };
+        if (!token) {
+          log.warn(`[WS] Missing token and cookie for connection from ${ip}`);
+          return { wsAuth: null };
+        }
         
-        return { wsAuth: await getAuth(token) };
+        const ws_auth = await getAuth(token);
+        if (!ws_auth) {
+          log.warn(`[WS] Invalid token provided from ${ip}`);
+        }
+        
+        return { wsAuth: ws_auth };
       })
       .ws("/realtime", {
-        beforeHandle({ wsAuth }) {
+        beforeHandle({ wsAuth, set }) {
           if (!wsAuth) {
-            log.warn("[WS] Attempted connection with missing or invalid token");
-            return new Response("Unauthorized", { status: 401 });
+            log.warn("[WS] Handshake rejected: No valid session or token found");
+            set.status = 401;
+            return "Unauthorized";
           }
         },
         open(ws) {

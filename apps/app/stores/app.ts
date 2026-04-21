@@ -7,7 +7,6 @@ import type {
 } from "@workspace/types";
 import { INCOME_EXPENSES_COLOR_OPTIONS } from "@workspace/constants";
 import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
-import type { Dictionary } from "@workspace/dictionaries";
 import { getAiQuota, type AiQuota } from "@workspace/modules/ai/ai.action";
 
 export interface AppState {
@@ -15,14 +14,12 @@ export interface AppState {
   workspace: Workspace | null;
   settings: TransactionSettings | null;
   subCurrencies: SubCurrency[];
-  dictionary: Dictionary | null;
   isLoading: boolean;
   aiQuota: AiQuota | null;
   setUser: (user: User | null) => void;
   setWorkspace: (workspace: Workspace | null) => void;
   setSettings: (settings: TransactionSettings | null) => void;
   setSubCurrencies: (subCurrencies: SubCurrency[]) => void;
-  setDictionary: (dictionary: Dictionary | null) => void;
   setIsLoading: (isLoading: boolean) => void;
   setAiQuota: (aiQuota: AiQuota | null) => void;
   fetchAiQuota: () => Promise<void>;
@@ -45,14 +42,12 @@ export const useAppStore = create<AppState>()((set, get) => ({
   workspace: null,
   settings: null,
   subCurrencies: [],
-  dictionary: null,
   isLoading: true,
   aiQuota: null,
   setUser: (user) => set({ user }),
   setWorkspace: (workspace) => set({ workspace }),
   setSettings: (settings) => set({ settings }),
   setSubCurrencies: (subCurrencies) => set({ subCurrencies }),
-  setDictionary: (dictionary) => set({ dictionary }),
   setIsLoading: (isLoading) => set({ isLoading }),
   setAiQuota: (aiQuota) => set({ aiQuota }),
   fetchAiQuota: async () => {

@@ -11,11 +11,14 @@ interface InvoiceA4Props {
     name: string;
     logoUrl?: string | null;
   };
+  dictionary: any;
 }
 
 export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(
-  ({ invoice, workspace }, ref) => {
+  ({ invoice, workspace, dictionary }, ref) => {
     if (!invoice) return null;
+
+    const dict = dictionary?.invoices;
 
     return (
       <div
@@ -56,7 +59,7 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(
           <div className="space-y-6">
             <div>
               <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground/40 mb-3">
-                Bill To
+                {dict?.details?.bill_to || "Bill To"}
               </p>
               <div className="space-y-1">
                 <p className="font-serif text-lg font-medium text-foreground/90">
@@ -72,12 +75,12 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(
           <div className="space-y-6 text-right">
             <div>
               <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground/40 mb-3">
-                Details
+                {dict?.details?.details_label || "Details"}
               </p>
               <div className="space-y-3 font-mono text-[11px]">
                 <div className="flex justify-end gap-4">
                   <span className="text-muted-foreground/50 uppercase tracking-widest">
-                    Number
+                    {dict?.details?.number || "Number"}
                   </span>
                   <span className="text-foreground/80 font-bold">
                     {invoice.invoiceNumber}
@@ -85,7 +88,7 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(
                 </div>
                 <div className="flex justify-end gap-4">
                   <span className="text-muted-foreground/50 uppercase tracking-widest">
-                    Issued
+                    {dict?.details?.issued || "Issued"}
                   </span>
                   <span className="text-foreground/80 font-bold">
                     {invoice.issueDate
@@ -95,7 +98,7 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(
                 </div>
                 <div className="flex justify-end gap-4">
                   <span className="text-muted-foreground/50 uppercase tracking-widest">
-                    Due
+                    {dict?.details?.due || "Due"}
                   </span>
                   <span className="text-foreground/80 font-bold">
                     {invoice.dueDate
@@ -112,16 +115,16 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(
         <div className="flex-1">
           <div className="grid grid-cols-[1fr_80px_100px_120px] gap-4 pb-4 border-b border-border/50 px-2">
             <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/40">
-              Description
+              {dict?.columns?.description || "Description"}
             </span>
             <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/40 text-center">
-              Qty
+              {dict?.columns?.qty || "Qty"}
             </span>
             <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/40 text-right">
-              Rate
+              {dict?.columns?.rate || "Rate"}
             </span>
             <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/40 text-right">
-              Amount
+              {dict?.columns?.amount || "Amount"}
             </span>
           </div>
 
@@ -158,27 +161,27 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(
         <div className="mt-12 pt-8 border-t border-border flex justify-end">
           <div className="w-full md:w-64 space-y-3 font-mono text-[11px]">
             <div className="flex justify-between items-center text-muted-foreground">
-              <span className="uppercase tracking-widest">Subtotal</span>
+              <span className="uppercase tracking-widest">{dict?.details?.subtotal || "Subtotal"}</span>
               <span className="text-foreground/80">
                 {new Intl.NumberFormat("en", {
                   style: "currency",
                   currency: invoice.currency,
-                }).format(Number(invoice.amount) - (Number(invoice.vat) || 0))}
+                }).format(Number(invoice.amount) - (Number(invoice.vat_amount) || 0))}
               </span>
             </div>
             <div className="flex justify-between items-center text-muted-foreground">
-              <span className="uppercase tracking-widest">VAT (0%)</span>
+              <span className="uppercase tracking-widest">{dict?.details?.vat || "VAT"} ({invoice.vat || 0}%)</span>
               <span className="text-foreground/80">
                 {new Intl.NumberFormat("en", {
                   style: "currency",
                   currency: invoice.currency,
-                }).format(Number(invoice.vat) || 0)}
+                }).format(Number(invoice.vat_amount || 0))}
               </span>
             </div>
 
             <div className="pt-4 flex justify-between items-center border-t border-border">
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
-                Total
+                {dict?.details?.total || "Total"}
               </span>
               <span className="text-lg font-bold text-foreground">
                 {new Intl.NumberFormat("en", {
@@ -194,7 +197,7 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(
         {invoice.noteDetails && (
           <div className="mt-20 space-y-2">
             <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/60">
-              Note
+              {dict?.details?.note || "Note"}
             </span>
             <p className="text-xs text-muted-foreground leading-relaxed font-serif italic max-w-md">
               {invoice.noteDetails}

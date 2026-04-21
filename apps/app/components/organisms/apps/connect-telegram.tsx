@@ -16,7 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMe } from "@workspace/modules/user/user.action";
 import { Env } from "@workspace/constants";
 
-export function ConnectTelegram() {
+export function ConnectTelegram({ dictionary }: { dictionary: any }) {
   const [open, setOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [copied, setCopied] = useState(false);

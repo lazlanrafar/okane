@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { match as matchLocale } from "@formatjs/intl-localematcher";
 import { createMiddlewareClient } from "@workspace/supabase/middleware";
 import Negotiator from "negotiator";
+import { jwtVerify } from "jose";
 
 import { i18n } from "./i18n-config";
 
@@ -63,12 +64,9 @@ export async function proxy(request: NextRequest) {
   }
 
   // Extract locale from the path
-  // Assumes path starts with /<locale>
   const locale = pathname.split("/")[1];
 
   // Calculate specific path after locale
-  // e.g. /en/overview -> /overview
-  // e.g. /en -> /
   const pathAfterLocale = pathname.replace(`/${locale}`, "") || "/";
 
   // Supabase Auth Logic
@@ -85,36 +83,52 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getSession();
 
   // Get app session from cookie
-  const oewang_session = request.cookies.get("oewang-session")?.value;
+  const token = request.cookies.get("oewang-session")?.value;
 
-  // Protect dashboard routes
-  if (pathAfterLocale.startsWith("/overview")) {
-    if (!session) {
-      return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
-    }
-    if (!oewang_session) {
-      return NextResponse.redirect(new URL(`/${locale}/sync`, request.url));
-    }
+  const isDashboardRoute =
+    pathAfterLocale.startsWith("/overview") ||
+    pathAfterLocale.startsWith("/budget") ||
+    pathAfterLocale.startsWith("/transactions") ||
+    pathAfterLocale.startsWith("/accounts") ||
+    pathAfterLocale.startsWith("/calendar") ||
+    pathAfterLocale.startsWith("/settings") ||
+    pathAfterLocale.startsWith("/contacts") ||
+    pathAfterLocale.startsWith("/vault");
 
-    // Optional: Redirect if workspace_id is missing in JWT (handled by API, but we could enforce it here)
+  const isAuthRoute =
+    pathAfterLocale === "/login" || pathAfterLocale === "/register";
+
+  // 1. Auth Guard
+  if (isDashboardRoute && !session) {
+    return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
 
-  // Protect create-workspace (must be logged in)
-  if (pathAfterLocale.startsWith("/create-workspace")) {
-    if (!session) {
-      return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
-    }
+  if (isAuthRoute && session) {
+    return NextResponse.redirect(new URL(`/${locale}/overview`, request.url));
   }
 
-  // Redirect to dashboard or onboarding if logged in and on login/register pages
-  if (
-    (pathAfterLocale === "/login" || pathAfterLocale === "/register") &&
-    session
-  ) {
-    if (oewang_session) {
-      return NextResponse.redirect(new URL(`/${locale}/overview`, request.url));
-    } else {
-      return NextResponse.redirect(new URL(`/${locale}/sync`, request.url));
+  // 2. Workspace Guard (Lightweight JWT check)
+  if (isDashboardRoute && token) {
+    try {
+      const secret = new TextEncoder().encode(
+        process.env.JWT_SECRET || "default_secret",
+      );
+      const { payload } = await jwtVerify(token, secret);
+
+      if (
+        !payload.workspace_id &&
+        !pathAfterLocale.startsWith("/sync") &&
+        !pathAfterLocale.startsWith("/create-workspace")
+      ) {
+        return NextResponse.redirect(new URL(`/${locale}/sync`, request.url));
+      }
+    } catch (e) {
+      console.error("[Proxy] JWT verification failed:", e);
+      const redirectResponse = NextResponse.redirect(
+        new URL(`/${locale}/login`, request.url),
+      );
+      redirectResponse.cookies.delete("oewang-session");
+      return redirectResponse;
     }
   }
 

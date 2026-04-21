@@ -27,10 +27,9 @@ import { ChevronRight, MailIcon, PlusCircleIcon } from "lucide-react";
 
 import type { NavGroup, NavMainItem } from "@/navigation/sidebar/sidebar-items";
 
-import { useAppStore } from "@/stores/app";
-
 interface NavMainProps {
   readonly items: readonly NavGroup[];
+  readonly dictionary: any;
 }
 
 import { useLocalizedRoute } from "@/utils/localized-route";
@@ -217,11 +216,10 @@ const NavItemCollapsed = ({
   );
 };
 
-export function NavMain({ items }: NavMainProps) {
+export function NavMain({ items, dictionary }: NavMainProps) {
   const path = usePathname();
   const { state, isMobile } = useSidebar();
   const { getLocalizedUrl } = useLocalizedRoute();
-  const { dictionary } = useAppStore();
 
   if (!dictionary) return null;
 

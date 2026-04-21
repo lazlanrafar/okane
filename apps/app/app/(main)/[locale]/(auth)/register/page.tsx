@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { OAuthButton } from "@/components/organisms/auth/oauth-button";
@@ -30,8 +31,8 @@ export default async function RegisterV2({
 
         <div className="space-y-4">
           <div className="flex flex-col gap-3">
-            <OAuthButton provider="google" className="" />
-            <OAuthButton provider="github" className="" />
+            <OAuthButton provider="google" className="" dictionary={dictionary} />
+            <OAuthButton provider="github" className="" dictionary={dictionary} />
           </div>
 
           <div className="relative text-center text-sm py-2">
@@ -50,7 +51,7 @@ export default async function RegisterV2({
               {dictionary.auth.show_other_options}
             </summary>
             <div className="mt-6 animate-in slide-in-from-top-2 fade-in-0 duration-200">
-              <RegisterForm />
+              <RegisterForm dictionary={dictionary} />
             </div>
           </details>
         </div>

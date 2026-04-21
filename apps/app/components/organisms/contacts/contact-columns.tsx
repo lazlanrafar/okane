@@ -44,7 +44,7 @@ const CellActions = ({
         toast.error(result.error || dictionary.contacts.toasts.delete_failed);
       }
     } catch {
-      toast.error("An unexpected error occurred");
+      toast.error(dictionary.common.error);
     }
   };
 
@@ -52,7 +52,7 @@ const CellActions = ({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-8 w-8 p-0">
-          <span className="sr-only">Open menu</span>
+          <span className="sr-only">{dictionary.common.open_menu}</span>
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -105,7 +105,7 @@ export const getContactColumns = (
   },
   {
     accessorKey: "website",
-    header: "Website",
+    header: dictionary.contacts.columns.website,
     cell: ({ row }) =>
       row.original.website ? (
         <a
@@ -124,7 +124,7 @@ export const getContactColumns = (
   },
   {
     id: "location",
-    header: "Location",
+    header: dictionary.contacts.columns.location,
     cell: ({ row }) => {
       const parts = [row.original.city, row.original.country].filter(Boolean);
       return (

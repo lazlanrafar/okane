@@ -21,19 +21,10 @@ export function AppProvider({
   const setWorkspace = useAppStore((state: AppState) => state.setWorkspace);
   const setSettings = useAppStore((state: AppState) => state.setSettings);
   const setSubCurrencies = useAppStore((state: AppState) => state.setSubCurrencies);
-  const setDictionary = useAppStore((state: AppState) => state.setDictionary);
   const setIsLoading = useAppStore((state: AppState) => state.setIsLoading);
   const fetchAiQuota = useAppStore((state: AppState) => state.fetchAiQuota);
   
-  // Initialize dictionary in store during the FIRST render to prevent hydration mismatches
-  // We use a ref to track if we've initialized to avoid unnecessary updates
-  const isInitialized = React.useRef(false);
-  if (!isInitialized.current && dictionary) {
-    useAppStore.setState({ dictionary });
-    isInitialized.current = true;
-  }
-
-  // Initialize Realtime Sync
+  // Realtime Sync
   useRealtime();
 
   useEffect(() => {

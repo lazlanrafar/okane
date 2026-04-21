@@ -14,7 +14,7 @@ import { useNotifications } from "@/hooks/use-notifications";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 
-export function NotificationBell() {
+export function NotificationBell({ dictionary }: { dictionary: any }) {
   const {
     notifications,
     unreadCount,
@@ -62,7 +62,7 @@ export function NotificationBell() {
       <PopoverContent className="w-80 p-0" align="end">
         <div className="flex items-center justify-between p-4 border-b">
           <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Notifications
+            {dictionary?.notifications?.title || "Notifications"}
           </h4>
           {unreadCount > 0 && (
             <Button
@@ -71,21 +71,25 @@ export function NotificationBell() {
               className="h-auto p-0 text-xs text-primary hover:bg-transparent"
               onClick={handleMarkAllRead}
             >
-              Mark all as read
+              {dictionary?.notifications?.mark_all_read || "Mark all as read"}
             </Button>
           )}
         </div>
         <ScrollArea className="h-80">
           {isLoading ? (
             <div className="flex items-center justify-center h-full p-4">
-              <p className="text-xs text-muted-foreground">Loading...</p>
+              <p className="text-xs text-muted-foreground">
+                {dictionary?.common?.loading || "Loading..."}
+              </p>
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full p-8 text-center text-muted-foreground">
               <Bell className="h-8 w-8 mb-2 opacity-20" />
-              <p className="text-sm font-medium">No notifications yet</p>
+              <p className="text-sm font-medium">
+                {dictionary?.notifications?.empty?.title || "No notifications yet"}
+              </p>
               <p className="text-xs opacity-60">
-                We'll notify you when something happens.
+                {dictionary?.notifications?.empty?.description || "We'll notify you when something happens."}
               </p>
             </div>
           ) : (
@@ -133,7 +137,7 @@ export function NotificationBell() {
             className="w-full text-xs text-muted-foreground hover:text-primary"
             onClick={() => router.push("/settings/notifications")}
           >
-            View notification settings
+            {dictionary?.notifications?.view_settings || "View notification settings"}
           </Button>
         </div>
       </PopoverContent>

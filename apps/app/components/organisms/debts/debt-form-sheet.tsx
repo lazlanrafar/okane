@@ -63,8 +63,8 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary }: Props) {
   const [activeTab, setActiveTab] = useState<"payable" | "receivable">(
     (debt?.type as "payable" | "receivable") || "receivable",
   );
-  const { settings, dictionary: global_dict, isLoading: isDictLoading } = useAppStore() as any;
-  const dict = (dictionary?.debts || global_dict?.debts) as any;
+  const { settings } = useAppStore() as any;
+  const dict = dictionary?.debts;
 
   const form = useForm<DebtFormValues>({
     resolver: zodResolver(getDebtSchema(dict) as any),

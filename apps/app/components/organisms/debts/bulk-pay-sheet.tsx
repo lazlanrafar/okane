@@ -37,8 +37,8 @@ export function BulkPaySheet({
 }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { settings, formatCurrency, dictionary: global_dict, isLoading: isDictLoading } = useAppStore() as any;
-  const dict = (dictionary?.debts || global_dict?.debts || {}) as any;
+  const { settings, formatCurrency } = useAppStore() as any;
+  const dict = dictionary?.debts;
 
   // Defensive date formatter
   const formatDate = (date: string | null | undefined) => {

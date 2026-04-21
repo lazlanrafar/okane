@@ -32,10 +32,10 @@ type InvoiceRow = Invoice & {
 
 interface Props {
   initialData?: any;
+  dictionary: any;
 }
 
-export function InvoicesClient({ initialData }: Props) {
-  const { dictionary } = useAppStore();
+export function InvoicesClient({ initialData, dictionary }: Props) {
   const queryClient = useQueryClient();
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
@@ -75,7 +75,6 @@ export function InvoicesClient({ initialData }: Props) {
       staleTime: 60000,
       refetchOnWindowFocus: false,
     });
-  if (!dictionary) return null;
 
   const allInvoices: InvoiceRow[] =
     data?.pages.flatMap((p: any) => {
@@ -177,6 +176,7 @@ export function InvoicesClient({ initialData }: Props) {
   const tableColumns = buildInvoiceColumns({
     onEdit: handleEdit,
     onDelete: (invoice) => handleDelete(invoice.id),
+    dictionary,
   });
 
   return (
@@ -291,6 +291,7 @@ export function InvoicesClient({ initialData }: Props) {
         invoice={editInvoice}
         onSubmit={handleFormSubmit}
         onSuccess={refresh}
+        dictionary={dictionary}
       />
 
       <InvoiceDetailSheet
@@ -303,6 +304,7 @@ export function InvoicesClient({ initialData }: Props) {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onUpdate={handleUpdate}
+        dictionary={dictionary}
       />
     </div>
   );

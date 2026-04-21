@@ -12,13 +12,18 @@ import ChatInterface from "@/components/organisms/chat/chat-interface";
 import { OverviewClient } from "@/components/organisms/overview/overview-client";
 import type { Metadata } from "next";
 
+import { getDictionary } from "@/get-dictionary";
+import { Locale } from "@/i18n-config";
+
 export const metadata: Metadata = {
   title: "Overview",
 };
 
 export default async function OverviewPage(props: {
+  params: Promise<{ locale: Locale }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const { locale } = await props.params;
   const searchParams = await props.searchParams;
   const initialTab =
     typeof searchParams.tab === "string" ? searchParams.tab : "overview";
@@ -31,6 +36,7 @@ export default async function OverviewPage(props: {
     settingsResult,
     expenseCategoryResult,
     incomeCategoryResult,
+    dictionary,
   ] = await Promise.all([
     getMe(),
     getRevenueMetrics(),
@@ -39,6 +45,7 @@ export default async function OverviewPage(props: {
     getTransactionSettings(),
     getCategoryBreakdown("expense"),
     getCategoryBreakdown("income"),
+    getDictionary(locale),
   ]);
 
   const user = meResult.success ? meResult.data?.user : null;
@@ -69,9 +76,11 @@ export default async function OverviewPage(props: {
           expenseCategoryData={expenseCategoryData}
           incomeCategoryData={incomeCategoryData}
           settings={settings}
+          dictionary={dictionary}
+          locale={locale}
         />
 
-        <ChatInterface />
+        <ChatInterface dictionary={dictionary} />
       </div>
     </ChatProviderWrapper>
   );

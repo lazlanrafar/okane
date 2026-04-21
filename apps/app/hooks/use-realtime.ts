@@ -98,14 +98,13 @@ export function useRealtime() {
 
       ws.onclose = (event) => {
         const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
-        console.log(`[Realtime] ⚠️ Disconnected (Reason: ${event.code}), retrying in ${delay/1000}s...`);
+        console.log(`[Realtime] ⚠️ Disconnected (Code: ${event.code}, Reason: ${event.reason || "None"}), retrying in ${delay/1000}s...`);
         reconnectAttempts.current++;
         reconnectTimeoutRef.current = setTimeout(connect, delay);
       };
 
       ws.onerror = (err) => {
-        console.error("[Realtime] 🛑 WebSocket Error:", err);
-        // Onerror is usually followed by onclose
+        console.error("[Realtime] 🛑 WebSocket Error Event:", err);
       };
     } catch (e) {
       console.error("[Realtime] ❌ Connection failed", e);

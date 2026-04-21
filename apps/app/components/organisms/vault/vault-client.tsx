@@ -84,9 +84,7 @@ interface Props {
   dictionary: any;
 }
 
-export function VaultClient({ dictionary: dict }: Props) {
-  const { dictionary: storeDict } = useAppStore() as any;
-  const dictionary = dict || storeDict;
+export function VaultClient({ dictionary }: Props) {
   const queryClient = useQueryClient();
 
   const t = dictionary?.vault;

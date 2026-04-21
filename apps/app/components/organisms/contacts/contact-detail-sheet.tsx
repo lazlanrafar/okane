@@ -37,25 +37,35 @@ import {
   Calendar,
   Trash,
 } from "lucide-react";
-import { useAppStore } from "@/stores/app";
 import { format } from "date-fns";
+import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
 import { useConfirm } from "@/components/providers/confirm-modal-provider";
 import { BulkPaySheet } from "../debts/bulk-pay-sheet";
 
-const contactSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  phone: z.string().optional().or(z.literal("")),
-  addressLine1: z.string().optional().or(z.literal("")),
-  note: z.string().optional().or(z.literal("")),
-});
-
+const getContactSchema = (dictionary: any) =>
+  z.object({
+    name: z
+      .string()
+      .min(
+        1,
+        dictionary?.contacts?.errors?.name_required || "Name is required",
+      ),
+    email: z
+      .string()
+      .email(dictionary?.contacts?.errors?.invalid_email || "Invalid email")
+      .optional()
+      .or(z.literal("")),
+    phone: z.string().optional().or(z.literal("")),
+    addressLine1: z.string().optional().or(z.literal("")),
+    note: z.string().optional().or(z.literal("")),
+  });
 interface Props {
   contact: Contact | null;
   open: boolean;
   onClose: () => void;
   onDebtClick?: (debt: DebtWithContact) => void;
   dictionary: any;
+  settings: any;
 }
 
 export function ContactDetailSheet({
@@ -64,9 +74,11 @@ export function ContactDetailSheet({
   onClose,
   onDebtClick,
   dictionary,
+  settings,
 }: Props) {
   const queryClient = useQueryClient();
-  const { settings, formatCurrency } = useAppStore();
+  const formatCurrency = (amount: number, options?: any) =>
+    formatCurrencyUtil(amount, settings, options);
   const [isEditing, setIsEditing] = useState(false);
   const [isBulkPayOpen, setIsBulkPayOpen] = useState(false);
   const confirm = useConfirm();
@@ -93,8 +105,8 @@ export function ContactDetailSheet({
     enabled: !!contact?.id && open,
   });
 
-  const form = useForm<z.infer<typeof contactSchema>>({
-    resolver: zodResolver(contactSchema as any),
+  const form = useForm<z.infer<ReturnType<typeof getContactSchema>>>({
+    resolver: zodResolver(getContactSchema(dictionary) as any),
     defaultValues: {
       name: "",
       email: "",
@@ -118,7 +130,7 @@ export function ContactDetailSheet({
   }, [contact, open, form]);
 
   const updateMutation = useMutation({
-    mutationFn: (values: z.infer<typeof contactSchema>) =>
+    mutationFn: (values: z.infer<ReturnType<typeof getContactSchema>>) =>
       updateContact(contact!.id, {
         name: values.name,
         email: values.email || undefined,
@@ -207,8 +219,8 @@ export function ContactDetailSheet({
                 const ok = await confirm({
                   title: dictionary.contacts.details.delete_confirm_title,
                   description: dictionary.contacts.details.delete_confirm_desc,
-                  confirmLabel: dictionary.contacts.form.cancel.delete || "Delete",
-                  cancelLabel: dictionary.contacts.form.cancel,
+                  confirmLabel: dictionary.common.delete,
+                  cancelLabel: dictionary.common.cancel,
                   destructive: true,
                 });
                 if (ok) deleteMutation.mutate();

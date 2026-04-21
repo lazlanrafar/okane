@@ -95,15 +95,13 @@ export function MembersSkeleton() {
   );
 }
 
-export function MembersClient({ members, invitations, dictionary: dict }: MembersClientProps) {
+export function MembersClient({
+  members,
+  invitations,
+  dictionary,
+}: MembersClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("members");
-  const { dictionary: storeDict, isLoading } = useAppStore() as any;
-  const dictionary = dict || storeDict;
-
-  if (!dictionary && (isLoading || !dictionary)) {
-    return <MembersSkeleton />;
-  }
 
   const settingsDict = (dictionary as any)?.settings?.members;
 

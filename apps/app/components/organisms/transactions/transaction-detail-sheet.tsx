@@ -87,10 +87,9 @@ export function TransactionDetailSheet({
   transaction,
   onNext,
   onPrevious,
-  dictionary: dict,
+  dictionary,
 }: Props) {
-  const { getTransactionColor, formatCurrency, dictionary: storeDict } = useAppStore() as any;
-  const dictionary = dict || storeDict;
+  const { getTransactionColor, formatCurrency } = useAppStore() as any;
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<FilePreview | null>(null);
   const [vaultPickerOpen, setVaultPickerOpen] = useState(false);

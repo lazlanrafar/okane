@@ -46,8 +46,8 @@ export function PaymentFormSheet({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
-  const { settings, formatCurrency, dictionary: global_dict, isLoading: isDictLoading } = useAppStore() as any;
-  const dict = (dictionary?.debts || global_dict?.debts) as any;
+  const { settings, formatCurrency } = useAppStore() as any;
+  const dict = dictionary?.debts;
 
   const remaining = debt
     ? Number.parseFloat(debt.remainingAmount as string)

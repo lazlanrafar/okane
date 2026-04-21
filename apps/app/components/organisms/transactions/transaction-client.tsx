@@ -91,7 +91,7 @@ export function TransactionsClient({
   pageSize,
   wallets,
   categories,
-  dictionary: dict,
+  dictionary,
 }: TransactionsClientProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -112,9 +112,7 @@ export function TransactionsClient({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const queryClient = useQueryClient();
-  const { settings, formatCurrency, getTransactionColor, dictionary: storeDict } = useAppStore();
-  const dictionary = dict || storeDict;
+  const { settings, formatCurrency, getTransactionColor } = useAppStore();
 
   const { rowSelection, setRowSelection } = useTransactionsStore();
   const confirm = useConfirm();
@@ -612,6 +610,7 @@ export function TransactionsClient({
           <TransactionGroupingSelector
             value={groupBy as GroupByInterval}
             onValueChange={(v) => setGroupBy(v)}
+            dictionary={dictionary}
           />
           <DateRangePicker
             range={{

@@ -39,11 +39,9 @@ export function AccountsClient({
   pageSize,
   groups,
   initialFilters,
-  dictionary: dict,
+  dictionary,
   locale,
 }: Props) {
-  const { dictionary: storeDict } = useAppStore() as any;
-  const dictionary = dict || storeDict;
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [selectedWalletId, setSelectedWalletId] = useState<

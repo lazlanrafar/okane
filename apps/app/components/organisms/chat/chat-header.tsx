@@ -15,7 +15,7 @@ interface ChatTitleData {
   title: string;
 }
 
-export function ChatHeader() {
+export function ChatHeader({ dictionary }: { dictionary: any }) {
   const { chatId } = useChatInterface();
   const { isHome } = useChatStore();
 
@@ -91,7 +91,7 @@ export function ChatHeader() {
             onClick={handleNewChat}
             variant="outline"
             size="icon"
-            title="New chat"
+            title={dictionary.chat?.new_chat || "New chat"}
           >
             <Icons.Add size={16} />
           </Button>

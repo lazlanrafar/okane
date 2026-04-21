@@ -15,6 +15,13 @@
       "when": 1776487144491,
       "tag": "0001_chunky_xorn",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776760053790,
+      "tag": "0002_bored_bloodstrike",
+      "breakpoints": true
     }
   ]
 }

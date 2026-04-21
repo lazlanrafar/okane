@@ -39,10 +39,8 @@ const getFormSchema = (dictionary: any) => {
   });
 };
 
-export function LoginForm({ dictionary: dict }: { dictionary?: any }) {
+export function LoginForm({ dictionary }: { dictionary: any }) {
   const [is_pending, start_transition] = useTransition();
-  const { dictionary: storeDict } = useAppStore();
-  const dictionary = dict || storeDict;
 
   const auth_form = dictionary?.auth?.form || (dictionary as any)?.auth?.form;
 

@@ -44,7 +44,7 @@ export interface ChatInputMessage extends PromptInputMessage {
   };
 }
 
-export function ChatInput() {
+export function ChatInput({ dictionary }: { dictionary: any }) {
   const [mounted, setMounted] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isInteractingWithButtons, setIsInteractingWithButtons] =

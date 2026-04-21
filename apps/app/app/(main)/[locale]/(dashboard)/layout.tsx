@@ -8,8 +8,10 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@workspace/ui";
+import { redirect } from "next/navigation";
 
 import { getMe } from "@workspace/modules/server";
+import { getDictionary } from "@/get-dictionary";
 import { AccountSwitcher } from "@/components/organisms/layout/account-switcher";
 import { AppSidebar } from "@/components/organisms/layout/app-sidebar";
 import {
@@ -19,6 +21,7 @@ import {
 import { getPreference } from "@/server/server-actions";
 import { SearchDialog } from "@/components/organisms/search/search-dialog";
 import { NotificationBell } from "@/components/organisms/layout/notification-bell";
+import { Locale } from "@/i18n-config";
 
 async function getUserAndWorkspaces() {
   const result = await getMe();
@@ -30,17 +33,28 @@ async function getUserAndWorkspaces() {
 
 export default async function Layout({
   children,
-}: Readonly<{ children: ReactNode }>) {
+  params,
+}: Readonly<{
+  children: ReactNode;
+  params: Promise<{ locale: Locale }>;
+}>) {
   const cookie_store = await cookies();
   const default_open = cookie_store.get("sidebar_state")?.value !== "false";
-  const [variant, collapsible, me_data] = await Promise.all([
+  const { locale } = await params;
+
+  const [variant, collapsible, me_data, dictionary] = await Promise.all([
     getPreference("sidebar_variant", SIDEBAR_VARIANT_VALUES, "inset"),
     getPreference("sidebar_collapsible", SIDEBAR_COLLAPSIBLE_VALUES, "icon"),
     getUserAndWorkspaces(),
+    getDictionary(locale),
   ]);
 
-  const current_user = me_data?.user ?? null;
-  const user_workspaces = me_data?.workspaces ?? [];
+  if (!me_data) {
+    redirect(`/${locale}/login`);
+  }
+
+  const current_user = me_data.user;
+  const user_workspaces = me_data.workspaces;
 
   return (
     <SidebarProvider defaultOpen={default_open}>
@@ -49,6 +63,7 @@ export default async function Layout({
         collapsible={collapsible}
         currentUser={current_user}
         workspaces={user_workspaces}
+        dictionary={dictionary}
       />
       <SidebarInset
         className={cn(
@@ -70,11 +85,11 @@ export default async function Layout({
                 orientation="vertical"
                 className="mx-2 data-[orientation=vertical]:h-4"
               />
-              <SearchDialog />
+              <SearchDialog dictionary={dictionary} />
             </div>
             {current_user && (
               <>
-                <NotificationBell />
+                <NotificationBell dictionary={dictionary} />
                 <AccountSwitcher
                   user={{
                     id: current_user.id,
@@ -82,6 +97,7 @@ export default async function Layout({
                     email: current_user.email,
                     avatar: current_user.profile_picture || "",
                   }}
+                  dictionary={dictionary}
                 />
               </>
             )}

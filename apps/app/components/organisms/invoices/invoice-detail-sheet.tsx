@@ -94,6 +94,7 @@ interface InvoiceDetailSheetProps {
   onEdit?: (invoice: InvoiceRow) => void;
   onDelete?: (id: string) => void;
   onUpdate?: (id: string, data: Partial<Invoice>) => void;
+  dictionary: any;
 }
 
 function InfoRow({
@@ -120,7 +121,9 @@ export function InvoiceDetailSheet({
   onEdit,
   onDelete,
   onUpdate,
+  dictionary,
 }: InvoiceDetailSheetProps) {
+  const dict = dictionary?.invoices;
   const [statusLoading, setStatusLoading] = useState(false);
   const [publicToken, setPublicToken] = useState<string | null>(null);
   const [isCopying, setIsCopying] = useState(false);
@@ -201,7 +204,7 @@ export function InvoiceDetailSheet({
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-0.5">
               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-                Invoice Details
+                {dict?.details?.title || "Invoice Details"}
               </span>
               <SheetTitle className="text-2xl font-serif font-medium tracking-tight flex items-center gap-2">
                 {invoice.invoiceNumber}
@@ -209,7 +212,7 @@ export function InvoiceDetailSheet({
                   variant="outline"
                   className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0 h-5 inline-flex items-center ${STATUS_STYLES[invoice.status] ?? ""}`}
                 >
-                  {invoice.status}
+                  {dict?.statuses?.[invoice.status] || invoice.status}
                 </Badge>
               </SheetTitle>
             </div>
@@ -234,7 +237,7 @@ export function InvoiceDetailSheet({
             <div className="space-y-4">
               <div className="flex items-baseline justify-between py-2 border-b border-border/30">
                 <span className="text-sm text-muted-foreground">
-                  Total Amount
+                  {dict?.details?.total_amount || "Total Amount"}
                 </span>
                 <span className="text-3xl font-serif font-medium">
                   {formatAmount(invoice.amount, invoice.currency)}
@@ -243,15 +246,21 @@ export function InvoiceDetailSheet({
 
               <div className="grid grid-cols-1 gap-1 pt-2">
                 <InfoRow
-                  label="Contact"
+                  label={dict?.columns?.contact || "Contact"}
                   value={invoice.contact?.name ?? "-"}
                 />
                 <InfoRow
-                  label="Issue Date"
+                  label={dict?.columns?.issue_date || "Issue Date"}
                   value={formatDate(invoice.issueDate)}
                 />
-                <InfoRow label="Due Date" value={formatDate(invoice.dueDate)} />
-                <InfoRow label="Currency" value={invoice.currency} />
+                <InfoRow
+                  label={dict?.columns?.due_date || "Due Date"}
+                  value={formatDate(invoice.dueDate)}
+                />
+                <InfoRow
+                  label={dict?.details?.currency || "Currency"}
+                  value={invoice.currency}
+                />
               </div>
             </div>
 
@@ -260,7 +269,7 @@ export function InvoiceDetailSheet({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Globe className="h-4 w-4 text-emerald-500" />
-                  Public Sharing
+                  {dict?.details?.public_sharing || "Public Sharing"}
                 </div>
                 <div className="flex items-center gap-3">
                   {invoice.isPublic && invoice.accessCode && (
@@ -269,7 +278,7 @@ export function InvoiceDetailSheet({
                       className="text-[10px] bg-amber-100 text-amber-700 hover:bg-amber-100 gap-1 border-amber-200"
                     >
                       <Lock className="h-3 w-3" />
-                      Code Protected
+                      {dict?.details?.code_protected || "Code Protected"}
                     </Badge>
                   )}
                   <Switch
@@ -287,7 +296,7 @@ export function InvoiceDetailSheet({
                     <div className="flex-1 px-3 py-1.5 bg-background border border-border text-xs font-mono truncate opacity-60 flex items-center h-8">
                       {publicToken
                         ? `${window.location.host}/invoice/${publicToken.slice(0, 12)}...`
-                        : "Generating link..."}
+                        : dict?.details?.generating_link || "Generating link..."}
                     </div>
                     <div className="flex items-center gap-1">
                       <Button
@@ -298,10 +307,10 @@ export function InvoiceDetailSheet({
                         className="h-8 gap-2 px-3"
                       >
                         {isCopying ? (
-                          "Copied"
+                          dict?.actions?.copied || "Copied"
                         ) : (
                           <>
-                            <Copy className="h-3 w-3" /> Copy
+                            <Copy className="h-3 w-3" /> {dict?.actions?.copy || "Copy"}
                           </>
                         )}
                       </Button>
@@ -325,12 +334,12 @@ export function InvoiceDetailSheet({
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/50">
-                      Protection Code (Optional)
+                      {dict?.details?.protection_code || "Protection Code (Optional)"}
                     </label>
                     <div className="relative group">
                       <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
                       <Input
-                        placeholder="Set an access code..."
+                        placeholder={dict?.details?.set_access_code || "Set an access code..."}
                         value={accessCode}
                         onChange={(e) => setAccessCode(e.target.value)}
                         className="h-8 pl-8 text-[11px] font-mono bg-background/50 border-border/50 focus:border-border"
@@ -340,7 +349,7 @@ export function InvoiceDetailSheet({
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  Enable to share this invoice via a public link.
+                  {dict?.details?.public_sharing_description || "Enable to share this invoice via a public link."}
                 </p>
               )}
             </div>
@@ -353,17 +362,17 @@ export function InvoiceDetailSheet({
               >
                 <AccordionTrigger className="py-3 hover:no-underline font-medium text-sm gap-2">
                   <div className="flex items-center gap-2 flex-1 text-left">
-                    <span>Internal Note</span>
+                    <span>{dict?.details?.internal_note || "Internal Note"}</span>
                     {!invoice.internalNote && (
                       <span className="text-[10px] bg-muted px-1.5 py-0.5 text-muted-foreground font-normal">
-                        Empty
+                        {dictionary?.common?.empty || "Empty"}
                       </span>
                     )}
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-4 text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed italic">
                   {invoice.internalNote ||
-                    "No internal notes have been added for this invoice."}
+                    dict?.details?.no_internal_notes || "No internal notes have been added for this invoice."}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -372,9 +381,9 @@ export function InvoiceDetailSheet({
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-medium border-b border-border/50 pb-2">
                 <History className="h-4 w-4" />
-                Activity
+                {dict?.details?.activity || "Activity"}
               </div>
-              <InvoiceActivity invoiceId={invoice.id} />
+              <InvoiceActivity invoiceId={invoice.id} dictionary={dictionary} />
             </div>
           </div>
         </div>
@@ -392,7 +401,7 @@ export function InvoiceDetailSheet({
             <SelectContent>
               {ALLOWED_STATUSES.map((s) => (
                 <SelectItem key={s} value={s}>
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                  {dict?.statuses?.[s] || s.charAt(0).toUpperCase() + s.slice(1)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -403,15 +412,17 @@ export function InvoiceDetailSheet({
             className="h-8 px-6 gap-2 border-border/50"
             onClick={() => onEdit?.(invoice)}
           >
-            Edit
+            {dict?.actions?.edit || "Edit"}
           </Button>
         </div>
       </SheetContent>
 
       {/* Hidden InvoiceA4 for PDF Generation */}
       <div className="fixed top-0 left-0 -z-50 opacity-0 pointer-events-none w-[800px]">
-        <InvoiceA4 ref={invoiceRef} invoice={invoice} />
+        <InvoiceA4 ref={invoiceRef} invoice={invoice} dictionary={dictionary} />
       </div>
     </Sheet>
+  );
+}
   );
 }

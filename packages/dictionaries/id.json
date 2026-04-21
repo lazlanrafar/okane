@@ -946,6 +946,8 @@
       "email": "Email",
       "phone": "Telepon",
       "address": "Alamat",
+      "website": "Website",
+      "location": "Lokasi",
       "created_at": "Bergabung Pada",
       "actions": "Aksi"
     },
@@ -971,8 +973,26 @@
       "email_placeholder": "john@example.com",
       "phone_label": "Telepon",
       "phone_placeholder": "+62 812 3456 7890",
+      "website_label": "Website",
+      "website_placeholder": "acme.com",
+      "contact_person_label": "Nama Kontak",
+      "contact_person_placeholder": "John Doe",
       "address_label": "Alamat",
       "address_placeholder": "Jl. Utama No. 123",
+      "address_line_2_label": "Alamat Baris 2",
+      "address_line_2_placeholder": "Unit 100",
+      "city_label": "Kota",
+      "city_placeholder": "Jakarta",
+      "state_label": "Provinsi",
+      "state_placeholder": "DKI Jakarta",
+      "country_label": "Negara",
+      "country_placeholder": "Indonesia",
+      "zip_code_label": "Kode Pos",
+      "zip_code_placeholder": "10001",
+      "tax_id_label": "NPWP / Nomor PPN",
+      "tax_id_placeholder": "ID123456789",
+      "billing_emails_label": "Email Penagihan (BCC)",
+      "billing_emails_desc": "Email tambahan untuk BCC saat mengirim tagihan. Tekan Enter atau koma untuk menambah.",
       "notes_label": "Catatan",
       "notes_placeholder": "Informasi tambahan...",
       "save": "Simpan Perubahan",
@@ -1189,6 +1209,12 @@
       "create_failed": "Gagal membuat faktur",
       "updated": "Faktur diperbarui",
       "update_failed": "Gagal memperbarui faktur"
+    },
+    "chat": {
+      "new_chat": "Chat baru",
+      "placeholder": "Tanya apa saja...",
+      "search_placeholder": "Cari di web...",
+      "esc": "Esc"
     }
   }
 }

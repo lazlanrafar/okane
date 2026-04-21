@@ -46,12 +46,11 @@ export function AccountDetailSheet({
   groups = [],
   onEdit,
   onDelete,
-  dictionary: dict,
+  dictionary,
   locale = "en-US",
 }: AccountDetailSheetProps) {
   const [mounted, setMounted] = useState(false);
-  const { settings, formatCurrency, dictionary: storeDict } = useAppStore() as any;
-  const dictionary = dict || storeDict;
+  const { settings, formatCurrency } = useAppStore();
   const [wallet, setWallet] = useState<Wallet | undefined>();
   const [name, setName] = useState("");
   const [balance, setBalance] = useState(0);
