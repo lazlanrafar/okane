@@ -29,6 +29,7 @@ import { formatBytes } from "@workspace/utils";
 import { format } from "date-fns";
 import { useAppStore } from "@/stores/app";
 import { useLocalizedRoute } from "@/utils/localized-route";
+import { isValid } from "date-fns";
 
 
 export function SearchDialog() {
@@ -251,10 +252,9 @@ export function SearchDialog() {
                                 "Transaction"}
                             </span>
                             <span className="text-[10px] text-muted-foreground">
-                              {format(
-                                new Date(transaction.date),
-                                "MMM dd, yyyy",
-                              )}
+                              {transaction.date && isValid(new Date(transaction.date))
+                                ? format(new Date(transaction.date), "MMM dd, yyyy")
+                                : "—"}
                             </span>
                           </div>
                         </div>

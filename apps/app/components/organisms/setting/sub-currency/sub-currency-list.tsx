@@ -114,7 +114,7 @@ export function SubCurrencyList({
     });
   };
 
-  if (isAppLoading) return <SubCurrencySkeleton />;
+ if (!dictionary && isAppLoading) return <SubCurrencySkeleton />;
 
   return (
     <div className="space-y-8">

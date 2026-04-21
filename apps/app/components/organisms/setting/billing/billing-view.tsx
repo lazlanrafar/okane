@@ -74,17 +74,21 @@ function BillingSkeleton() {
 
 export function BillingView({ 
   initialPlans,
-  initialAddons = []
+  initialAddons = [],
+  dictionary: dict,
 }: { 
   initialPlans: Pricing[];
   initialAddons?: Pricing[];
+  dictionary?: any;
 }) {
+  const [mounted, setMounted] = React.useState(false);
   const {
     workspace,
     settings,
-    dictionary,
+    dictionary: storeDict,
     isLoading: isDictLoading,
   } = useAppStore() as any;
+  const dictionary = dict || storeDict;
   const [billingCycle, setBillingCycle] = React.useState<"monthly" | "annual">(
     "monthly",
   );
@@ -94,10 +98,16 @@ export function BillingView({
   const router = useRouter();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
   const { getLocalizedUrl } = useLocalizedRoute();
   const currency = settings?.mainCurrencyCode?.toLowerCase() || "usd";
 
   const workspaceId = workspace?.id;
+  
+
 
   React.useEffect(() => {
     async function fetchHistory() {
@@ -189,13 +199,13 @@ export function BillingView({
     onError: (error: any) => toast.error(error.message),
   });
 
-  if (!dictionary || isDictLoading) {
+  if (!mounted || !dictionary || isDictLoading) {
     return <BillingSkeleton />;
   }
 
-  const dict = dictionary?.settings?.billing || dictionary?.billing;
+  const billingDict = dictionary?.settings?.billing || dictionary?.billing;
   
-  if (!dict || !dict.history) {
+  if (!billingDict || !billingDict.history) {
     return <BillingSkeleton />;
   }
 
@@ -232,8 +242,8 @@ export function BillingView({
   return (
     <div className="space-y-8 pb-10">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">{dict.title}</h2>
-        <p className="text-xs text-muted-foreground">{dict.description}</p>
+        <h2 className="text-lg font-medium tracking-tight">{billingDict?.title}</h2>
+        <p className="text-xs text-muted-foreground">{billingDict?.description}</p>
       </div>
 
       <Separator className="rounded-none" />
@@ -242,10 +252,10 @@ export function BillingView({
         <Alert variant="destructive" className="rounded-none border-destructive/50 bg-destructive/5">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle className="text-xs font-semibold uppercase tracking-widest">
-            {dict.storage_limit_exceeded || "Storage Limit Exceeded"}
+            {billingDict?.storage_limit_exceeded || "Storage Limit Exceeded"}
           </AlertTitle>
           <AlertDescription className="text-[11px] mt-1 opacity-90 leading-relaxed">
-            {dict.storage_grace_period_desc || "Your workspace is currently over its storage limit. Files will be kept for 30 days before being inactivated and eventually deleted. Please upgrade your plan or free up space to avoid data loss."}
+            {billingDict?.storage_grace_period_desc || "Your workspace is currently over its storage limit. Files will be kept for 30 days before being inactivated and eventually deleted. Please upgrade your plan or free up space to avoid data loss."}
           </AlertDescription>
         </Alert>
       )}
@@ -262,7 +272,7 @@ export function BillingView({
                 variant="outline"
                 className="rounded-none text-[10px] uppercase tracking-widest px-2 h-5 font-semibold bg-background border"
               >
-                {dict.current_plan}
+                {billingDict?.current_plan}
               </Badge>
               <div className="flex items-center gap-3">
                 <h3 className="text-2xl font-medium tracking-tight">
@@ -273,7 +283,7 @@ export function BillingView({
                     variant="secondary"
                     className="rounded-none text-[9px] h-4 px-1.5 font-medium tracking-wide uppercase bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                   >
-                    {dictionary.settings.common.active}
+                    {dictionary?.common?.active || "Active"}
                   </Badge>
                 )}
               </div>
@@ -285,12 +295,12 @@ export function BillingView({
                 </span>
                 {currentPlan.name.toLowerCase() !== "starter" && (
                   <span className="text-xs text-muted-foreground uppercase">
-                    / {billingCycle === "monthly" ? dict.mo : dict.yr}
+                    / {billingCycle === "monthly" ? billingDict?.mo : billingDict?.yr}
                   </span>
                 )}
               </div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
-                {billingCycle === "annual" ? dict.annual_toggle : dict.monthly_toggle}
+                {billingCycle === "annual" ? billingDict?.annual_toggle : billingDict?.monthly_toggle}
               </p>
             </div>
           </div>
@@ -321,15 +331,15 @@ export function BillingView({
                   >
                     <CreditCard className="mr-2 h-3.5 w-3.5" />
                     {portalMutation.isPending
-                      ? dictionary.settings.common.opening
-                      : dict.manage_subscription}
+                      ? dictionary?.common?.opening || "Opening..."
+                      : billingDict?.manage_subscription}
                   </Button>
                   <Button
                     asChild
                     className="rounded-none text-xs h-9 px-6 font-medium shadow-sm"
                   >
                     <Link href={getLocalizedUrl("/upgrade")}>
-                        {dict.upgrade || "Upgrade Plan"}
+                        {billingDict?.upgrade || "Upgrade Plan"}
                     </Link>
                   </Button>
                 </>
@@ -339,7 +349,7 @@ export function BillingView({
                   className="rounded-none text-xs h-9 px-8 font-medium shadow-sm"
                 >
                   <Link href={getLocalizedUrl("/upgrade")}>
-                    {dict.upgrade || "View Plans"}
+                    {billingDict?.upgrade || "View Plans"}
                   </Link>
                 </Button>
               )}
@@ -354,7 +364,7 @@ export function BillingView({
         <Card className="rounded-none shadow-none border bg-background">
           <CardHeader className="p-4 pb-2">
             <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center justify-between">
-              {dict.vault_storage || "Vault Storage"}
+              {billingDict?.vault_storage || "Vault Storage"}
               <Shield className="h-3.5 w-3.5 text-muted-foreground/50" />
             </CardTitle>
           </CardHeader>
@@ -376,10 +386,10 @@ export function BillingView({
                 className="h-1 rounded-none bg-muted/40"
               />
               <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
-                <span>{dictionary.settings.common.used}</span>
+                <span>{dictionary?.common?.used || "Used"}</span>
                 <span>
                   {formatBytes(Math.max(0, vaultLimitBytes - vaultUsed))}{" "}
-                  {dictionary.settings.common.remaining}
+                  {dictionary?.common?.remaining || "Remaining"}
                 </span>
               </div>
             </div>
@@ -390,7 +400,7 @@ export function BillingView({
         <Card className="rounded-none shadow-none border bg-background">
           <CardHeader className="p-4 pb-2">
             <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center justify-between">
-              {dict.ai_tokens || "AI Tokens"}
+              {billingDict?.ai_tokens || "AI Tokens"}
               <Zap className="h-3.5 w-3.5 text-muted-foreground/50" />
             </CardTitle>
           </CardHeader>
@@ -412,10 +422,10 @@ export function BillingView({
                 className="h-1 rounded-none bg-muted/40"
               />
               <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
-                <span>{dictionary.settings.common.used}</span>
+                <span>{dictionary?.common?.used || "Used"}</span>
                 <span>
                   {Math.max(0, aiLimitTokens - aiUsed).toLocaleString()}{" "}
-                  {dictionary.settings.common.remaining}
+                  {dictionary?.common?.remaining || "Remaining"}
                 </span>
               </div>
             </div>
@@ -427,7 +437,7 @@ export function BillingView({
       <div className="space-y-4">
         <div className="border-b pb-2">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-            {dict.addons || "Monthly Add-ons"}
+            {billingDict?.addons || "Monthly Add-ons"}
           </p>
         </div>
         <div className="flex flex-col gap-3">
@@ -463,7 +473,7 @@ export function BillingView({
                             "rounded-none text-[8px] h-3.5 px-1 font-mono uppercase",
                             addon.addon_type === "ai" ? "bg-amber-500/10 text-amber-600" : "bg-emerald-500/10 text-emerald-600"
                             )}>
-                            {dictionary?.settings?.common?.active || "Active"}
+                            {dictionary?.common?.active || "Active"}
                             </Badge>
                         )}
                       </div>
@@ -489,7 +499,7 @@ export function BillingView({
                     {isActive && workspace?.active_addons?.find((a: any) => a.id === addon.id)?.status === "cancelled" && (
                         <div className="text-right whitespace-nowrap">
                             <p className="text-[9px] text-destructive uppercase tracking-widest font-medium mb-0.5">
-                                {dict.deactivating_at || "Deactivating at"}
+                                {billingDict.deactivating_at || "Deactivating at"}
                             </p>
                             <p className="text-xs font-medium text-destructive">
                                 {(() => {
@@ -504,10 +514,10 @@ export function BillingView({
                     
                     <div className="text-right whitespace-nowrap min-w-[80px]">
                         <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium mb-0.5">
-                            {dict.price || "Price"}
+                            {billingDict?.price || "Price"}
                         </p>
                         <p className="text-xs font-serif font-medium">
-                            {price.label} <span className="text-[9px] font-normal text-muted-foreground">/ {dict.mo}</span>
+                            {price.label} <span className="text-[9px] font-normal text-muted-foreground">/ {billingDict?.mo}</span>
                         </p>
                     </div>
 
@@ -522,7 +532,7 @@ export function BillingView({
                             const ok = await confirm({
                                 title: dictionary?.settings?.billing?.deactivate_addon_title || "Deactivate Add-on",
                                 description: dictionary?.settings?.billing?.deactivate_addon_desc || "Are you sure you want to deactivate this add-on? It will remain active until the end of your current billing cycle.",
-                                confirmLabel: dict.deactivate || "Deactivate",
+                                confirmLabel: billingDict.deactivate || "Deactivate",
                                 destructive: true,
                             });
                             
@@ -543,13 +553,13 @@ export function BillingView({
                     >
                       {isActive 
                         ? (addonData?.status === "cancelled" 
-                            ? (dictionary?.settings?.common?.cancelled || "Cancelled")
+                            ? (dictionary?.common?.cancelled || "Cancelled")
                             : cancelAddonMutation.isPending && cancelAddonMutation.variables === addon.id
                                 ? "..."
-                                : (dict.deactivate || "Deactivate"))
+                                : (billingDict.deactivate || "Deactivate"))
                         : checkoutMutation.isPending 
-                          ? (dictionary?.settings?.common?.processing || "Processing...") 
-                          : (dict.purchase || dict.get_started || "Purchase")}
+                          ? (dictionary?.common?.processing || "Processing...") 
+                          : (billingDict.purchase || billingDict.get_started || "Purchase")}
                     </Button>
                   </div>
                 </div>
@@ -563,7 +573,7 @@ export function BillingView({
       <div className="space-y-6">
         <div className="border-b pb-2">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-            {dict.history?.title}
+            {billingDict?.history?.title}
           </p>
         </div>
         <Card className="rounded-none shadow-none border overflow-hidden bg-background">
@@ -580,19 +590,19 @@ export function BillingView({
                   <thead>
                     <tr className="border-b bg-accent/5 uppercase tracking-widest font-semibold text-muted-foreground/80">
                       <th className="p-4 font-semibold text-[10px]">
-                        {dict.history.date}
+                        {billingDict?.history?.date}
                       </th>
                       <th className="p-4 font-semibold text-[10px]">
-                        {dict.history.invoice}
+                        {billingDict?.history?.invoice}
                       </th>
                       <th className="p-4 font-semibold text-[10px]">
-                        {dict.history.amount}
+                        {billingDict?.history?.amount}
                       </th>
                       <th className="p-4 font-semibold text-[10px]">
-                        {dict.history.status}
+                        {billingDict?.history?.status}
                       </th>
                       <th className="p-4 font-semibold text-[10px] text-right">
-                        {dict.history.action}
+                        {billingDict?.history?.action}
                       </th>
                     </tr>
                   </thead>
@@ -651,7 +661,7 @@ export function BillingView({
                               downloadMutation.variables ===
                                 order.mayar_invoice_id
                                 ? "..."
-                                : (dictionary?.settings?.common?.view_pdf || "View PDF")}
+                                : (dictionary?.common?.view_pdf || "View PDF")}
                             </Button>
                           )}
                         </td>
@@ -666,10 +676,10 @@ export function BillingView({
                   <CreditCard className="h-6 w-6 text-muted-foreground" />
                 </div>
                 <p className="text-xs font-semibold uppercase tracking-widest mb-1">
-                   {dict.history.no_history}
+                   {billingDict?.history?.no_history}
                 </p>
                 <p className="text-[11px] text-muted-foreground max-w-[200px] mx-auto leading-relaxed">
-                   {dict.history.no_history_description}
+                   {billingDict?.history?.no_history_description}
                 </p>
               </div>
             )}

@@ -31,19 +31,28 @@ import { format } from "date-fns";
 interface AccountDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  wallet?: Wallet;
+  walletId?: string;
   groups?: any[];
-  onEdit: () => void;
+  onEdit: (wallet: Wallet) => void;
+  onDelete: (wallet: Wallet) => void;
+  dictionary?: any;
+  locale?: string;
 }
 
 export function AccountDetailSheet({
   open,
   onOpenChange,
-  wallet,
+  walletId,
   groups = [],
   onEdit,
+  onDelete,
+  dictionary: dict,
+  locale = "en-US",
 }: AccountDetailSheetProps) {
-  const { settings, formatCurrency, dictionary } = useAppStore();
+  const [mounted, setMounted] = useState(false);
+  const { settings, formatCurrency, dictionary: storeDict } = useAppStore() as any;
+  const dictionary = dict || storeDict;
+  const [wallet, setWallet] = useState<Wallet | undefined>();
   const [name, setName] = useState("");
   const [balance, setBalance] = useState(0);
   const [isIncludedInTotals, setIsIncludedInTotals] = useState(true);
@@ -51,6 +60,25 @@ export function AccountDetailSheet({
 
   const debouncedName = useDebounce(name, 500);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (open && walletId) {
+      const fetchWallet = async () => {
+        const { getWallet } = await import("@workspace/modules/client");
+        const res = await getWallet(walletId);
+        if (res.success && res.data) {
+          setWallet(res.data as any);
+        }
+      };
+      fetchWallet();
+    } else if (!open) {
+      setWallet(undefined);
+    }
+  }, [open, walletId]);
 
   useEffect(() => {
     if (wallet) {
@@ -95,7 +123,7 @@ export function AccountDetailSheet({
     update();
   }, [debouncedName, wallet?.id, dictionary]);
 
-  if (!wallet || !dictionary) return null;
+  if (!mounted || !wallet || !dictionary) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -109,7 +137,9 @@ export function AccountDetailSheet({
             </div>
             <span className="text-[11px] text-muted-foreground tracking-tight">
               {dictionary.accounts.updated}{" "}
-              {format(new Date(wallet.updatedAt), "MMM d, yyyy")}
+              {wallet.updatedAt && !isNaN(new Date(wallet.updatedAt).getTime())
+                ? format(new Date(wallet.updatedAt), "MMM d, yyyy")
+                : "N/A"}
             </span>
           </div>
 
@@ -150,7 +180,7 @@ export function AccountDetailSheet({
                   className="text-5xl tracking-tighter font-medium font-serif cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => setIsEditingBalance(true)}
                 >
-                  {formatCurrency(Number(wallet.balance))}
+                  {formatCurrency(Number(wallet.balance), { locale })}
                 </h1>
               )}
             </div>

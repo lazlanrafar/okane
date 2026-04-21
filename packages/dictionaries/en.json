@@ -4,6 +4,41 @@
     "dashboard": "Dashboard",
     "settings": "Settings"
   },
+  "auth": {
+    "welcome": "Welcome to Oewang",
+    "login_title": "Login",
+    "register_title": "Register",
+    "show_other_options": "Show other options",
+    "or": "or",
+    "terms_privacy_agreement": "By signing in you agree to our",
+    "terms_of_service": "Terms of service",
+    "privacy_policy": "Privacy policy",
+    "form": {
+      "email_label": "Email Address",
+      "email_placeholder": "you@example.com",
+      "password_label": "Password",
+      "password_placeholder": "••••••••",
+      "confirm_password_label": "Confirm Password",
+      "remember_me": "Remember me for 30 days",
+      "login_button": "Login",
+      "logging_in": "Logging in...",
+      "register_button": "Register",
+      "registering": "Registering...",
+      "validation": {
+        "email_invalid": "Please enter a valid email address.",
+        "password_min": "Password must be at least 6 characters.",
+        "password_mismatch": "Passwords do not match"
+      },
+      "toasts": {
+        "login_success": "Logged in successfully",
+        "register_success": "Registered successfully"
+      }
+    },
+    "social": {
+      "google": "Continue with Google",
+      "github": "Continue with GitHub"
+    }
+  },
   "home": {
     "welcome": "Welcome to Oewang",
     "description": "The best app to manage your finances."
@@ -67,35 +102,6 @@
     }
   },
   "settings": {
-    "common": {
-      "select_currency": "Select currency...",
-      "search_currency": "Search currency...",
-      "no_currency_found": "No currency found.",
-      "change": "Change",
-      "active": "Active",
-      "processing": "Processing...",
-      "connecting": "Connecting...",
-      "current": "Current",
-      "na": "N/A",
-      "actions": "Actions",
-      "remove": "Remove",
-      "cancel": "Cancel",
-      "save": "Save",
-      "delete": "Delete",
-      "opening": "Opening...",
-      "view_pdf": "View PDF",
-      "coming_soon": "Coming Soon",
-      "used": "used",
-      "remaining": "remaining",
-      "open_menu": "Open menu",
-      "error": "Trouble",
-      "form": {
-        "balance": {
-           "label": "Current Balance",
-           "placeholder": "0.00"
-        }
-      }
-    },
     "language": {
       "title": "Language",
       "description": "Select your preferred language",
@@ -967,7 +973,34 @@
     }
   },
   "common": {
-    "loading_more": "Loading more..."
+    "loading_more": "Loading more...",
+    "select_currency": "Select currency...",
+    "search_currency": "Search currency...",
+    "no_currency_found": "No currency found.",
+    "change": "Change",
+    "active": "Active",
+    "processing": "Processing...",
+    "connecting": "Connecting...",
+    "current": "Current",
+    "na": "N/A",
+    "actions": "Actions",
+    "remove": "Remove",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "opening": "Opening...",
+    "view_pdf": "View PDF",
+    "coming_soon": "Coming Soon",
+    "used": "used",
+    "remaining": "remaining",
+    "open_menu": "Open menu",
+    "error": "Trouble",
+    "form": {
+      "balance": {
+        "label": "Current Balance",
+        "placeholder": "0.00"
+      }
+    }
   },
   "vault": {
     "title": "Vault",
@@ -1087,7 +1120,9 @@
     "overview": "Overview",
     "transactions": "Transactions",
     "calendar": "Calendar",
+    "planning": "Planning",
     "accounts": "Accounts",
+    "budget": "Budget",
     "debts": "Debts",
     "contacts": "Contacts",
     "vault": "Vault",
@@ -1113,6 +1148,19 @@
     "view_vault": "View vault",
     "navigate": "Navigate",
     "open": "Open"
+  },
+  "apps": {
+    "filter_placeholder": "Search apps...",
+    "tabs": {
+      "all": "All Apps",
+      "connected": "Connected"
+    },
+    "empty": {
+      "no_results_title": "No apps found",
+      "no_apps_title": "No apps available",
+      "no_results_desc": "No apps match your search \"{search}\".",
+      "no_apps_desc": "Check back later for new integrations."
+    }
   },
   "ai": {
     "quota_limit_title": "AI Limit Reached",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Button,
   DataTable,
@@ -10,6 +10,7 @@ import {
 } from "@workspace/ui";
 import { ContactFormSheet } from "./contact-form-sheet";
 import { ContactDetailSheet } from "./contact-detail-sheet";
+import { ContactTableSkeleton } from "./contact-table-skeleton";
 import { getContactColumns } from "./contact-columns";
 import type { Contact } from "@workspace/types";
 import { Plus } from "lucide-react";
@@ -21,13 +22,15 @@ import { useAppStore } from "@/stores/app";
 
 interface Props {
   initialData: Contact[];
+  dictionary: any;
 }
 
-export function ContactsClient({ initialData }: Props) {
+export function ContactsClient({ initialData, dictionary }: Props) {
   const queryClient = useQueryClient();
-  const { dictionary } = useAppStore();
 
-  if (!dictionary) return null;
+  const { columns, setColumns } = useContactsStore();
+  const { dictionary: storeDict } = useAppStore();
+  const dict = dictionary || storeDict;
 
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
@@ -36,7 +39,6 @@ export function ContactsClient({ initialData }: Props) {
   );
   const [editContact, setEditContact] = useState<Contact | null>(null);
 
-  const { columns, setColumns } = useContactsStore();
 
   const { filters, handleFilterChange } = useDataTableFilter({
     initialFilters: { q: "" },
@@ -87,8 +89,6 @@ export function ContactsClient({ initialData }: Props) {
     refetchOnWindowFocus: false,
   });
 
-  if (!dictionary) return null;
-
   const allContacts = data?.pages.flatMap((p: any) => p.data ?? []) ?? [];
 
   const now = new Date();
@@ -111,7 +111,9 @@ export function ContactsClient({ initialData }: Props) {
     setIsDetailSheetOpen(true);
   }, []);
 
-  const tableColumns = getContactColumns(handleEdit, dictionary);
+  const tableColumns = dict ? getContactColumns(handleEdit, dict) : [];
+
+  if (!dict) return <ContactTableSkeleton />;
 
   return (
     <div className="flex w-full flex-col h-full space-y-4">
@@ -119,7 +121,7 @@ export function ContactsClient({ initialData }: Props) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="p-6 flex flex-col gap-1 border border-border bg-muted/5">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
-            {dictionary.contacts.summary.total}
+            {dict.contacts.summary.total}
           </span>
           <span className="text-3xl font-serif font-medium tracking-tight">
             {allContacts.length}
@@ -128,7 +130,7 @@ export function ContactsClient({ initialData }: Props) {
 
         <div className="p-6 flex flex-col gap-1 border border-border">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
-            {dictionary.contacts.summary.added_this_month}
+            {dict.contacts.summary.added_this_month}
           </span>
           <span className="text-3xl font-serif font-medium tracking-tight text-emerald-600 dark:text-emerald-400">
             {addedThisMonth}
@@ -137,25 +139,25 @@ export function ContactsClient({ initialData }: Props) {
 
         <div className="p-6 flex flex-col gap-1 border border-border bg-muted/5">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
-            {dictionary.contacts.summary.most_active}
+            {dict.contacts.summary.most_active}
           </span>
           <span className="text-lg font-serif font-medium tracking-tight truncate">
             {allContacts.length > 0 ? (allContacts[0]?.name ?? "–") : "–"}
           </span>
           <span className="text-[10px] text-muted-foreground">
-            {dictionary.contacts.summary.no_activity}
+            {dict.contacts.summary.no_activity}
           </span>
         </div>
 
         <div className="p-6 flex flex-col gap-1 border border-border bg-muted/5">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
-            {dictionary.contacts.summary.top_revenue}
+            {dict.contacts.summary.top_revenue}
           </span>
           <span className="text-lg font-serif font-medium tracking-tight truncate">
             {allContacts.length > 0 ? (allContacts[0]?.name ?? "–") : "–"}
           </span>
           <span className="text-[10px] text-muted-foreground">
-            {dictionary.contacts.summary.no_revenue}
+            {dict.contacts.summary.no_revenue}
           </span>
         </div>
       </div>
@@ -166,7 +168,7 @@ export function ContactsClient({ initialData }: Props) {
           <DataTableFilter
             filters={filters}
             onFilterChange={handleFilterChange as any}
-            placeholder={dictionary.contacts.search_placeholder}
+            placeholder={dict.contacts.search_placeholder}
             showDateFilter={false}
             showAmountFilter={false}
             className="w-full bg-transparent border-none p-0 focus-visible:ring-0"
@@ -183,7 +185,7 @@ export function ContactsClient({ initialData }: Props) {
             }}
           >
             <Plus className="h-4 w-4 mr-2" />
-            {dictionary.contacts.add_button}
+            {dict.contacts.add_button}
           </Button>
         </div>
       </div>
@@ -198,10 +200,10 @@ export function ContactsClient({ initialData }: Props) {
           hFull
           emptyMessage={
             <DataTableEmptyState
-              title={dictionary.contacts.empty.title}
-              description={dictionary.contacts.empty.description}
+              title={dict.contacts.empty.title}
+              description={dict.contacts.empty.description}
               action={{
-                label: dictionary.contacts.empty.action,
+                label: dict.contacts.empty.action,
                 onClick: () => {
                   setEditContact(null);
                   setIsFormSheetOpen(true);
@@ -226,7 +228,7 @@ export function ContactsClient({ initialData }: Props) {
           setEditContact(null);
         }}
         contact={editContact}
-        dictionary={dictionary}
+        dictionary={dict}
       />
 
       <ContactDetailSheet
@@ -236,7 +238,7 @@ export function ContactsClient({ initialData }: Props) {
           setIsDetailSheetOpen(false);
           setSelectedContact(null);
         }}
-        dictionary={dictionary}
+        dictionary={dict}
       />
     </div>
   );

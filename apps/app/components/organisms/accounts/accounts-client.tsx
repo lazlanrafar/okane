@@ -2,7 +2,7 @@
 
 import { accountColumns } from "./account-columns";
 import type { Wallet } from "@workspace/types";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   Button,
   DataTable,
@@ -19,37 +19,40 @@ import { useAppStore } from "@/stores/app";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { getWallets } from "@workspace/modules/client";
 
-type Props = {
+interface Props {
   initialData: Wallet[];
   rowCount: number;
   pageCount: number;
   initialPage: number;
   pageSize: number;
   groups: any[];
-  initialFilters?: {
-    q: string;
-    groupId: string;
-  };
-};
+  initialFilters?: any;
+  dictionary: any;
+  locale: string;
+}
 
 export function AccountsClient({
   initialData,
-  rowCount: initialRowCount,
-  pageCount: initialPageCount,
+  rowCount,
+  pageCount,
   initialPage,
   pageSize,
-  groups: initialGroups,
+  groups,
   initialFilters,
+  dictionary: dict,
+  locale,
 }: Props) {
+  const { dictionary: storeDict } = useAppStore() as any;
+  const dictionary = dict || storeDict;
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [selectedWalletId, setSelectedWalletId] = useState<
     string | undefined
   >();
-  const { settings, formatCurrency, dictionary } = useAppStore();
+  const { settings, formatCurrency } = useAppStore();
   const queryClient = useQueryClient();
 
-  if (!dictionary) return null;
+
 
   const { filters, handleFilterChange, pagination, handlePaginationChange } =
     useDataTableFilter({
@@ -92,13 +95,14 @@ export function AccountsClient({
           message: "Initial data",
           meta: {
             pagination: {
-              total: initialRowCount,
-              page: initialPage + 1,
-              limit: pageSize,
-              total_pages: initialPageCount,
+              total: rowCount,
+              count: rowCount,
+              per_page: pageSize,
+              current_page: initialPage + 1,
+              total_pages: pageCount,
             },
-            timestamp: Date.now(),
           },
+          timestamp: Date.now(),
         },
       ],
       pageParams: [1],
@@ -151,6 +155,18 @@ export function AccountsClient({
     setIsFormSheetOpen(true);
   };
 
+  const handleDelete = (wallet: Wallet) => {
+    // Implementation for delete
+  };
+
+  const handleSuccess = (wallet: Wallet) => {
+    if (selectedWalletId) {
+      updateWalletInCache(wallet);
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
+    }
+  };
+
   const handleRowClick = (wallet: Wallet) => {
     setSelectedWalletId(wallet.id);
     setIsDetailSheetOpen(true);
@@ -162,11 +178,11 @@ export function AccountsClient({
   }, [handleEdit, updateWalletInCache, dictionary]);
 
   const groupOptions = useMemo(() => {
-    return initialGroups.map((g) => ({
+    return groups.map((g) => ({
       name: g.name,
       id: g.id,
     }));
-  }, [initialGroups]);
+  }, [groups]);
 
   if (!dictionary) return null;
 
@@ -179,7 +195,7 @@ export function AccountsClient({
             {dictionary.accounts.total_balance}
           </span>
           <span className="text-3xl font-serif font-medium tracking-tight">
-            {formatCurrency(totalBalance)}
+            {formatCurrency(totalBalance, { locale })}
           </span>
         </div>
         <div className="p-6 flex flex-col gap-1 border border-border">
@@ -251,7 +267,7 @@ export function AccountsClient({
           isFetchingNextPage={isFetchingNextPage}
           hFull
           meta={{
-            groups: initialGroups,
+            groups: groups,
             settings,
             formatCurrency,
             onRowClick: handleRowClick,
@@ -262,25 +278,21 @@ export function AccountsClient({
       <AccountFormSheet
         open={isFormSheetOpen}
         onOpenChange={setIsFormSheetOpen}
-        wallet={selectedWallet as any}
-        onSuccess={(wallet) => {
-          if (selectedWalletId) {
-            updateWalletInCache(wallet);
-          } else {
-            queryClient.invalidateQueries({ queryKey: ["wallets"] });
-          }
-        }}
+        walletId={selectedWalletId}
+        onSuccess={handleSuccess}
+        groups={groups}
+        dictionaryByProps={dictionary}
       />
 
       <AccountDetailSheet
         open={isDetailSheetOpen}
         onOpenChange={setIsDetailSheetOpen}
-        wallet={selectedWallet}
-        groups={initialGroups}
-        onEdit={() => {
-          setIsDetailSheetOpen(false);
-          setIsFormSheetOpen(true);
-        }}
+        walletId={selectedWalletId}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        groups={groups}
+        dictionary={dictionary}
+        locale={locale}
       />
     </div>
   );

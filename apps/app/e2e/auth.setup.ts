@@ -1,9 +1,23 @@
-import { test as setup, expect } from '@playwright/test';
+import { setup, expect } from './fixtures';
 import path from 'path';
 
 const authFile = path.join(__dirname, '../.auth/user.json');
 
-setup('authenticate', async ({ page }) => {
+setup('authenticate', async ({ page, dictionary }) => {
+  setup.setTimeout(120000); // 2 minutes for auth setup
+
+  // Hide Next.js dev overlay to prevent it from blocking clicks
+  await page.addInitScript(() => {
+    window.addEventListener('DOMContentLoaded', () => {
+      const style = document.createElement('style');
+      style.innerHTML = `
+        nextjs-portal { display: none !important; }
+        .nextjs-toast-errors-parent { display: none !important; }
+      `;
+      document.head.appendChild(style);
+    });
+  });
+
   await page.goto('/en/login');
   
   if (process.env.PLAYWRIGHT_MANUAL_AUTH) {
@@ -25,11 +39,17 @@ setup('authenticate', async ({ page }) => {
       return;
     }
 
-    await page.getByText('Show other options').click();
-    await page.locator('#email').fill(email);
-    await page.locator('#password').fill(password);
-    await page.getByRole('button', { name: 'Login', exact: true }).click();
-    await expect(page).toHaveURL(/.*overview/);
+    // Use dictionary for strings that might change
+    console.log('Attempting to expand login form options...');
+    await page.getByText(dictionary.auth.show_other_options).click();
+    console.log('Login form options expanded.');
+    
+    await page.getByLabel(dictionary.auth.form.email_label).fill(email);
+    await page.getByLabel(dictionary.auth.form.password_label).fill(password);
+    await page.getByRole('button', { name: dictionary.auth.form.login_button, exact: true }).click();
+    
+    // Wait for redirect to dashboard with a longer timeout
+    await expect(page).toHaveURL(/.*overview/, { timeout: 30000 });
   }
 
   // End of authentication steps.

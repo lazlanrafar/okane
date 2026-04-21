@@ -41,16 +41,18 @@ type InviteFormValues = z.infer<typeof inviteSchema>;
 
 interface InviteMemberDialogProps {
   onSuccess?: () => void;
+  dictionary?: any;
 }
 
-export function InviteMemberDialog({ onSuccess }: InviteMemberDialogProps) {
+export function InviteMemberDialog({ onSuccess, dictionary: dict }: InviteMemberDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { dictionary } = useAppStore();
+  const { dictionary: storeDict } = useAppStore();
+  const dictionary = dict || storeDict;
 
   if (!dictionary) return null;
 
-  const dict = dictionary.settings.members;
+  const membersDict = dictionary.settings.members;
 
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteSchema as any),
@@ -63,9 +65,9 @@ export function InviteMemberDialog({ onSuccess }: InviteMemberDialogProps) {
     setLoading(false);
 
     if (result.success) {
-      toast.success(dict.form.success || "Invitation sent!", {
+      toast.success(membersDict.form.success || "Invitation sent!", {
         description:
-          dict.form.description?.replace("{email}", values.email) ||
+          membersDict.form.description?.replace("{email}", values.email) ||
           `${values.email} will receive an invite shortly.`,
       });
       setOpen(false);
@@ -83,16 +85,16 @@ export function InviteMemberDialog({ onSuccess }: InviteMemberDialogProps) {
         className="rounded-none h-8 text-xs"
       >
         <UserPlus className="h-4 w-4 mr-2" />
-        {dict.invite_button}
+        {membersDict.invite_button}
       </Button>
 
       <DialogContent className="rounded-none sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-lg font-medium">
-            {dict.invite_button}
+            {membersDict.invite_button}
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            {dict.description}
+            {membersDict.description}
           </DialogDescription>
         </DialogHeader>
 
@@ -107,11 +109,11 @@ export function InviteMemberDialog({ onSuccess }: InviteMemberDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-xs">
-                    {dict.form.email.label}
+                    {membersDict.form.email.label}
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder={dict.form.email.placeholder}
+                      placeholder={membersDict.form.email.placeholder}
                       {...field}
                       className="rounded-none text-sm h-10 px-3"
                     />
@@ -127,7 +129,7 @@ export function InviteMemberDialog({ onSuccess }: InviteMemberDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-xs">
-                    {dict.form.role.label}
+                    {membersDict.form.role.label}
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -135,7 +137,7 @@ export function InviteMemberDialog({ onSuccess }: InviteMemberDialogProps) {
                   >
                     <FormControl>
                       <SelectTrigger className="rounded-none h-10 px-3 text-sm">
-                        <SelectValue placeholder={dict.form.role.placeholder} />
+                        <SelectValue placeholder={membersDict.form.role.placeholder} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="rounded-none">
@@ -143,13 +145,13 @@ export function InviteMemberDialog({ onSuccess }: InviteMemberDialogProps) {
                         value="member"
                         className="rounded-none text-xs"
                       >
-                        {dict.form.role.options.member}
+                        {membersDict.form.role.options.member}
                       </SelectItem>
                       <SelectItem
                         value="admin"
                         className="rounded-none text-xs"
                       >
-                        {dict.form.role.options.admin}
+                        {membersDict.form.role.options.admin}
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -166,7 +168,7 @@ export function InviteMemberDialog({ onSuccess }: InviteMemberDialogProps) {
                 disabled={loading}
                 className="rounded-none h-9 text-xs flex-1 sm:flex-none"
               >
-                {dict.form.cancel}
+                {membersDict.form.cancel}
               </Button>
               <Button
                 type="submit"
@@ -174,7 +176,7 @@ export function InviteMemberDialog({ onSuccess }: InviteMemberDialogProps) {
                 className="rounded-none h-9 text-xs flex-1 sm:flex-none"
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {dict.form.submit}
+                {membersDict.form.submit}
               </Button>
             </DialogFooter>
           </form>

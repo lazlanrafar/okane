@@ -16,10 +16,12 @@ export function formatCurrency(
   } | null,
   options?: {
     compact?: boolean;
+    locale?: string;
   },
 ) {
   if (!settings) {
-    return amount.toLocaleString("en-US", {
+    if (isNaN(amount)) return "—";
+    return amount.toLocaleString(options?.locale || "en-US", {
       style: "currency",
       currency: "USD",
       notation: options?.compact ? "compact" : "standard",
@@ -32,7 +34,9 @@ export function formatCurrency(
     mainCurrencyDecimalPlaces = 2,
   } = settings;
 
-  const formattedAmount = Math.abs(amount).toLocaleString(undefined, {
+  if (isNaN(amount)) return "—";
+
+  const formattedAmount = Math.abs(amount).toLocaleString(options?.locale || "en-US", {
     minimumFractionDigits: options?.compact ? 0 : mainCurrencyDecimalPlaces,
     maximumFractionDigits: options?.compact ? 1 : mainCurrencyDecimalPlaces,
     notation: options?.compact ? "compact" : "standard",

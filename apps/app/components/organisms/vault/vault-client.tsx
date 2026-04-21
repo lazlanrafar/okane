@@ -58,8 +58,7 @@ import {
 import { VaultItemCard } from "./vault-item-card";
 import { VaultItemList } from "./vault-item-list";
 
-// ... inside VaultClient component ...
-// Remove the top-level loading check from lines 218-220
+// Allowed file types for upload
 
 const ALLOWED_TYPES = [
   "image/jpeg",
@@ -81,13 +80,16 @@ const SUGGESTED_TAGS = [
   "Document",
 ];
 
-export function VaultClient() {
-  const { dictionary } = useAppStore();
+interface Props {
+  dictionary: any;
+}
+
+export function VaultClient({ dictionary: dict }: Props) {
+  const { dictionary: storeDict } = useAppStore() as any;
+  const dictionary = dict || storeDict;
   const queryClient = useQueryClient();
 
-  if (!dictionary) return <VaultSkeletonLoading />;
-
-  const t = dictionary.vault;
+  const t = dictionary?.vault;
   const [view, setView] = useQueryState(
     "view",
     parseAsString.withDefault("list").withOptions({ shallow: true }),
@@ -201,7 +203,7 @@ export function VaultClient() {
         filesArray.map((file) => uploadMutation.mutateAsync(file)),
       );
       toast.success(t.toasts.upload_success, { id: toastId });
-    } catch (error) {
+    } catch (error: any) {
       toast.error(t.toasts.upload_failed_some, { id: toastId });
     }
   };
@@ -262,6 +264,8 @@ export function VaultClient() {
     const newTags = selectedFile.tags.filter((t) => t !== tag);
     tagsMutation.mutate({ id: selectedFile.id, tags: newTags });
   };
+
+  if (!dictionary || !t) return <VaultSkeletonLoading />;
 
   return (
     <div

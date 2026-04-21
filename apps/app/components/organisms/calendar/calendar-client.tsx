@@ -25,7 +25,7 @@ import {
   CalendarDays,
   LayoutGrid,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTransactions } from "@workspace/modules/transaction/transaction.action";
 import { getDebts } from "@workspace/modules/server";
 import { cn, Button } from "@workspace/ui";
@@ -34,8 +34,6 @@ import { useQueryState, parseAsString } from "nuqs";
 import { useAppStore } from "@/stores/app";
 
 type CalendarView = "month" | "week";
-
-const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 /** Parse a yyyy-MM-dd string safely; fallback to today */
 function parseDateParam(value: string | null): Date {
@@ -48,10 +46,15 @@ function parseDateParam(value: string | null): Date {
   }
 }
 
-export function CalendarClient() {
-  const { dictionary } = useAppStore();
-  if (!dictionary) return null;
-  const t = dictionary.calendar;
+interface Props {
+  dictionary: any;
+}
+
+export function CalendarClient({ dictionary }: { dictionary: any }) {
+  const { dictionary: storeDict } = useAppStore();
+  const dict = dictionary || storeDict;
+  const t = dict?.calendar;
+  const queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -227,6 +230,8 @@ export function CalendarClient() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [calendarDate, selectedDate, setCalendarDate]);
+
+  if (!dictionary || !t) return null;
 
   return (
     <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col bg-background overflow-hidden">

@@ -30,24 +30,26 @@ import { createContact, updateContact } from "@workspace/modules/client";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Contact } from "@workspace/types";
 import { X } from "lucide-react";
+import { useAppStore } from "@/stores/app";
 
-const formSchema = z.object({
-  name: z.string().min(1, "Name is required").max(200),
-  email: z.string().email("Invalid email"),
-  phone: z.string().optional(),
-  website: z.string().optional(),
-  contact: z.string().optional(),
-  addressLine1: z.string().optional(),
-  addressLine2: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  country: z.string().optional(),
-  zip: z.string().optional(),
-  note: z.string().optional(),
-  vatNumber: z.string().optional(),
-});
+const getContactSchema = (dictionary: any) =>
+  z.object({
+    name: z.string().min(1, dictionary?.contacts?.errors?.name_required || "Name is required").max(200),
+    email: z.string().email(dictionary?.contacts?.errors?.invalid_email || "Invalid email"),
+    phone: z.string().optional(),
+    website: z.string().optional(),
+    contact: z.string().optional(),
+    addressLine1: z.string().optional(),
+    addressLine2: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    country: z.string().optional(),
+    zip: z.string().optional(),
+    note: z.string().optional(),
+    vatNumber: z.string().optional(),
+  });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<ReturnType<typeof getContactSchema>>;
 
 interface Props {
   open: boolean;
@@ -138,17 +140,25 @@ export function ContactFormSheet({
   open,
   onClose,
   contact,
-  dictionary,
+  dictionary: dict,
 }: Props) {
+  const [mounted, setMounted] = useState(false);
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { dictionary: storeDict } = useAppStore();
+  const dictionary = dict || storeDict;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [billingEmails, setBillingEmails] = useState<string[]>(
     (contact as any)?.billingEmails ?? [],
   );
   const isEdit = !!contact;
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema as any),
+    resolver: zodResolver(getContactSchema(dictionary) as any),
     defaultValues: {
       name: contact?.name ?? "",
       email: contact?.email ?? "",
@@ -254,6 +264,8 @@ export function ContactFormSheet({
       setIsSubmitting(false);
     }
   };
+
+  if (!mounted || !dictionary) return null;
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>

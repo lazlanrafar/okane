@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -117,6 +117,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   transaction?: Transaction;
   onSuccess?: () => void;
+  dictionary?: any;
 }
 
 export function TransactionFormSheet({
@@ -124,7 +125,9 @@ export function TransactionFormSheet({
   onOpenChange,
   transaction,
   onSuccess,
+  dictionary: dict,
 }: Props) {
+  const [mounted, setMounted] = useState(false);
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TransactionFormValues["type"]>(
@@ -132,12 +135,20 @@ export function TransactionFormSheet({
   );
   const [attachments, setAttachments] = useState<VaultFileRef[]>([]);
   const [vaultPickerOpen, setVaultPickerOpen] = useState(false);
-  const { settings, user, dictionary } = useAppStore();
+  const { settings, user, dictionary: storeDict } = useAppStore() as any;
+  const dictionary = dict || storeDict;
 
-  const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(
-      dictionary ? getTransactionSchema(dictionary) : ({} as any),
-    ),
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const schema = useMemo(
+    () => (dictionary ? getTransactionSchema(dictionary) : ({} as any)),
+    [dictionary],
+  );
+
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
     defaultValues: {
       type: "expense",
       date: new Date().toISOString().split("T")[0],
@@ -325,7 +336,7 @@ export function TransactionFormSheet({
     }
   };
 
-  if (!dictionary) return null;
+  if (!mounted || !dictionary) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getTransactionSettings, getSubCurrencies } from "@workspace/modules/setting/setting.action";
 import { getActiveWorkspace } from "@workspace/modules/workspace/workspace.action";
@@ -24,6 +25,14 @@ export function AppProvider({
   const setIsLoading = useAppStore((state: AppState) => state.setIsLoading);
   const fetchAiQuota = useAppStore((state: AppState) => state.fetchAiQuota);
   
+  // Initialize dictionary in store during the FIRST render to prevent hydration mismatches
+  // We use a ref to track if we've initialized to avoid unnecessary updates
+  const isInitialized = React.useRef(false);
+  if (!isInitialized.current && dictionary) {
+    useAppStore.setState({ dictionary });
+    isInitialized.current = true;
+  }
+
   // Initialize Realtime Sync
   useRealtime();
 
@@ -78,7 +87,8 @@ export function AppProvider({
     if (workspaceData) setWorkspace(workspaceData);
     if (settingsData) setSettings(settingsData);
     if (subCurrenciesData) setSubCurrencies(subCurrenciesData);
-    if (dictionary) setDictionary(dictionary);
+    
+    // Note: Dictionary is already set during render above
 
     setIsLoading(isUserLoading || isWorkspaceLoading || isSettingsLoading || isSubCurrenciesLoading);
   }, [
@@ -86,7 +96,6 @@ export function AppProvider({
     workspaceData,
     settingsData,
     subCurrenciesData,
-    dictionary,
     isUserLoading,
     isWorkspaceLoading,
     isSettingsLoading,
@@ -95,7 +104,6 @@ export function AppProvider({
     setWorkspace,
     setSettings,
     setSubCurrencies,
-    setDictionary,
     setIsLoading,
   ]);
 

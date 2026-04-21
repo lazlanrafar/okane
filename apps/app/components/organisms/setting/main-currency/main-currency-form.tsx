@@ -57,9 +57,9 @@ export function MainCurrencyForm({
 }: MainCurrencyFormProps) {
   const [data, setData] = useState(settings);
   const [isPending, startTransition] = useTransition();
-  const { isLoading } = useAppStore();
+  const { isLoading: isStoreLoading } = useAppStore();
 
-  if (isLoading) return <MainCurrencySkeleton />;
+  if (!dictionary && isStoreLoading) return <MainCurrencySkeleton />;
   if (!data) return null;
 
   const handleUpdate = (updates: Partial<TransactionSettings>) => {

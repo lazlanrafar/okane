@@ -65,7 +65,7 @@ export const transactionColumns = (
               table.toggleAllPageRowsSelected(!!value);
             }
           }}
-          aria-label={dictionary.settings.common.open_menu}
+          aria-label={dictionary.common.open_menu}
         />
       );
     },
@@ -73,7 +73,7 @@ export const transactionColumns = (
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label={dictionary.settings.common.open_menu}
+        aria-label={dictionary.common.open_menu}
         className="translate-y-[2px]"
       />
     ),
@@ -272,7 +272,7 @@ export const transactionColumns = (
   },
   {
     id: "actions",
-    header: dictionary.settings.common.actions,
+    header: dictionary.common.actions,
     cell: ({ row, table }) => (
       <ActionCell
         transaction={row.original}
@@ -423,7 +423,7 @@ function ActionCell({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-transparent">
-          <span className="sr-only">{dictionary.settings.common.open_menu}</span>
+          <span className="sr-only">{dictionary.common.open_menu}</span>
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -506,7 +506,7 @@ function ActionCell({
           className="gap-2 cursor-pointer text-destructive focus:text-destructive"
         >
           <Trash className="h-4 w-4" />
-          {dictionary.settings.common.delete}
+          {dictionary.common.delete}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

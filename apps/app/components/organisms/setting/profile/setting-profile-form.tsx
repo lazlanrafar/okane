@@ -67,8 +67,14 @@ import {
   updateAvatarAction,
 } from "@workspace/modules/user/user.action";
 
-export function SettingProfileForm() {
-  const { dictionary, isLoading: isDictLoading } = useAppStore() as any;
+interface SettingProfileFormProps {
+  dictionary?: any;
+}
+
+export function SettingProfileForm({ dictionary: dict }: SettingProfileFormProps) {
+  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
+  const dictionary = dict || storeDict;
+
   const { data: meData, isLoading: isMeLoading } = useQuery({
     queryKey: ["me"],
     queryFn: async () => {
@@ -78,17 +84,17 @@ export function SettingProfileForm() {
     },
   });
 
-  if (isMeLoading || isDictLoading || !dictionary || !meData?.user) {
+  const profile = dictionary?.settings?.profile || (dictionary as any)?.profile;
+
+  if (isMeLoading || (!dictionary && isDictLoading) || !dictionary || !meData?.user || !profile) {
     return <SettingProfileSkeleton />;
   }
-
-  const profile = dictionary.settings.profile;
 
   return <ProfileFormInner profile={profile} user={meData.user} />;
 }
 
 function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
-  const { dictionary } = useAppStore();
+  const { dictionary } = useAppStore() as any;
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = React.useState(false);
 
@@ -96,14 +102,14 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
     username: z
       .string()
       .min(2, {
-        message: profile.username.error_min,
+        message: profile?.username?.error_min || "Too short",
       })
       .max(30, {
-        message: profile.username.error_max,
+        message: profile?.username?.error_max || "Too long",
       }),
     email: z
       .string({
-        required_error: profile.email.error_required,
+        required_error: profile?.email?.error_required || "Required",
       } as any)
       .email(),
     profile_picture: z.string().optional(),
@@ -134,12 +140,12 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
       return result.data;
     },
     onSuccess: () => {
-      toast.success(profile.toast_success);
+      toast.success(profile?.toast_success || "Profile updated");
       queryClient.invalidateQueries({ queryKey: ["me"] });
     },
     onError: (error) => {
       toast.error(
-        `${dictionary?.settings.common.error || "Error"}: ${
+        `${dictionary?.settings?.common?.error || dictionary?.common?.error || "Error"}: ${
           (error as Error).message
         }`,
       );
@@ -155,7 +161,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error(profile.avatar.error_size);
+      toast.error(profile?.avatar?.error_size || "File too large");
       return;
     }
 
@@ -169,13 +175,13 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
       if (response.success && response.data?.url) {
         const newUrl = response.data.url;
         form.setValue("profile_picture", newUrl);
-        toast.success(profile.avatar.toast_success);
+        toast.success(profile?.avatar?.toast_success || "Avatar updated");
         queryClient.invalidateQueries({ queryKey: ["me"] });
       } else {
-        toast.error(response.error || profile.avatar.error_upload);
+        toast.error(response.error || profile?.avatar?.error_upload || "Upload failed");
       }
     } catch (error) {
-      toast.error(profile.avatar.error_upload);
+      toast.error(profile?.avatar?.error_upload || "Upload failed");
     } finally {
       setIsUploading(false);
     }
@@ -184,8 +190,8 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">{profile.title}</h2>
-        <p className="text-xs text-muted-foreground">{profile.description}</p>
+        <h2 className="text-lg font-medium tracking-tight">{profile?.title}</h2>
+        <p className="text-xs text-muted-foreground">{profile?.description}</p>
       </div>
       <Separator className="rounded-none" />
 
@@ -199,7 +205,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
               </AvatarFallback>
             </Avatar>
             <div className="space-y-2">
-              <FormLabel>{profile.avatar.label}</FormLabel>
+              <FormLabel>{profile?.avatar?.label}</FormLabel>
               <div className="flex items-center gap-3">
                 <Input
                   type="file"
@@ -222,11 +228,11 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
                   ) : (
                     <Upload className="mr-2 h-4 w-4" />
                   )}
-                  {profile.avatar.upload_new}
+                  {profile?.avatar?.upload_new}
                 </Button>
               </div>
               <p className="text-[11px] text-muted-foreground">
-                {profile.avatar.allowed_formats}
+                {profile?.avatar?.allowed_formats}
               </p>
             </div>
           </div>
@@ -236,16 +242,16 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{profile.form.username_label}</FormLabel>
+                <FormLabel>{profile?.form?.username_label}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={profile.form.username_placeholder}
+                    placeholder={profile?.form?.username_placeholder}
                     {...field}
                     className="rounded-none max-w-md"
                   />
                 </FormControl>
                 <FormDescription>
-                  {profile.username.description}
+                  {profile?.username?.description}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -256,7 +262,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{profile.form.email_label || profile.email.label}</FormLabel>
+                <FormLabel>{profile?.form?.email_label || profile?.email?.label}</FormLabel>
                 <FormControl>
                   <Input
                     disabled
@@ -264,7 +270,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
                     className="rounded-none max-w-md"
                   />
                 </FormControl>
-                <FormDescription>{profile.email.description}</FormDescription>
+                <FormDescription>{profile?.email?.description}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -275,17 +281,17 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
             name="mobile"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{profile.form.mobile_label}</FormLabel>
+                <FormLabel>{profile?.form?.mobile_label}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={profile.form.mobile_placeholder}
+                    placeholder={profile?.form?.mobile_placeholder}
                     {...field}
                     value={field.value || ""}
                     className="rounded-none max-w-md"
                   />
                 </FormControl>
                 <FormDescription>
-                  {profile.form.mobile_description}
+                  {profile?.form?.mobile_description}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -300,7 +306,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
             {updateMutation.isPending && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
-            {profile.update_profile}
+            {profile?.update_profile}
           </Button>
         </form>
       </Form>

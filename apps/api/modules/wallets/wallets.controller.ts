@@ -126,6 +126,20 @@ export const walletsController = new Elysia()
           },
         },
       )
+      .get(
+        "/:id",
+        async ({ workspaceId, params: { id } }) => {
+          const data = await WalletsService.getById(workspaceId!, id);
+          return buildSuccess(data, "Wallet retrieved successfully");
+        },
+        {
+          detail: {
+            summary: "Get Wallet by ID",
+            description: "Returns detailed information for a single wallet.",
+            tags: ["Wallets"],
+          },
+        },
+      )
       .post(
         "/",
         async ({ workspaceId, userId, body, set }) => {

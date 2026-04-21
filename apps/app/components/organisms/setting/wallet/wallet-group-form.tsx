@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -13,6 +12,10 @@ import {
   FormLabel,
   FormMessage,
   Input,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from "@workspace/ui";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -26,24 +29,27 @@ import {
 import { type WalletGroup } from "@workspace/modules/wallet-group/wallet-group.action";
 
 interface WalletGroupFormProps {
+  open: boolean;
   group?: WalletGroup | null;
   onClose: () => void;
   dictionary: any;
 }
 
 export function WalletGroupForm({
+  open,
   group,
   onClose,
   dictionary,
 }: WalletGroupFormProps) {
   const queryClient = useQueryClient();
 
-  const { groups } = dictionary.wallets;
+  const groups_t = dictionary?.settings?.wallets?.groups || (dictionary as any)?.wallets?.groups;
+  const common = dictionary?.common;
 
   const formSchema = z.object({
     name: z
       .string()
-      .min(1, { message: groups.form.name.error_required }),
+      .min(1, { message: groups_t?.form?.name?.error_required || "Name is required" }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -53,6 +59,14 @@ export function WalletGroupForm({
     },
   });
 
+  React.useEffect(() => {
+    if (group) {
+      form.reset({ name: group.name });
+    } else {
+      form.reset({ name: "" });
+    }
+  }, [group, form]);
+
   const createMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       const result = await createWalletGroup({ name: data.name });
@@ -61,11 +75,11 @@ export function WalletGroupForm({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallet-groups"] });
-      toast.success(dictionary.settings?.wallets?.form?.create_success ?? dictionary.common.save); // Using fallback because group success is not in dict yet
+      toast.success((dictionary?.settings?.wallets?.form?.create_success ?? common?.save) || "Group created");
       onClose();
     },
     onError: (error) => {
-      toast.error(`${dictionary.common.error}: ${(error as Error).message}`);
+      toast.error(`${common?.error || "Error"}: ${(error as Error).message}`);
     },
   });
 
@@ -78,11 +92,11 @@ export function WalletGroupForm({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallet-groups"] });
-      toast.success(dictionary.settings?.wallets?.form?.update_success ?? dictionary.common.save);
+      toast.success((dictionary?.settings?.wallets?.form?.update_success ?? common?.save) || "Group updated");
       onClose();
     },
     onError: (error) => {
-      toast.error(`${dictionary.common.error}: ${(error as Error).message}`);
+      toast.error(`${common?.error || "Error"}: ${(error as Error).message}`);
     },
   });
 
@@ -96,44 +110,54 @@ export function WalletGroupForm({
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Name */}
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{groups.form.name.label}</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder={groups.form.name.placeholder}
-                  {...field}
-                  className="rounded-none"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+  if (!groups_t) return null;
 
-        <div className="flex justify-end gap-2 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="rounded-none h-8 text-xs"
-          >
-            {dictionary.common.cancel}
-          </Button>
-          <Button type="submit" disabled={isSubmitting} className="rounded-none h-8 text-xs">
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {dictionary.common.save}
-          </Button>
-        </div>
-      </form>
-    </Form>
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="rounded-none sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>
+            {group ? groups_t.edit_title : groups_t.add_title}
+          </DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{groups_t.form?.name?.label}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={groups_t.form?.name?.placeholder}
+                      {...field}
+                      className="rounded-none"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="rounded-none h-8 text-xs"
+              >
+                {common?.cancel}
+              </Button>
+              <Button type="submit" disabled={isSubmitting} className="rounded-none h-8 text-xs">
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {common?.save}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }

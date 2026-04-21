@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { startOfMonth, endOfMonth } from "date-fns";
 
@@ -8,7 +9,12 @@ import { getTransactions } from "@workspace/modules/server";
 import { getWallets } from "@workspace/modules/server";
 import { TransactionsClient } from "@/components/organisms/transactions/transaction-client";
 import { TransactionTableSkeleton } from "@/components/organisms/transactions/transaction-table-skeleton";
-import type { Metadata } from "next";
+import { Hydrated } from "@/components/shared/hydrated";
+import { getTransactionsAction } from "@/actions/transaction.actions";
+import { getWalletsAction } from "@/actions/wallet.actions";
+import { getCategoriesAction } from "@/actions/category.actions";
+import { getDictionary } from "@/get-dictionary";
+import type { Locale } from "@/i18n-config";
 
 export const metadata: Metadata = {
   title: "Transactions",
@@ -19,8 +25,10 @@ export const dynamic = "force-dynamic";
 const PAGE_LIMIT = 20;
 
 export default async function TransactionPage(props: {
+  params: Promise<{ locale: Locale }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const { locale } = await props.params;
   const searchParams = await props.searchParams;
   const page = Number(searchParams.page) || 1;
   const limit = Number(searchParams.limit) || PAGE_LIMIT;
@@ -30,6 +38,7 @@ export default async function TransactionPage(props: {
       <div className="flex-1 min-h-0 no-scrollbar">
         <Suspense fallback={<TransactionTableSkeleton />}>
           <TransactionPageContent
+            locale={locale}
             searchParams={searchParams}
             page={page}
             limit={limit}
@@ -41,10 +50,12 @@ export default async function TransactionPage(props: {
 }
 
 async function TransactionPageContent({
+  locale,
   searchParams,
   page,
   limit,
 }: {
+  locale: Locale;
   searchParams: { [key: string]: string | string[] | undefined };
   page: number;
   limit: number;
@@ -72,9 +83,10 @@ async function TransactionPageContent({
   let rowCount = 0;
   let initialWallets: Wallet[] = [];
   let initialCategories: Category[] = [];
+  let dictData: any = null;
 
   try {
-    const [transactionsRes, walletsRes, categoriesRes] = await Promise.all([
+    const [transactionsRes, walletsRes, categoriesRes, fetchedDict] = await Promise.all([
       getTransactions({
         page,
         limit,
@@ -86,7 +98,10 @@ async function TransactionPageContent({
       } as any),
       getWallets(),
       getCategories(),
+      getDictionary(locale),
     ]);
+
+    dictData = fetchedDict;
 
     if (transactionsRes?.success && transactionsRes?.data) {
       initialTransactions = transactionsRes.data;
@@ -107,14 +122,17 @@ async function TransactionPageContent({
   const pageCount = Math.ceil(rowCount / limit);
 
   return (
-    <TransactionsClient
-      initialData={initialTransactions}
-      rowCount={rowCount}
-      pageCount={pageCount}
-      initialPage={page - 1}
-      pageSize={limit}
-      wallets={initialWallets}
-      categories={initialCategories}
-    />
+    <Hydrated fallback={<TransactionTableSkeleton />}>
+      <TransactionsClient
+        initialData={initialTransactions}
+        rowCount={rowCount}
+        pageCount={pageCount}
+        initialPage={page - 1}
+        pageSize={limit}
+        wallets={initialWallets}
+        categories={initialCategories}
+        dictionary={dictData}
+      />
+    </Hydrated>
   );
 }

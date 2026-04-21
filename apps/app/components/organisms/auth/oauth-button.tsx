@@ -7,20 +7,29 @@ import { toast } from "sonner";
 
 import { loginWithOAuth } from "@workspace/modules/auth/auth.action";
 
+import { useAppStore } from "@/stores/app";
+
 interface OAuthButtonProps extends React.ComponentProps<typeof Button> {
   provider: "google" | "github";
   label?: string;
+  dictionary?: any;
 }
 
 export function OAuthButton({
   provider,
   className,
   label,
+  dictionary: dict,
   ...props
 }: OAuthButtonProps) {
+  const { dictionary: storeDict } = useAppStore();
+  const dictionary = dict || storeDict;
+
   const icon = provider === "google" ? siGoogle : siGithub;
   const defaultLabel =
-    provider === "google" ? "Continue with Google" : "Continue with GitHub";
+    provider === "google"
+      ? dictionary?.auth?.social?.google || "Continue with Google"
+      : dictionary?.auth?.social?.github || "Continue with GitHub";
 
   return (
     <Button

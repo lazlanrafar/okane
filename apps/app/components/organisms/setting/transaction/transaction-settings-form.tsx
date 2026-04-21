@@ -1,18 +1,7 @@
 "use client";
 
 import * as React from "react";
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  INCOME_EXPENSES_COLOR_OPTIONS,
-  INPUT_ORDER_OPTIONS,
-  MONTHLY_START_DATE_WEEKEND_HANDLING_OPTIONS,
-  PERIOD_OPTIONS,
-  START_SCREEN_OPTIONS,
-  SWIPE_ACTION_OPTIONS,
-  TIME_INPUT_OPTIONS,
-  WEEKLY_START_DAY_OPTIONS,
-} from "@workspace/constants";
 import {
   Label,
   RadioGroup,
@@ -33,6 +22,16 @@ import {
   updateTransactionSettings,
 } from "@workspace/modules/setting/setting.action";
 import type { TransactionSettings } from "@workspace/types";
+import {
+  INCOME_EXPENSES_COLOR_OPTIONS,
+   INPUT_ORDER_OPTIONS,
+  MONTHLY_START_DATE_WEEKEND_HANDLING_OPTIONS,
+  PERIOD_OPTIONS,
+  START_SCREEN_OPTIONS,
+  SWIPE_ACTION_OPTIONS,
+  TIME_INPUT_OPTIONS,
+  WEEKLY_START_DAY_OPTIONS,
+} from "@workspace/constants";
 
 import { useAppStore } from "@/stores/app";
 
@@ -73,9 +72,14 @@ function SettingTransactionSkeleton() {
   );
 }
 
-export function TransactionSettingsForm() {
+interface TransactionSettingsFormProps {
+  dictionary?: any;
+}
+
+export function TransactionSettingsForm({ dictionary: dict }: TransactionSettingsFormProps) {
   const queryClient = useQueryClient();
-  const { dictionary, isLoading: isDictLoading } = useAppStore();
+  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
+  const dictionary = dict || storeDict;
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["settings", "transaction"],
@@ -86,12 +90,6 @@ export function TransactionSettingsForm() {
     },
   });
 
-  if (isLoading || isDictLoading || !settings || !dictionary) {
-    return <SettingTransactionSkeleton />;
-  }
-
-  const { transaction } = dictionary.settings;
-
   const mutation = useMutation({
     mutationFn: async (vars: Partial<TransactionSettings>) => {
       const result = await updateTransactionSettings(vars);
@@ -100,12 +98,19 @@ export function TransactionSettingsForm() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings", "transaction"] });
-      toast.success(transaction.toast_updated);
+      toast.success(dictionary?.settings?.transaction?.toast_updated || "Settings updated");
     },
     onError: () => {
-      toast.error(transaction.toast_error);
+      toast.error(dictionary?.settings?.transaction?.toast_error || "Failed to update settings");
     },
   });
+
+  if (isLoading || (!dictionary && isDictLoading) || !settings || !dictionary) {
+    return <SettingTransactionSkeleton />;
+  }
+
+  const transaction = dictionary?.settings?.transaction || (dictionary as any)?.transaction;
+  const common = dictionary?.settings?.common || (dictionary as any)?.common;
 
   const updateSetting = (key: keyof TransactionSettings, value: any) => {
     mutation.mutate({ [key]: value });
@@ -115,10 +120,10 @@ export function TransactionSettingsForm() {
     <div className="space-y-8">
       <div className="space-y-1">
         <h2 className="text-lg font-medium tracking-tight">
-          {transaction.title}
+          {transaction?.title}
         </h2>
         <p className="text-xs text-muted-foreground">
-          {transaction.description}
+          {transaction?.description}
         </p>
       </div>
       <Separator className="rounded-none" />
@@ -128,20 +133,20 @@ export function TransactionSettingsForm() {
         <div className="space-y-4">
           <div>
             <h4 className="text-sm font-medium">
-              {transaction.date_time.title}
+              {transaction?.date_time?.title}
             </h4>
             <p className="text-sm text-muted-foreground">
-              {transaction.date_time.description}
+              {transaction?.date_time?.description}
             </p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-sm">
-                  {transaction.date_time.monthly_start_date.label}
+                  {transaction?.date_time?.monthly_start_date?.label}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction.date_time.monthly_start_date.description}
+                  {transaction?.date_time?.monthly_start_date?.description}
                 </p>
               </div>
               <Select
@@ -153,7 +158,7 @@ export function TransactionSettingsForm() {
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
                   <SelectValue
                     placeholder={
-                      transaction.date_time.monthly_start_date.placeholder
+                      transaction?.date_time?.monthly_start_date?.placeholder
                     }
                   />
                 </SelectTrigger>
@@ -172,7 +177,7 @@ export function TransactionSettingsForm() {
             </div>
             <div className="space-y-3 pt-1">
               <Label className="text-xs uppercase tracking-wider text-muted-foreground/70 font-medium">
-                {transaction.date_time.weekend_handling.label}
+                {transaction?.date_time?.weekend_handling?.label}
               </Label>
               <RadioGroup
                 value={settings.monthlyStartDateWeekendHandling}
@@ -194,7 +199,7 @@ export function TransactionSettingsForm() {
                       htmlFor={`handling-${option.value}`}
                       className="font-normal cursor-pointer text-sm"
                     >
-                      {transaction.date_time.weekend_handling.options[
+                      {transaction?.date_time?.weekend_handling?.options?.[
                         option.value as keyof typeof transaction.date_time.weekend_handling.options
                       ] || option.label}
                     </Label>
@@ -205,10 +210,10 @@ export function TransactionSettingsForm() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-sm">
-                  {transaction.date_time.weekly_start_day.label}
+                  {transaction?.date_time?.weekly_start_day?.label}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction.date_time.weekly_start_day.description}
+                  {transaction?.date_time?.weekly_start_day?.description}
                 </p>
               </div>
               <Select
@@ -218,7 +223,7 @@ export function TransactionSettingsForm() {
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
                   <SelectValue
                     placeholder={
-                      transaction.date_time.weekly_start_day.placeholder
+                      transaction?.date_time?.weekly_start_day?.placeholder
                     }
                   />
                 </SelectTrigger>
@@ -229,7 +234,7 @@ export function TransactionSettingsForm() {
                       value={day}
                       className="cursor-pointer"
                     >
-                      {transaction.date_time.weekly_start_day.options[
+                      {transaction?.date_time?.weekly_start_day?.options?.[
                         day.toLowerCase() as keyof typeof transaction.date_time.weekly_start_day.options
                       ] || day}
                     </SelectItem>
@@ -244,19 +249,19 @@ export function TransactionSettingsForm() {
         {/* General Preferences */}
         <div className="space-y-4">
           <div>
-            <h4 className="text-sm font-medium">{transaction.general.title}</h4>
+            <h4 className="text-sm font-medium">{transaction?.general?.title}</h4>
             <p className="text-sm text-muted-foreground">
-              {transaction.general.description}
+              {transaction?.general?.description}
             </p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-sm">
-                  {transaction.general.default_period.label}
+                  {transaction?.general?.default_period?.label}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction.general.default_period.description}
+                  {transaction?.general?.default_period?.description}
                 </p>
               </div>
               <Select
@@ -265,7 +270,7 @@ export function TransactionSettingsForm() {
               >
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
                   <SelectValue
-                    placeholder={transaction.general.default_period.placeholder}
+                    placeholder={transaction?.general?.default_period?.placeholder}
                   />
                 </SelectTrigger>
                 <SelectContent>
@@ -275,7 +280,7 @@ export function TransactionSettingsForm() {
                       value={period}
                       className="cursor-pointer"
                     >
-                      {transaction.general.default_period.options[
+                      {transaction?.general?.default_period?.options?.[
                         period.toLowerCase() as keyof typeof transaction.general.default_period.options
                       ] || period}
                     </SelectItem>
@@ -287,10 +292,10 @@ export function TransactionSettingsForm() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-sm">
-                  {transaction.general.start_screen.label}
+                  {transaction?.general?.start_screen?.label}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction.general.start_screen.description}
+                  {transaction?.general?.start_screen?.description}
                 </p>
               </div>
               <Select
@@ -299,7 +304,7 @@ export function TransactionSettingsForm() {
               >
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
                   <SelectValue
-                    placeholder={transaction.general.start_screen.placeholder}
+                    placeholder={transaction?.general?.start_screen?.placeholder}
                   />
                 </SelectTrigger>
                 <SelectContent>
@@ -309,7 +314,7 @@ export function TransactionSettingsForm() {
                       value={screen}
                       className="cursor-pointer"
                     >
-                      {transaction.general.start_screen.options[
+                      {transaction?.general?.start_screen?.options?.[
                         screen.toLowerCase() as keyof typeof transaction.general.start_screen.options
                       ] || screen}
                     </SelectItem>
@@ -320,7 +325,7 @@ export function TransactionSettingsForm() {
 
             <div className="space-y-3 pt-1">
               <Label className="text-xs uppercase tracking-wider text-muted-foreground/70 font-medium">
-                {transaction.general.income_expense_color.description}
+                {transaction?.general?.income_expense_color?.description}
               </Label>
               <RadioGroup
                 value={settings.incomeExpensesColor}
@@ -340,7 +345,7 @@ export function TransactionSettingsForm() {
                         htmlFor={`color-${option.value}`}
                         className="font-normal cursor-pointer text-sm"
                       >
-                        {transaction.general.income_expense_color.options[
+                        {transaction?.general?.income_expense_color?.options?.[
                           option.value
                         ] || option.label}
                       </Label>
@@ -349,12 +354,12 @@ export function TransactionSettingsForm() {
                     <div className="flex items-center">
                       <div className="ml-6 border rounded-none p-2 w-full max-w-[100px] bg-card text-[10px] font-medium text-center uppercase tracking-tight">
                         <span className={option.expensesColor}>
-                          {transaction.exp}
+                          {transaction?.exp}
                         </span>
                       </div>
                       <div className="ml-2 border rounded-none p-2 w-full max-w-[100px] bg-card text-[10px] font-medium text-center uppercase tracking-tight">
                         <span className={option.incomeColor}>
-                          {transaction.inc}
+                          {transaction?.inc}
                         </span>
                       </div>
                     </div>
@@ -370,20 +375,20 @@ export function TransactionSettingsForm() {
         <div className="space-y-4">
           <div>
             <h4 className="text-sm font-medium">
-              {transaction.input_interaction.title}
+              {transaction?.input_interaction?.title}
             </h4>
             <p className="text-sm text-muted-foreground">
-              {transaction.input_interaction.description}
+              {transaction?.input_interaction?.description}
             </p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-sm">
-                  {transaction.input_interaction.carry_over.label}
+                  {transaction?.input_interaction?.carry_over?.label}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction.input_interaction.carry_over.description}
+                  {transaction?.input_interaction?.carry_over?.description}
                 </p>
               </div>
               <Switch
@@ -396,10 +401,10 @@ export function TransactionSettingsForm() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-sm">
-                  {transaction.input_interaction.autocomplete.label}
+                  {transaction?.input_interaction?.autocomplete?.label}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction.input_interaction.autocomplete.description}
+                  {transaction?.input_interaction?.autocomplete?.description}
                 </p>
               </div>
               <Switch
@@ -412,10 +417,10 @@ export function TransactionSettingsForm() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-sm">
-                  {transaction.input_interaction.time_input.label}
+                  {transaction?.input_interaction?.time_input?.label}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction.input_interaction.time_input.description}
+                  {transaction?.input_interaction?.time_input?.description}
                 </p>
               </div>
               <Select
@@ -425,7 +430,7 @@ export function TransactionSettingsForm() {
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
                   <SelectValue
                     placeholder={
-                      transaction.input_interaction.time_input.placeholder
+                      transaction?.input_interaction?.time_input?.placeholder
                     }
                   />
                 </SelectTrigger>
@@ -436,7 +441,7 @@ export function TransactionSettingsForm() {
                       value={option.value}
                       className="cursor-pointer"
                     >
-                      {transaction.input_interaction.time_input.options[
+                      {transaction?.input_interaction?.time_input?.options?.[
                         option.value
                           .toLowerCase()
                           .replace(", ", "-")
@@ -451,10 +456,10 @@ export function TransactionSettingsForm() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-sm">
-                  {transaction.input_interaction.swipe_action.label}
+                  {transaction?.input_interaction?.swipe_action?.label}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction.input_interaction.swipe_action.description}
+                  {transaction?.input_interaction?.swipe_action?.description}
                 </p>
               </div>
               <Select
@@ -464,7 +469,7 @@ export function TransactionSettingsForm() {
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
                   <SelectValue
                     placeholder={
-                      transaction.input_interaction.swipe_action.placeholder
+                      transaction?.input_interaction?.swipe_action?.placeholder
                     }
                   />
                 </SelectTrigger>
@@ -475,7 +480,7 @@ export function TransactionSettingsForm() {
                       value={action}
                       className="cursor-pointer"
                     >
-                      {transaction.input_interaction.swipe_action.options[
+                      {transaction?.input_interaction?.swipe_action?.options?.[
                         action.toLowerCase().replace(" ", "-") as keyof typeof transaction.input_interaction.swipe_action.options
                       ] || action}
                     </SelectItem>
@@ -487,10 +492,10 @@ export function TransactionSettingsForm() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-sm">
-                  {transaction.input_interaction.input_order.label}
+                  {transaction?.input_interaction?.input_order?.label}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction.input_interaction.input_order.description}
+                  {transaction?.input_interaction?.input_order?.description}
                 </p>
               </div>
               <Select
@@ -500,7 +505,7 @@ export function TransactionSettingsForm() {
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
                   <SelectValue
                     placeholder={
-                      transaction.input_interaction.input_order.placeholder
+                      transaction?.input_interaction?.input_order?.placeholder
                     }
                   />
                 </SelectTrigger>
@@ -511,7 +516,7 @@ export function TransactionSettingsForm() {
                       value={option.value}
                       className="cursor-pointer"
                     >
-                      {transaction.input_interaction.input_order.options[
+                      {transaction?.input_interaction?.input_order?.options?.[
                         option.value.toLowerCase() as keyof typeof transaction.input_interaction.input_order.options
                       ] || option.label}
                     </SelectItem>
@@ -523,10 +528,10 @@ export function TransactionSettingsForm() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-sm">
-                  {transaction.input_interaction.show_description.label}
+                  {transaction?.input_interaction?.show_description?.label}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction.input_interaction.show_description.description}
+                  {transaction?.input_interaction?.show_description?.description}
                 </p>
               </div>
               <Switch
@@ -539,10 +544,10 @@ export function TransactionSettingsForm() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-sm">
-                  {transaction.input_interaction.quick_note_button.label}
+                  {transaction?.input_interaction?.quick_note_button?.label}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction.input_interaction.quick_note_button.description}
+                  {transaction?.input_interaction?.quick_note_button?.description}
                 </p>
               </div>
               <Switch

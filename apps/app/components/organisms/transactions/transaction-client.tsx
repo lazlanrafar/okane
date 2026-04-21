@@ -72,7 +72,7 @@ import {
 import { useConfirm } from "@/components/providers/confirm-modal-provider";
 import { TransactionReceiptConfirmationModal } from "./transaction-receipt-confirmation-modal";
 
-interface Props {
+interface TransactionsClientProps {
   initialData: Transaction[];
   rowCount: number;
   pageCount: number;
@@ -80,6 +80,7 @@ interface Props {
   pageSize: number;
   wallets: Wallet[];
   categories: Category[];
+  dictionary: any;
 }
 
 export function TransactionsClient({
@@ -90,7 +91,8 @@ export function TransactionsClient({
   pageSize,
   wallets,
   categories,
-}: Props) {
+  dictionary: dict,
+}: TransactionsClientProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -111,7 +113,9 @@ export function TransactionsClient({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const queryClient = useQueryClient();
-  const { settings, formatCurrency, getTransactionColor, dictionary } = useAppStore();
+  const { settings, formatCurrency, getTransactionColor, dictionary: storeDict } = useAppStore();
+  const dictionary = dict || storeDict;
+
   const { rowSelection, setRowSelection } = useTransactionsStore();
   const confirm = useConfirm();
 
@@ -1000,6 +1004,7 @@ export function TransactionsClient({
           }
         }}
         transaction={isFormOpen ? selectedTransaction : undefined}
+        dictionary={dictionary}
       />
 
       <TransactionReceiptConfirmationModal
@@ -1022,6 +1027,7 @@ export function TransactionsClient({
           }
         }}
         transaction={selectedTransaction}
+        dictionary={dictionary}
         onNext={() => {
           const currentIndex = transactions.findIndex(
             (t) => t.id === transactionId,
@@ -1058,6 +1064,7 @@ export function TransactionsClient({
         open={isImportOpen}
         onOpenChange={setIsImportOpen}
         wallets={wallets}
+        dictionary={dictionary}
         onSuccess={() => {
           setIsImportOpen(false);
           refetch();

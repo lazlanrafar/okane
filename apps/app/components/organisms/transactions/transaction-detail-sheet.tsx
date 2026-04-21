@@ -13,7 +13,7 @@ import {
   Badge,
 } from "@workspace/ui";
 import type { Transaction, TransactionItem, ActionResponse } from "@workspace/types";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import {
   Landmark,
   X,
@@ -78,6 +78,7 @@ interface Props {
   transaction?: Transaction;
   onNext?: () => void;
   onPrevious?: () => void;
+  dictionary?: any;
 }
 
 export function TransactionDetailSheet({
@@ -86,8 +87,10 @@ export function TransactionDetailSheet({
   transaction,
   onNext,
   onPrevious,
+  dictionary: dict,
 }: Props) {
-  const { getTransactionColor, formatCurrency, dictionary } = useAppStore();
+  const { getTransactionColor, formatCurrency, dictionary: storeDict } = useAppStore() as any;
+  const dictionary = dict || storeDict;
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<FilePreview | null>(null);
   const [vaultPickerOpen, setVaultPickerOpen] = useState(false);
@@ -107,7 +110,7 @@ export function TransactionDetailSheet({
       }
     },
     onError: (error: any) => {
-      toast.error(error.message || dictionary.settings.common.error);
+      toast.error(error.message || dictionary.common.error);
     },
   });
 
@@ -176,7 +179,9 @@ export function TransactionDetailSheet({
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <span className="text-[#606060] text-xs select-text">
-                {format(new Date(transaction.date), "MMM d, yyyy")}
+                {transaction.date ? (
+                  isValid(new Date(transaction.date)) ? format(new Date(transaction.date), "MMM d, yyyy") : dictionary.common.na
+                ) : dictionary.common.na}
               </span>
             </div>
 
@@ -536,10 +541,14 @@ export function TransactionDetailSheet({
           <div className="flex items-center gap-4">
             <p className="text-[10px] text-muted-foreground/60">
               {dictionary.transactions.created_at}{" "}
-              {format(
-                new Date(transaction.createdAt || transaction.date),
-                `MMM d, yyyy '${dictionary.transactions.at}' h:mm a`,
-              )}
+              {transaction.createdAt || transaction.date ? (
+                isValid(new Date(transaction.createdAt || transaction.date))
+                  ? format(
+                      new Date(transaction.createdAt || transaction.date),
+                      `MMM d, yyyy '${dictionary.transactions.at}' h:mm a`,
+                    )
+                  : dictionary.common.na
+              ) : dictionary.common.na}
             </p>
           </div>
 

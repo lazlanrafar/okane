@@ -40,8 +40,13 @@ function SettingAccountSkeleton() {
   );
 }
 
-export function AccountForm() {
-  const { dictionary, isLoading: isDictLoading } = useAppStore() as any;
+interface AccountFormProps {
+  dictionary?: any;
+}
+
+export function AccountForm({ dictionary: dict }: AccountFormProps) {
+  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
+  const dictionary = dict || storeDict;
   const account = dictionary?.settings?.account;
   const providers_t = account?.providers;
 
@@ -59,12 +64,12 @@ export function AccountForm() {
   const disconnectMutation = useMutation({
     mutationFn: async (provider: string) => {
       if (!providers_t) return;
-      if (!window.confirm(providers_t.disconnect_confirm)) return;
+      if (!window.confirm(providers_t?.disconnect_confirm || "Are you sure?")) return;
       const result = await disconnectProviderAction(provider);
       if (!result.success) throw new Error(result.error);
     },
     onSuccess: () => {
-      toast.success(providers_t?.disconnect_success);
+      toast.success(providers_t?.disconnect_success || "Provider disconnected");
       queryClient.invalidateQueries({ queryKey: ["providers"] });
     },
     onError: (error) => {
@@ -81,23 +86,23 @@ export function AccountForm() {
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">{account.title}</h2>
-        <p className="text-xs text-muted-foreground">{account.description}</p>
+        <h2 className="text-lg font-medium tracking-tight">{account?.title}</h2>
+        <p className="text-xs text-muted-foreground">{account?.description}</p>
       </div>
       <Separator className="rounded-none" />
 
       <div className="space-y-6">
         <div>
-          <h3 className="text-sm font-medium">{providers_t.title}</h3>
+          <h3 className="text-sm font-medium">{providers_t?.title}</h3>
           <p className="text-xs text-muted-foreground">
-            {providers_t.description}
+            {providers_t?.description}
           </p>
         </div>
 
         <div className="space-y-0">
           {providers.length === 0 && (
             <p className="text-sm text-muted-foreground font-medium">
-              {account.no_providers}
+              {account?.no_providers}
             </p>
           )}
           {providers.map((provider) => (
@@ -114,7 +119,7 @@ export function AccountForm() {
                     {provider}
                   </p>
                   <p className="text-[11px] text-muted-foreground tracking-tight">
-                    {account.form.logged_in_via} {provider}
+                    {account?.form?.logged_in_via} {provider}
                   </p>
                 </div>
               </div>
@@ -133,7 +138,7 @@ export function AccountForm() {
                   ) : (
                     <Unlink className="size-4 mr-2" />
                   )}
-                  {providers_t.disconnect}
+                  {providers_t?.disconnect}
                 </Button>
               </div>
             </div>

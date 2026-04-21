@@ -184,8 +184,9 @@ function CategorySkeleton() {
   );
 }
 
-export function CategoryForm({ type }: { type: "income" | "expense" }) {
-  const { dictionary, isLoading: isDictLoading } = useAppStore() as any;
+export function CategoryForm({ type, dictionary: dict }: { type: "income" | "expense", dictionary?: any }) {
+  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
+  const dictionary = dict || storeDict;
   const dictionary_t =
     type === "income"
       ? dictionary?.settings?.category?.income

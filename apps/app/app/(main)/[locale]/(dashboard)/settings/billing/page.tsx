@@ -1,5 +1,7 @@
 import { BillingView } from "@/components/organisms/setting/billing/billing-view";
 import { getPricing } from "@workspace/modules/pricing/pricing.action";
+import { getDictionary } from "@/get-dictionary";
+import { Locale } from "@/i18n-config";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -12,6 +14,7 @@ export default async function BillingPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const dictionary = await getDictionary(locale as Locale);
   const pricingResult = await getPricing({ is_addon: "false" });
   const addonsResult = await getPricing({ is_addon: "true" });
 
@@ -25,7 +28,7 @@ export default async function BillingPage({
 
   return (
     <div className="space-y-6">
-      <BillingView initialPlans={plans} initialAddons={addons} />
+      <BillingView initialPlans={plans} initialAddons={addons} dictionary={dictionary} />
     </div>
   );
 }

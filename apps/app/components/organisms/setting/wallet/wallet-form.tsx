@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -19,6 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
   Switch,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from "@workspace/ui";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -38,22 +41,22 @@ import { useAppStore } from "@/stores/app";
 import { getWalletGroups } from "@workspace/modules/wallet-group/wallet-group.action";
 
 interface WalletFormProps {
+  open: boolean;
   wallet?: Wallet | null;
   onClose: () => void;
   dictionary: any;
 }
 
-export function WalletForm({ wallet, onClose, dictionary: dictionary_prop }: WalletFormProps) {
-  const { dictionary, isLoading: isDictLoading } = useAppStore() as any;
+export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop }: WalletFormProps) {
+  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
+  const dictionary = dictionary_prop || storeDict;
   const queryClient = useQueryClient();
 
-  if (isDictLoading || !dictionary) return null;
-
-  const { form: walletForm } = dictionary.settings.wallets;
-  const common = dictionary.settings.common;
+  const walletForm = dictionary?.settings?.wallets?.form || (dictionary as any)?.wallets?.form;
+  const common = dictionary?.common;
 
   const formSchema = z.object({
-    name: z.string().min(1, { message: walletForm.name.error_required }),
+    name: z.string().min(1, { message: walletForm?.name?.error_required || "Name is required" }),
     groupId: z.string().optional().nullable(),
     balance: z.string().optional(),
     isIncludedInTotals: z.boolean().default(true),
@@ -68,6 +71,24 @@ export function WalletForm({ wallet, onClose, dictionary: dictionary_prop }: Wal
       isIncludedInTotals: wallet?.isIncludedInTotals ?? true,
     },
   });
+
+  React.useEffect(() => {
+    if (wallet) {
+      form.reset({
+        name: wallet.name,
+        groupId: wallet.groupId ?? "none",
+        balance: wallet.balance?.toString() ?? "0",
+        isIncludedInTotals: wallet.isIncludedInTotals ?? true,
+      });
+    } else {
+      form.reset({
+        name: "",
+        groupId: "none",
+        balance: "0",
+        isIncludedInTotals: true,
+      });
+    }
+  }, [wallet, form]);
 
   // Fetch groups for selection
   const { data: groups } = useQuery({
@@ -93,11 +114,11 @@ export function WalletForm({ wallet, onClose, dictionary: dictionary_prop }: Wal
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      toast.success(walletForm.create_success);
+      toast.success(walletForm?.create_success || "Wallet created");
       onClose();
     },
     onError: (error) => {
-      toast.error(`${common.error}: ${(error as Error).message}`);
+      toast.error(`${common?.error || "Error"}: ${(error as Error).message}`);
     },
   });
 
@@ -116,7 +137,7 @@ export function WalletForm({ wallet, onClose, dictionary: dictionary_prop }: Wal
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      toast.success(walletForm.update_success);
+      toast.success(walletForm?.update_success || "Wallet updated");
       onClose();
     },
     onError: (error) => {
@@ -132,124 +153,135 @@ export function WalletForm({ wallet, onClose, dictionary: dictionary_prop }: Wal
     }
   };
 
+  if (isDictLoading || !dictionary || !walletForm) return null;
+
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Name */}
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{walletForm.name.label}</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder={walletForm.name.placeholder}
-                  {...field}
-                  className="rounded-none"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Group */}
-        <FormField
-          control={form.control}
-          name="groupId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{walletForm.group.label}</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value ?? "none"}
-              >
-                <FormControl>
-                  <SelectTrigger className="rounded-none h-8 text-xs">
-                    <SelectValue
-                      placeholder={walletForm.group.placeholder}
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="rounded-none sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>
+            {wallet ? walletForm.edit_title : walletForm.add_title}
+          </DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Name */}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{walletForm?.name?.label}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={walletForm?.name?.placeholder}
+                      {...field}
+                      className="rounded-none"
                     />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent className="rounded-none">
-                  <SelectItem value="none">
-                    {walletForm.group.none}
-                  </SelectItem>
-                  {groups?.map((group) => (
-                    <SelectItem key={group.id} value={group.id}>
-                      {group.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {/* Balance */}
-        <FormField
-          control={form.control}
-          name="balance"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{common.form.balance.label}</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder={common.form.balance.placeholder}
-                  {...field}
-                  className="rounded-none border"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            {/* Group */}
+            <FormField
+              control={form.control}
+              name="groupId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{walletForm?.group?.label}</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value ?? "none"}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="rounded-none h-8 text-xs">
+                        <SelectValue
+                          placeholder={walletForm?.group?.placeholder}
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="rounded-none">
+                      <SelectItem value="none">
+                        {walletForm?.group?.none}
+                      </SelectItem>
+                      {groups?.map((group) => (
+                        <SelectItem key={group.id} value={group.id}>
+                          {group.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {/* Include in Totals */}
-        <FormField
-          control={form.control}
-          name="isIncludedInTotals"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-none border p-3 shadow-sm">
-              <div className="space-y-0.5">
-                <FormLabel>{walletForm.is_included.label}</FormLabel>
-                <p className="text-[0.8rem] text-muted-foreground">
-                  {walletForm.is_included.description}
-                </p>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className="rounded-none"
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+            {/* Balance */}
+            <FormField
+              control={form.control}
+              name="balance"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{common?.form?.balance?.label}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder={common?.form?.balance?.placeholder}
+                      {...field}
+                      className="rounded-none border h-8 text-xs"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div className="flex justify-end gap-2 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="rounded-none h-8 text-xs"
-          >
-            {common.cancel}
-          </Button>
-          <Button type="submit" disabled={isSubmitting} className="rounded-none h-8 text-xs">
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {common.save}
-          </Button>
-        </div>
-      </form>
-    </Form>
+            {/* Include in Totals */}
+            <FormField
+              control={form.control}
+              name="isIncludedInTotals"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-none border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-sm">{walletForm?.is_included?.label}</FormLabel>
+                    <p className="text-[0.7rem] text-muted-foreground">
+                      {walletForm?.is_included?.description}
+                    </p>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="rounded-none scale-75"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="rounded-none h-8 text-xs"
+              >
+                {common?.cancel}
+              </Button>
+              <Button type="submit" disabled={isSubmitting} className="rounded-none h-8 text-xs">
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {common?.save}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }

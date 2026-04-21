@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { format, isValid } from "date-fns";
 import { deleteWallet, updateWallet } from "@workspace/modules/client";
 import { SelectAccountGroup } from "@/components/molecules/select-account-group";
 import { useQueryClient } from "@tanstack/react-query";
@@ -41,7 +42,7 @@ const CellActions = ({
         toast.error(result.error || dictionary.accounts.toasts.delete_failed);
       }
     } catch (error) {
-      toast.error(dictionary.settings.common.error);
+      toast.error(dictionary.common.error);
     }
   };
 
@@ -50,7 +51,7 @@ const CellActions = ({
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-8 w-8 p-0">
           <span className="sr-only">
-            {dictionary.settings.common.open_menu}
+            {dictionary.common.open_menu}
           </span>
           <MoreHorizontal className="h-4 w-4" />
         </Button>
@@ -66,7 +67,7 @@ const CellActions = ({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleDelete} className="text-destructive">
           <Trash2 className="mr-2 h-4 w-4" />
-          <span>{dictionary.settings.common.delete}</span>
+          <span>{dictionary.common.delete}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -92,7 +93,7 @@ const GroupCell = ({
         toast.error(res.error || dictionary.accounts.toasts.group_update_failed);
       }
     } catch (error) {
-      toast.error(dictionary.settings.common.error);
+      toast.error(dictionary.common.error);
     }
   };
 
@@ -130,7 +131,7 @@ export const accountColumns = (
     },
     cell: ({ getValue }) => (
       <span className="truncate font-medium font-sans px-2">
-        {getValue<string>() || (dictionary?.settings?.common?.na ?? "N/A")}
+        {getValue<string>() || (dictionary?.common?.na ?? "N/A")}
       </span>
     ),
   },
@@ -188,14 +189,17 @@ export const accountColumns = (
     },
     cell: ({ getValue }) => {
       const val = getValue<string>();
-      if (!val) return dictionary?.settings?.common?.na ?? "N/A";
+      if (!val) return dictionary?.common?.na ?? "N/A";
+      const date = new Date(val);
       return (
         <span className="font-sans text-muted-foreground px-2">
-          {new Date(val).toLocaleDateString(dictionary?.language?.locale || "en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          })}
+          {isValid(date) 
+            ? date.toLocaleDateString(dictionary?.language?.locale || "en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })
+            : (dictionary?.common?.na ?? "N/A")}
         </span>
       );
     },

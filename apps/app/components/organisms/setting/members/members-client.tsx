@@ -51,6 +51,7 @@ interface Invitation {
 interface MembersClientProps {
   members: Member[];
   invitations: Invitation[];
+  dictionary?: any;
 }
 
 import { useAppStore } from "@/stores/app";
@@ -94,16 +95,17 @@ export function MembersSkeleton() {
   );
 }
 
-export function MembersClient({ members, invitations }: MembersClientProps) {
+export function MembersClient({ members, invitations, dictionary: dict }: MembersClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("members");
-  const { dictionary, isLoading } = useAppStore();
+  const { dictionary: storeDict, isLoading } = useAppStore() as any;
+  const dictionary = dict || storeDict;
 
-  if (!dictionary || isLoading) {
+  if (!dictionary && (isLoading || !dictionary)) {
     return <MembersSkeleton />;
   }
 
-  const dict = (dictionary as any).settings.members;
+  const settingsDict = (dictionary as any)?.settings?.members;
 
   const handleRefresh = () => {
     router.refresh();
@@ -112,7 +114,7 @@ export function MembersClient({ members, invitations }: MembersClientProps) {
   const handleCancelInvitation = async (invitationId: string) => {
     const result = await cancelInvitation(invitationId);
     if (result.success) {
-      toast.success(dict.toast_cancelled || "Invitation cancelled");
+      toast.success(settingsDict.toast_cancelled || "Invitation cancelled");
       handleRefresh();
     } else {
       toast.error(result.error);
@@ -124,8 +126,8 @@ export function MembersClient({ members, invitations }: MembersClientProps) {
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">{dict.title}</h2>
-        <p className="text-xs text-muted-foreground">{dict.description}</p>
+        <h2 className="text-lg font-medium tracking-tight">{settingsDict?.title}</h2>
+        <p className="text-xs text-muted-foreground">{settingsDict?.description}</p>
       </div>
 
       <Separator className="rounded-none" />
@@ -142,23 +144,23 @@ export function MembersClient({ members, invitations }: MembersClientProps) {
                 value="members"
                 className="rounded-none px-6 text-xs h-8 data-[state=active]:bg-background data-[state=active]:shadow-none"
               >
-                {dict.tabs.members}
+                {settingsDict?.tabs?.members}
               </TabsTrigger>
               <TabsTrigger
                 value="invitations"
                 className="rounded-none px-6 text-xs h-8 data-[state=active]:bg-background data-[state=active]:shadow-none"
               >
-                {dict.tabs.invitations}
+                {settingsDict?.tabs?.invitations}
               </TabsTrigger>
             </TabsList>
-            <InviteMemberDialog onSuccess={handleRefresh} />
+            <InviteMemberDialog onSuccess={handleRefresh} dictionary={dictionary} />
           </div>
 
           <TabsContent value="members" className="mt-0 outline-none">
             <div className="border border-t">
               {members.length === 0 ? (
                 <div className="py-12 text-center text-sm text-muted-foreground">
-                  {dict.no_members || "No members found."}
+                  {settingsDict?.no_members || "No members found."}
                 </div>
               ) : (
                 <div>
@@ -196,8 +198,8 @@ export function MembersClient({ members, invitations }: MembersClientProps) {
                           }
                           className="capitalize rounded-none font-normal text-[10px] h-5 px-2"
                         >
-                          {dict.form.role.options[
-                            member.role as keyof typeof dict.form.role.options
+                          {settingsDict?.form?.role?.options?.[
+                            member.role as keyof typeof settingsDict.form.role.options
                           ] || member.role}
                         </Badge>
                         <DropdownMenu>
@@ -238,7 +240,7 @@ export function MembersClient({ members, invitations }: MembersClientProps) {
             <div className="border border-t">
               {invitations.length === 0 ? (
                 <div className="py-12 text-center text-sm text-muted-foreground">
-                  {dict.no_invitations || "No pending invitations."}
+                  {settingsDict?.no_invitations || "No pending invitations."}
                 </div>
               ) : (
                 <div>
@@ -256,7 +258,7 @@ export function MembersClient({ members, invitations }: MembersClientProps) {
                             {invite.email}
                           </span>
                           <span className="text-xs text-muted-foreground capitalize">
-                            {dict.invitation_status?.[invite.status] ||
+                            {settingsDict?.invitation_status?.[invite.status] ||
                               invite.status}
                           </span>
                         </div>
@@ -266,8 +268,8 @@ export function MembersClient({ members, invitations }: MembersClientProps) {
                           variant="outline"
                           className="capitalize rounded-none font-normal text-[10px] h-5 px-2"
                         >
-                          {dict.form.role.options[
-                            invite.role as keyof typeof dict.form.role.options
+                          {settingsDict?.form?.role?.options?.[
+                            invite.role as keyof typeof settingsDict.form.role.options
                           ] || invite.role}
                         </Badge>
                         <DropdownMenu>
@@ -295,7 +297,7 @@ export function MembersClient({ members, invitations }: MembersClientProps) {
                               onClick={() => handleCancelInvitation(invite.id)}
                             >
                               <XCircle className="mr-2 h-4 w-4" />
-                              {dict.cancel_invitation || "Cancel Invitation"}
+                              {settingsDict?.cancel_invitation || "Cancel Invitation"}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

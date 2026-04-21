@@ -15,7 +15,7 @@ export default function ErrorPage({
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center space-y-4 max-w-md mx-auto px-4">
+      <div className="text-center space-y-4 max-w-2xl mx-auto px-4">
         <h1 className="font-serif text-4xl text-foreground">
           Something went wrong
         </h1>
@@ -27,6 +27,10 @@ export default function ErrorPage({
             Error ID: {error.digest}
           </p>
         )}
+        <div className="text-left bg-muted p-4 overflow-auto max-h-64 text-xs font-mono">
+          <p className="font-bold text-red-500 mb-2">{error.message}</p>
+          <pre className="whitespace-pre-wrap">{error.stack}</pre>
+        </div>
         <button
           type="button"
           onClick={reset}

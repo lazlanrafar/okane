@@ -26,10 +26,15 @@ function LanguageSkeleton() {
   );
 }
 
-export function LanguageSettingsForm() {
+interface LanguageSettingsFormProps {
+  dictionary?: any;
+}
+
+export function LanguageSettingsForm({ dictionary: dict }: LanguageSettingsFormProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { dictionary, isLoading } = useAppStore();
+  const { dictionary: storeDict, isLoading } = useAppStore() as any;
+  const dictionary = dict || storeDict;
 
   const currentLocale = pathname.split("/")[1] as Locale;
 
@@ -40,7 +45,7 @@ export function LanguageSettingsForm() {
     router.push(newPath);
   };
 
-  if (isLoading || !dictionary) {
+  if (!dictionary && (isLoading || !dictionary)) {
     return <LanguageSkeleton />;
   }
 

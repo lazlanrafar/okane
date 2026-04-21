@@ -11,8 +11,17 @@ import { getMe } from "@workspace/modules/user/user.action";
 import { AppsCard } from "./apps-card";
 import { ConnectTelegram } from "./connect-telegram";
 import { ConnectWhatsApp } from "./connect-whatsapp";
+import { useAppStore } from "@/stores/app";
 
-export function AppsClient() {
+interface Props {
+  dictionary: any;
+}
+
+export function AppsClient({ dictionary: dict }: Props) {
+  const { dictionary: storeDict } = useAppStore() as any;
+  const dictionary = dict || storeDict;
+  const t = dictionary?.apps;
+
   const router = useRouter();
   const [search, setSearch] = React.useState("");
   const [filter, setFilter] = React.useState<"all" | "connected">("all");
@@ -126,6 +135,8 @@ export function AppsClient() {
 
   const activeApp = allApps.find((a) => a.id === expandedApp);
 
+  if (!dictionary || !t) return null;
+
   return (
     <div className="space-y-8 w-full">
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
@@ -133,7 +144,7 @@ export function AppsClient() {
         <div className="relative w-full sm:max-w-[280px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Filter apps..."
+            placeholder={t.filter_placeholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-background/50 border-border h-9"
@@ -153,7 +164,7 @@ export function AppsClient() {
                 )}
               >
                 <Grid2X2 className="w-4 h-4" />
-                All Apps
+                {t.tabs.all}
               </TabsTrigger>
               <TabsTrigger
                 value="connected"
@@ -164,7 +175,7 @@ export function AppsClient() {
                 )}
               >
                 <LinkIcon className="w-4 h-4" />
-                Connected
+                {t.tabs.connected}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -200,12 +211,12 @@ export function AppsClient() {
         {filteredApps.length === 0 && !isLoading && (
           <div className="col-span-full flex flex-col items-center justify-center py-24 text-center">
             <h3 className="text-lg font-semibold text-foreground">
-              {search ? "No apps found" : "No apps available"}
+              {search ? t.empty.no_results_title : t.empty.no_apps_title}
             </h3>
             <p className="mt-2 text-sm text-muted-foreground max-w-sm">
               {search
-                ? "No apps found for your search. Try different keywords."
-                : "There are currently no apps available in the store."}
+                ? t.empty.no_results_desc.replace("{search}", search)
+                : t.empty.no_apps_desc}
             </p>
           </div>
         )}
