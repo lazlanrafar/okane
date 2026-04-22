@@ -41,16 +41,26 @@ import { SelectAccount } from "@/components/molecules/select-account";
 import { SelectCategory } from "@/components/molecules/select-category";
 import { SelectUser } from "@/components/molecules/select-user";
 
+interface TransactionTableMeta {
+  isAllTransactionsSelected?: () => boolean;
+  isSomeTransactionsSelected?: () => boolean;
+  toggleAllTransactions?: (value: boolean) => void;
+  onRowClick?: (transaction: Transaction) => void;
+  onDelete?: (id: string) => void;
+  getTransactionColor: (type: string) => string;
+  formatCurrency: (amount: number) => string;
+}
+
 export const transactionColumns = (
   onEdit: (transaction: Transaction) => void,
   dictionary: Dictionary,
-  _formatCurrency: (amount: number, options?: any) => string,
+  _formatCurrency: (amount: number, options?: { currency?: string }) => string,
   _getTransactionColor: (type: string) => string,
 ): ColumnDef<Transaction>[] => [
   {
     id: "select",
     header: ({ table }) => {
-      const meta = table.options.meta as any;
+      const meta = table.options.meta as TransactionTableMeta;
       const isAllSelected = meta.isAllTransactionsSelected
         ? meta.isAllTransactionsSelected()
         : table.getIsAllPageRowsSelected();
@@ -125,7 +135,7 @@ export const transactionColumns = (
     header: dictionary.transactions.description_label,
     cell: ({ row, table }) => {
       const transaction = row.original;
-      const { getTransactionColor } = (table.options.meta as any) || {};
+      const { getTransactionColor } = (table.options.meta as TransactionTableMeta) || {};
       const _isIncome = transaction?.type === "income";
       const isTransfer = transaction?.type === "transfer";
       const _isExpense = transaction?.type === "expense";
@@ -178,7 +188,7 @@ export const transactionColumns = (
       const _isExpense = transaction?.type === "expense";
       const _isIncome = transaction?.type === "income";
 
-      const { getTransactionColor, formatCurrency } = (table.options.meta as any) || {};
+      const { getTransactionColor, formatCurrency } = (table.options.meta as TransactionTableMeta) || {};
 
       return (
         <div className={cn("text-right font-medium text-xs", getTransactionColor?.(transaction?.type))}>
@@ -267,13 +277,13 @@ function CategoryCell({
   dictionary,
 }: {
   transaction: Transaction;
-  table: any;
+  table: { options: { meta: TransactionTableMeta } };
   dictionary: Dictionary;
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
-  const _meta = table.options.meta as any;
+  const _meta = table.options.meta as unknown;
 
   const handleCategoryChange = async (categoryId: string) => {
     if (categoryId === transaction?.categoryId) return;
@@ -326,13 +336,13 @@ function AccountCell({
   dictionary,
 }: {
   transaction: Transaction;
-  table: any;
+  table: { options: { meta: TransactionTableMeta } };
   dictionary: Dictionary;
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
-  const _meta = table.options.meta as any;
+  const _meta = table.options.meta as unknown;
 
   const handleAccountChange = async (walletId: string) => {
     if (walletId === transaction?.walletId) return;
@@ -377,12 +387,12 @@ function ActionCell({
   onEdit,
 }: {
   transaction: Transaction;
-  table: any;
+  table: { options: { meta: TransactionTableMeta } };
   dictionary: Dictionary;
   onEdit: (transaction: Transaction) => void;
 }) {
   const queryClient = useQueryClient();
-  const meta = table.options.meta as any;
+  const meta = table.options.meta;
 
   return (
     <DropdownMenu>
@@ -468,7 +478,14 @@ function ActionCell({
   );
 }
 
-function UserCell({ transaction, dictionary }: { transaction: Transaction; table: any; dictionary: Dictionary }) {
+function UserCell({
+  transaction,
+  dictionary,
+}: {
+  transaction: Transaction;
+  table: { options: { meta: TransactionTableMeta } };
+  dictionary: Dictionary;
+}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);

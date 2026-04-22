@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 
 import type { Control, UseFormSetValue, UseFormWatch } from "react-hook-form";
-import { type ZodType, z } from "zod";
+import { z } from "zod";
 
 export const mappableFields = {
   date: {
@@ -30,7 +30,7 @@ export const mappableFields = {
   },
 } as const;
 
-export const importSchema: ZodType<any, any, any> = z.object({
+export const importSchema = z.object({
   file: z.any().optional(),
   currency: z.string().default("USD"),
   walletId: z.string().default(""),

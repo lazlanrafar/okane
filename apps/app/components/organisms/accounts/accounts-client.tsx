@@ -22,9 +22,9 @@ interface Props {
   pageCount: number;
   initialPage: number;
   pageSize: number;
-  groups: any[];
-  initialFilters?: any;
-  dictionary: any;
+  groups: Array<Record<string, unknown>>;
+  initialFilters?: Record<string, unknown>;
+  dictionary: Record<string, unknown>;
   locale: string;
 }
 
@@ -45,7 +45,7 @@ export function AccountsClient({
   const { settings, formatCurrency } = useAppStore();
   const queryClient = useQueryClient();
 
-  const { filters, handleFilterChange, pagination, handlePaginationChange } = useDataTableFilter({
+  const { filters, handleFilterChange } = useDataTableFilter({
     initialFilters: initialFilters || {
       q: "",
       groupId: "",
@@ -56,7 +56,7 @@ export function AccountsClient({
 
   const { columns, setColumns } = useAccountsStore();
 
-  const { data, isLoading, isFetching, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ["wallets", filters.q, filters.groupId],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await getWallets({
@@ -100,7 +100,7 @@ export function AccountsClient({
   });
 
   const wallets = useMemo(() => {
-    return data.pages?.flatMap((page: any) => page.data || []) || [];
+    return data.pages?.flatMap((page: { data?: Wallet[] }) => page.data || []) || [];
   }, [data]);
 
   const _selectedWallet = useMemo(() => {
@@ -117,16 +117,19 @@ export function AccountsClient({
 
   const updateWalletInCache = useCallback(
     (updatedWallet: Wallet) => {
-      queryClient.setQueriesData({ queryKey: ["wallets"] }, (oldData: any) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages?.map((page: any) => ({
-            ...page,
-            data: page.data.map((wallet: Wallet) => (wallet.id === updatedWallet.id ? updatedWallet : wallet)),
-          })),
-        };
-      });
+      queryClient.setQueriesData(
+        { queryKey: ["wallets"] },
+        (oldData: { pages?: Array<{ data: Wallet[] }> } | undefined) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            pages: oldData.pages?.map((page: { data: Wallet[] }) => ({
+              ...page,
+              data: page.data.map((wallet: Wallet) => (wallet.id === updatedWallet.id ? updatedWallet : wallet)),
+            })),
+          };
+        },
+      );
     },
     [queryClient],
   );
@@ -136,10 +139,10 @@ export function AccountsClient({
     setIsFormSheetOpen(true);
   };
 
-  const handleEdit = (wallet: Wallet) => {
+  const handleEdit = useCallback((wallet: Wallet) => {
     setSelectedWalletId(wallet.id);
     setIsFormSheetOpen(true);
-  };
+  }, []);
 
   const handleDelete = (_wallet: Wallet) => {
     // Implementation for delete
@@ -205,7 +208,7 @@ export function AccountsClient({
         <div className="flex max-w-sm flex-1 items-center">
           <DataTableFilter
             filters={filters}
-            onFilterChange={handleFilterChange as any}
+            onFilterChange={handleFilterChange as never}
             placeholder={dictionary.accounts.search_placeholder}
             showDateFilter={false}
             showAmountFilter={false}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useParams } from "next/navigation";
 
@@ -38,6 +38,24 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: Dictionary }) {
   const message = `Connect Oewang ${workspaceId}`;
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
+  const generateQRCode = useCallback(async () => {
+    if (!whatsappNumber) return;
+
+    try {
+      const url = await QRCode.toDataURL(whatsappUrl, {
+        width: 250,
+        margin: 2,
+        color: {
+          dark: "#000000",
+          light: "#FFFFFF",
+        },
+      });
+      setQrCodeUrl(url);
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+    }
+  }, [whatsappNumber, whatsappUrl]);
+
   useEffect(() => {
     if (open && workspaceId && whatsappNumber && isPro) {
       generateQRCode();
@@ -62,24 +80,6 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: Dictionary }) {
       window.removeEventListener("openWhatsAppTwilioConnect", handleOpenTwilio);
     };
   }, []);
-
-  const generateQRCode = async () => {
-    if (!whatsappNumber) return;
-
-    try {
-      const url = await QRCode.toDataURL(whatsappUrl, {
-        width: 250,
-        margin: 2,
-        color: {
-          dark: "#000000",
-          light: "#FFFFFF",
-        },
-      });
-      setQrCodeUrl(url);
-    } catch (error) {
-      console.error("Error generating QR code:", error);
-    }
-  };
 
   const copyToClipboard = async () => {
     try {
@@ -126,7 +126,10 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: Dictionary }) {
               <div className="group relative">
                 <div className="relative border bg-white p-3">
                   {qrCodeUrl ? (
-                    <img src={qrCodeUrl} alt="WhatsApp QR Code" className="h-[200px] w-[200px]" />
+                    <>
+                      {/* biome-ignore lint/performance/noImgElement: QR Code is a generated data URL */}
+                      <img src={qrCodeUrl} alt="WhatsApp QR Code" className="h-[200px] w-[200px]" />
+                    </>
                   ) : (
                     <div className="flex h-[200px] w-[200px] items-center justify-center rounded-md bg-secondary/30">
                       <QrCode className="h-12 w-12 animate-pulse text-muted-foreground" />

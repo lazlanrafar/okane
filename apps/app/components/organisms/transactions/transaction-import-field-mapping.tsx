@@ -68,8 +68,8 @@ function FieldRow({
   label: string;
   required: boolean;
   columns: string[];
-  control: any;
-  firstRows: any[];
+  control: unknown;
+  firstRows: unknown[];
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
@@ -99,7 +99,7 @@ function FieldRow({
                     Preview:{" "}
                     {firstRows
                       ? firstRows
-                          .map((row: any) => row[field.value])
+                          .map((row: unknown) => row[field.value])
                           .filter(Boolean)
                           .slice(0, 3)
                           .join(", ")

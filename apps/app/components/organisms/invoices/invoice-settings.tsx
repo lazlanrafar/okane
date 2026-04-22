@@ -58,7 +58,7 @@ export interface InvoiceSettingsProps {
       qrCode: boolean;
     };
   };
-  onUpdate: (key: string, value: any) => void;
+  onUpdate: (key: string, value: string | boolean | Record<string, boolean>) => void;
   onRename?: () => void;
   onDuplicate?: () => void;
   onDelete?: () => void;
@@ -270,7 +270,7 @@ export function InvoiceSettings({
             <span>{dict.details.public_sharing || "Public view"}</span>
           </DropdownMenuCheckboxItem>
 
-          {(settings as any).isPublic && (
+          {(settings as InvoiceSettingsProps["settings"] & { isPublic?: boolean }).isPublic && (
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <Lock className="mr-2 h-4 w-4" />
@@ -286,7 +286,7 @@ export function InvoiceSettings({
                       type="text"
                       placeholder={dict.details.set_access_code || "Enter code..."}
                       className="w-full rounded-md border-none bg-muted p-1.5 text-xs outline-none focus:ring-1 focus:ring-primary"
-                      value={(settings as any).accessCode || ""}
+                      value={(settings as InvoiceSettingsProps["settings"] & { accessCode?: string }).accessCode ?? ""}
                       onChange={(e) => onUpdate("accessCode", e.target.value)}
                       onClick={(e) => e.stopPropagation()}
                     />

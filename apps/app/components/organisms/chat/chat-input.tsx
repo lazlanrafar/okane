@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 
 import { useChatActions, useChatId, useChatStatus, useDataPart } from "@ai-sdk-tools/store";
-import type { Dictionary } from "@workspace/dictionaries";
 import {
   cn,
   PromptInput,
@@ -36,7 +35,7 @@ export interface ChatInputMessage extends PromptInputMessage {
   };
 }
 
-export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
+export function ChatInput() {
   const [mounted, setMounted] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isInteractingWithButtons, setIsInteractingWithButtons] = useState(false);
@@ -79,7 +78,7 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
     scrollY,
   } = useChatStore();
 
-  const { isExceeded, loading: quotaLoading } = useAiQuota();
+  const { isExceeded } = useAiQuota();
 
   const prevShowCommands = useRef(showCommands);
   const prevHistoryOpen = useRef(isHistoryOpen);
@@ -223,7 +222,7 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
 
   const handleSubmit = async (message: ChatInputMessage) => {
     const hasText = Boolean(message.text);
-    const hasAttachments = Boolean(message.files.length);
+    const hasAttachments = Boolean(message.files?.length);
 
     if (!(hasText || hasAttachments)) {
       return;
@@ -246,19 +245,13 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
     let attachments: { name: string; type: string; data: string }[] = [];
     if (message.files && message.files.length > 0) {
       attachments = await Promise.all(
-        message.files.map(async (file: File) => {
-          return new Promise<{ name: string; type: string; data: string }>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const base64String = (reader.result as string).split(",").pop();
-              resolve({
-                name: file.name,
-                type: file.type,
-                data: base64String || "",
-              });
-            };
-            reader.readAsDataURL(file);
-          });
+        message.files.map(async (file) => {
+          const base64String = file.url.split(",").pop() || "";
+          return {
+            name: file.filename || "attachment",
+            type: file.mediaType || "application/octet-stream",
+            data: base64String,
+          };
         }),
       );
     }
@@ -277,8 +270,8 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
       text: message.text || "Sent with attachments",
       files: message.files,
       metadata: {
-        agentChoice: message.metadata.agentChoice,
-        toolChoice: message.metadata.toolChoice,
+        agentChoice: message.metadata?.agentChoice,
+        toolChoice: message.metadata?.toolChoice,
         attachments, // We pass our processed attachments in metadata or body
       },
     });
@@ -322,7 +315,12 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
 
         {/* Overlay to capture clicks when minimized */}
         {targetMinimizationFactor > 0.1 && (
-          <div className="absolute inset-0 z-10 cursor-text" onClick={() => textareaRef.current.focus()} />
+          <button
+            type="button"
+            className="absolute inset-0 z-10 cursor-text border-none bg-transparent p-0"
+            onClick={() => textareaRef.current?.focus()}
+            aria-label="Focus chat input"
+          />
         )}
 
         <motion.div

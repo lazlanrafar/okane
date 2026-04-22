@@ -3,13 +3,23 @@
 import { useMemo } from "react";
 
 import { useQuery } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { getInvoiceActivity } from "@workspace/modules/invoice/invoice.action";
 import { format } from "date-fns";
 import { CheckCircle2, Clock, FileEdit, History } from "lucide-react";
 
+interface InvoiceActivityItem {
+  id: string;
+  action: string;
+  created_at: string;
+  before?: Record<string, unknown>;
+  after?: Record<string, unknown>;
+  user: { name?: string | null; email?: string | null };
+}
+
 interface InvoiceActivityProps {
   invoiceId: string;
-  dictionary: any;
+  dictionary: Dictionary;
 }
 
 export function InvoiceActivity({ invoiceId, dictionary }: InvoiceActivityProps) {
@@ -20,7 +30,7 @@ export function InvoiceActivity({ invoiceId, dictionary }: InvoiceActivityProps)
     enabled: !!invoiceId,
   });
 
-  const activities = useMemo(() => response.data || [], [response]);
+  const activities = useMemo(() => (response?.data as InvoiceActivityItem[] | null) || [], [response]);
 
   if (isLoading) {
     return (
@@ -44,9 +54,7 @@ export function InvoiceActivity({ invoiceId, dictionary }: InvoiceActivityProps)
         <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full border border-border bg-muted">
           <History className="h-5 w-5 text-muted-foreground/60" />
         </div>
-        <p className="font-medium text-muted-foreground text-sm italic tracking-tight">
-          {dict.details.no_activity || "No activity recorded yet"}
-        </p>
+        <p className="font-medium text-muted-foreground text-sm italic tracking-tight">{dict.details.no_activity}</p>
       </div>
     );
   }
@@ -56,7 +64,7 @@ export function InvoiceActivity({ invoiceId, dictionary }: InvoiceActivityProps)
       {/* Timeline Line */}
       <div className="absolute top-6 bottom-6 left-[15px] w-px bg-border" />
 
-      {activities.map((activity: any, _index: number) => (
+      {activities.map((activity: InvoiceActivityItem) => (
         <div key={activity.id} className="group relative pb-10 pl-12 last:pb-0">
           {/* Dot/Icon */}
           <div className="absolute top-0 left-0 z-10">
@@ -83,9 +91,9 @@ export function InvoiceActivity({ invoiceId, dictionary }: InvoiceActivityProps)
             <div className="flex items-center justify-between gap-4">
               <span className="font-bold font-mono text-[11px] text-muted-foreground uppercase tracking-widest">
                 {activity.action === "invoice.created"
-                  ? dict.activities.created || "Created"
+                  ? dict.activities.created
                   : activity.action === "invoice.updated"
-                    ? dict.activities.updated || "Updated"
+                    ? dict.activities.updated
                     : activity.action.replace("invoice.", "").replace("_", " ")}
               </span>
               <span className="font-bold font-mono text-[9px] text-muted-foreground/40 uppercase tracking-[0.2em]">
@@ -94,9 +102,9 @@ export function InvoiceActivity({ invoiceId, dictionary }: InvoiceActivityProps)
             </div>
 
             <div className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground/60 italic opacity-70">
-              <span>{dictionary.common.by || "by"}</span>
+              <span>{dictionary.common.by}</span>
               <span className="font-bold text-foreground not-italic">
-                {activity.user.name || activity.user.email || dictionary.common.system || "System"}
+                {activity.user.name || activity.user.email || dictionary.common.system}
               </span>
             </div>
 
@@ -110,9 +118,17 @@ export function InvoiceActivity({ invoiceId, dictionary }: InvoiceActivityProps)
   );
 }
 
-function ActivityDiff({ before, after, dict }: { before: any; after: any; dict: any }) {
+function ActivityDiff({
+  before,
+  after,
+  dict,
+}: {
+  before: Record<string, unknown>;
+  after: Record<string, unknown>;
+  dict: Dictionary["invoices"];
+}) {
   const changes = useMemo(() => {
-    const diffs: Array<{ field: string; from: any; to: any }> = [];
+    const diffs: Array<{ field: string; from: unknown; to: unknown }> = [];
     const keys = ["status", "amount", "dueDate", "contactId", "isPublic"];
 
     for (const key of keys) {

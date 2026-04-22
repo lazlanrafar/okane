@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { addSubCurrency, getExchangeRates, removeSubCurrency } from "@workspace/modules/setting/setting.action";
 import type { SubCurrency, TransactionSettings } from "@workspace/types";
@@ -8,12 +8,13 @@ import { Button, DataTableEmptyState, SelectCurrency, Separator, Skeleton } from
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+import type { AppDictionary } from "@/modules/types/dictionary";
 import { useAppStore } from "@/stores/app";
 
 interface SubCurrencyListProps {
   initialSubCurrencies: SubCurrency[];
   settings: TransactionSettings;
-  dictionary: any;
+  dictionary: AppDictionary;
 }
 
 function SubCurrencySkeleton() {
@@ -55,7 +56,7 @@ export function SubCurrencyList({ initialSubCurrencies, settings, dictionary }: 
   const [isPending, startTransition] = useTransition();
   const { isLoading: isAppLoading } = useAppStore();
 
-  const fetchRates = async () => {
+  const fetchRates = useCallback(async () => {
     if (!settings?.mainCurrencyCode) return;
     setIsLoadingRates(true);
     try {
@@ -68,7 +69,7 @@ export function SubCurrencyList({ initialSubCurrencies, settings, dictionary }: 
     } finally {
       setIsLoadingRates(false);
     }
-  };
+  }, [settings?.mainCurrencyCode]);
 
   useEffect(() => {
     fetchRates();
@@ -120,47 +121,48 @@ export function SubCurrencyList({ initialSubCurrencies, settings, dictionary }: 
       <Separator className="my-6" />
 
       <div className="grid gap-4">
-        {subCurrencies.map((sc) => (
-          <div key={sc.id} className="flex items-center justify-between rounded-none border p-4">
-            <div className="flex flex-col">
-              <span className="font-semibold text-lg">{sc.currencyCode}</span>
-              <span className="text-muted-foreground text-xs uppercase">
-                {dictionary.settings.sub_currencies.workspace_currency}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-6">
-              <div className="text-right">
-                {isLoadingRates ? (
-                  <Loader2 className="h-4 w-4 animate-spin opacity-50" />
-                ) : (
-                  <div className="flex flex-col">
-                    <span className="font-medium text-sm">
-                      1 {settings?.mainCurrencyCode} ={" "}
-                      {rates[sc.currencyCode]
-                        ? parseFloat(rates[sc.currencyCode]!).toLocaleString(undefined, { maximumFractionDigits: 4 })
-                        : "---"}{" "}
-                      {sc.currencyCode}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground uppercase">
-                      {dictionary.settings.sub_currencies.rate_now}
-                    </span>
-                  </div>
-                )}
+        {subCurrencies.map((sc) => {
+          const rate = rates[sc.currencyCode];
+          return (
+            <div key={sc.id} className="flex items-center justify-between rounded-none border p-4">
+              <div className="flex flex-col">
+                <span className="font-semibold text-lg">{sc.currencyCode}</span>
+                <span className="text-muted-foreground text-xs uppercase">
+                  {dictionary.settings.sub_currencies.workspace_currency}
+                </span>
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-none text-muted-foreground transition-colors hover:text-destructive"
-                onClick={() => handleRemove(sc.id, sc.currencyCode)}
-                disabled={isPending}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-6">
+                <div className="text-right">
+                  {isLoadingRates ? (
+                    <Loader2 className="h-4 w-4 animate-spin opacity-50" />
+                  ) : (
+                    <div className="flex flex-col">
+                      <span className="font-medium text-sm">
+                        1 {settings?.mainCurrencyCode} ={" "}
+                        {rate ? parseFloat(rate).toLocaleString(undefined, { maximumFractionDigits: 4 }) : "---"}{" "}
+                        {sc.currencyCode}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground uppercase">
+                        {dictionary.settings.sub_currencies.rate_now}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-none text-muted-foreground transition-colors hover:text-destructive"
+                  onClick={() => handleRemove(sc.id, sc.currencyCode)}
+                  disabled={isPending}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {subCurrencies.length === 0 && (
           <DataTableEmptyState

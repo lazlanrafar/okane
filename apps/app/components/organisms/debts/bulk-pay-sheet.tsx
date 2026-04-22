@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { bulkPayDebt, type DebtWithContact } from "@workspace/modules/client";
 import { Badge, Button, Checkbox, cn, Sheet, SheetContent, SheetHeader, SheetTitle } from "@workspace/ui";
 import { format } from "date-fns";
@@ -19,13 +20,13 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   debts: DebtWithContact[];
   contactName: string;
-  dictionary: any;
+  dictionary: Dictionary;
 }
 
 export function BulkPaySheet({ open, onOpenChange, debts, contactName, dictionary }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { settings, formatCurrency } = useAppStore() as any;
+  const { formatCurrency } = useAppStore();
   const dict = dictionary.debts;
 
   // Defensive date formatter
@@ -159,19 +160,19 @@ export function BulkPaySheet({ open, onOpenChange, debts, contactName, dictionar
                   const isSelected = selectedIds.has(debt.id);
 
                   return (
-                    <div
+                    <label
                       key={debt.id}
+                      htmlFor={`debt-${debt.id}`}
                       className={cn(
                         "flex cursor-pointer items-start gap-4 px-6 py-4 transition-colors",
                         isSelected ? "bg-muted/5" : "opacity-60",
                       )}
-                      onClick={() => toggle(debt.id)}
                     >
                       <Checkbox
+                        id={`debt-${debt.id}`}
                         checked={isSelected}
                         onCheckedChange={() => toggle(debt.id)}
                         className="mt-0.5 shrink-0"
-                        onClick={(e) => e.stopPropagation()}
                       />
 
                       {/* Type icon */}
@@ -192,8 +193,8 @@ export function BulkPaySheet({ open, onOpenChange, debts, contactName, dictionar
                               )}
                             >
                               {isReceivable
-                                ? dict.bulk_settlement.owed_to_you || "Owed to you"
-                                : dict.bulk_settlement.you_owe || "You owe"}
+                                ? dictionary.debts.types.you_are_owed || "Owed to you"
+                                : dictionary.debts.types.you_owe || "You owe"}
                             </span>
                             <Badge
                               variant="outline"
@@ -217,7 +218,7 @@ export function BulkPaySheet({ open, onOpenChange, debts, contactName, dictionar
                           </p>
                         )}
                       </div>
-                    </div>
+                    </label>
                   );
                 })}
               </div>

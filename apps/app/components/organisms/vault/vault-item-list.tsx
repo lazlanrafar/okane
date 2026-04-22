@@ -1,5 +1,8 @@
 "use client";
 
+import Image from "next/image";
+
+import type { Dictionary } from "@workspace/dictionaries";
 import type { VaultFile } from "@workspace/modules/vault/vault.action";
 import { cn } from "@workspace/ui";
 import { formatBytes } from "@workspace/utils";
@@ -9,7 +12,7 @@ interface VaultItemListProps {
   files: VaultFile[];
   selectedFileId?: string;
   onSelect: (file: VaultFile) => void;
-  dictionary: any;
+  dictionary: Dictionary;
 }
 
 export function VaultItemList({ files, selectedFileId, onSelect, dictionary }: VaultItemListProps) {
@@ -40,7 +43,9 @@ export function VaultItemList({ files, selectedFileId, onSelect, dictionary }: V
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center border bg-muted">
                     {file.type.startsWith("image/") ? (
-                      <img src={file.url} className="h-full w-full object-cover" alt={file.name} />
+                      <div className="relative h-full w-full">
+                        <Image src={file.url} alt={file.name} fill unoptimized sizes="40px" className="object-cover" />
+                      </div>
                     ) : (
                       <FileText className="h-5 w-5 text-muted-foreground" />
                     )}

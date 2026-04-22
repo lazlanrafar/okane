@@ -6,14 +6,14 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import type { PaginationState } from "@tanstack/react-table";
 
-interface UseDataTableFilterOptions<T extends Record<string, any>> {
+interface UseDataTableFilterOptions<T extends Record<string, unknown>> {
   initialFilters: T;
   pageSize?: number;
   initialPage?: number;
   debounceMs?: number;
 }
 
-export function useDataTableFilter<T extends Record<string, any>>({
+export function useDataTableFilter<T extends Record<string, unknown>>({
   initialFilters,
   pageSize = 10,
   initialPage = 0,
@@ -37,10 +37,10 @@ export function useDataTableFilter<T extends Record<string, any>>({
 
       if (isArrayDefault) {
         const values = searchParams.getAll(paramKey);
-        currentFilters[key as keyof T] = (values.length > 0 ? values : initialFilters[key]) as any;
+        currentFilters[key as keyof T] = (values.length > 0 ? values : initialFilters[key]) as unknown;
       } else {
         const value = searchParams.get(paramKey);
-        currentFilters[key as keyof T] = (value || initialFilters[key]) as any;
+        currentFilters[key as keyof T] = (value || initialFilters[key]) as unknown;
       }
     }
     return currentFilters;
@@ -50,7 +50,7 @@ export function useDataTableFilter<T extends Record<string, any>>({
     setFilters(newFilters);
   };
 
-  const handlePaginationChange = (updater: any) => {
+  const handlePaginationChange = (updater: unknown) => {
     const nextValue = typeof updater === "function" ? updater(pagination) : updater;
 
     setPagination(nextValue);
@@ -79,7 +79,7 @@ export function useDataTableFilter<T extends Record<string, any>>({
             const currentValues = params.getAll(paramKey);
             if (JSON.stringify([...currentValues].sort()) !== JSON.stringify([...value].map(String).sort())) {
               params.delete(paramKey);
-              for (const v of value as any[]) {
+              for (const v of value as unknown[]) {
                 params.append(paramKey, String(v));
               }
               params.set("page", "1");

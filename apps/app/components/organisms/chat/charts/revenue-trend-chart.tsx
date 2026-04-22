@@ -6,7 +6,7 @@ import { commonChartConfig, createCompactTickFormatter, useChartMargin } from ".
 import { formatAmount } from "./format-amount";
 import { SelectableChartWrapper } from "./selectable-chart-wrapper";
 
-interface RevenueTrendData {
+interface RevenueTrendData extends Record<string, unknown> {
   month: string;
   revenue: number;
   lastYearRevenue: number;
@@ -25,11 +25,22 @@ interface RevenueTrendChartProps {
 }
 
 // Custom tooltip component
-const CustomTooltip = ({ active, payload, label, currency = "USD", locale }: any) => {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ dataKey?: string; value?: number | string }>;
+  label?: string | number;
+  currency?: string;
+  locale?: string;
+}
+
+const CustomTooltip = ({ active, payload, label, currency = "USD", locale }: CustomTooltipProps) => {
   if (active && Array.isArray(payload) && payload.length > 0) {
-    const thisYear = payload.find((p) => p.dataKey === "revenue").value;
-    const lastYear = payload.find((p) => p.dataKey === "lastYearRevenue").value;
-    const average = payload.find((p) => p.dataKey === "average").value;
+    const thisYearRaw = payload.find((p) => p.dataKey === "revenue")?.value;
+    const lastYearRaw = payload.find((p) => p.dataKey === "lastYearRevenue")?.value;
+    const averageRaw = payload.find((p) => p.dataKey === "average")?.value;
+    const thisYear = typeof thisYearRaw === "number" ? thisYearRaw : Number(thisYearRaw);
+    const lastYear = typeof lastYearRaw === "number" ? lastYearRaw : Number(lastYearRaw);
+    const average = typeof averageRaw === "number" ? averageRaw : Number(averageRaw);
 
     // Format amounts using proper currency formatting
     const formatCurrency = (amount: number) =>
@@ -42,16 +53,14 @@ const CustomTooltip = ({ active, payload, label, currency = "USD", locale }: any
 
     return (
       <div className="border border-[#e6e6e6] bg-white p-2 font-hedvig-sans text-[10px] text-black shadow-sm dark:border-[#1d1d1d] dark:bg-[#0c0c0c] dark:text-white">
-        <p className="mb-1 text-[#707070] dark:text-[#666666]">{label}</p>
-        {typeof thisYear === "number" && (
+        <p className="mb-1 text-[#707070] dark:text-[#666666]">{label ?? ""}</p>
+        {Number.isFinite(thisYear) && (
           <p className="text-black dark:text-white">This Year: {formatCurrency(thisYear)}</p>
         )}
-        {typeof lastYear === "number" && (
+        {Number.isFinite(lastYear) && (
           <p className="text-black dark:text-white">Last Year: {formatCurrency(lastYear)}</p>
         )}
-        {typeof average === "number" && (
-          <p className="text-black dark:text-white">Average: {formatCurrency(average)}</p>
-        )}
+        {Number.isFinite(average) && <p className="text-black dark:text-white">Average: {formatCurrency(average)}</p>}
       </div>
     );
   }

@@ -92,7 +92,7 @@ export function InvoiceDetailSheet({
   onOpenChange,
   invoice,
   onEdit,
-  onDelete,
+  onDelete: _onDelete,
   onUpdate,
   dictionary,
 }: InvoiceDetailSheetProps) {
@@ -280,13 +280,17 @@ export function InvoiceDetailSheet({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="font-bold text-[10px] text-muted-foreground/50 uppercase tracking-widest">
-                      {dict.details.protection_code || "Protection Code (Optional)"}
+                    <label
+                      htmlFor="invoice-access-code"
+                      className="font-bold text-[10px] text-muted-foreground/50 uppercase tracking-widest"
+                    >
+                      {dict.details.protection_code}
                     </label>
                     <div className="group relative">
                       <Lock className="-translate-y-1/2 absolute top-1/2 left-2.5 h-3 w-3 text-muted-foreground/40 transition-colors group-focus-within:text-primary" />
                       <Input
-                        placeholder={dict.details.set_access_code || "Set an access code..."}
+                        id="invoice-access-code"
+                        placeholder={dict.details.set_access_code}
                         value={accessCode}
                         onChange={(e) => setAccessCode(e.target.value)}
                         className="h-8 border-border/50 bg-background/50 pl-8 font-mono text-[11px] focus:border-border"
@@ -309,7 +313,7 @@ export function InvoiceDetailSheet({
                     <span>{dict.details.internal_note}</span>
                     {!invoice.internalNote && (
                       <span className="bg-muted px-1.5 py-0.5 font-normal text-[10px] text-muted-foreground">
-                        {(dictionary.common as any).empty}
+                        {dictionary.common.empty}
                       </span>
                     )}
                   </div>

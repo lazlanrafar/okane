@@ -41,7 +41,7 @@ type InviteFormValues = z.infer<typeof inviteSchema>;
 
 interface InviteMemberDialogProps {
   onSuccess?: () => void;
-  dictionary: any;
+  dictionary: unknown;
 }
 
 export function InviteMemberDialog({ onSuccess, dictionary: dict }: InviteMemberDialogProps) {
@@ -50,14 +50,14 @@ export function InviteMemberDialog({ onSuccess, dictionary: dict }: InviteMember
   const { dictionary: storeDict } = useAppStore();
   const dictionary = dict || storeDict;
 
+  const form = useForm<InviteFormValues>({
+    resolver: zodResolver(inviteSchema as unknown),
+    defaultValues: { email: "", role: "member" },
+  });
+
   if (!dictionary) return null;
 
   const membersDict = dictionary.members;
-
-  const form = useForm<InviteFormValues>({
-    resolver: zodResolver(inviteSchema as any),
-    defaultValues: { email: "", role: "member" },
-  });
 
   async function onSubmit(values: InviteFormValues) {
     setLoading(true);

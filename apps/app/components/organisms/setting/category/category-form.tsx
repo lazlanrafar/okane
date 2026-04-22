@@ -158,8 +158,8 @@ function CategorySkeleton() {
   );
 }
 
-export function CategoryForm({ type, dictionary: dict }: { type: "income" | "expense"; dictionary: any }) {
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
+export function CategoryForm({ type, dictionary: dict }: { type: "income" | "expense"; dictionary: unknown }) {
+  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
   const dictionary = dict || storeDict;
   const dictionary_t = type === "income" ? dictionary.category.income : dictionary.category.expense;
 
@@ -183,7 +183,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
   );
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema as any),
+    resolver: zodResolver(formSchema as unknown),
     defaultValues: {
       name: "",
     },

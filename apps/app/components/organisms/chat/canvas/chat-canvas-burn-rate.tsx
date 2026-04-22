@@ -18,14 +18,14 @@ import { ArtifactTabs, useStaticArtifactData } from "./chat-canvas";
 
 export function BurnRateCanvas() {
   const data = useStaticArtifactData("burn-rate-canvas");
-  const user = useAppStore((state) => state.user) as any;
+  const user = useAppStore((state) => state.user);
   const locale = user?.locale || "en-US";
   const currency = data.currency || "USD";
   const stage = data.stage;
 
   // Map the oewang chart data format to what BurnRateChart expects
   const burnRateData =
-    data.chart.map((item: any) => ({
+    data.chart.map((item: Record<string, unknown>) => ({
       month: item.label,
       amount: item.value,
       average: data.metrics.avgMonthlyBurn || 0,

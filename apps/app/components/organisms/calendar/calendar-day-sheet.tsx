@@ -103,23 +103,26 @@ export function CalendarDaySheet({
               </h3>
               {transactions.length > 0 ? (
                 <div className="space-y-4">
-                  {transactions.map((tx) => (
-                    <div
-                      key={tx.id}
-                      onClick={() => handleTransactionClick(tx.id)}
-                      className="group flex cursor-pointer flex-col gap-1 border p-3 transition-colors hover:bg-muted/30"
-                    >
-                      <div className="flex items-start justify-between">
-                        <span className="font-medium text-sm transition-colors group-hover:text-primary">
-                          {tx.name || t.unknown_transaction}
-                        </span>
-                        <span className={`font-serif tracking-tight ${getTransactionColor(tx.type)}`}>
-                          {tx.type === "income" ? "+" : "-"}
-                          {formatCurrency(Number(tx.amount))}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                  {transactions.map((tx) => {
+                    return (
+                      <button
+                        type="button"
+                        key={tx.id}
+                        onClick={() => handleTransactionClick(tx.id)}
+                        className="group flex w-full cursor-pointer flex-col gap-1 border p-3 text-left transition-colors hover:bg-muted/30"
+                      >
+                        <div className="flex items-start justify-between">
+                          <span className="font-medium text-sm transition-colors group-hover:text-primary">
+                            {tx.name || t.unknown_transaction}
+                          </span>
+                          <span className={`font-serif tracking-tight ${getTransactionColor(tx.type)}`}>
+                            {tx.type === "income" ? "+" : "-"}
+                            {formatCurrency(Number(tx.amount))}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="bg-muted/20 p-4 text-center text-muted-foreground text-sm">{t.no_transactions}</div>

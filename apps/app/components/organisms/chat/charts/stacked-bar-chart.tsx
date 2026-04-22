@@ -10,7 +10,15 @@ import { commonChartConfig, createCompactTickFormatter, useChartMargin } from ".
 import { formatAmount } from "./format-amount";
 import { SelectableChartWrapper } from "./selectable-chart-wrapper";
 
-const ToolTipContent = ({ active, payload, label }: { active?: boolean; payload?: any[]; label?: string }) => {
+const ToolTipContent = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Record<string, unknown>[];
+  label?: string;
+}) => {
   const { data: user } = useUserQuery();
 
   if (!active || !payload || payload.length === 0) return null;
@@ -45,7 +53,7 @@ export function StackedBarChart({
   onSelectionComplete,
   onSelectionStateChange,
 }: {
-  data: any;
+  data: Record<string, unknown>[];
   height?: number;
   enableSelection?: boolean;
   onSelectionChange?: (startDate: string | null, endDate: string | null) => void;

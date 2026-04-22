@@ -4,7 +4,6 @@ import { type RefObject, useEffect, useRef } from "react";
 
 import { useChatActions, useChatId } from "@ai-sdk-tools/store";
 import { AnimatedSizeContainer, cn, Icons } from "@workspace/ui";
-import { useChatInterface } from "@workspace/ui/hooks";
 import { useOnClickOutside } from "usehooks-ts";
 
 import { useChatStore } from "@/stores/chat";
@@ -15,7 +14,7 @@ export function ChatCommandMenu() {
     filteredCommands,
     selectedCommandIndex,
     showCommands,
-    handleCommandSelect,
+
     resetCommandState,
     setInput,
     setShowCommands,
@@ -23,7 +22,6 @@ export function ChatCommandMenu() {
 
   const { sendMessage } = useChatActions();
   const _chatId = useChatId();
-  const { setChatId } = useChatInterface();
 
   // Close command menu when clicking outside (but not on the toggle button or input toolbar buttons)
   useOnClickOutside(commandListRef as RefObject<HTMLElement>, (event) => {
@@ -44,14 +42,14 @@ export function ChatCommandMenu() {
     }
   });
 
-  const handleCommandExecution = (command: any) => {
+  const handleCommandExecution = (command: Record<string, unknown>) => {
     sendMessage({
       role: "user",
-      parts: [{ type: "text", text: command.title }],
+      parts: [{ type: "text", text: String(command.title) }],
       metadata: {
         toolCall: {
-          toolName: command.toolName,
-          toolParams: command.toolParams,
+          toolName: String(command.toolName),
+          toolParams: command.toolParams as Record<string, unknown>,
         },
       },
     });
@@ -91,28 +89,29 @@ export function ChatCommandMenu() {
           {filteredCommands.map((command, index) => {
             const isActive = selectedCommandIndex === index;
             return (
-              <div
+              <button
+                type="button"
                 key={`${command.command}-${index}`}
                 className={cn(
-                  "group flex cursor-pointer items-center justify-between px-2 py-2 text-sm transition-colors",
+                  "group m-0 flex w-full cursor-pointer appearance-none items-center justify-between border-none bg-transparent px-2 py-2 text-left text-sm transition-colors",
                   isActive ? "bg-black/5 dark:bg-white/5" : "hover:bg-black/5 dark:hover:bg-white/5",
                 )}
                 onMouseDown={(e) => {
                   // Prevent input from losing focus when clicking on command
                   e.preventDefault();
                 }}
-                onClick={() => handleCommandExecution(command)}
+                onClick={() => handleCommandExecution(command as Record<string, unknown>)}
                 data-index={index}
               >
                 <div>
-                  <span className="ml-2 text-[#666]">{command.title}</span>
+                  <span className="ml-2 text-[#666]">{String(command.title)}</span>
                 </div>
                 {isActive && (
                   <span className="material-icons-outlined text-gray-600 text-sm opacity-50 group-hover:text-black group-hover:opacity-100 dark:text-gray-400 dark:group-hover:text-white">
                     <Icons.ArrowForward />
                   </span>
                 )}
-              </div>
+              </button>
             );
           })}
         </div>

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 import { type DebtWithContact, getDebts, getTransactionSettings, getWallets } from "@workspace/modules/server";
-import type { Wallet } from "@workspace/types";
+import type { TransactionSettings, Wallet } from "@workspace/types";
 
 import { DebtTableSkeleton } from "@/components/organisms/debts/debt-table-skeleton";
 import { DebtsClient } from "@/components/organisms/debts/debts-client";
@@ -32,7 +32,7 @@ async function DebtsPageContent({ locale }: { locale: Locale }) {
   const dictionary = await getDictionary(locale);
   let initialDebts: DebtWithContact[] = [];
   let initialWallets: Wallet[] = [];
-  let settings: any = null;
+  let settings: TransactionSettings | null = null;
 
   try {
     const [debtsRes, walletsRes, settingsRes] = await Promise.all([getDebts(), getWallets(), getTransactionSettings()]);

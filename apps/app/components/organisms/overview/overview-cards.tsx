@@ -6,6 +6,7 @@ import { getCategoryBreakdown, getExpenseMetrics, getRevenueMetrics } from "@wor
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Skeleton } from "@workspace/ui";
 import { ArrowDownRight, ArrowUpRight, LineChart, Minus, PieChart, Receipt, TrendingUp, Wallet } from "lucide-react";
 
+import type { AppDictionary } from "@/modules/types/dictionary";
 import { useAppStore } from "@/stores/app";
 
 /** Skeleton block for a monetary value line */
@@ -18,9 +19,28 @@ function TrendSkeleton() {
   return <Skeleton className="mt-1 h-3 w-24" />;
 }
 
-export function OverviewCards({ dictionary }: { dictionary: any }) {
+export function OverviewCards({ dictionary }: { dictionary: AppDictionary }) {
   const { sendMessage } = useChatActions();
   const { formatCurrency } = useAppStore();
+
+  // —— Data fetching ——
+  const { data: incomeResult, isLoading: loadingIncome } = useQuery({
+    queryKey: ["metrics", "revenue"],
+    queryFn: getRevenueMetrics,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: expenseResult, isLoading: loadingExpense } = useQuery({
+    queryKey: ["metrics", "expense"],
+    queryFn: getExpenseMetrics,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: categoryResult, isLoading: loadingCategory } = useQuery({
+    queryKey: ["metrics", "category", "expense"],
+    queryFn: () => getCategoryBreakdown("expense"),
+    staleTime: 5 * 60 * 1000,
+  });
 
   if (!dictionary) return null;
 
@@ -52,31 +72,12 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
     },
   ];
 
-  // —— Data fetching ——
-  const { data: incomeResult, isLoading: loadingIncome } = useQuery({
-    queryKey: ["metrics", "revenue"],
-    queryFn: getRevenueMetrics,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const { data: expenseResult, isLoading: loadingExpense } = useQuery({
-    queryKey: ["metrics", "expense"],
-    queryFn: getExpenseMetrics,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const { data: categoryResult, isLoading: loadingCategory } = useQuery({
-    queryKey: ["metrics", "category", "expense"],
-    queryFn: () => getCategoryBreakdown("expense"),
-    staleTime: 5 * 60 * 1000,
-  });
-
   const isLoading = loadingIncome || loadingExpense;
 
   // —— Derived values ——
-  const revenueData = incomeResult?.success ? incomeResult.data! : [];
-  const expenseData = expenseResult?.success ? expenseResult.data! : [];
-  const categoryData = categoryResult?.success ? categoryResult.data! : [];
+  const revenueData = incomeResult?.success ? (incomeResult.data ?? []) : [];
+  const expenseData = expenseResult?.success ? (expenseResult.data ?? []) : [];
+  const categoryData = categoryResult?.success ? (categoryResult.data ?? []) : [];
 
   const fmt = (v: number) => formatCurrency(v);
 
@@ -100,7 +101,7 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
     sendMessage({
       role: "user",
       parts: [{ type: "text", text: message }],
-    } as any);
+    });
   };
 
   const renderTrend = (current: number, previous: number, reverseColors = false) => {
@@ -246,6 +247,7 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
         {SUGGESTION_CHIPS.map((chip) => (
           <button
             key={chip.label}
+            type="button"
             onClick={() => handleCardClick(chip.message)}
             className={cn(
               "border bg-background px-3 py-2 text-xs transition-all",

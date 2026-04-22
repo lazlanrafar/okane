@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { useParams, useRouter } from "next/navigation";
 
+import { COUNTRIES } from "@workspace/constants";
 import { onboardingCreateWorkspaceAction } from "@workspace/modules/auth/auth.action";
 import { createCheckoutSession } from "@workspace/modules/mayar/mayar.action";
 import { createBrowserClient } from "@workspace/supabase/client";
@@ -71,8 +72,10 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
   // Handle country change to auto-update currency
   const handleCountryChange = (countryName: string) => {
     setCountry(countryName);
-    const countryData = (require("@workspace/constants").COUNTRIES as any[]).find((c) => c.name === countryName);
-    if (countryData.currency) {
+    const countryData = (COUNTRIES as Array<{ name: string; currency?: { code: string; symbol: string } }>).find(
+      (c) => c.name === countryName,
+    );
+    if (countryData?.currency) {
       setCurrency({
         code: countryData.currency.code,
         symbol: countryData.currency.symbol,
@@ -81,7 +84,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
       // Also update billing currency if it's one of the supported ones
       const code = countryData.currency.code.toLowerCase();
       if (["usd", "eur", "idr"].includes(code)) {
-        setBillingCurrency(code as any);
+        setBillingCurrency(code as "usd" | "eur" | "idr");
       }
     }
   };

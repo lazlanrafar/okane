@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContact, getContacts } from "@workspace/modules/client";
+import type { Contact } from "@workspace/types";
 import { Combobox, Spinner } from "@workspace/ui";
 import { User } from "lucide-react";
 import { toast } from "sonner";
@@ -52,7 +53,7 @@ export function SelectContact({
         toast.success(`Contact "${data.name}" created`);
       }
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to create contact");
     },
   });
@@ -66,7 +67,7 @@ export function SelectContact({
       }
     : undefined;
 
-  const items = contacts.map((c: any) => ({
+  const items = contacts.map((c: Contact) => ({
     id: c.id,
     label: c.name,
     email: c.email,
@@ -96,7 +97,7 @@ export function SelectContact({
       onCreate={(value) => {
         createMutation.mutate(value);
       }}
-      renderSelectedItem={(item: any) => (
+      renderSelectedItem={(item: Record<string, string>) => (
         <div className="flex items-center space-x-2">
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted">
             <User className="h-3 w-3 text-muted-foreground" />
@@ -112,7 +113,7 @@ export function SelectContact({
           <span className="text-xs">{`Create "${value}"`}</span>
         </div>
       )}
-      renderListItem={({ item }: { item: any }) => (
+      renderListItem={({ item }: { item: Record<string, string> }) => (
         <div className="flex items-center gap-2 overflow-hidden">
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted">
             <User className="h-3 w-3 text-muted-foreground" />

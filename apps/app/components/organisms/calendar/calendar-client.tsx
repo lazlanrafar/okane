@@ -6,9 +6,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Dictionary } from "@workspace/dictionaries";
-import { getDebts } from "@workspace/modules/server";
+import { type DebtWithContact, getDebts } from "@workspace/modules/server";
 import { getTransactions } from "@workspace/modules/transaction/transaction.action";
-import type { TransactionSettings } from "@workspace/types";
+import type { Transaction, TransactionSettings } from "@workspace/types";
 import { cn } from "@workspace/ui";
 import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
 import {
@@ -51,10 +51,20 @@ interface Props {
   settings: TransactionSettings;
 }
 
+type CalendarTranslations = Dictionary["calendar"];
+
+interface DayData {
+  dayStr: string;
+  dayTxs: Transaction[];
+  dayDebts: DebtWithContact[];
+  income: number;
+  expense: number;
+}
+
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 export function CalendarClient({ dictionary, settings }: Props) {
-  const t = dictionary.calendar;
+  const t: CalendarTranslations = dictionary.calendar;
   const _queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
@@ -74,7 +84,9 @@ export function CalendarClient({ dictionary, settings }: Props) {
   const setParam = useCallback(
     (updates: Record<string, string>) => {
       const params = new URLSearchParams(searchParams.toString());
-      Object.entries(updates).forEach(([k, v]) => params.set(k, v));
+      Object.entries(updates).forEach(([k, v]) => {
+        params.set(k, v);
+      });
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
     [router, pathname, searchParams],
@@ -115,8 +127,15 @@ export function CalendarClient({ dictionary, settings }: Props) {
       }),
   });
 
-  const transactions = (txResponse.data as any).rows || txResponse.data || [];
-  const debts = debtsResponse?.data || [];
+  const transactions: Transaction[] = useMemo(() => {
+    const raw = txResponse?.data;
+    if (Array.isArray(raw)) return raw;
+    if (raw && typeof raw === "object" && "rows" in raw && Array.isArray((raw as { rows?: Transaction[] }).rows)) {
+      return (raw as { rows: Transaction[] }).rows;
+    }
+    return [];
+  }, [txResponse?.data]);
+  const debts: DebtWithContact[] = debtsResponse?.data || [];
 
   // Navigation
   const goNext = () => {
@@ -150,17 +169,17 @@ export function CalendarClient({ dictionary, settings }: Props) {
     return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   }, [currentDate]);
 
-  const dayDataForDate = (day: Date) => {
+  const dayDataForDate = (day: Date): DayData => {
     const dayStr = format(day, "yyyy-MM-dd");
-    const dayTxs = transactions.filter((t: any) => t.date.startsWith(dayStr));
+    const dayTxs = transactions.filter((tx) => tx.date.startsWith(dayStr));
     const dayDebts = debts.filter(
-      (d: any) => d.dueDate?.startsWith(dayStr) || (!d.dueDate && d.createdAt.startsWith(dayStr)),
+      (debt) => debt.dueDate?.startsWith(dayStr) || (!debt.dueDate && debt.createdAt.startsWith(dayStr)),
     );
     let income = 0;
     let expense = 0;
-    dayTxs.forEach((t: any) => {
-      if (t.type === "income") income += Number(t.amount);
-      else if (t.type === "expense") expense += Number(t.amount);
+    dayTxs.forEach((tx) => {
+      if (tx.type === "income") income += Number(tx.amount);
+      else if (tx.type === "expense") expense += Number(tx.amount);
     });
     return { dayStr, dayTxs, dayDebts, income, expense };
   };
@@ -174,7 +193,7 @@ export function CalendarClient({ dictionary, settings }: Props) {
     return `${format(start, "MMM d")} – ${format(end, "MMM d, yyyy")}`;
   }, [view, currentDate]);
 
-  const isLoading = isLoadingTx || isLoadingDebts;
+  const _isLoading = isLoadingTx || isLoadingDebts;
 
   // Tab style matching overview-tabs
   const tabClass = cn(
@@ -226,7 +245,9 @@ export function CalendarClient({ dictionary, settings }: Props) {
         <div>
           <h1 className="font-serif text-2xl tracking-tight">{headerLabel}</h1>
           <p className="mt-0.5 text-muted-foreground text-sm">
-            {view === "month" ? (t.description as any).month : (t.description as any).week}
+            {view === "month"
+              ? (t.description as Record<string, string>).month
+              : (t.description as Record<string, string>).week}
           </p>
         </div>
 
@@ -234,12 +255,14 @@ export function CalendarClient({ dictionary, settings }: Props) {
           {/* Prev / Next */}
           <div className="flex h-9 items-center overflow-hidden border">
             <button
+              type="button"
               className="flex h-full cursor-pointer items-center justify-center px-2.5 text-muted-foreground transition-colors hover:bg-muted"
               onClick={goPrev}
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
+              type="button"
               className="flex h-full cursor-pointer items-center justify-center border-l px-2.5 text-muted-foreground transition-colors hover:bg-muted"
               onClick={goNext}
             >
@@ -249,11 +272,19 @@ export function CalendarClient({ dictionary, settings }: Props) {
 
           {/* Week / Month tabs — same style as overview tabs */}
           <div className="relative ml-1 flex items-stretch bg-[#f7f7f7] dark:bg-[#131313]">
-            <button onClick={() => setView("week")} className={cn(tabClass, view === "week" && activeTabClass)}>
+            <button
+              type="button"
+              onClick={() => setView("week")}
+              className={cn(tabClass, view === "week" && activeTabClass)}
+            >
               <CalendarDays className="h-4 w-4" />
               {t.tabs.week}
             </button>
-            <button onClick={() => setView("month")} className={cn(tabClass, view === "month" && activeTabClass)}>
+            <button
+              type="button"
+              onClick={() => setView("month")}
+              className={cn(tabClass, view === "month" && activeTabClass)}
+            >
               <LayoutGrid className="h-4 w-4" />
               {t.tabs.month}
             </button>
@@ -267,7 +298,6 @@ export function CalendarClient({ dictionary, settings }: Props) {
           currentDate={currentDate}
           monthDays={monthDays}
           dayDataForDate={dayDataForDate}
-          isLoading={isLoading}
           setSelectedDate={(d) => setCalendarDate(format(d, "yyyy-MM-dd"))}
           settings={settings}
           t={t}
@@ -276,9 +306,7 @@ export function CalendarClient({ dictionary, settings }: Props) {
         <WeekView
           weekDays={weekDays}
           transactions={transactions}
-          debts={debts}
           dayDataForDate={dayDataForDate}
-          isLoading={isLoading}
           setSelectedDate={(d) => setCalendarDate(format(d, "yyyy-MM-dd"))}
           scrollRef={weekScrollRef}
           settings={settings}
@@ -293,13 +321,13 @@ export function CalendarClient({ dictionary, settings }: Props) {
           if (!op) setCalendarDate("");
         }}
         transactions={transactions.filter(
-          (t: any) => selectedDate && t.date.startsWith(format(selectedDate, "yyyy-MM-dd")),
+          (tx) => selectedDate && tx.date.startsWith(format(selectedDate, "yyyy-MM-dd")),
         )}
         debts={debts.filter(
-          (d: any) =>
+          (debt) =>
             selectedDate &&
-            (d.dueDate?.startsWith(format(selectedDate, "yyyy-MM-dd")) ||
-              (!d.dueDate && d.createdAt.startsWith(format(selectedDate, "yyyy-MM-dd")))),
+            (debt.dueDate?.startsWith(format(selectedDate, "yyyy-MM-dd")) ||
+              (!debt.dueDate && debt.createdAt.startsWith(format(selectedDate, "yyyy-MM-dd")))),
         )}
         dictionary={dictionary}
         settings={settings}
@@ -315,18 +343,18 @@ function MonthView({
   currentDate,
   monthDays,
   dayDataForDate,
-  isLoading,
+
   setSelectedDate,
   settings,
   t,
 }: {
   currentDate: Date;
   monthDays: Date[];
-  dayDataForDate: (d: Date) => any;
-  isLoading: boolean;
+  dayDataForDate: (d: Date) => DayData;
+
   setSelectedDate: (d: Date) => void;
   settings: TransactionSettings;
-  t: any;
+  t: CalendarTranslations;
 }) {
   const formatCurrency = (amount: number, options?: Parameters<typeof formatCurrencyUtil>[2]) =>
     formatCurrencyUtil(amount, settings, options);
@@ -360,6 +388,8 @@ function MonthView({
             const { dayStr, income, expense, dayDebts } = dayDataForDate(day);
 
             return (
+              // biome-ignore lint/a11y/useKeyWithClickEvents: calendar grid cell
+              // biome-ignore lint/a11y/noStaticElementInteractions: calendar grid cell
               <div
                 key={dayStr}
                 onClick={() => setSelectedDate(day)}
@@ -420,23 +450,23 @@ function MonthView({
 function WeekView({
   weekDays,
   transactions,
-  debts,
+
   dayDataForDate,
-  isLoading,
+
   setSelectedDate,
   scrollRef,
   settings,
   t,
 }: {
   weekDays: Date[];
-  transactions: any[];
-  debts: any[];
-  dayDataForDate: (d: Date) => any;
-  isLoading: boolean;
+  transactions: Transaction[];
+
+  dayDataForDate: (d: Date) => DayData;
+
   setSelectedDate: (d: Date) => void;
   settings: TransactionSettings;
-  t: any;
-  scrollRef: any;
+  t: CalendarTranslations;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const formatCurrency = (amount: number, options?: Parameters<typeof formatCurrencyUtil>[2]) =>
     formatCurrencyUtil(amount, settings, options);
@@ -446,13 +476,13 @@ function WeekView({
   const nowPct = ((nowHour * 60 + nowMin) / (24 * 60)) * 100;
 
   // Group transactions by day+hour for week view
-  const txByKey: Record<string, any[]> = {};
-  transactions.forEach((t: any) => {
-    if (!t.date) return;
-    const d = new Date(t.date);
+  const txByKey: Record<string, Transaction[]> = {};
+  transactions.forEach((tx) => {
+    if (!tx.date) return;
+    const d = new Date(tx.date);
     const key = `${format(d, "yyyy-MM-dd")}_${getHours(d)}`;
     if (!txByKey[key]) txByKey[key] = [];
-    txByKey[key].push(t);
+    txByKey[key].push(tx);
   });
 
   return (
@@ -467,10 +497,11 @@ function WeekView({
           const hasActivity = income > 0 || expense > 0 || dayDebts.length > 0;
 
           return (
-            <div
+            <button
+              type="button"
               key={format(day, "yyyy-MM-dd")}
               className={cn(
-                "flex flex-1 cursor-pointer flex-col items-center gap-0.5 border-l px-2 py-2.5 transition-colors hover:bg-muted/30",
+                "m-0 flex flex-1 cursor-pointer appearance-none flex-col items-center gap-0.5 border-l bg-transparent p-0 px-2 py-2.5 transition-colors hover:bg-muted/30",
                 isToday && "bg-primary/5",
               )}
               onClick={() => setSelectedDate(day)}
@@ -503,7 +534,7 @@ function WeekView({
                   {dayDebts.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />}
                 </div>
               )}
-            </div>
+            </button>
           );
         })}
       </div>
@@ -532,9 +563,13 @@ function WeekView({
             const isToday = isSameDay(day, today);
 
             return (
-              <div
+              <button
+                type="button"
                 key={dayStr}
-                className={cn("relative flex-1 border-l", isToday && "bg-primary/[0.03]")}
+                className={cn(
+                  "relative m-0 block flex-1 cursor-pointer appearance-none border-l border-none bg-transparent p-0 text-left",
+                  isToday && "bg-primary/[0.03]",
+                )}
                 onClick={() => setSelectedDate(day)}
               >
                 {/* Hour row lines */}
@@ -585,7 +620,7 @@ function WeekView({
                       </div>
                     );
                   })}
-              </div>
+              </button>
             );
           })}
 

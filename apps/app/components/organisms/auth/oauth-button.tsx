@@ -1,5 +1,6 @@
 "use client";
 
+import type { Dictionary } from "@workspace/dictionaries";
 import { loginWithOAuth } from "@workspace/modules/auth/auth.action";
 import { Button, cn, SimpleIcon } from "@workspace/ui";
 import { siGithub, siGoogle } from "simple-icons";
@@ -8,7 +9,7 @@ import { toast } from "sonner";
 interface OAuthButtonProps extends React.ComponentProps<typeof Button> {
   provider: "google" | "github";
   label?: string;
-  dictionary: any;
+  dictionary: Dictionary;
 }
 
 export function OAuthButton({ provider, className, label, dictionary, ...props }: OAuthButtonProps) {

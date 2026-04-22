@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 
 import { useQuery } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { getPublicInvoice } from "@workspace/modules/invoice/invoice.action";
 import { Badge, Button, Card, CardContent, CardHeader, Input } from "@workspace/ui";
 import { Check, Copy, Download, Loader2, Lock, Printer } from "lucide-react";
@@ -131,6 +132,20 @@ export default function PublicInvoicePage() {
   const _contact = response.data.contact;
   const workspace = response.data.workspace;
   const settings = response.data.settings;
+  const invoiceDictionary = response.data.dictionary as Dictionary | undefined;
+
+  if (!invoiceDictionary?.invoices) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md border-none">
+          <CardContent className="space-y-2 pt-8 text-center">
+            <h3 className="font-serif text-2xl text-foreground tracking-wider">Dictionary Missing</h3>
+            <p className="text-muted-foreground">English dictionary is missing invoice keys.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-4 font-sans text-foreground selection:bg-primary/20 md:p-12 print:bg-white print:p-0 print:text-black">
@@ -176,7 +191,10 @@ export default function PublicInvoicePage() {
           <div className="flex items-center gap-2.5">
             <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary font-bold text-[10px] text-primary-foreground">
               {settings?.invoiceLogoUrl ? (
-                <img src={settings.invoiceLogoUrl} alt={workspace?.name} className="h-full w-full object-cover" />
+                <>
+                  {/* biome-ignore lint/performance/noImgElement: Invoice logo is a dynamic external image */}
+                  <img src={settings.invoiceLogoUrl} alt={workspace?.name} className="h-full w-full object-cover" />
+                </>
               ) : (
                 <span>{workspace?.name?.charAt(0)}</span>
               )}
@@ -195,7 +213,7 @@ export default function PublicInvoicePage() {
 
         {/* Main Invoice Card */}
         <Card className="invoice-card overflow-hidden border border-border bg-background shadow-2xl print:rounded-none">
-          <InvoiceA4 ref={invoiceRef} invoice={invoice} workspace={workspace} />
+          <InvoiceA4 ref={invoiceRef} invoice={invoice} workspace={workspace} dictionary={invoiceDictionary} />
         </Card>
       </div>
 

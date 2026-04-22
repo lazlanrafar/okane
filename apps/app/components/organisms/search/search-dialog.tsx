@@ -26,11 +26,12 @@ import {
 import { formatBytes } from "@workspace/utils";
 import { format, isValid } from "date-fns";
 
+import type { AppDictionary } from "@/modules/types/dictionary";
 import { useAppStore } from "@/stores/app";
 import { useSearchStore } from "@/stores/search";
 import { useLocalizedRoute } from "@/utils/localized-route";
 
-export function SearchDialog({ dictionary }: { dictionary: any }) {
+export function SearchDialog({ dictionary }: { dictionary: AppDictionary }) {
   const { isOpen, setOpen } = useSearchStore();
   const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -38,16 +39,17 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [debounceDelay, setDebounceDelay] = useState(200);
   const [isFetching, setIsFetching] = useState(false);
-  const { settings, formatCurrency } = useAppStore();
+  const { formatCurrency } = useAppStore();
   const { getLocalizedUrl } = useLocalizedRoute();
 
   const t = (key: string) => {
     if (!key || !key.includes(".") || !dictionary) return key;
     const keys = key.split(".");
-    let result: any = dictionary;
+    let result: unknown = dictionary;
     for (const k of keys) {
-      if (!result || !result[k]) return key;
-      result = result[k];
+      if (!result || typeof result !== "object") return key;
+      if (!(k in result)) return key;
+      result = (result as Record<string, unknown>)[k];
     }
     return typeof result === "string" ? result : key;
   };

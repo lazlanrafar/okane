@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -53,24 +53,27 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
     debounceMs: 500,
   });
 
-  const handleRowClick = (debt: DebtWithContact) => {
+  const handleRowClick = useCallback((debt: DebtWithContact) => {
     setSelectedDebt(debt);
     setIsDetailOpen(true);
-  };
+  }, []);
 
-  const handleContactClick = async (contactId: string) => {
-    try {
-      const result = await getContact(contactId);
-      if (result.success && result.data) {
-        setSelectedContact(result.data);
-        setIsContactDetailOpen(true);
-      } else {
-        toast.error(dictionary.debts.toasts.fetch_contact_error);
+  const handleContactClick = useCallback(
+    async (contactId: string) => {
+      try {
+        const result = await getContact(contactId);
+        if (result.success && result.data) {
+          setSelectedContact(result.data);
+          setIsContactDetailOpen(true);
+        } else {
+          toast.error(dictionary.debts.toasts.fetch_contact_error);
+        }
+      } catch (_error) {
+        toast.error(dictionary.debts.toasts.fetch_contact_error_desc);
       }
-    } catch (_error) {
-      toast.error(dictionary.debts.toasts.fetch_contact_error_desc);
-    }
-  };
+    },
+    [dictionary.debts.toasts],
+  );
 
   const deleteMutation = useMutation({
     mutationFn: deleteDebt,
@@ -111,9 +114,16 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
     [dictionary, confirm, deleteMutation.mutate, handleContactClick, handleRowClick],
   );
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+  const {
+    data,
+    isLoading: _isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["debts", filters.q, filters.status],
-    queryFn: async ({ pageParam = 1 }) => {
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) => {
       const res = await getDebts({
         contactId: filters.q as string, // Search is handled by backend
         page: pageParam,
@@ -122,7 +132,6 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
       if (!res.success) throw new Error(res.message);
       return res;
     },
-    initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const pagination = lastPage.meta?.pagination;
       if (!pagination) return undefined;

@@ -29,7 +29,7 @@ export default async function InvoicesPage({ params }: { params: Promise<{ local
 async function InvoicesPageContent({ locale }: { locale: Locale }) {
   const [invoicesRes, dictionary] = await Promise.all([getInvoices({ limit: 50 }), getDictionary(locale)]);
 
-  const initialData = invoicesRes.success ? (invoicesRes as any).data : null;
+  const initialData = invoicesRes.success ? invoicesRes.data : null;
 
   return (
     <Hydrated fallback={null}>

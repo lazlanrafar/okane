@@ -3,12 +3,13 @@
 import type { CategoryBreakdownPoint, ChartDataPoint } from "@workspace/modules/metrics/metrics.action";
 import { BarMetricChart, LineMetricChart } from "@workspace/ui";
 
+import type { AppDictionary } from "@/modules/types/dictionary";
 import { useAppStore } from "@/stores/app";
 
 export function OverviewMetrics({
   incomeData,
   expenseData,
-  burnRateData,
+  burnRateData: _burnRateData,
   incomeCategoryData,
   expenseCategoryData,
   dictionary,
@@ -18,7 +19,7 @@ export function OverviewMetrics({
   burnRateData: ChartDataPoint[];
   incomeCategoryData: CategoryBreakdownPoint[];
   expenseCategoryData: CategoryBreakdownPoint[];
-  dictionary: any;
+  dictionary: AppDictionary;
 }) {
   const { formatCurrency } = useAppStore();
 

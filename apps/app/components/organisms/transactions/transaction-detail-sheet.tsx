@@ -39,6 +39,7 @@ import { SelectCategory } from "@/components/molecules/select-category";
 import { SelectUser } from "@/components/molecules/select-user";
 import { VaultPickerModal } from "@/components/molecules/vault-picker-modal";
 import { FilePreviewSheet } from "@/components/organisms/file-preview-sheet";
+import type { AppDictionary } from "@/modules/types/dictionary";
 import { useAppStore } from "@/stores/app";
 
 interface FilePreview {
@@ -67,66 +68,80 @@ interface Props {
   transaction?: Transaction;
   onNext?: () => void;
   onPrevious?: () => void;
-  dictionary: any;
+  dictionary: AppDictionary;
 }
 
 export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext, onPrevious, dictionary }: Props) {
-  const { getTransactionColor, formatCurrency } = useAppStore() as any;
+  const { getTransactionColor, formatCurrency } = useAppStore();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<FilePreview | null>(null);
   const [vaultPickerOpen, setVaultPickerOpen] = useState(false);
   const queryClient = useQueryClient();
-
-  if (!dictionary) return null;
+  const transactionId = transaction?.id;
 
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<Transaction>) => updateTransaction(transaction?.id, data),
+    mutationFn: (data: Partial<Transaction>) => {
+      if (!transactionId) throw new Error("Transaction ID is required");
+      return updateTransaction(transactionId, data);
+    },
     onSuccess: (res) => {
       if (res.success) {
-        toast.success(dictionary.transactions.toasts.updated);
+        toast.success(dictionary?.transactions?.toasts?.updated || "Updated");
         queryClient.invalidateQueries({ queryKey: ["transactions"] });
       } else {
-        toast.error(res.error || dictionary.transactions.errors.save_failed);
+        toast.error(res.error || dictionary?.transactions?.errors?.save_failed || "Error");
       }
     },
-    onError: (error: any) => {
-      toast.error(error.message || dictionary.common.error);
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : null;
+      toast.error(errorMessage || dictionary.common.error || "Error");
     },
   });
+
+  const { data: debtsResponse, isLoading: isDebtsLoading } = useQuery({
+    queryKey: ["transaction-debts", transactionId],
+    queryFn: () => {
+      if (!transactionId) throw new Error("Transaction ID is required");
+      return getTransactionDebts(transactionId);
+    },
+    enabled: !!transactionId && open,
+  });
+  const relatedDebts = debtsResponse?.data || [];
+
+  const { data: itemsResponse, isLoading: isItemsLoading } = useQuery({
+    queryKey: ["transaction-items", transactionId],
+    queryFn: () => {
+      if (!transactionId) throw new Error("Transaction ID is required");
+      return getTransactionItems(transactionId);
+    },
+    enabled: !!transactionId && open,
+  });
+  const transactionItems: TransactionItem[] = itemsResponse?.data || [];
+
+  const deleteItemMutation = useMutation({
+    mutationFn: (itemId: string) => {
+      if (!transactionId) throw new Error("Transaction ID is required");
+      return deleteTransactionItem(transactionId, itemId);
+    },
+    onSuccess: (res: ActionResponse<void>) => {
+      if (res.success) {
+        toast.success(dictionary?.transactions?.items?.item_deleted || "Deleted");
+        queryClient.invalidateQueries({
+          queryKey: ["transaction-items", transactionId],
+        });
+      } else {
+        toast.error(res.error || dictionary?.transactions?.items?.delete_failed || "Error");
+      }
+    },
+  });
+
+  if (!transaction) return null;
 
   const handleUpdate = (data: Partial<Transaction>) => {
     updateMutation.mutate(data);
   };
 
-  const { data: debtsResponse, isLoading: isDebtsLoading } = useQuery({
-    queryKey: ["transaction-debts", transaction?.id],
-    queryFn: () => getTransactionDebts(transaction?.id),
-    enabled: !!transaction?.id && open,
-  });
-  const relatedDebts = debtsResponse?.data || [];
-
-  const { data: itemsResponse, isLoading: isItemsLoading } = useQuery({
-    queryKey: ["transaction-items", transaction?.id],
-    queryFn: () => getTransactionItems(transaction?.id),
-    enabled: !!transaction?.id && open,
-  });
-  const transactionItems: TransactionItem[] = itemsResponse?.data || [];
-
-  const deleteItemMutation = useMutation({
-    mutationFn: (itemId: string) => deleteTransactionItem(transaction?.id, itemId),
-    onSuccess: (res: ActionResponse<void>) => {
-      if (res.success) {
-        toast.success(dictionary.transactions.items.item_deleted);
-        queryClient.invalidateQueries({
-          queryKey: ["transaction-items", transaction?.id],
-        });
-      } else {
-        toast.error(res.error || dictionary.transactions.items.delete_failed);
-      }
-    },
-  });
-
-  const handlePreview = async (file: any) => {
+  const handlePreview = async (file: { id: string; name: string; type: string }) => {
     const res = await getVaultDownloadUrl(file.id);
     if (res.success && res.data) {
       setPreviewFile({
@@ -137,7 +152,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
       });
       setPreviewOpen(true);
     } else {
-      toast.error(dictionary.transactions.errors.preview_failed);
+      toast.error(dictionary?.transactions?.errors?.preview_failed || "Error");
     }
   };
 
@@ -146,8 +161,6 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
     const newAttachmentIds = (transaction?.attachmentIds || []).filter((id) => id !== fileId);
     handleUpdate({ attachmentIds: newAttachmentIds });
   };
-
-  if (!transaction) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -254,6 +267,14 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
                         key={file.id}
                         className="group flex cursor-pointer items-center gap-3 border bg-muted/5 px-3 py-2.5 text-sm transition-colors hover:bg-muted/10"
                         onClick={() => handlePreview(file)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            handlePreview(file);
+                          }
+                        }}
+                        role="option"
+                        tabIndex={0}
                       >
                         <FileIcon type={file.type} />
                         <span className="flex-1 truncate font-medium">{file.name}</span>
@@ -305,7 +326,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
                     </div>
                   ) : (
                     <div className="mb-2 grid grid-cols-1 gap-2">
-                      {relatedDebts.map((item: any) => (
+                      {relatedDebts.map((item) => (
                         <div
                           key={item.payment.id}
                           className="flex flex-col gap-1 rounded-md border border-muted/20 bg-muted/5 px-3 py-2.5 text-sm"
@@ -483,6 +504,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
               </Button>
             </div>
             <button
+              type="button"
               onClick={() => onOpenChange(false)}
               className="group grid h-7 place-items-center border px-3 transition-colors hover:bg-muted/40"
             >

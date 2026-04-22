@@ -34,7 +34,12 @@ interface CashFlowChartProps extends BaseChartProps {
 }
 
 // Custom formatter for cash flow tooltip
-const cashFlowTooltipFormatter = (value: any, name: string, currency = "USD", locale?: string): [string, string] => {
+const cashFlowTooltipFormatter = (
+  value: number | string,
+  name: string,
+  currency = "USD",
+  locale?: string,
+): [string, string] => {
   const formattedValue =
     formatAmount({
       amount: value,

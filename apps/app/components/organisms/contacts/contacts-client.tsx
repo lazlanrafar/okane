@@ -38,7 +38,7 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
     initialPage: 0,
   });
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ["contacts", filters.q],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await getContacts({
@@ -80,6 +80,7 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
   });
 
   const allContacts = data.pages?.flatMap((p) => p.data ?? []) ?? [];
+  const topContact = allContacts[0];
 
   const now = new Date();
   const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -121,9 +122,7 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
           <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
             {dictionary.contacts.summary.most_active}
           </span>
-          <span className="truncate font-medium font-serif text-lg tracking-tight">
-            {allContacts.length > 0 ? (allContacts[0].name ?? "–") : "–"}
-          </span>
+          <span className="truncate font-medium font-serif text-lg tracking-tight">{topContact?.name ?? "–"}</span>
           <span className="text-[10px] text-muted-foreground">{dictionary.contacts.summary.no_activity}</span>
         </div>
 
@@ -131,9 +130,7 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
           <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
             {dictionary.contacts.summary.top_revenue}
           </span>
-          <span className="truncate font-medium font-serif text-lg tracking-tight">
-            {allContacts.length > 0 ? (allContacts[0].name ?? "–") : "–"}
-          </span>
+          <span className="truncate font-medium font-serif text-lg tracking-tight">{topContact?.name ?? "–"}</span>
           <span className="text-[10px] text-muted-foreground">{dictionary.contacts.summary.no_revenue}</span>
         </div>
       </div>
@@ -143,7 +140,7 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
         <div className="flex max-w-sm flex-1 items-center">
           <DataTableFilter
             filters={filters}
-            onFilterChange={handleFilterChange as any}
+            onFilterChange={handleFilterChange as (filters: Record<string, unknown>) => void}
             placeholder={dictionary.contacts.search_placeholder}
             showDateFilter={false}
             showAmountFilter={false}

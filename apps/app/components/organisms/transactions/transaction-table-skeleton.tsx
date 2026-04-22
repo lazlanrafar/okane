@@ -29,7 +29,7 @@ export function TransactionTableSkeleton({ hideHeader = false }: { hideHeader?: 
 
       <div className="relative min-h-0 flex-1">
         <TableSkeleton
-          columns={columns as any}
+          columns={columns as unknown}
           rowCount={20}
           stickyColumnIds={["select", "date", "name", "actions"]}
           actionsColumnId="actions"

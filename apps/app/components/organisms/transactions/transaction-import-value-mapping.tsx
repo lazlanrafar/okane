@@ -85,10 +85,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
       const normalize = (s: string) =>
         s
           .toLowerCase()
-          .replace(
-            /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F30B}-\u{1F320}\u{1F400}-\u{1F4FF}\u{1F500}-\u{1F5FF}\u{1F900}-\u{1F9FF}\u{1F3FB}-\u{1F3FF}\u{1F1E6}-\u{1F1FF}\u{1F191}-\u{1F251}\u{1F004}\u{1F0CF}\u{1F170}-\u{1F171}\u{1F17E}-\u{1F17F}\u{1F18E}\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu,
-            "",
-          )
+          .replace(/\p{Extended_Pictographic}|\p{Emoji_Component}/gu, "")
           .trim();
 
       // 1. Auto-map Types
@@ -322,8 +319,8 @@ function CategoryMappingRow({
 }: {
   csvValue: string;
   handleCategoryMap: (csvValue: string, categoryId: string) => void;
-  valueMappings: any;
-  firstRows: any[] | null;
+  valueMappings: unknown;
+  firstRows: unknown[] | null;
   categoryCol: string;
   typeCol: string;
 }) {

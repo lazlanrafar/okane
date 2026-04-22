@@ -7,16 +7,16 @@ import * as RechartsPrimitive from "recharts";
 import { commonChartConfig } from "./chart-utils";
 
 // Base Chart Wrapper with common styling
-export function BaseChart({
+export function BaseChart<T extends object>({
   data,
   margin = { top: 6, right: 6, left: -20, bottom: 6 },
   children,
 }: {
-  data: any[];
+  data: T[];
   height?: number;
   margin?: { top: number; right: number; left: number; bottom: number };
   children: React.ReactNode;
-  config?: any;
+  config?: Record<string, unknown>;
 }) {
   return (
     <RechartsPrimitive.ComposedChart data={data} margin={margin}>
@@ -27,7 +27,7 @@ export function BaseChart({
 }
 
 // Styled XAxis
-export function StyledXAxis(props: any) {
+export function StyledXAxis(props: Record<string, unknown>) {
   return (
     <RechartsPrimitive.XAxis
       axisLine={false}
@@ -39,7 +39,7 @@ export function StyledXAxis(props: any) {
 }
 
 // Styled YAxis
-export function StyledYAxis(props: any) {
+export function StyledYAxis(props: Record<string, unknown>) {
   return (
     <RechartsPrimitive.YAxis
       axisLine={false}
@@ -51,17 +51,17 @@ export function StyledYAxis(props: any) {
 }
 
 // Styled Area
-export function StyledArea(props: any) {
+export function StyledArea(props: Record<string, unknown>) {
   return <RechartsPrimitive.Area type="monotone" strokeWidth={2} isAnimationActive={false} {...props} />;
 }
 
 // Styled Line
-export function StyledLine(props: any) {
+export function StyledLine(props: Record<string, unknown>) {
   return <RechartsPrimitive.Line type="monotone" strokeWidth={2} dot={false} isAnimationActive={false} {...props} />;
 }
 
 // Styled Bar
-export function StyledBar(props: any) {
+export function StyledBar(props: Record<string, unknown>) {
   return <RechartsPrimitive.Bar {...props} />;
 }
 
@@ -73,9 +73,9 @@ export function StyledTooltip({
   formatter,
 }: {
   active?: boolean;
-  payload?: any[];
+  payload?: Record<string, unknown>[];
   label?: string;
-  formatter?: (value: any, name: string) => [string, string];
+  formatter?: (value: number | string, name: string) => [string, string];
 }) {
   if (active && payload && payload.length) {
     return (

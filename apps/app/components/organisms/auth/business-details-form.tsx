@@ -37,7 +37,6 @@ export function BusinessDetailsForm({
           onChange={(e) => setName(e.target.value)}
           placeholder="Ex: Acme Marketing or Acme Co"
           required
-          // biome-ignore lint/a11y/noAutofocus: UX requirement
           autoFocus
         />
       </div>

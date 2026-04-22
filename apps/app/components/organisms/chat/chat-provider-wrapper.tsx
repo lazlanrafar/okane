@@ -20,7 +20,7 @@ export function ChatProviderWrapper({ children, initialMessages }: Props) {
 
   useEffect(() => {
     if (chatId) {
-      const state = store.getState() as any;
+      const state = store.getState() as Record<string, unknown>;
       if (state.setId) {
         state.setId(chatId);
       }
@@ -29,14 +29,17 @@ export function ChatProviderWrapper({ children, initialMessages }: Props) {
 
   useEffect(() => {
     // Inject our custom sendMessage into the store
-    const state = store.getState() as any;
+    const state = store.getState() as Record<string, unknown>;
     if (state._syncState) {
       state._syncState({
-        sendMessage: async (input: any, options?: { metadata?: any }) => {
+        sendMessage: async (
+          input: string | UIMessage | Record<string, unknown>,
+          options?: { metadata?: Record<string, unknown> },
+        ) => {
           const messages = store.getState().messages;
 
           let userMessage: UIMessage;
-          let attachments = options.metadata.attachments;
+          let attachments = options?.metadata?.attachments as Record<string, unknown>[];
 
           if (typeof input === "string") {
             userMessage = {
@@ -45,15 +48,18 @@ export function ChatProviderWrapper({ children, initialMessages }: Props) {
               parts: [{ type: "text", text: input }],
             } as UIMessage;
           } else if (input && typeof input === "object" && "text" in input) {
+            const inputObj = input as Record<string, unknown>;
             userMessage = {
-              id: input.messageId || Date.now().toString(),
+              id: (inputObj.messageId as string) || Date.now().toString(),
               role: "user",
-              parts: [{ type: "text", text: input.text }],
-              metadata: input.metadata,
+              parts: [{ type: "text", text: input.text as string }],
+              metadata: inputObj.metadata as Record<string, unknown>,
             } as unknown as UIMessage;
-            attachments = attachments || input.metadata.attachments;
+
+            const metadata = inputObj.metadata as Record<string, unknown>;
+            attachments = attachments || (metadata?.attachments as Record<string, unknown>[]);
           } else {
-            userMessage = input;
+            userMessage = input as UIMessage;
           }
 
           const updatedMessages = [...messages, userMessage];
@@ -64,12 +70,12 @@ export function ChatProviderWrapper({ children, initialMessages }: Props) {
           try {
             const backendMessages = updatedMessages.map((m) => {
               const textContent =
-                (m as any).parts
-                  .filter((p: any) => p.type === "text")
-                  .map((p: any) => p.text)
-                  .join("\n") ||
-                (m as any).content ||
-                "";
+                (m as Record<string, unknown>).parts && Array.isArray((m as Record<string, unknown>).parts)
+                  ? ((m as Record<string, unknown>).parts as Record<string, unknown>[])
+                      .filter((p: Record<string, unknown>) => p.type === "text")
+                      .map((p: Record<string, unknown>) => p.text as string)
+                      .join("\n")
+                  : ((m as Record<string, unknown>).content as string) || "";
 
               return {
                 role: m.role as "user" | "assistant",
@@ -80,11 +86,11 @@ export function ChatProviderWrapper({ children, initialMessages }: Props) {
             const response = await sendChatMessage(backendMessages, chatId || undefined, attachments);
 
             if (response.success && response.data) {
-              const parts: any[] = [{ type: "text", text: response.data.reply }];
+              const parts: Record<string, unknown>[] = [{ type: "text", text: response.data.reply }];
 
               // If backend returned an artifact, add it as a message part
               // This format is required by @ai-sdk-tools/artifacts/client
-              const artifact = (response.data as any).artifact;
+              const artifact = (response.data as Record<string, unknown>).artifact as Record<string, unknown>;
               if (artifact) {
                 parts.push({
                   type: `data-artifact-${artifact.type}`,
@@ -123,13 +129,17 @@ export function ChatProviderWrapper({ children, initialMessages }: Props) {
                 setChatId(response.data.sessionId);
               }
             } else {
-              const errorObj = new Error(response.error || "Failed to get AI response") as any;
+              interface AIError extends Error {
+                code?: string;
+                meta?: Record<string, unknown>;
+              }
+              const errorObj: AIError = new Error(response.error || "Failed to get AI response");
               errorObj.code = response.code;
-              errorObj.meta = response.meta;
+              errorObj.meta = response.meta as Record<string, unknown>;
               throw errorObj;
             }
-          } catch (error: any) {
-            state.setError(error);
+          } catch (error: unknown) {
+            state.setError(error as Error);
             state.setStatus("error");
           }
         },
@@ -137,5 +147,5 @@ export function ChatProviderWrapper({ children, initialMessages }: Props) {
     }
   }, [store, chatId, setChatId]);
 
-  return <ChatProvider store={store as any}>{children}</ChatProvider>;
+  return <ChatProvider store={store as Record<string, unknown>}>{children}</ChatProvider>;
 }

@@ -24,19 +24,19 @@ import {
 } from "@workspace/ui";
 import { ChevronRight } from "lucide-react";
 
+import { i18n } from "@/i18n-config";
+import { type AppDictionary, getDictionaryText } from "@/modules/types/dictionary";
 import type { NavGroup, NavMainItem } from "@/navigation/sidebar/sidebar-items";
+import { useLocalizedRoute } from "@/utils/localized-route";
 
 interface NavMainProps {
   readonly items: readonly NavGroup[];
-  readonly dictionary: any;
+  readonly dictionary: AppDictionary;
 }
 
-import { i18n } from "@/i18n-config";
-import { useLocalizedRoute } from "@/utils/localized-route";
-
-const IsComingSoon = ({ dictionary }: { dictionary: any }) => (
+const IsComingSoon = ({ dictionary }: { dictionary: AppDictionary }) => (
   <span className="ml-auto whitespace-nowrap rounded-md bg-muted px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
-    {dictionary.sidebar.coming_soon}
+    {getDictionaryText(dictionary, "sidebar.coming_soon")}
   </span>
 );
 
@@ -49,20 +49,10 @@ const NavItemExpanded = ({
   item: NavMainItem;
   isActive: (url: string, subItems?: NavMainItem["subItems"]) => boolean;
   isSubmenuOpen: (subItems?: NavMainItem["subItems"]) => boolean;
-  dictionary: any;
+  dictionary: AppDictionary;
 }) => {
   const { getLocalizedUrl } = useLocalizedRoute();
-
-  const t = (key: string) => {
-    if (!key || !key.includes(".") || !dictionary) return key;
-    const keys = key.split(".");
-    let result: any = dictionary;
-    for (const k of keys) {
-      if (!result[k]) return key;
-      result = result[k];
-    }
-    return typeof result === "string" ? result : key;
-  };
+  const t = (key: string) => getDictionaryText(dictionary, key);
 
   const title = t(item.title);
 
@@ -126,20 +116,10 @@ const NavItemCollapsed = ({
 }: {
   item: NavMainItem;
   isActive: (url: string, subItems?: NavMainItem["subItems"]) => boolean;
-  dictionary: any;
+  dictionary: AppDictionary;
 }) => {
   const { getLocalizedUrl } = useLocalizedRoute();
-
-  const t = (key: string) => {
-    if (!key || !key.includes(".") || !dictionary) return key;
-    const keys = key.split(".");
-    let result: any = dictionary;
-    for (const k of keys) {
-      if (!result[k]) return key;
-      result = result[k];
-    }
-    return typeof result === "string" ? result : key;
-  };
+  const t = (key: string) => getDictionaryText(dictionary, key);
 
   const title = t(item.title);
 
@@ -188,16 +168,7 @@ export function NavMain({ items, dictionary }: NavMainProps) {
 
   if (!dictionary) return null;
 
-  const t = (key: string) => {
-    if (!key || !key.includes(".") || !dictionary) return key;
-    const keys = key.split(".");
-    let result: any = dictionary;
-    for (const k of keys) {
-      if (!result[k]) return key;
-      result = result[k];
-    }
-    return typeof result === "string" ? result : key;
-  };
+  const t = (key: string) => getDictionaryText(dictionary, key);
 
   // Strip locale from pathname to match sidebar items
   const activePathSegments = path.split("/").filter(Boolean);
@@ -213,9 +184,8 @@ export function NavMain({ items, dictionary }: NavMainProps) {
     return normalizedPath === url || normalizedPath.startsWith(`${url}/`);
   };
 
-  const isSubmenuOpen = (subItems?: NavMainItem["subItems"]) => {
-    return subItems.some((sub) => normalizedPath.startsWith(sub.url)) ?? false;
-  };
+  const isSubmenuOpen = (subItems?: NavMainItem["subItems"]) =>
+    subItems?.some((sub) => normalizedPath.startsWith(sub.url)) ?? false;
 
   return (
     <>

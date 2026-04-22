@@ -373,9 +373,20 @@ export function ContactDetailSheet({ contact, open, onClose, onDebtClick, dictio
                           </div>
 
                           {/* Content */}
-                          <div
+                          <button
+                            type="button"
                             className={cn("min-w-0 flex-1 pb-6", isLast && "pb-0", onDebtClick && "cursor-pointer")}
-                            onClick={() => onDebtClick?.(debt)}
+                            onClick={onDebtClick ? () => onDebtClick(debt) : undefined}
+                            onKeyDown={
+                              onDebtClick
+                                ? (event) => {
+                                    if (event.key === "Enter" || event.key === " ") {
+                                      event.preventDefault();
+                                      onDebtClick(debt);
+                                    }
+                                  }
+                                : undefined
+                            }
                           >
                             {/* Header row: label + badge + date */}
                             <div className="mb-1.5 flex items-center justify-between gap-2">
@@ -442,7 +453,7 @@ export function ContactDetailSheet({ contact, open, onClose, onDebtClick, dictio
                                 </div>
                               </div>
                             )}
-                          </div>
+                          </button>
                         </div>
                       );
                     })}

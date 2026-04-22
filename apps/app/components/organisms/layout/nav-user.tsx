@@ -22,6 +22,7 @@ import {
 } from "@workspace/ui";
 import { CircleUser, CreditCard, EllipsisVertical, LogOut, MessageSquareDot } from "lucide-react";
 
+import { type AppDictionary, getDictionaryText } from "@/modules/types/dictionary";
 import { useLocalizedRoute } from "@/utils/localized-route";
 
 export function NavUser({
@@ -33,22 +34,13 @@ export function NavUser({
     readonly email: string;
     readonly avatar: string;
   };
-  readonly dictionary: any;
+  readonly dictionary: AppDictionary;
 }) {
   const { isMobile } = useSidebar();
   const { getLocalizedUrl } = useLocalizedRoute();
   const router = useRouter();
 
-  const t = (key: string) => {
-    if (!key || !key.includes(".") || !dictionary) return key;
-    const keys = key.split(".");
-    let result: any = dictionary;
-    for (const k of keys) {
-      if (!result || !result[k]) return key;
-      result = result[k];
-    }
-    return typeof result === "string" ? result : key;
-  };
+  const t = (key: string) => getDictionaryText(dictionary, key);
 
   const handleNavigate = (path: string) => {
     router.push(getLocalizedUrl(path));

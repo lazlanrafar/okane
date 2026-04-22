@@ -20,7 +20,7 @@ interface CategoryExpenseDonutChartProps {
 }
 
 // Custom donut chart tooltip
-const donutTooltipFormatter = ({ active, payload, currency = "USD", locale }: any) => {
+const donutTooltipFormatter = ({ active, payload, currency = "USD", locale }: Record<string, unknown>) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (

@@ -44,7 +44,7 @@ interface BudgetFormSheetProps {
 export function BudgetFormSheet({ open, onOpenChange, budget, onSuccess }: BudgetFormSheetProps) {
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
-  const { settings } = useAppStore() as any;
+  const settings = useAppStore((state) => state.settings);
 
   const form = useForm<BudgetFormValues>({
     resolver: zodResolver(budgetSchema),
@@ -86,7 +86,8 @@ export function BudgetFormSheet({ open, onOpenChange, budget, onSuccess }: Budge
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
       onSuccess?.();
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as Error;
       toast.error(error.message || "Failed to save budget");
     } finally {
       setIsLoading(false);

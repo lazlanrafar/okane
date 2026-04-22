@@ -34,7 +34,7 @@ function SkeletonCard({ children }: { children: React.ReactNode }) {
 
 export function SpendingCanvas() {
   const data = useStaticArtifactData("spending-canvas");
-  const user = useAppStore((state) => state.user) as any;
+  const user = useAppStore((state) => state.user);
   const locale = user?.locale || "en-US";
   const stage = data.stage;
   const currency = data.currency || "USD";
@@ -137,7 +137,7 @@ export function SpendingCanvas() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {transactions.slice(0, 10).map((transaction: any, index: number) => (
+                    {transactions.slice(0, 10).map((transaction: Record<string, unknown>, index: number) => (
                       <TableRow
                         key={transaction?.id || index}
                         className={cn(

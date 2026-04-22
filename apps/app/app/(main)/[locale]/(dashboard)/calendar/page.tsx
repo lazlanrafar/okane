@@ -1,4 +1,8 @@
+import { Suspense } from "react";
+
 import { getTransactionSettings } from "@workspace/modules/server";
+import type { TransactionSettings } from "@workspace/types";
+import type { Metadata } from "next";
 
 import { CalendarClient } from "@/components/organisms/calendar/calendar-client";
 import { Hydrated } from "@/components/shared/hydrated";
@@ -21,19 +25,24 @@ export default async function CalendarPage({ params }: PageProps) {
     settingsRes.success && settingsRes.data
       ? settingsRes.data
       : ({
-          monthly_start_date: 1,
-          weekly_start_day: "monday",
-          default_period: "monthly",
-          start_screen: "daily",
-          income_expense_color: "blue-red",
-          carry_over: false,
+          monthlyStartDate: 1,
+          monthlyStartDateWeekendHandling: "no-changes",
+          weeklyStartDay: "monday",
+          period: "monthly",
+          startScreen: "daily",
+          incomeExpensesColor: "blue-red",
+          carryOver: false,
           autocomplete: true,
-          time_input: "time",
-          swipe_action: "delete",
-          input_order: "amount",
-          show_description: true,
-          quick_note_button: true,
-        } as any);
+          timeInput: "time",
+          swipeAction: "delete",
+          inputOrder: "amount",
+          showDescription: true,
+          noteButton: true,
+          mainCurrencyCode: "USD",
+          mainCurrencySymbol: "$",
+          mainCurrencySymbolPosition: "Front",
+          mainCurrencyDecimalPlaces: 2,
+        } as TransactionSettings);
 
   return (
     <div className="flex flex-1 flex-col">

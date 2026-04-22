@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 
 interface ChartSelectionOverlayProps {
-  data: any[];
+  data: Record<string, unknown>[];
   selection: {
     startIndex: number | null;
     endIndex: number | null;
@@ -13,12 +13,7 @@ interface ChartSelectionOverlayProps {
   containerHeight: number;
 }
 
-export function ChartSelectionOverlay({
-  data,
-  selection,
-  containerWidth,
-  containerHeight,
-}: ChartSelectionOverlayProps) {
+export function ChartSelectionOverlay({ data, selection, containerWidth }: ChartSelectionOverlayProps) {
   const overlayStyles = useMemo(() => {
     if (selection.startIndex === null || selection.endIndex === null || data.length === 0) {
       return null;

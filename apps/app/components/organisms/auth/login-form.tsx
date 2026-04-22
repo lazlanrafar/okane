@@ -3,13 +3,14 @@
 import { useTransition } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { Dictionary } from "@workspace/dictionaries";
 import { login } from "@workspace/modules/auth/auth.action";
 import { Button, Checkbox, Form, FormControl, FormField, FormItem, FormLabel, FormMessage, Input } from "@workspace/ui";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-const getFormSchema = (dictionary: any) => {
+const getFormSchema = (dictionary: Dictionary) => {
   if (!dictionary) {
     return z.object({
       email: z.string().email(),
@@ -24,13 +25,13 @@ const getFormSchema = (dictionary: any) => {
   });
 };
 
-export function LoginForm({ dictionary }: { dictionary: any }) {
+export function LoginForm({ dictionary }: { dictionary: Dictionary }) {
   const [is_pending, start_transition] = useTransition();
 
-  const auth_form = dictionary.auth.form || (dictionary as any).auth.form;
+  const auth_form = dictionary.auth.form;
 
   const form = useForm<z.infer<ReturnType<typeof getFormSchema>>>({
-    resolver: zodResolver(getFormSchema(dictionary) as any),
+    resolver: zodResolver(getFormSchema(dictionary)),
     defaultValues: {
       email: "",
       password: "",
@@ -40,7 +41,7 @@ export function LoginForm({ dictionary }: { dictionary: any }) {
 
   if (!dictionary || !auth_form) return null;
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: z.infer<ReturnType<typeof getFormSchema>>) => {
     start_transition(async () => {
       const form_data = new FormData();
       form_data.append("email", data.email);

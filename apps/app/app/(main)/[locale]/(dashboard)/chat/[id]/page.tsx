@@ -3,13 +3,15 @@ import { notFound } from "next/navigation";
 
 import { geolocation } from "@vercel/functions";
 import { getChatSession, getChatSessionMessages } from "@workspace/modules/ai/ai.action";
+import type { Message } from "ai";
 import type { Metadata } from "next";
 
 import ChatInterface from "@/components/organisms/chat/chat-interface";
 import { getDictionary } from "@/get-dictionary";
+import type { Locale } from "@/i18n-config";
 
 type Props = {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: Locale }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -30,14 +32,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 import { ChatProviderWrapper } from "@/components/organisms/chat/chat-provider-wrapper";
 
 export default async function ChatPage(props: Props) {
-  const { id } = await props.params;
+  const { id, locale } = await props.params;
 
   const headersList = await headers();
   const geo = geolocation({
     headers: headersList,
   });
 
-  const [response, dictionary] = await Promise.all([getChatSessionMessages(id), getDictionary(locale as any)]);
+  const [response, dictionary] = await Promise.all([getChatSessionMessages(id), getDictionary(locale)]);
 
   if (!response.success || !response.data) {
     notFound();
@@ -47,8 +49,8 @@ export default async function ChatPage(props: Props) {
   // but initialMessages usually expects AI SDK Message type.
   // The backend ChatMessage is { role: "user" | "assistant", content: string }
   // We'll add IDs to them for the store.
-  const initialMessages = response.data.map((m, i) => {
-    const parts: any[] = [{ type: "text", text: m.content }];
+  const initialMessages: Message[] = response.data.map((m, i) => {
+    const parts: Array<Record<string, unknown>> = [{ type: "text", text: m.content }];
     const attachment = m.attachments;
     const artifact = Array.isArray(attachment) ? attachment[0]?.artifact : attachment?.artifact;
 
@@ -77,12 +79,12 @@ export default async function ChatPage(props: Props) {
 
     return {
       id: `${id}-${i}`,
-      role: m.role,
+      role: m.role as "user" | "assistant" | "system" | "data",
       content: m.content,
       parts,
       createdAt: new Date(),
     };
-  }) as any;
+  });
 
   return (
     <ChatProviderWrapper initialMessages={initialMessages}>

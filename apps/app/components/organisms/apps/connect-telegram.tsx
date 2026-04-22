@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useQuery } from "@tanstack/react-query";
 import { Env } from "@workspace/constants";
@@ -31,19 +31,7 @@ export function ConnectTelegram({ dictionary }: { dictionary: Dictionary }) {
       ? `https://t.me/${botUsername}?start=${workspaceId}___${userId}`
       : `https://t.me/${botUsername}`;
 
-  useEffect(() => {
-    if (open && workspaceId && botUsername) {
-      generateQRCode();
-    }
-  }, [open, workspaceId, botUsername, generateQRCode]);
-
-  useEffect(() => {
-    const handleOpen = () => setOpen(true);
-    window.addEventListener("openTelegramConnect", handleOpen);
-    return () => window.removeEventListener("openTelegramConnect", handleOpen);
-  }, []);
-
-  const generateQRCode = async () => {
+  const generateQRCode = useCallback(async () => {
     if (!workspaceId) return;
     try {
       const url = await QRCode.toDataURL(telegramUrl, {
@@ -58,7 +46,19 @@ export function ConnectTelegram({ dictionary }: { dictionary: Dictionary }) {
     } catch (error) {
       console.error("Error generating QR code:", error);
     }
-  };
+  }, [telegramUrl, workspaceId]);
+
+  useEffect(() => {
+    if (open && workspaceId && botUsername) {
+      generateQRCode();
+    }
+  }, [open, workspaceId, botUsername, generateQRCode]);
+
+  useEffect(() => {
+    const handleOpen = () => setOpen(true);
+    window.addEventListener("openTelegramConnect", handleOpen);
+    return () => window.removeEventListener("openTelegramConnect", handleOpen);
+  }, []);
 
   const copyToClipboard = async () => {
     try {
@@ -86,7 +86,10 @@ export function ConnectTelegram({ dictionary }: { dictionary: Dictionary }) {
           <div className="group relative">
             <div className="relative border bg-white p-3">
               {!isLoading && workspaceId && qrCodeUrl ? (
-                <img src={qrCodeUrl} alt="Telegram QR Code" className="h-[200px] w-[200px]" />
+                <>
+                  {/* biome-ignore lint/performance/noImgElement: QR Code is a generated data URL */}
+                  <img src={qrCodeUrl} alt="Telegram QR Code" className="h-[200px] w-[200px]" />
+                </>
               ) : (
                 <div className="flex h-[200px] w-[200px] items-center justify-center rounded-md bg-secondary/30">
                   <QrCode className="h-12 w-12 animate-pulse text-muted-foreground" />

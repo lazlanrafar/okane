@@ -8,10 +8,12 @@ import { cn, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui";
 import { useChatInterface } from "@workspace/ui/hooks";
 import { Grid2X2, LineChart } from "lucide-react";
 
+import type { AppDictionary } from "@/modules/types/dictionary";
+
 import { OverviewCards } from "./overview-cards";
 import { OverviewMetrics } from "./overview-metrics";
 
-function getGreeting(dict: any) {
+function getGreeting(dict: AppDictionary) {
   const hour = new Date().getHours();
   const greetings = dict.overview.greetings;
   if (hour < 12) return greetings.morning;
@@ -28,8 +30,8 @@ interface OverviewClientProps {
   burnRateData: ChartDataPoint[];
   expenseCategoryData: CategoryBreakdownPoint[];
   incomeCategoryData: CategoryBreakdownPoint[];
-  settings?: any;
-  dictionary: any;
+  settings?: unknown;
+  dictionary: AppDictionary;
   locale: string;
 }
 

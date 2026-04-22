@@ -17,11 +17,11 @@ import { BudgetFormSheet } from "./budget-form-sheet";
 
 interface Props {
   initialData: BudgetStatus[];
-  dictionary: any;
+  dictionary: Record<string, string>;
   locale: string;
 }
 
-export function BudgetClient({ initialData, dictionary, locale }: Props) {
+export function BudgetClient({ initialData, locale }: Props) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<BudgetStatus | undefined>();
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,7 +49,7 @@ export function BudgetClient({ initialData, dictionary, locale }: Props) {
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
       toast.success("Budget deleted successfully");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to delete budget");
     },
   });

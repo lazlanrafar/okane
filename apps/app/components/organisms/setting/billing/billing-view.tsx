@@ -74,10 +74,10 @@ export function BillingView({
 }: {
   initialPlans: Pricing[];
   initialAddons?: Pricing[];
-  dictionary: any;
+  dictionary: unknown;
 }) {
   const [mounted, setMounted] = React.useState(false);
-  const { workspace, settings, dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
+  const { workspace, settings, dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
   const dictionary = dict || storeDict;
   const [billingCycle, _setBillingCycle] = React.useState<"monthly" | "annual">("monthly");
   const [history, setHistory] = React.useState<Order[]>([]);
@@ -130,7 +130,7 @@ export function BillingView({
     onSuccess: (data) => {
       if (data.url) window.location.href = data.url;
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error.message),
   });
 
   const portalMutation = useMutation({
@@ -144,7 +144,7 @@ export function BillingView({
         description: "A secure link has been sent to your email to access the portal",
       });
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error.message),
   });
 
   const _downgradeMutation = useMutation({
@@ -156,7 +156,7 @@ export function BillingView({
     onSuccess: () => {
       toast.success("Subscription scheduled for cancellation");
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error.message),
   });
 
   const downloadMutation = useMutation({
@@ -168,7 +168,7 @@ export function BillingView({
     onSuccess: (data) => {
       if (data.url) window.open(data.url, "_blank");
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error.message),
   });
 
   const cancelAddonMutation = useMutation({
@@ -182,7 +182,7 @@ export function BillingView({
       queryClient.invalidateQueries({ queryKey: ["workspace", "active"] });
       router.refresh();
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error.message),
   });
 
   if (!mounted || !dictionary || isDictLoading) {
@@ -293,8 +293,8 @@ export function BillingView({
             <div className="space-y-4">
               <p className="max-w-sm text-muted-foreground text-xs leading-relaxed">{currentPlan.description}</p>
               <ul className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
-                {(currentPlan.features || []).slice(0, 8).map((feature: string, i: number) => (
-                  <li key={i} className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                {(currentPlan.features || []).slice(0, 8).map((feature: string) => (
+                  <li key={feature} className="flex items-center gap-2 text-[11px] text-muted-foreground">
                     <Check className="h-3 w-3 shrink-0 text-emerald-500" />
                     <span className="truncate">{feature}</span>
                   </li>
@@ -410,8 +410,8 @@ export function BillingView({
               compact: true,
             });
             const priceId = getGatewayPrice(addon, "addon", currency);
-            const isActive = workspace?.active_addons.some((a: any) => a.id === addon.id);
-            const addonData = workspace?.active_addons.find((a: any) => a.id === addon.id);
+            const isActive = workspace?.active_addons.some((a: unknown) => a.id === addon.id);
+            const addonData = workspace?.active_addons.find((a: unknown) => a.id === addon.id);
 
             return (
               <Card
@@ -467,7 +467,7 @@ export function BillingView({
                     </div>
 
                     {isActive &&
-                      workspace?.active_addons.find((a: any) => a.id === addon.id).status === "cancelled" && (
+                      workspace?.active_addons.find((a: unknown) => a.id === addon.id).status === "cancelled" && (
                         <div className="whitespace-nowrap text-right">
                           <p className="mb-0.5 font-medium text-[9px] text-destructive uppercase tracking-widest">
                             {billingDict.deactivating_at || "Deactivating at"}
@@ -610,7 +610,10 @@ export function BillingView({
                               variant="outline"
                               size="sm"
                               className="h-7 rounded-none border px-3 font-medium text-[10px] uppercase tracking-widest transition-all hover:bg-foreground hover:text-background"
-                              onClick={() => downloadMutation.mutate(order.mayar_invoice_id!)}
+                              onClick={() => {
+                                if (!order.mayar_invoice_id) return;
+                                downloadMutation.mutate(order.mayar_invoice_id);
+                              }}
                               disabled={downloadMutation.isPending}
                             >
                               {downloadMutation.isPending && downloadMutation.variables === order.mayar_invoice_id

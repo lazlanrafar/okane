@@ -17,7 +17,7 @@ interface BusinessHealthScoreChartProps {
 }
 
 // Custom tooltip component
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: Record<string, unknown>) => {
   if (active && Array.isArray(payload) && payload.length > 0) {
     const healthScore = payload[0].value;
 

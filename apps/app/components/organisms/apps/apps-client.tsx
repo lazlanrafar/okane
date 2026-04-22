@@ -20,6 +20,22 @@ interface Props {
   dictionary: Dictionary;
 }
 
+interface InstalledIntegration {
+  provider: string;
+  isActive: boolean;
+  settings?: Record<string, unknown>;
+}
+
+interface CurrentUser {
+  user: { workspace_id: string };
+  workspaces: Array<{ id: string; plan_name?: string }>;
+}
+
+type AppCardModel = React.ComponentProps<typeof AppsCard>["app"] & {
+  onInitialize?: (args: { accessToken: string; onComplete?: () => void }) => Promise<unknown>;
+  userSettings?: Record<string, unknown>;
+};
+
 export function AppsClient({ dictionary }: Props) {
   const t = dictionary.apps;
 
@@ -29,30 +45,29 @@ export function AppsClient({ dictionary }: Props) {
   const [expandedApp, setExpandedApp] = React.useState<string | null>(null);
 
   // Fetch real integrations from the API
-  const { data: installedApps, isLoading } = useQuery({
+  const { data: installedApps = [], isLoading } = useQuery<InstalledIntegration[]>({
     queryKey: ["integrations"],
     queryFn: async () => {
       const result = await getIntegrationsAction();
-      if (result.success) return result.data;
+      if (result.success) return result.data as InstalledIntegration[];
       return [];
     },
   });
 
-  const { data: me } = useQuery({
+  const { data: me } = useQuery<CurrentUser | null>({
     queryKey: ["me"],
     queryFn: async () => {
       const result = await getMe();
-      return result.success ? result.data : null;
+      return result.success ? (result.data as CurrentUser) : null;
     },
   });
 
   // Transform official apps
-  const transformedOfficialApps = appStoreApps
+  const transformedOfficialApps: AppCardModel[] = appStoreApps
     .filter((app) => !app.hidden)
     .map((app) => {
       // Check if the app is installed via the integrations API response
-      const isInstalled =
-        installedApps.some((installed: any) => installed.provider === app.id && installed.isActive) ?? false;
+      const isInstalled = installedApps.some((installed) => installed.provider === app.id && installed.isActive);
 
       return {
         id: app.id,
@@ -63,32 +78,38 @@ export function AppsClient({ dictionary }: Props) {
         beta: "beta" in app && typeof app.beta === "boolean" ? app.beta : undefined,
         logo: app.logo,
         short_description: app.short_description,
-        description: "description" in app ? app.description : undefined,
+        description: "description" in app ? (app.description ?? undefined) : undefined,
         images: "images" in app ? app.images : [],
         installed: isInstalled,
         type: "official" as const,
         onInitialize:
-          "onInitialize" in app && typeof (app as any).onInitialize === "function"
+          "onInitialize" in app && typeof (app as Record<string, unknown>).onInitialize === "function"
             ? async ({ accessToken, onComplete }: { accessToken: string; onComplete?: () => void }) => {
-                const result = (app as any).onInitialize({
+                const result = (
+                  app as { onInitialize: (args: { accessToken: string; onComplete?: () => void }) => unknown }
+                ).onInitialize({
                   accessToken,
                   onComplete,
                 });
                 return result instanceof Promise ? result : Promise.resolve(result);
               }
             : undefined,
-        settings: "settings" in app && Array.isArray((app as any).settings) ? (app as any).settings : undefined,
-        userSettings:
-          (installedApps.find((inst: any) => inst.provider === app.id).settings as Record<string, any>) || undefined,
+        settings:
+          "settings" in app && Array.isArray((app as { settings?: Record<string, unknown>[] }).settings)
+            ? (app as { settings?: Record<string, unknown>[] }).settings
+            : undefined,
+        userSettings: installedApps.find((inst) => inst.provider === app.id)?.settings || undefined,
         // Include installUrl for apps with external download pages
         installUrl:
-          "installUrl" in app && typeof (app as any).installUrl === "string" ? (app as any).installUrl : undefined,
+          "installUrl" in app && typeof (app as { installUrl?: string }).installUrl === "string"
+            ? (app as { installUrl?: string }).installUrl
+            : undefined,
       };
     });
 
   // Since Oewang doesn't have OAuth Applications currently, we use an empty array.
   // In the future, this is where transformedExternalApps will go.
-  const transformedExternalApps: any[] = [
+  const transformedExternalApps: AppCardModel[] = [
     {
       id: "oewang-app",
       name: "Oewang App",
@@ -99,7 +120,7 @@ export function AppsClient({ dictionary }: Props) {
       description:
         "The Oewang mobile app will allow you to track expenses, scan receipts, and manage your budget directly from your smartphone.\n\n**Coming Soon**\nWe are currently developing our mobile application for both iOS and Android. Stay tuned for updates!",
       installed: false,
-      type: "official",
+      type: "official" as const,
     },
   ];
 
@@ -112,8 +133,8 @@ export function AppsClient({ dictionary }: Props) {
     return true;
   });
 
-  const activeWorkspace = me.workspaces.find((w) => w.id === me.user.workspace_id);
-  const planName = activeWorkspace.plan_name || "Starter";
+  const activeWorkspace = me?.workspaces.find((w) => w.id === me.user.workspace_id);
+  const planName = activeWorkspace?.plan_name || "Starter";
 
   const _activeApp = allApps.find((a) => a.id === expandedApp);
 
@@ -135,7 +156,7 @@ export function AppsClient({ dictionary }: Props) {
 
         {/* Filter Toggle on right */}
         <div className="flex w-fit items-stretch bg-[#f7f7f7] dark:bg-[#131313]">
-          <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
+          <Tabs value={filter} onValueChange={(v) => setFilter(v as "all" | "connected")}>
             <TabsList className="flex h-auto items-stretch bg-transparent p-0">
               <TabsTrigger
                 value="all"

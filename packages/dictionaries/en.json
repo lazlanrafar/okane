@@ -533,8 +533,10 @@
       "toast_added": "{code} added to sub currencies",
       "toast_removed": "{code} removed",
       "workspace_label": "Workspace Currencies",
+      "workspace_currency": "Workspace Currency",
       "rate_now": "RATE NOW",
-      "empty": "No sub currencies added yet."
+      "empty": "No sub currencies added yet.",
+      "no_sub_currencies": "No sub-currencies"
     },
     "notifications": {
       "title": "Notifications",
@@ -677,6 +679,21 @@
       "error_toast": "Failed to settle debts. Please try again.",
       "select_account_toast": "Please select an account",
       "select_at_least_one_toast": "Please select at least one debt"
+    },
+    "bulk": {
+      "selected": "{count} selected",
+      "deselect": "Deselect",
+      "confirmations": {
+        "delete_title": "Delete {count} debts?",
+        "delete_description": "Are you sure you want to delete {count} selected debts? This action cannot be undone."
+      },
+      "toasts": {
+        "deleted_success": "Successfully deleted {count} debts"
+      },
+      "tooltips": {
+        "delete": "Delete selected",
+        "close": "Close"
+      }
     },
     "confirmations": {
       "delete_title": "Delete this debt?",
@@ -875,6 +892,8 @@
       "destination": "Select destination",
       "member": "Select member"
     },
+    "uploading_files": "Uploading {count} file(s)...",
+    "all_uploads_success": "All files uploaded successfully",
     "hints": {
       "type": "Choose whether this is money coming in (Income) or going out (Expense)",
       "description": "A brief description of this transaction",
@@ -895,7 +914,11 @@
       "save_failed": "Failed to save changes",
       "amount_positive": "Amount must be positive",
       "invalid_date": "Please enter a valid date",
-      "at_least_one_attachment": "Please upload at least one attachment"
+      "at_least_one_attachment": "Please upload at least one attachment",
+      "wallet_required": "Account is required",
+      "upload_failed": "Upload failed",
+      "some_uploads_failed": "Some files failed to upload",
+      "preview_failed": "Failed to preview attachment"
     },
     "group_by": {
       "placeholder": "Group by...",
@@ -1045,6 +1068,8 @@
     "opening": "Opening...",
     "view_pdf": "View PDF",
     "coming_soon": "Coming Soon",
+    "by": "by",
+    "system": "System",
     "used": "used",
     "remaining": "remaining",
     "open_menu": "Open menu",
@@ -1302,7 +1327,9 @@
       "due": "Due Date",
       "from": "From",
       "bill_to": "To",
-      "subtotal": "Subtotal"
+      "details_label": "Details",
+      "subtotal": "Subtotal",
+      "no_activity": "No activity recorded yet"
     },
     "statuses": {
       "draft": "Draft",
@@ -1362,6 +1389,10 @@
       "select_contact": "Select contact",
       "payment_details": "Bank account, PayPal, etc...",
       "note": "Thank you for your business!"
+    },
+    "activities": {
+      "created": "Created",
+      "updated": "Updated"
     }
   },
   "chat": {

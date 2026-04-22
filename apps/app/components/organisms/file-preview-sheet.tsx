@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import { Button, ScrollArea, Sheet, SheetContent, SheetHeader, SheetTitle } from "@workspace/ui";
 import { Download, ExternalLink, File, X } from "lucide-react";
 
@@ -66,10 +68,13 @@ export function FilePreviewSheet({ open, onOpenChange, file }: FilePreviewSheetP
         <ScrollArea className="w-full flex-1 bg-muted/5">
           <div className="flex min-h-[calc(100vh-100px)] items-center justify-center">
             {isImage ? (
-              <img
+              <Image
                 src={file.url}
                 alt={file.name}
+                width={800}
+                height={600}
                 className="fade-in zoom-in h-auto max-w-full animate-in rounded-lg border shadow-sm duration-300"
+                unoptimized
               />
             ) : isPdf ? (
               <iframe
@@ -82,7 +87,9 @@ export function FilePreviewSheet({ open, onOpenChange, file }: FilePreviewSheetP
                 src={file.url}
                 controls
                 className="fade-in max-w-full animate-in rounded-lg border shadow-sm duration-300"
-              />
+              >
+                <track kind="captions" />
+              </video>
             ) : (
               <div className="fade-in slide-in-from-bottom-4 flex animate-in flex-col items-center justify-center gap-4 text-muted-foreground duration-500">
                 <div className="rounded-full bg-muted/30 p-8">

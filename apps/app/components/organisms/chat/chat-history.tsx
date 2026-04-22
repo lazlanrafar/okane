@@ -129,11 +129,7 @@ export function ChatHistoryDropdown() {
     }
   }, [selectedIndex]);
 
-  const {
-    data: sessionsResponse,
-    isLoading,
-    error,
-  } = useQuery({
+  const { data: sessionsResponse, isLoading } = useQuery({
     queryKey: ["chat-sessions"],
     queryFn: () => getChatSessions(),
     enabled: isOpen,
@@ -151,7 +147,7 @@ export function ChatHistoryDropdown() {
 
   if (!isOpen) return null;
 
-  const chats = (sessionsResponse.data as any[]) || [];
+  const chats = (sessionsResponse.data as Record<string, unknown>[]) || [];
 
   return (
     <div ref={historyListRef} data-chat-history-menu className="absolute right-0 bottom-full left-0 z-100 mb-2 w-full">

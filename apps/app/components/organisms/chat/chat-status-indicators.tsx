@@ -19,7 +19,7 @@ interface ChatStatusIndicatorsProps {
   agentStatus: AgentStatus | null;
   currentToolCall: string | null;
   status?: string;
-  error?: any;
+  error?: { code?: string; meta?: { reset_at?: string } };
   artifactStage?: ArtifactStage | null;
   artifactType?: ArtifactType | null;
   currentSection?: string | null;

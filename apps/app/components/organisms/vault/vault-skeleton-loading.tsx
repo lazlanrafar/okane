@@ -19,12 +19,15 @@ export function VaultHeaderSkeleton() {
 }
 
 export function VaultContentSkeleton({ view = "list" }: { view?: "grid" | "list" }) {
+  const gridSkeletonIds = Array.from({ length: 15 }, (_, i) => `grid-skeleton-${i}`);
+  const rowSkeletonIds = Array.from({ length: 12 }, (_, i) => `row-skeleton-${i}`);
+
   return (
     <div className="flex h-full flex-1 flex-col overflow-hidden uppercase">
       {view === "grid" ? (
         <div className="grid h-full grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-          {Array.from({ length: 15 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-square bg-muted/50" />
+          {gridSkeletonIds.map((id) => (
+            <Skeleton key={id} className="aspect-square bg-muted/50" />
           ))}
         </div>
       ) : (
@@ -39,8 +42,8 @@ export function VaultContentSkeleton({ view = "list" }: { view?: "grid" | "list"
               </tr>
             </thead>
             <tbody className="divide-y">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <tr key={i} className="h-14">
+              {rowSkeletonIds.map((id) => (
+                <tr key={id} className="h-14">
                   <td className="px-4">
                     <div className="flex items-center gap-3">
                       <Skeleton className="h-10 w-10 shrink-0" />
@@ -71,6 +74,8 @@ export function VaultContentSkeleton({ view = "list" }: { view?: "grid" | "list"
 }
 
 export function VaultDetailSkeleton() {
+  const metadataSkeletonIds = Array.from({ length: 4 }, (_, i) => `metadata-skeleton-${i}`);
+
   return (
     <div className="flex h-full w-full shrink-0 flex-col overflow-hidden border bg-card">
       <div className="border-b bg-muted/20 p-4">
@@ -81,8 +86,8 @@ export function VaultDetailSkeleton() {
         <div className="space-y-4">
           <Skeleton className="h-8 w-3/4" />
           <div className="space-y-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex justify-between">
+            {metadataSkeletonIds.map((id) => (
+              <div key={id} className="flex justify-between">
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-4 w-32" />
               </div>

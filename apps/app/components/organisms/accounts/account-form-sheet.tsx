@@ -27,7 +27,7 @@ import * as z from "zod";
 
 import { SelectAccountGroup } from "@/components/molecules/select-account-group";
 
-const getAccountSchema = (dictionary: any) => {
+const getAccountSchema = (dictionary: Record<string, unknown>) => {
   const nameError = dictionary.accounts.form.name.error_required || "Name is required";
 
   return z.object({
@@ -41,22 +41,18 @@ const getAccountSchema = (dictionary: any) => {
   });
 };
 
-type AccountFormValues = z.infer<ReturnType<typeof getAccountSchema>>;
-
 function InternalAccountForm({
   wallet,
   walletId,
-  groups,
   onSuccess,
   onOpenChange,
   dictionary,
 }: {
   wallet?: Wallet;
   walletId?: string;
-  groups: any[];
   onSuccess?: (wallet: Wallet) => void;
   onOpenChange: (open: boolean) => void;
-  dictionary: any;
+  dictionary: Record<string, unknown>;
 }) {
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -206,8 +202,8 @@ interface AccountSheetProps {
   onOpenChange: (open: boolean) => void;
   walletId?: string;
   onSuccess?: (wallet: Wallet) => void;
-  groups?: any[];
-  dictionaryByProps?: any;
+  groups?: Array<Record<string, unknown>>;
+  dictionary?: Record<string, unknown>;
 }
 
 export function AccountFormSheet({
@@ -215,7 +211,7 @@ export function AccountFormSheet({
   onOpenChange,
   walletId,
   onSuccess,
-  groups = [],
+
   dictionary,
 }: AccountSheetProps) {
   const [mounted, setMounted] = React.useState(false);
@@ -231,7 +227,7 @@ export function AccountFormSheet({
       const fetchWallet = async () => {
         const res = await getWallet(walletId);
         if (res.success && res.data) {
-          setWallet(res.data as any);
+          setWallet(res.data as Wallet);
         }
       };
       fetchWallet();
@@ -256,7 +252,6 @@ export function AccountFormSheet({
 
         <InternalAccountForm
           wallet={wallet}
-          groups={groups}
           onSuccess={onSuccess}
           onOpenChange={onOpenChange}
           dictionary={dictionary}

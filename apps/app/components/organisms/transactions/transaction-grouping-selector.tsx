@@ -8,7 +8,7 @@ export type GroupByInterval = "none" | "daily" | "weekly" | "monthly";
 interface Props {
   value: GroupByInterval;
   onValueChange: (value: GroupByInterval) => void;
-  dictionary: any;
+  dictionary: unknown;
 }
 
 export function TransactionGroupingSelector({ value, onValueChange, dictionary }: Props) {

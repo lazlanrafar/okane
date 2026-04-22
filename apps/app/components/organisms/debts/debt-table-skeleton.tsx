@@ -3,8 +3,6 @@
 import { TableSkeleton } from "@workspace/ui";
 
 export function DebtTableSkeleton() {
-  const _dictionary: any = null; // We don't need real dictionary for skeleton headers if we mock them
-
   const columns = [
     { id: "select", header: "" },
     { id: "type", header: "Type" },
@@ -29,7 +27,7 @@ export function DebtTableSkeleton() {
 
       <div className="relative min-h-0 flex-1">
         <TableSkeleton
-          columns={columns as any}
+          columns={columns}
           rowCount={10}
           stickyColumnIds={["select", "contactName"]}
           actionsColumnId="actions"

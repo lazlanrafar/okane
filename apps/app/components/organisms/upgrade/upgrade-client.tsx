@@ -67,7 +67,7 @@ export function UpgradeClient({ dictionary, settings, workspace }: UpgradeClient
         window.location.href = data.url;
       }
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error.message),
   });
 
   if (isLoading) {
@@ -120,7 +120,7 @@ export function UpgradeClient({ dictionary, settings, workspace }: UpgradeClient
       <div className="flex flex-col items-center space-y-8">
         <div className="flex flex-col items-center gap-6 sm:flex-row">
           <div className="inline-flex rounded-xl bg-muted/50 p-1 shadow-inner">
-            <Tabs value={billingCycle} onValueChange={(v) => setBillingCycle(v as any)} className="w-auto">
+            <Tabs value={billingCycle} onValueChange={(v) => setBillingCycle(v as unknown)} className="w-auto">
               <TabsList className="h-10 gap-1 bg-transparent">
                 <TabsTrigger
                   value="monthly"
@@ -145,6 +145,7 @@ export function UpgradeClient({ dictionary, settings, workspace }: UpgradeClient
             {["usd", "eur", "idr"].map((c) => (
               <button
                 key={c}
+                type="button"
                 onClick={() => setCurrency(c)}
                 className={cn(
                   "rounded-lg px-4 py-2 font-bold text-xs uppercase transition-all",
@@ -217,26 +218,27 @@ export function UpgradeClient({ dictionary, settings, workspace }: UpgradeClient
                         </span>
                       )}
                     </div>
-                    {billingCycle === "annual" && plan.prices.find((p) => p.currency === currency)?.yearly! > 0 && (
-                      <p className="mt-1.5 font-medium text-muted-foreground/80 text-xs italic">
-                        Billed as{" "}
-                        {
-                          displayPrice(plan, "annual", {
-                            compact: false,
-                            currency,
-                          }).label
-                        }
-                        /year
-                      </p>
-                    )}
+                    {billingCycle === "annual" &&
+                      (plan.prices.find((p) => p.currency === currency)?.yearly ?? 0) > 0 && (
+                        <p className="mt-1.5 font-medium text-muted-foreground/80 text-xs italic">
+                          Billed as{" "}
+                          {
+                            displayPrice(plan, "annual", {
+                              compact: false,
+                              currency,
+                            }).label
+                          }
+                          /year
+                        </p>
+                      )}
                   </div>
 
                   <div className="space-y-4 pt-4">
                     <p className="tracking_widest font-black text-foreground/70 text-xs uppercase">
                       {dictionary.settings.billing.whats_included || "What's included:"}
                     </p>
-                    {plan.features.map((feature, i) => (
-                      <div key={i} className="flex items-start gap-3">
+                    {plan.features.map((feature) => (
+                      <div key={feature} className="flex items-start gap-3">
                         <div className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/10">
                           <Check className="h-2.5 w-2.5 stroke-[4px] text-primary" />
                         </div>

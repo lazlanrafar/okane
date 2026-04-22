@@ -51,12 +51,30 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
 import { i18n } from "@/i18n-config";
 import { useLocalizedRoute } from "@/utils/localized-route";
 
+type SidebarLinkItem = {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  comingSoon?: boolean;
+};
+
+type SidebarGroupItem = {
+  groupLabel: string;
+  items: SidebarLinkItem[];
+};
+
+type SidebarItem = SidebarLinkItem | SidebarGroupItem;
+
+function isSidebarGroupItem(item: SidebarItem): item is SidebarGroupItem {
+  return "groupLabel" in item;
+}
+
 export function SettingSidebar({ className, dictionary, ...props }: SidebarNavProps) {
   const pathname = usePathname();
   const { sidebar } = dictionary;
   const { getLocalizedUrl } = useLocalizedRoute();
 
-  const sidebarNavItems = [
+  const sidebarNavItems: SidebarItem[] = [
     {
       title: sidebar.profile,
       href: "/settings/profile",
@@ -168,14 +186,13 @@ export function SettingSidebar({ className, dictionary, ...props }: SidebarNavPr
 
   return (
     <nav className={cn("flex max-h-[300px] flex-col space-y-1 overflow-y-auto lg:max-h-none", className)} {...props}>
-      {sidebarNavItems.map((item, index) => {
-        if ("groupLabel" in item) {
+      {sidebarNavItems.map((item) => {
+        if (isSidebarGroupItem(item)) {
           return (
-            <div key={index} className="mt-4 first:mt-0">
+            <div key={item.groupLabel} className="mt-4 first:mt-0">
               <h4 className="mb-2 font-semibold text-muted-foreground text-xs tracking-tight">{item.groupLabel}</h4>
               <div className="space-y-1">
-                {/* biome-ignore lint/suspicious/noExplicitAny: implicit any */}
-                {(item as any).items.map((subItem: any) => (
+                {item.items.map((subItem) => (
                   <Link
                     key={subItem.href}
                     href={getLocalizedUrl(subItem.href)}
@@ -202,10 +219,7 @@ export function SettingSidebar({ className, dictionary, ...props }: SidebarNavPr
           );
         }
 
-        // Handle flat items (backward compatibility or mixed use)
-        // We cast to any because TS doesn't know for sure it's not a group without a discriminating union type definition
-        // biome-ignore lint/suspicious/noExplicitAny: implicit any
-        const flatItem = item as any;
+        const flatItem = item;
         return (
           <Link
             key={flatItem.href}

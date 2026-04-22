@@ -2,7 +2,10 @@
 
 import * as React from "react";
 
+import Image from "next/image";
+
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import {
   deleteVaultFile,
   getVaultFiles,
@@ -66,7 +69,7 @@ const ALLOWED_TYPES = [
 const SUGGESTED_TAGS = ["Invoice", "Transaction", "Receipt", "Report", "Contract", "Document"];
 
 interface Props {
-  dictionary: any;
+  dictionary: Dictionary;
 }
 
 export function VaultClient({ dictionary }: Props) {
@@ -80,7 +83,7 @@ export function VaultClient({ dictionary }: Props) {
   const [selectedFile, setSelectedFile] = React.useState<VaultFile | null>(null);
   const [tagInput, setTagInput] = React.useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const scrollRef = React.useRef<any>(null);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
   const loadMoreRef = React.useRef<HTMLDivElement>(null);
   const limit = 15;
 
@@ -95,9 +98,10 @@ export function VaultClient({ dictionary }: Props) {
       throw new Error(result.error);
     },
     initialPageParam: 1,
-    getNextPageParam: (lastPage: any) => {
+    getNextPageParam: (lastPage) => {
       const current = lastPage.pagination?.page;
       const total = lastPage.pagination?.total_pages;
+      if (current === undefined || total === undefined) return undefined;
       return current < total ? current + 1 : undefined;
     },
   });
@@ -141,7 +145,7 @@ export function VaultClient({ dictionary }: Props) {
       queryClient.invalidateQueries({ queryKey: ["workspace", "active"] });
       setSelectedFile(data);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t.toasts.upload_failed);
     },
   });
@@ -156,7 +160,7 @@ export function VaultClient({ dictionary }: Props) {
       queryClient.invalidateQueries({ queryKey: ["vault-files"] });
       setSelectedFile(data);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t.toasts.tags_update_failed);
     },
   });
@@ -170,7 +174,7 @@ export function VaultClient({ dictionary }: Props) {
     try {
       await Promise.all(filesArray.map((file) => uploadMutation.mutateAsync(file)));
       toast.success(t.toasts.upload_success, { id: toastId });
-    } catch (_error: any) {
+    } catch (_error) {
       toast.error(t.toasts.upload_failed_some, { id: toastId });
     }
   };
@@ -210,7 +214,7 @@ export function VaultClient({ dictionary }: Props) {
       setSelectedFile(null);
       toast.success(t.toasts.delete_success);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || t.toasts.delete_failed);
     },
   });
@@ -240,6 +244,8 @@ export function VaultClient({ dictionary }: Props) {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
+      role="application"
+      aria-label="Vault files"
     >
       <input
         type="file"
@@ -307,7 +313,7 @@ export function VaultClient({ dictionary }: Props) {
 
         <ScrollArea className="h-full min-h-0 flex-1 border bg-card/10 p-4" ref={scrollRef}>
           {isLoading && !isRefetching ? (
-            <VaultContentSkeleton view={view as any} />
+            <VaultContentSkeleton view={view as unknown} />
           ) : (
             <>
               {files.length === 0 ? (
@@ -388,7 +394,16 @@ export function VaultClient({ dictionary }: Props) {
                     <div className="space-y-6">
                       <div className="flex aspect-video items-center justify-center overflow-hidden border bg-muted/30 shadow-inner">
                         {selectedFile?.type.startsWith("image/") ? (
-                          <img src={selectedFile?.url} className="max-h-full max-w-full object-contain" />
+                          <div className="relative h-full w-full">
+                            <Image
+                              src={selectedFile?.url || ""}
+                              alt={selectedFile?.name || "Selected vault file"}
+                              fill
+                              unoptimized
+                              sizes="(max-width: 768px) 100vw, 50vw"
+                              className="object-contain"
+                            />
+                          </div>
                         ) : (
                           <FileText className="h-16 w-16 text-muted-foreground" />
                         )}
@@ -445,6 +460,7 @@ export function VaultClient({ dictionary }: Props) {
                               >
                                 {tag}
                                 <button
+                                  type="button"
                                   onClick={() => handleRemoveTag(tag)}
                                   className="shrink-0 hover:text-destructive"
                                 >
@@ -465,6 +481,7 @@ export function VaultClient({ dictionary }: Props) {
                               {SUGGESTED_TAGS.filter((t) => !selectedFile?.tags.includes(t)).map((tag) => (
                                 <button
                                   key={tag}
+                                  type="button"
                                   onClick={() => handleAddTag(tag)}
                                   className="rounded-full border border-dashed bg-muted/30 px-2 py-1 text-[10px] transition-colors hover:border-primary hover:text-primary"
                                 >
@@ -558,7 +575,7 @@ export function VaultClient({ dictionary }: Props) {
   );
 }
 
-function HeaderStorageUsage({ dictionary }: { dictionary: any }) {
+function HeaderStorageUsage({ dictionary }: { dictionary: Dictionary }) {
   const { workspace, checkLimit } = useAppStore();
 
   if (!workspace) return null;

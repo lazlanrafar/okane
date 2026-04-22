@@ -352,7 +352,7 @@ export interface CommandSuggestion {
   command: string;
   title: string;
   toolName: string;
-  toolParams: Record<string, any>;
+  toolParams: Record<string, unknown>;
   keywords: string[];
 }
 
@@ -534,7 +534,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   },
 
   navigateCommandUp: () => {
-    const { selectedCommandIndex, filteredCommands } = get();
+    const { selectedCommandIndex } = get();
     set({
       selectedCommandIndex: Math.max(selectedCommandIndex - 1, 0),
     });

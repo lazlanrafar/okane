@@ -63,11 +63,11 @@ import { toast } from "sonner";
 import * as z from "zod";
 
 interface SettingProfileFormProps {
-  dictionary: any;
+  dictionary: unknown;
 }
 
 export function SettingProfileForm({ dictionary: dict }: SettingProfileFormProps) {
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
+  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
   const dictionary = dict || storeDict;
 
   const { data: meData, isLoading: isMeLoading } = useQuery({
@@ -79,7 +79,7 @@ export function SettingProfileForm({ dictionary: dict }: SettingProfileFormProps
     },
   });
 
-  const profile = dictionary?.profile || (dictionary as any)?.settings?.profile;
+  const profile = dictionary?.profile || (dictionary as unknown)?.settings?.profile;
 
   if (isMeLoading || (!dictionary && isDictLoading) || !dictionary || !meData?.user || !profile) {
     return <SettingProfileSkeleton />;
@@ -88,8 +88,8 @@ export function SettingProfileForm({ dictionary: dict }: SettingProfileFormProps
   return <ProfileFormInner profile={profile} user={meData.user} />;
 }
 
-function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
-  const { dictionary } = useAppStore() as any;
+function ProfileFormInner({ profile, user }: { profile: unknown; user: unknown }) {
+  const { dictionary } = useAppStore() as unknown;
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = React.useState(false);
 
@@ -105,7 +105,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
     email: z
       .string({
         required_error: profile.email.error_required || "Required",
-      } as any)
+      } as unknown)
       .email(),
     profile_picture: z.string().optional(),
     mobile: z.string().optional().nullable(),
@@ -114,7 +114,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
   type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
   const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema as any),
+    resolver: zodResolver(profileFormSchema as unknown),
     defaultValues: {
       username: user?.name || "",
       email: user?.email,

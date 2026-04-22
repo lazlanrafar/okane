@@ -11,17 +11,17 @@ export interface AppState {
   subCurrencies: SubCurrency[];
   isLoading: boolean;
   aiQuota: AiQuota | null;
-  dictionary: any | null;
+  dictionary: Record<string, unknown> | null;
   setUser: (user: User | null) => void;
   setWorkspace: (workspace: Workspace | null) => void;
   setSettings: (settings: TransactionSettings | null) => void;
   setSubCurrencies: (subCurrencies: SubCurrency[]) => void;
   setIsLoading: (isLoading: boolean) => void;
   setAiQuota: (aiQuota: AiQuota | null) => void;
-  setDictionary: (dictionary: any | null) => void;
+  setDictionary: (dictionary: Record<string, unknown> | null) => void;
   fetchAiQuota: () => Promise<void>;
   getTransactionColor: (type: string) => string;
-  formatCurrency: (amount: number, options?: any) => string;
+  formatCurrency: (amount: number, options?: Intl.NumberFormatOptions) => string;
   checkLimit: (
     feature: "vault_size" | "ai_tokens",
     currentUsage: number,

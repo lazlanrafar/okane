@@ -41,7 +41,7 @@ interface Props {
   settings: TransactionSettings;
 }
 
-export function PaymentFormSheet({ open, onOpenChange, debt, wallets, dictionary, settings }: Props) {
+export function PaymentFormSheet({ open, onOpenChange, debt, wallets: _wallets, dictionary, settings }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);

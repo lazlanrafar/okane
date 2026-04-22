@@ -62,7 +62,7 @@ const CustomTooltip = ({
   forecastStartMonth,
 }: {
   active?: boolean;
-  payload?: any[];
+  payload?: Record<string, unknown>[];
   currency?: string;
   locale?: string;
   forecastStartMonth?: string | null;

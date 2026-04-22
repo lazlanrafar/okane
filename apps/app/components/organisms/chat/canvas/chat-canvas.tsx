@@ -30,7 +30,7 @@ export function useStaticArtifactData(type: string) {
 
       for (const part of msg.parts) {
         if (part.type === `data-artifact-${type}` || (part.type as string) === "artifact") {
-          const artifactPart = part as any;
+          const artifactPart = part as Record<string, unknown>;
           const actualType = artifactPart.artifactType || artifactPart.data.type;
           if (actualType === type) {
             return artifactPart.artifact.payload || artifactPart.data.payload || null;

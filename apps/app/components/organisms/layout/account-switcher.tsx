@@ -20,6 +20,8 @@ import {
 } from "@workspace/ui";
 import { Check, LogOut, Monitor, Moon, Sun } from "lucide-react";
 
+import type { AppDictionary } from "@/modules/types/dictionary";
+
 export function AccountSwitcher({
   user,
   dictionary,
@@ -30,7 +32,7 @@ export function AccountSwitcher({
     readonly email: string;
     readonly avatar: string;
   };
-  readonly dictionary: any;
+  readonly dictionary: AppDictionary;
 }) {
   const themeMode = usePreferencesStore((s) => s.themeMode);
   const setThemeMode = usePreferencesStore((s) => s.setThemeMode);

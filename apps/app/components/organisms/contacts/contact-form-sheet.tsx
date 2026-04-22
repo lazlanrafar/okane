@@ -95,9 +95,15 @@ function BillingEmailsInput({ value, onChange }: { value: string[]; onChange: (e
   };
 
   return (
-    <div
+    <label
+      htmlFor="billing-emails-input"
       className="flex min-h-9 w-full cursor-text flex-wrap gap-1.5 border border-input bg-transparent px-3 py-1.5 text-sm"
       onClick={() => inputRef.current.focus()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          inputRef.current.focus();
+        }
+      }}
     >
       {value.map((email) => (
         <Badge key={email} variant="secondary" className="flex items-center gap-1 py-0.5 pr-1 pl-2 font-normal text-xs">
@@ -115,6 +121,7 @@ function BillingEmailsInput({ value, onChange }: { value: string[]; onChange: (e
         </Badge>
       ))}
       <input
+        id="billing-emails-input"
         ref={inputRef}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
@@ -123,7 +130,7 @@ function BillingEmailsInput({ value, onChange }: { value: string[]; onChange: (e
         placeholder={value.length === 0 ? "email@example.com" : ""}
         className="min-w-[120px] flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
       />
-    </div>
+    </label>
   );
 }
 
@@ -136,7 +143,9 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
     setMounted(true);
   }, []);
 
-  const [billingEmails, setBillingEmails] = useState<string[]>((contact as any).billingEmails ?? []);
+  const [billingEmails, setBillingEmails] = useState<string[]>(
+    contact?.billingEmails ? contact.billingEmails.split(",").map((e) => e.trim()) : [],
+  );
   const isEdit = !!contact;
 
   const form = useForm<FormValues>({
@@ -146,7 +155,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
       email: contact.email ?? "",
       phone: contact.phone ?? "",
       website: contact.website ?? "",
-      contact: (contact as any).contact ?? "",
+      contact: contact.contact ?? "",
       addressLine1: contact.addressLine1 ?? "",
       addressLine2: contact.addressLine2 ?? "",
       city: contact.city ?? "",
@@ -165,7 +174,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
         email: contact.email ?? "",
         phone: contact.phone ?? "",
         website: contact.website ?? "",
-        contact: (contact as any).contact ?? "",
+        contact: contact.contact ?? "",
         addressLine1: contact.addressLine1 ?? "",
         addressLine2: contact.addressLine2 ?? "",
         city: contact.city ?? "",
@@ -175,7 +184,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
         note: contact.note ?? "",
         vatNumber: contact.vatNumber ?? "",
       });
-      setBillingEmails((contact as any).billingEmails ?? []);
+      setBillingEmails(contact.billingEmails ? contact.billingEmails.split(",").map((e) => e.trim()) : []);
     } else {
       form.reset({
         name: "",
@@ -222,7 +231,9 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
         billingEmails,
       };
 
-      const result = isEdit ? await updateContact(contact?.id, payload) : await createContact(payload as any);
+      const result = isEdit
+        ? await updateContact(contact?.id, payload)
+        : await createContact(payload as unknown as Contact);
 
       if (result.success) {
         toast.success(isEdit ? dictionary.contacts.toasts.updated : dictionary.contacts.toasts.created);
@@ -295,7 +306,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
 
                       {/* Billing Emails */}
                       <div className="space-y-1">
-                        <label className="font-normal text-muted-foreground text-xs">
+                        <label htmlFor="billing-emails-input" className="font-normal text-muted-foreground text-xs">
                           {dictionary.contacts.form.billing_emails_label}
                         </label>
                         <BillingEmailsInput value={billingEmails} onChange={setBillingEmails} />

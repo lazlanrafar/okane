@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { useParams, useRouter } from "next/navigation";
 
+import { COUNTRIES } from "@workspace/constants";
 import { onboardingCreateWorkspaceAction } from "@workspace/modules/auth/auth.action";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui";
 import { toast } from "sonner";
@@ -30,9 +31,8 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
     setCountry(countryName);
     // Auto-update currency based on country if possible
     // Note: In a real app we'd share this logic more formally
-    const countries = require("@workspace/constants").COUNTRIES as any[];
-    const countryData = countries.find((c) => c.name === countryName);
-    if (countryData.currency) {
+    const countryData = COUNTRIES.find((c) => c.name === countryName);
+    if (countryData?.currency) {
       setCurrency({
         code: countryData.currency.code,
         symbol: countryData.currency.symbol,

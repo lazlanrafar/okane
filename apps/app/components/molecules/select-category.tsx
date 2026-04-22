@@ -66,7 +66,7 @@ export function SelectCategory({
         toast.success(`Category "${data.name}" created`);
       }
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to create category");
     },
   });

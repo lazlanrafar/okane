@@ -67,11 +67,11 @@ function SettingAppearanceSkeleton() {
 }
 
 interface AppearanceFormProps {
-  dictionary: any;
+  dictionary: unknown;
 }
 
 export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
+  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
   const dictionary = dict || storeDict;
 
   const themeMode = usePreferencesStore((s) => s.themeMode);

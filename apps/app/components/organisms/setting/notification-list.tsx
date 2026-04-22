@@ -9,8 +9,8 @@ import { useNotifications } from "@/hooks/use-notifications";
 import { useAppStore } from "@/stores/app";
 
 export function NotificationList() {
-  const { notifications, isLoading, markAsRead, deleteNotification, unreadCount, refetch } = useNotifications();
-  const { dictionary } = useAppStore() as any;
+  const { notifications, isLoading, markAsRead, deleteNotification, unreadCount } = useNotifications();
+  const { dictionary } = useAppStore() as unknown;
   const dict = dictionary.settings.notifications || {};
 
   const handleMarkAllAsRead = () => {

@@ -2,16 +2,44 @@
 
 import { forwardRef } from "react";
 
+import Image from "next/image";
+
+import type { Dictionary } from "@workspace/dictionaries";
 import { Separator } from "@workspace/ui";
 import { format } from "date-fns";
 
+interface InvoiceContact {
+  name: string;
+  email?: string | null;
+}
+
+interface InvoiceLineItem {
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+interface InvoiceWithContact {
+  id: string;
+  invoiceNumber: string;
+  issueDate: string | null;
+  dueDate: string | null;
+  amount: number | string;
+  vat?: number;
+  vat_amount?: number | string;
+  currency: string;
+  noteDetails?: string | null;
+  lineItems: InvoiceLineItem[];
+  contact: InvoiceContact;
+}
+
 interface InvoiceA4Props {
-  invoice: any; // Using any for now to handle joined contact data
+  invoice: InvoiceWithContact;
   workspace?: {
     name: string;
     logoUrl?: string | null;
   };
-  dictionary: any;
+  dictionary: Dictionary;
 }
 
 export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(({ invoice, workspace, dictionary }, ref) => {
@@ -29,9 +57,11 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(({ invoice, 
         {workspace && (
           <div className="flex flex-col items-end gap-3">
             {workspace?.logoUrl ? (
-              <img
-                src={workspace?.logoUrl}
-                alt={workspace?.name}
+              <Image
+                src={workspace.logoUrl}
+                alt={workspace.name}
+                width={96}
+                height={48}
                 className="h-12 w-auto object-contain transition-all dark:invert"
               />
             ) : (
@@ -111,9 +141,9 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(({ invoice, 
         </div>
 
         <div className="divide-y divide-border/30">
-          {invoice.lineItems.map((item: any, idx: number) => (
+          {invoice.lineItems.map((item: InvoiceLineItem) => (
             <div
-              key={idx}
+              key={item.name}
               className="group grid grid-cols-[1fr_80px_100px_120px] gap-4 rounded-lg px-2 py-6 transition-colors hover:bg-muted/30"
             >
               <div className="font-medium text-foreground/90 text-sm">{item.name}</div>

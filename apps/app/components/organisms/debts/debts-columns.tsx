@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui";
+import { format } from "date-fns";
 import { ArrowDownLeft, ArrowUpRight, Edit, ExternalLink, MoreHorizontal, Trash } from "lucide-react";
 
 export const debtColumns = (
@@ -78,15 +79,22 @@ export const debtColumns = (
     header: dictionary.debts.columns.contact,
     cell: ({ row }) => {
       return (
-        <span
+        <button
+          type="button"
           className="cursor-pointer font-medium text-sm hover:underline"
           onClick={(e) => {
             e.stopPropagation();
             onContactClick(row.original.contactId);
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.stopPropagation();
+              onContactClick(row.original.contactId);
+            }
+          }}
         >
           {row.getValue("contactName")}
-        </span>
+        </button>
       );
     },
   },
@@ -156,7 +164,7 @@ export const debtColumns = (
     meta: {
       headerLabel: dictionary.debts.columns.actions,
     },
-    cell: ({ row, table }) => {
+    cell: ({ row }) => {
       const debt = row.original;
 
       return (

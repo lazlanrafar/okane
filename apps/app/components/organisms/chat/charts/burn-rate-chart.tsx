@@ -27,7 +27,7 @@ interface BurnRateChartProps {
 }
 
 // Custom tooltip component
-const CustomTooltip = ({ active, payload, label, currency = "USD", locale }: any) => {
+const CustomTooltip = ({ active, payload, label, currency = "USD", locale }: Record<string, unknown>) => {
   if (active && Array.isArray(payload) && payload.length > 0) {
     const current = payload[0].value;
     const average = payload[1].value;

@@ -53,12 +53,12 @@ export function ConfirmModalProvider({ children }: { children: ReactNode }) {
         // Backdrop — click outside = cancel
         <div
           className="fixed inset-0 z-9999 flex items-center justify-center bg-black/40 backdrop-blur-[2px]"
-          onMouseDown={() => settle(false)}
+          onPointerDown={() => settle(false)}
         >
           {/* Panel — stop propagation so clicks inside don't dismiss */}
           <div
             className="mx-4 w-full max-w-sm space-y-4 border border-border bg-background p-6"
-            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
           >
             <div className="space-y-1.5">
               <h2 className="font-normal font-serif text-xl">{opts.title ?? "Are you absolutely sure?"}</h2>

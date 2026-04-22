@@ -42,8 +42,8 @@ function SettingTransactionSkeleton() {
       <Separator className="rounded-none" />
 
       <div className="space-y-8">
-        {[1, 2, 3].map((_section, i) => (
-          <React.Fragment key={i}>
+        {["section-a", "section-b", "section-c"].map((sectionKey, sectionIndex) => (
+          <React.Fragment key={sectionKey}>
             <div className="space-y-4">
               <div className="space-y-1">
                 <Skeleton className="h-4 w-32 rounded-none" />
@@ -61,7 +61,7 @@ function SettingTransactionSkeleton() {
                 ))}
               </div>
             </div>
-            {i < 2 && <Separator className="rounded-none" />}
+            {sectionIndex < 2 && <Separator className="rounded-none" />}
           </React.Fragment>
         ))}
       </div>
@@ -70,12 +70,12 @@ function SettingTransactionSkeleton() {
 }
 
 interface TransactionSettingsFormProps {
-  dictionary: any;
+  dictionary: unknown;
 }
 
 export function TransactionSettingsForm({ dictionary: dict }: TransactionSettingsFormProps) {
   const queryClient = useQueryClient();
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
+  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
   const dictionary = dict || storeDict;
 
   const { data: settings, isLoading } = useQuery({
@@ -106,10 +106,10 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
     return <SettingTransactionSkeleton />;
   }
 
-  const transaction = dictionary.settings.transaction || (dictionary as any).transaction;
-  const _common = dictionary.settings.common || (dictionary as any).common;
+  const transaction = dictionary.settings.transaction || (dictionary as unknown).transaction;
+  const _common = dictionary.settings.common || (dictionary as unknown).common;
 
-  const updateSetting = (key: keyof TransactionSettings, value: any) => {
+  const updateSetting = (key: keyof TransactionSettings, value: unknown) => {
     mutation.mutate({ [key]: value });
   };
 

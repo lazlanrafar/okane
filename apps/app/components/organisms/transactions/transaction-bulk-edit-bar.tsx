@@ -45,6 +45,7 @@ export function TransactionBulkEditBar() {
               <span className="font-medium font-sans text-foreground text-sm">{selectedCount} selected</span>
               <div className="mx-1 h-4 w-px bg-border" />
               <button
+                type="button"
                 onClick={resetSelection}
                 className="flex items-center gap-1.5 font-sans text-muted-foreground text-xs transition-colors hover:text-foreground"
               >
@@ -103,7 +104,11 @@ export function TransactionBulkEditBar() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button onClick={resetSelection} className="rounded-md p-1 transition-colors hover:bg-muted">
+                    <button
+                      type="button"
+                      onClick={resetSelection}
+                      className="rounded-md p-1 transition-colors hover:bg-muted"
+                    >
                       <X className="h-4 w-4 text-muted-foreground" />
                     </button>
                   </TooltipTrigger>

@@ -136,9 +136,16 @@ export function getYAxisWidth(value: string | undefined | null) {
 }
 
 // Utility hook for calculating chart margins based on tick text length
-export const useChartMargin = (data: any[], dataKey: string, tickFormatter: (value: number) => string) => {
+export const useChartMargin = (
+  data: Record<string, unknown>[],
+  dataKey: string,
+  tickFormatter: (value: number) => string,
+) => {
   // Calculate both min and max values from the data
-  const values = data.map((d) => d[dataKey]);
+  const values = data.map((d) => {
+    const raw = (d as Record<string, unknown>)[dataKey];
+    return typeof raw === "number" ? raw : Number(raw ?? 0);
+  });
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
 
@@ -169,17 +176,17 @@ export const useChartMargin = (data: any[], dataKey: string, tickFormatter: (val
 
 // Common chart props interface
 export interface BaseChartProps {
-  data: any[];
+  data: Record<string, unknown>[];
   height?: number;
   className?: string;
   showAnimation?: boolean;
 }
 
 // Get date from data index for chart selection
-export function getDateFromDataIndex(data: any[], index: number, dateKey: string): Date | null {
+export function getDateFromDataIndex(data: Record<string, unknown>[], index: number, dateKey: string): Date | null {
   if (index < 0 || index >= data.length) return null;
 
-  const item = data[index];
+  const item = data[index] as Record<string, unknown>;
   const dateValue = item[dateKey];
 
   if (dateValue instanceof Date) {

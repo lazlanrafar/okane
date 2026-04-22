@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { updateWallet } from "@workspace/modules/client";
@@ -18,10 +18,9 @@ interface AccountDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   walletId?: string;
-  groups?: any[];
-  onEdit: (wallet: Wallet) => void;
-  onDelete: (wallet: Wallet) => void;
-  dictionary: any;
+  onEdit?: (wallet: Wallet) => void;
+  onDelete?: (wallet: Wallet) => void;
+  dictionary: Record<string, unknown>;
   locale?: string;
 }
 
@@ -29,9 +28,6 @@ export function AccountDetailSheet({
   open,
   onOpenChange,
   walletId,
-  groups = [],
-  onEdit,
-  onDelete,
   dictionary,
   locale = "en-US",
 }: AccountDetailSheetProps) {
@@ -56,7 +52,7 @@ export function AccountDetailSheet({
         const { getWallet } = await import("@workspace/modules/client");
         const res = await getWallet(walletId);
         if (res.success && res.data) {
-          setWallet(res.data as any);
+          setWallet(res.data as Wallet);
         }
       };
       fetchWallet();
@@ -73,19 +69,25 @@ export function AccountDetailSheet({
     }
   }, [wallet?.id, wallet.balance, wallet.isIncludedInTotals, wallet]);
 
-  const updateWalletInCache = (updatedData: Partial<Wallet>) => {
-    if (!wallet?.id) return;
-    queryClient.setQueriesData({ queryKey: ["wallets"] }, (old: any) => {
-      if (!old) return old;
-      return {
-        ...old,
-        pages: old.pages?.map((page: any) => ({
-          ...page,
-          data: page.data.map((w: any) => (w.id === wallet.id ? { ...w, ...updatedData } : w)),
-        })),
-      };
-    });
-  };
+  const updateWalletInCache = useCallback(
+    (updatedData: Partial<Wallet>) => {
+      if (!wallet?.id) return;
+      queryClient.setQueriesData(
+        { queryKey: ["wallets"] },
+        (old: { pages?: Array<{ data: Wallet[] }> } | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages?.map((page: { data: Wallet[] }) => ({
+              ...page,
+              data: page.data.map((w: Wallet) => (w.id === wallet.id ? { ...w, ...updatedData } : w)),
+            })),
+          };
+        },
+      );
+    },
+    [wallet?.id, queryClient],
+  );
 
   // Real-time update for Name
   useEffect(() => {
@@ -159,12 +161,13 @@ export function AccountDetailSheet({
                   />
                 </div>
               ) : (
-                <h1
-                  className="cursor-pointer font-medium font-serif text-5xl tracking-tighter transition-opacity hover:opacity-80"
+                <button
+                  type="button"
+                  className="cursor-pointer border-none bg-transparent p-0 font-medium font-serif text-5xl tracking-tighter transition-opacity hover:opacity-80"
                   onClick={() => setIsEditingBalance(true)}
                 >
                   {formatCurrency(Number(wallet.balance), { locale })}
-                </h1>
+                </button>
               )}
             </div>
           </div>
@@ -251,7 +254,11 @@ export function AccountDetailSheet({
           <div className="flex items-center gap-4">{/* Future account actions could go here */}</div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => onOpenChange(false)} className="group px-3 py-2 transition-colors hover:bg-muted/40">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="group px-3 py-2 transition-colors hover:bg-muted/40"
+            >
               <span className="font-bold text-[10px] text-muted-foreground uppercase tracking-widest group-hover:text-foreground">
                 {dictionary.transactions.esc}
               </span>

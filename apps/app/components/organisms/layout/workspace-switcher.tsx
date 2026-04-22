@@ -19,7 +19,7 @@ import {
 import { Cat, ChevronsUpDown, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-import { useLocalizedRoute } from "@/utils/localized-route";
+import { type AppDictionary, getDictionaryText } from "@/modules/types/dictionary";
 
 import { CreateWorkspaceDialog } from "./create-workspace-dialog";
 
@@ -39,7 +39,7 @@ export function WorkspaceSwitcher({
 }: {
   workspaces: WorkspaceData[];
   activeWorkspaceId?: string | null;
-  dictionary: any;
+  dictionary: AppDictionary;
 }) {
   const { isMobile } = useSidebar();
   const [activeWorkspace, setActiveWorkspace] = React.useState(
@@ -48,26 +48,9 @@ export function WorkspaceSwitcher({
 
   const [isSwitching, setIsSwitching] = React.useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
-  const { getLocalizedUrl } = useLocalizedRoute();
 
-  const t = (key: string, variables?: Record<string, string | number>) => {
-    if (!key || !key.includes(".") || !dictionary) return key;
-    const keys = key.split(".");
-    let result: any = dictionary;
-    for (const k of keys) {
-      if (!result || !result[k]) return key;
-      result = result[k];
-    }
-    if (typeof result !== "string") return key;
-
-    if (variables) {
-      Object.entries(variables).forEach(([k, v]) => {
-        result = result.replace(`{${k}}`, String(v));
-      });
-    }
-
-    return result;
-  };
+  const t = (key: string, variables?: Record<string, string | number>) =>
+    getDictionaryText(dictionary, key, key, variables);
 
   // Sync state if activeWorkspaceId changes (e.g. from parent)
   React.useEffect(() => {
@@ -176,7 +159,7 @@ export function WorkspaceSwitcher({
         </DropdownMenu>
       </SidebarMenuItem>
 
-      <CreateWorkspaceDialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} dictionary={dictionary} />
+      <CreateWorkspaceDialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} />
     </SidebarMenu>
   );
 }

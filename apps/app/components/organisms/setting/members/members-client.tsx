@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { useRouter } from "next/navigation";
 
+import type { Dictionary } from "@workspace/dictionaries";
 import { cancelInvitation } from "@workspace/modules/workspace/workspace.action";
 import {
   Avatar,
@@ -49,7 +50,7 @@ interface Invitation {
 interface MembersClientProps {
   members: Member[];
   invitations: Invitation[];
-  dictionary: any;
+  dictionary: Dictionary;
 }
 
 import { Separator } from "@workspace/ui";
@@ -93,7 +94,7 @@ export function MembersClient({ members, invitations, dictionary }: MembersClien
   const router = useRouter();
   const [_activeTab, setActiveTab] = useState("members");
 
-  const settingsDict = (dictionary as any).settings.members;
+  const settingsDict = dictionary.settings.members;
 
   const handleRefresh = () => {
     router.refresh();
@@ -109,7 +110,7 @@ export function MembersClient({ members, invitations, dictionary }: MembersClien
     }
   };
 
-  const common = (dictionary as any).settings.common;
+  const common = dictionary.settings.common;
 
   return (
     <div className="space-y-8">

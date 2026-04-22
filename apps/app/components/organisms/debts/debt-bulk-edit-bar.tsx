@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { bulkDeleteDebts } from "@workspace/modules/debt/debt.action";
 import { Button, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui";
 import { AnimatePresence, motion } from "framer-motion";
@@ -15,7 +16,7 @@ import { useConfirm } from "@/components/providers/confirm-modal-provider";
 import { useDebtsStore } from "@/stores/debts";
 
 interface Props {
-  dictionary: any;
+  dictionary: Dictionary;
 }
 
 export function DebtBulkEditBar({ dictionary }: Props) {
@@ -53,6 +54,7 @@ export function DebtBulkEditBar({ dictionary }: Props) {
               </span>
               <div className="mx-1 h-4 w-px bg-border" />
               <button
+                type="button"
                 onClick={resetSelection}
                 className="flex items-center gap-1.5 font-sans text-muted-foreground text-xs transition-colors hover:text-foreground"
               >
@@ -112,7 +114,11 @@ export function DebtBulkEditBar({ dictionary }: Props) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button onClick={resetSelection} className="rounded-md p-1 transition-colors hover:bg-muted">
+                    <button
+                      type="button"
+                      onClick={resetSelection}
+                      className="rounded-md p-1 transition-colors hover:bg-muted"
+                    >
                       <X className="h-4 w-4 text-muted-foreground" />
                     </button>
                   </TooltipTrigger>

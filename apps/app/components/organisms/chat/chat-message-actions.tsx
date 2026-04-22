@@ -9,14 +9,11 @@ import type { Dictionary } from "@workspace/dictionaries";
 import { cn, Icons, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui";
 
 interface ChatMessageActionsProps {
-  messageId: string;
   messageContent: string;
-  /** Optional insight ID to enable audio playback */
-  insightId?: string;
   dictionary: Dictionary;
 }
 
-export function ChatMessageActions({ messageId, messageContent, insightId, dictionary }: ChatMessageActionsProps) {
+export function ChatMessageActions({ messageContent, dictionary }: ChatMessageActionsProps) {
   const chatId = useChatId();
   const { regenerate } = useChatActions();
   const [feedbackGiven, setFeedbackGiven] = useState<"positive" | "negative" | null>(null);

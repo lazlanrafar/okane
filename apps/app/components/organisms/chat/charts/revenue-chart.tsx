@@ -22,7 +22,12 @@ interface RevenueChartProps extends BaseChartProps {
 }
 
 // Custom formatter for revenue tooltip
-const revenueTooltipFormatter = (value: any, name: string, currency = "USD", locale?: string): [string, string] => {
+const revenueTooltipFormatter = (
+  value: number | string,
+  name: string,
+  currency = "USD",
+  locale?: string,
+): [string, string] => {
   const formattedValue =
     formatAmount({
       amount: value,
@@ -70,7 +75,9 @@ export function RevenueChart({
         <Tooltip
           content={
             <StyledTooltip
-              formatter={(value: any, name: string) => revenueTooltipFormatter(value, name, currency, locale)}
+              formatter={(value: number | string, name: string) =>
+                revenueTooltipFormatter(value, name, currency, locale)
+              }
             />
           }
           wrapperStyle={{ zIndex: 9999 }}

@@ -27,17 +27,17 @@ interface App {
   requires_plan?: string;
   active: boolean;
   beta?: boolean;
-  logo?: any;
+  logo?: React.ElementType | string;
   short_description?: string;
   description?: string;
-  images?: any[];
+  images?: Array<string | { src?: string; default?: { src: string } }>;
   installed: boolean;
   type: "official" | "external";
   installUrl?: string;
   developerName?: string;
   website?: string;
   scopes?: string[];
-  settings?: any[];
+  settings?: Record<string, unknown>[];
   overview?: string;
 }
 
@@ -86,7 +86,10 @@ export function AppsCard({
           {app.type === "official" && app.logo && typeof app.logo !== "string" ? (
             <app.logo />
           ) : app.logo ? (
-            <img src={app.logo as string} alt={app.name} className="h-8 w-8 rounded" />
+            <>
+              {/* biome-ignore lint/performance/noImgElement: App logo is a dynamic external image */}
+              <img src={app.logo as string} alt={app.name} className="h-8 w-8 rounded" />
+            </>
           ) : (
             <div className="flex h-8 w-8 items-center justify-center rounded bg-secondary font-bold text-xs uppercase">
               {app.name.charAt(0)}
@@ -161,11 +164,13 @@ export function AppsCard({
           <SheetHeader className="p-6 text-left">
             {app.images && app.images.length > 0 && (
               <div className="mb-4">
+                {/* biome-ignore lint/performance/noImgElement: App screenshot is a dynamic external image */}
                 <img
                   src={
                     typeof app.images[0] === "string"
                       ? app.images[0]
-                      : (app.images[0] as any).default.src || (app.images[0] as any).src
+                      : (app.images[0] as { default?: { src: string }; src?: string }).default?.src ||
+                        (app.images[0] as { src?: string }).src
                   }
                   alt={app.name}
                   className="h-auto w-full rounded-lg object-cover"
@@ -178,7 +183,10 @@ export function AppsCard({
                 {app.type === "official" && app.logo && typeof app.logo !== "string" ? (
                   <app.logo />
                 ) : app.logo ? (
-                  <img src={app.logo as string} alt={app.name} className="h-10 w-10 rounded" />
+                  <>
+                    {/* biome-ignore lint/performance/noImgElement: App logo is a dynamic external image */}
+                    <img src={app.logo as string} alt={app.name} className="h-10 w-10 rounded" />
+                  </>
                 ) : (
                   <div className="flex h-10 w-10 items-center justify-center rounded bg-secondary font-bold uppercase">
                     {app.name.charAt(0)}

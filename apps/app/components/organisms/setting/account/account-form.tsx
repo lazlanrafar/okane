@@ -35,11 +35,11 @@ function SettingAccountSkeleton() {
 }
 
 interface AccountFormProps {
-  dictionary: any;
+  dictionary: unknown;
 }
 
 export function AccountForm({ dictionary: dict }: AccountFormProps) {
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
+  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
   const dictionary = dict || storeDict;
   const account = dictionary.settings.account;
   const providers_t = account.providers;

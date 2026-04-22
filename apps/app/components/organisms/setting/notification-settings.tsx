@@ -10,7 +10,7 @@ import { NotificationList } from "./notification-list";
 
 export function NotificationSettings() {
   const { settings, updateSettings, isLoading } = useNotifications();
-  const { dictionary } = useAppStore() as any;
+  const { dictionary } = useAppStore() as unknown;
   const dict = dictionary.settings.notifications || {};
 
   const handleToggle = (key: string, value: boolean) => {

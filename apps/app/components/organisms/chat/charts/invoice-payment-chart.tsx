@@ -17,7 +17,7 @@ interface InvoicePaymentChartProps {
 }
 
 // Custom tooltip component
-const CustomTooltip = ({ active, payload, label, locale }: any) => {
+const CustomTooltip = ({ active, payload, label }: Record<string, unknown>) => {
   if (active && Array.isArray(payload) && payload.length > 0) {
     const averageDaysToPay = payload.find((p) => p.dataKey === "averageDaysToPay").value;
     const paymentRate = payload.find((p) => p.dataKey === "paymentRate").value;

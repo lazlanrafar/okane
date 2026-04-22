@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { Env } from "@workspace/constants";
@@ -17,7 +17,7 @@ export function useRealtime() {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttempts = useRef(0);
 
-  const connect = async () => {
+  const connect = useCallback(async () => {
     // 1. Get Token (similar logic to axios.client.ts)
     // For HttpOnly cookies, we won't be able to read it here, but the browser
     // will automatically send it in the WebSocket headers.
@@ -74,7 +74,7 @@ export function useRealtime() {
           if (data.type) {
             console.log(`[Realtime] 🔄 Invalidating queries for: ${data.type}`);
 
-            // Invalidate the relevant query key (fuzzy match: any key starting with this type)
+            // Invalidate the relevant query key (fuzzy match: unknown key starting with this type)
             queryClient.invalidateQueries({
               queryKey: [data.type],
               refetchType: "all",
@@ -110,7 +110,7 @@ export function useRealtime() {
       console.error("[Realtime] ❌ Connection failed", e);
       reconnectTimeoutRef.current = setTimeout(connect, 5000);
     }
-  };
+  }, [queryClient]);
 
   useEffect(() => {
     connect();

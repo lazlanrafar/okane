@@ -22,7 +22,7 @@ import { useAppStore } from "@/stores/app";
 
 interface MainCurrencyFormProps {
   settings: TransactionSettings;
-  dictionary: any;
+  dictionary: unknown;
 }
 
 function MainCurrencySkeleton() {

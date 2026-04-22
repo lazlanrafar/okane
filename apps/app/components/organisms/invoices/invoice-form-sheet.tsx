@@ -1,6 +1,16 @@
 "use client";
 
-import { forwardRef, type InputHTMLAttributes, type TextareaHTMLAttributes, useEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  type InputHTMLAttributes,
+  type TextareaHTMLAttributes,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import Image from "next/image";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dictionary } from "@workspace/dictionaries";
@@ -134,7 +144,7 @@ const HashImage = forwardRef<
         // Also update default logo
         await updateTransactionSettings({
           invoiceLogoUrl: res.data.url,
-        } as any);
+        } as unknown);
       } else {
         toast.error("Upload failed");
       }
@@ -156,7 +166,7 @@ const HashImage = forwardRef<
     >
       {value ? (
         <>
-          <img src={value} alt="Logo" className="h-full w-full object-contain" />
+          <Image src={value} alt="Logo" fill unoptimized sizes="100vw" className="object-contain" />
           <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
             <Button type="button" variant="secondary" size="sm" onClick={() => internalRef.current.click()}>
               Change
@@ -164,8 +174,15 @@ const HashImage = forwardRef<
           </div>
         </>
       ) : (
-        <div
+        <button
+          type="button"
           onClick={() => internalRef.current.click()}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              internalRef.current.click();
+            }
+          }}
           className="flex h-full w-full cursor-pointer flex-col items-center justify-center transition-colors hover:bg-muted/50"
         >
           {uploading ? (
@@ -176,7 +193,7 @@ const HashImage = forwardRef<
               <span className="text-[10px] text-muted-foreground">Upload Logo</span>
             </>
           )}
-        </div>
+        </button>
       )}
       <input
         ref={internalRef}
@@ -327,7 +344,7 @@ export function InvoiceFormSheet({
     ? (watchedLineItems || []).reduce((acc: number, item) => {
         const qty = Number(item.quantity) || 0;
         const price = Number(item.price) || 0;
-        const tax = Number((item as any).tax) || 0;
+        const tax = Number((item as unknown).tax) || 0;
         return acc + qty * price * (tax / 100);
       }, 0)
     : 0;
@@ -366,16 +383,16 @@ export function InvoiceFormSheet({
         tax: Number(invoice.tax ?? 0),
         internalNote: invoice.internalNote ?? "",
         noteDetails: invoice.noteDetails ?? "",
-        paymentDetails: (invoice as any).paymentDetails ?? "",
-        logoUrl: (invoice as any).logoUrl ?? "",
-        fromDetails: (invoice as any).fromDetails ?? "", // Assuming we might add this later
-        lineItems: (invoice.lineItems as any[]) ?? [{ name: "", quantity: 1, price: 0 }],
+        paymentDetails: (invoice as unknown).paymentDetails ?? "",
+        logoUrl: (invoice as unknown).logoUrl ?? "",
+        fromDetails: (invoice as unknown).fromDetails ?? "", // Assuming we might add this later
+        lineItems: (invoice.lineItems as unknown[]) ?? [{ name: "", quantity: 1, price: 0 }],
         status: invoice.status || "draft",
-        invoiceSize: (invoice as any).invoiceSize || "A4",
-        dateFormat: (invoice as any).dateFormat || "DD/MM/YYYY",
-        paymentTerms: (invoice as any).paymentTerms || "Due on Receipt",
-        templateName: (invoice as any).templateName || "Default",
-        invoiceSettings: (invoice as any).invoiceSettings || {
+        invoiceSize: (invoice as unknown).invoiceSize || "A4",
+        dateFormat: (invoice as unknown).dateFormat || "DD/MM/YYYY",
+        paymentTerms: (invoice as unknown).paymentTerms || "Due on Receipt",
+        templateName: (invoice as unknown).templateName || "Default",
+        invoiceSettings: (invoice as unknown).invoiceSettings || {
           salesTax: false,
           vat: false,
           lineItemTax: false,
@@ -385,7 +402,7 @@ export function InvoiceFormSheet({
           qrCode: true,
         },
         isPublic: invoice.isPublic ?? false,
-        accessCode: (invoice as any).accessCode ?? "",
+        accessCode: (invoice as unknown).accessCode ?? "",
       });
     } else if (open && !invoice) {
       const today = new Date();
@@ -427,6 +444,35 @@ export function InvoiceFormSheet({
     }
   }, [invoice, open, form]);
 
+  const onFormSubmit = useCallback(
+    async (values: FormValues, isSilent = false) => {
+      if (loading) return;
+      setLoading(true);
+      try {
+        // Re-calculate one last time before submit to be safe
+        const st = values.lineItems.reduce((acc, item) => acc + Number(item.quantity) * Number(item.price), 0);
+        const va = (st * Number(values.vat || 0)) / 100;
+        const finalAmt = st + va;
+
+        const payload = { ...values, amount: finalAmt };
+
+        const result = await onSubmit(payload as CreateInvoiceData, isSilent);
+        if (result) {
+          if (!isSilent) {
+            toast.success(isEditing ? "Invoice updated" : "Invoice created");
+            onSuccess?.();
+            onOpenChange(false);
+          }
+        }
+      } catch {
+        if (!isSilent) toast.error("Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [isEditing, loading, onOpenChange, onSubmit, onSuccess],
+  );
+
   // Auto-save as draft when contact is selected for a new invoice
   const contactId = useWatch({ control: form.control, name: "contactId" });
   useEffect(() => {
@@ -437,32 +483,6 @@ export function InvoiceFormSheet({
       }
     }
   }, [contactId, open, isEditing, form, onFormSubmit]);
-
-  const onFormSubmit = async (values: FormValues, isSilent = false) => {
-    if (loading) return;
-    setLoading(true);
-    try {
-      // Re-calculate one last time before submit to be safe
-      const st = values.lineItems.reduce((acc, item) => acc + Number(item.quantity) * Number(item.price), 0);
-      const va = (st * Number(values.vat || 0)) / 100;
-      const finalAmt = st + va;
-
-      const payload = { ...values, amount: finalAmt };
-
-      const result = await onSubmit(payload as CreateInvoiceData, isSilent);
-      if (result) {
-        if (!isSilent) {
-          toast.success(isEditing ? "Invoice updated" : "Invoice created");
-          onSuccess?.();
-          onOpenChange(false);
-        }
-      }
-    } catch {
-      if (!isSilent) toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = (values: FormValues) => onFormSubmit(values, false);
 
@@ -492,7 +512,7 @@ export function InvoiceFormSheet({
                   <div className="grid grid-cols-[80px_1fr] items-center gap-2">
                     <span className="text-[11px] text-muted-foreground">{dict.details.number || "Invoice No"}:</span>
                     <FormField
-                      control={form.control as any}
+                      control={form.control as unknown}
                       name="invoiceNumber"
                       render={({ field }) => (
                         <FormItem>
@@ -512,7 +532,7 @@ export function InvoiceFormSheet({
                   <div className="grid grid-cols-[80px_1fr] items-center gap-2">
                     <span className="text-[11px] text-muted-foreground">{dict.details.issued || "Issue Date"}:</span>
                     <FormField
-                      control={form.control as any}
+                      control={form.control as unknown}
                       name="issueDate"
                       render={({ field }) => (
                         <FormItem>
@@ -532,7 +552,7 @@ export function InvoiceFormSheet({
                   <div className="grid grid-cols-[80px_1fr] items-center gap-2">
                     <span className="text-[11px] text-muted-foreground">{dict.details.due || "Due Date"}:</span>
                     <FormField
-                      control={form.control as any}
+                      control={form.control as unknown}
                       name="dueDate"
                       render={({ field }) => (
                         <FormItem>
@@ -553,7 +573,7 @@ export function InvoiceFormSheet({
                 {/* Logo Section */}
                 <div className="flex flex-col items-end">
                   <FormField
-                    control={form.control as any}
+                    control={form.control as unknown}
                     name="logoUrl"
                     render={({ field }) => (
                       <FormItem>
@@ -572,7 +592,7 @@ export function InvoiceFormSheet({
                 <div className="flex flex-col gap-2">
                   <span className="text-[11px] text-muted-foreground">{dict.details.from || "From"}</span>
                   <FormField
-                    control={form.control as any}
+                    control={form.control as unknown}
                     name="fromDetails"
                     render={({ field }) => (
                       <FormItem className="h-28">
@@ -592,7 +612,7 @@ export function InvoiceFormSheet({
                 <div className="flex flex-col gap-2">
                   <span className="text-[11px] text-muted-foreground">{dict.details.bill_to || "To"}</span>
                   <FormField
-                    control={form.control as any}
+                    control={form.control as unknown}
                     name="contactId"
                     render={({ field }) => (
                       <FormItem>
@@ -653,7 +673,7 @@ export function InvoiceFormSheet({
                         )}
                       >
                         <FormField
-                          control={form.control as any}
+                          control={form.control as unknown}
                           name={`lineItems.${index}.name`}
                           render={({ field }) => (
                             <FormItem className="space-y-0">
@@ -665,7 +685,7 @@ export function InvoiceFormSheet({
                         />
 
                         <FormField
-                          control={form.control as any}
+                          control={form.control as unknown}
                           name={`lineItems.${index}.quantity`}
                           render={({ field }) => (
                             <FormItem className="space-y-0">
@@ -684,7 +704,7 @@ export function InvoiceFormSheet({
 
                         <div className="flex items-center">
                           <FormField
-                            control={form.control as any}
+                            control={form.control as unknown}
                             name={`lineItems.${index}.price`}
                             render={({ field }) => (
                               <FormItem className="w-full space-y-0">
@@ -706,7 +726,7 @@ export function InvoiceFormSheet({
                         {showLineItemTax && (
                           <div className="flex items-center">
                             <FormField
-                              control={form.control as any}
+                              control={form.control as unknown}
                               name={`lineItems.${index}.tax`}
                               render={({ field }) => (
                                 <FormItem className="w-full space-y-0">
@@ -924,7 +944,7 @@ export function InvoiceFormSheet({
           <div className="flex items-center gap-2">
             <InvoiceSettings
               settings={form.watch()}
-              onUpdate={(key, value) => form.setValue(key as any, value, { shouldDirty: true })}
+              onUpdate={(key, value) => form.setValue(key as unknown, value, { shouldDirty: true })}
               onRename={() => {
                 const newName = prompt(
                   dict.actions.rename_template || "Enter template name:",

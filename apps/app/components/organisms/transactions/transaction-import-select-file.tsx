@@ -66,7 +66,7 @@ export function SelectFile() {
             setFileColumns(headers);
             setFirstRows(jsonData as Record<string, string>[]);
             setIsLoading(false);
-          } catch (err: any) {
+          } catch (err: unknown) {
             setError(`Failed to parse Excel: ${err.message}`);
             setIsLoading(false);
           }
@@ -78,7 +78,7 @@ export function SelectFile() {
           Papa.parse(text, {
             header: true,
             skipEmptyLines: true,
-            complete: (results: Papa.ParseResult<any>) => {
+            complete: (results: Papa.ParseResult<unknown>) => {
               if (results.data.length < 1) {
                 setError("CSV file looks empty.");
                 setIsLoading(false);
@@ -86,7 +86,7 @@ export function SelectFile() {
               }
 
               setFileColumns(results.meta.fields || []);
-              setFirstRows(results.data as any[]);
+              setFirstRows(results.data as unknown[]);
               setIsLoading(false);
             },
             error: (err: Error) => {

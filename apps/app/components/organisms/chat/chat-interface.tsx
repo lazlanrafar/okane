@@ -12,7 +12,6 @@ import {
   useChatId as useSDKChatId,
   useChatStatus as useSDKChatStatus,
 } from "@ai-sdk-tools/store";
-import type { Geo } from "@vercel/functions";
 import type { Dictionary } from "@workspace/dictionaries";
 import { cn, useSidebar } from "@workspace/ui";
 import { useChatInterface, useChatStatus } from "@workspace/ui/hooks";
@@ -31,13 +30,12 @@ import { ChatStatusIndicators } from "./chat-status-indicators";
 const Canvas = dynamic(() => import("./canvas/chat-canvas").then((mod) => mod.Canvas), { ssr: false });
 
 type Props = {
-  geo?: Geo;
   dictionary: Dictionary;
 };
 
-export default function ChatInterface({ geo, dictionary }: Props) {
+export default function ChatInterface({ dictionary }: Props) {
   const { state: sidebarState } = useSidebar();
-  const { chatId: routeChatId, setChatId, isHome: routeIsHome } = useChatInterface();
+  const { chatId: routeChatId } = useChatInterface();
   const _chatIdFromStore = useSDKChatId();
   const { reset } = useChatActions();
   const { setScrollY, setIsHome } = useChatStore();
@@ -208,7 +206,7 @@ export default function ChatInterface({ geo, dictionary }: Props) {
           )}
         >
           <div className="pointer-events-auto w-full max-w-[770px] px-4">
-            <ChatInput dictionary={dictionary} />
+            <ChatInput />
           </div>
         </div>
       </div>

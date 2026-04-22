@@ -62,7 +62,7 @@ async function TransactionPageContent({
   let rowCount = 0;
   let initialWallets: Wallet[] = [];
   let initialCategories: Category[] = [];
-  let dictData: any = null;
+  let dictData: Record<string, string> | null = null;
 
   try {
     const [transactionsRes, walletsRes, categoriesRes, fetchedDict] = await Promise.all([
@@ -74,7 +74,7 @@ async function TransactionPageContent({
         categoryId,
         startDate,
         endDate,
-      } as any),
+      } as Parameters<typeof getTransactions>[0]),
       getWallets(),
       getCategories(),
       getDictionary(locale),

@@ -68,7 +68,7 @@ export function ContactTableSkeleton() {
       </div>
 
       <div className="relative min-h-0 flex-1">
-        <TableSkeleton columns={columns as any} rowCount={10} actionsColumnId="actions" />
+        <TableSkeleton columns={columns} rowCount={10} actionsColumnId="actions" />
       </div>
     </div>
   );

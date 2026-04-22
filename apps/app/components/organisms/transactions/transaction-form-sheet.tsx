@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { createTransaction, updateTransaction } from "@workspace/modules/transaction/transaction.action";
 import { uploadVaultFile } from "@workspace/modules/vault/vault.action";
 import type { Transaction } from "@workspace/types";
@@ -37,14 +38,14 @@ import { SelectUser } from "@/components/molecules/select-user";
 import { VaultPickerModal } from "@/components/molecules/vault-picker-modal";
 import { useAppStore } from "@/stores/app";
 
-const getTransactionSchema = (dictionary: any) =>
+const getTransactionSchema = (dictionary: Dictionary) =>
   z.object({
     amount: z.coerce.number().positive(dictionary.transactions.errors.amount_positive || "Amount must be positive"),
     date: z.string().refine((val) => !Number.isNaN(Date.parse(val)), {
       message: dictionary.transactions.errors.invalid_date || "Invalid date",
     }),
     type: z.enum(["income", "expense", "transfer", "transfer-in", "transfer-out"]),
-    walletId: z.string().min(1, dictionary.transactions.errors.wallet_required || "Account is required"),
+    walletId: z.string().min(1, dictionary.transactions.errors.wallet_required),
     toWalletId: z.string().optional(),
     categoryId: z.string().optional(),
     name: z.string().optional().nullable(),
@@ -80,7 +81,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   transaction?: Transaction;
   onSuccess?: () => void;
-  dictionary: any;
+  dictionary: Dictionary;
 }
 
 export function TransactionFormSheet({ open, onOpenChange, transaction, onSuccess, dictionary }: Props) {
@@ -92,13 +93,13 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
   );
   const [attachments, setAttachments] = useState<VaultFileRef[]>([]);
   const [vaultPickerOpen, setVaultPickerOpen] = useState(false);
-  const { settings, user } = useAppStore() as any;
+  const { settings, user } = useAppStore();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const schema = useMemo(() => (dictionary ? getTransactionSchema(dictionary) : ({} as any)), [dictionary]);
+  const schema = useMemo(() => getTransactionSchema(dictionary), [dictionary]);
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -136,7 +137,7 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
             assignedUserId: transaction?.assignedUserId ?? "",
           });
           setAttachments(transaction?.attachments ?? []);
-          setActiveTab(transaction?.type as any);
+          setActiveTab(transaction?.type as TransactionFormValues["type"]);
         } else {
           form.reset({
             type: "expense",
@@ -239,15 +240,15 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
       if (result.success) return result.data;
       throw new Error(result.error);
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: { id: string; name: string; size: number; type: string }) => {
       queryClient.invalidateQueries({ queryKey: ["vault-files"] });
       setAttachments((prev) => {
         if (prev.find((a) => a.id === data.id)) return prev;
         return [...prev, { id: data.id, name: data.name, size: data.size, type: data.type }];
       });
     },
-    onError: (error: any) => {
-      toast.error(error.message || dictionary.transactions.errors.upload_failed || "Upload failed");
+    onError: (error: Error) => {
+      toast.error(error.message || dictionary.transactions.errors.upload_failed);
     },
   });
 
@@ -257,12 +258,12 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
     if (filesArray.length === 0) return;
 
     const toastId = toast.loading(
-      dictionary.transactions.toasts.uploading_files.replace("{count}", filesArray.length.toString()),
+      dictionary.transactions.uploading_files.replace("{count}", filesArray.length.toString()),
     );
 
     try {
       await Promise.all(filesArray.map((file) => uploadMutation.mutateAsync(file)));
-      toast.success(dictionary.transactions.toasts.all_uploads_success, {
+      toast.success(dictionary.transactions.all_uploads_success, {
         id: toastId,
       });
     } catch (_error) {
@@ -567,7 +568,8 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   </div>
                 )}
 
-                <div
+                <button
+                  type="button"
                   className="group relative mt-2 flex aspect-3/1 cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden border-2 border-dashed bg-muted/5 transition-all hover:border-border/60 hover:bg-muted/10 sm:aspect-[4/1]"
                   onDragOver={(e) => {
                     e.preventDefault();
@@ -583,6 +585,12 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                     if (e.dataTransfer.files) handleUploadFiles(e.dataTransfer.files);
                   }}
                   onClick={() => setVaultPickerOpen(true)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setVaultPickerOpen(true);
+                    }
+                  }}
                 >
                   <div className="rounded-full border border-border/20 bg-background p-2 shadow-sm transition-transform group-hover:scale-110">
                     <Paperclip className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
@@ -599,7 +607,7 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                       <span className="animate-pulse font-medium text-xs">{dictionary.transactions.saving}</span>
                     </div>
                   )}
-                </div>
+                </button>
               </div>
             </form>
 

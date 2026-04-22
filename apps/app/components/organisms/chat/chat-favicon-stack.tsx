@@ -65,8 +65,13 @@ export function ChatFaviconStack({ sources }: FaviconStackProps) {
               className="-ml-2 relative first:ml-0"
               style={{ zIndex: sources.length - index }}
             >
-              <span onClick={() => handleOnClick(source.url)} className="cursor-pointer">
+              <button
+                type="button"
+                onClick={() => handleOnClick(source.url)}
+                className="cursor-pointer border-none bg-transparent p-0 text-left"
+              >
                 <div className="relative flex h-5 w-5 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-border bg-background shadow-sm">
+                  {/* biome-ignore lint/performance/noImgElement: Favicon is a small external image */}
                   <img
                     src={getFaviconUrl(source.url)}
                     alt=""
@@ -85,7 +90,7 @@ export function ChatFaviconStack({ sources }: FaviconStackProps) {
                     style={{ display: "none" }}
                   />
                 </div>
-              </span>
+              </button>
             </motion.div>
           ))}
         </AnimatePresence>

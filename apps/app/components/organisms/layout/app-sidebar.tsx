@@ -3,6 +3,7 @@
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, usePreferencesStore } from "@workspace/ui";
 import { useShallow } from "zustand/react/shallow";
 
+import type { AppDictionary } from "@/modules/types/dictionary";
 import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
 
 import { NavMain } from "./nav-main";
@@ -34,7 +35,7 @@ export function AppSidebar({
 }: React.ComponentProps<typeof Sidebar> & {
   currentUser: UserData | null;
   workspaces: WorkspaceData[];
-  dictionary: any;
+  dictionary: AppDictionary;
 }) {
   const { sidebarVariant, sidebarCollapsible, isSynced } = usePreferencesStore(
     useShallow((s) => ({

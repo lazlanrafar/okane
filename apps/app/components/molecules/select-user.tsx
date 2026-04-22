@@ -15,6 +15,21 @@ interface Member {
   role: string;
 }
 
+interface WorkspaceMemberResponse {
+  userId?: string | null;
+  name?: string | null;
+  email?: string | null;
+  profilePicture?: string | null;
+  role?: string | null;
+}
+
+interface UserComboboxItem {
+  id: string;
+  label: string;
+  email: string;
+  image: string | null;
+}
+
 export interface SelectUserProps {
   value?: string;
   onChange: (userId: string) => void;
@@ -44,13 +59,13 @@ export function SelectUser({
     queryFn: async () => {
       const res = await getWorkspaceMembers();
       if (!res.success) throw new Error(res.error);
-      // Map old structure to new structure expected by Combobox
-      return (res.data || []).map((member: any) => ({
-        id: member.userId,
-        name: member.name,
-        email: member.email,
-        image: member.profilePicture,
-        role: member.role,
+      const membersData: WorkspaceMemberResponse[] = Array.isArray(res.data) ? res.data : [];
+      return membersData.map((member) => ({
+        id: String(member.userId ?? ""),
+        name: member.name ?? null,
+        email: String(member.email ?? ""),
+        image: member.profilePicture ?? null,
+        role: String(member.role ?? ""),
       }));
     },
   });
@@ -65,7 +80,7 @@ export function SelectUser({
       }
     : undefined;
 
-  const items = members.map((m) => ({
+  const items: UserComboboxItem[] = members.map((m) => ({
     id: m.id,
     label: m.name || m.email,
     email: m.email,
@@ -95,21 +110,26 @@ export function SelectUser({
       triggerClassName={cn(inDataTable && "max-w-[280px]", className)}
       showChevron={!inDataTable}
       className="rounded-none"
-      renderSelectedItem={(item: any) => (
-        <div className="flex items-center space-x-2">
-          <Avatar className="h-6 w-6">
-            <AvatarImage src={item.image} alt={item.label} />
-            <AvatarFallback className="bg-primary/10 text-[10px] text-primary">
-              {getInitials(item.label)}
-            </AvatarFallback>
-          </Avatar>
-          <span className="max-w-[90%] truncate text-left font-medium text-xs">{item.label}</span>
-        </div>
-      )}
-      renderListItem={({ item }: { item: any }) => (
+      renderSelectedItem={(item: UserComboboxItem | UserComboboxItem[]) => {
+        const selected = Array.isArray(item) ? item[0] : item;
+        if (!selected) return null;
+
+        return (
+          <div className="flex items-center space-x-2">
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={selected.image || undefined} alt={selected.label} />
+              <AvatarFallback className="bg-primary/10 text-[10px] text-primary">
+                {getInitials(selected.label)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="max-w-[90%] truncate text-left font-medium text-xs">{selected.label}</span>
+          </div>
+        );
+      }}
+      renderListItem={({ item }: { item: UserComboboxItem }) => (
         <div className="flex items-center gap-2 overflow-hidden">
           <Avatar className="h-6 w-6">
-            <AvatarImage src={item.image} alt={item.label} />
+            <AvatarImage src={item.image || undefined} alt={item.label} />
             <AvatarFallback className="bg-primary/10 text-[10px] text-primary">
               {getInitials(item.label)}
             </AvatarFallback>

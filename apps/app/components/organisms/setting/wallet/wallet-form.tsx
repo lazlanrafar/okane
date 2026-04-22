@@ -43,15 +43,15 @@ interface WalletFormProps {
   open: boolean;
   wallet?: Wallet | null;
   onClose: () => void;
-  dictionary: any;
+  dictionary: unknown;
 }
 
 export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop }: WalletFormProps) {
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
+  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
   const dictionary = dictionary_prop || storeDict;
   const queryClient = useQueryClient();
 
-  const wallets_t = dictionary?.wallets || (dictionary as any)?.settings?.wallets;
+  const wallets_t = dictionary?.wallets || (dictionary as unknown)?.settings?.wallets;
   const walletForm = wallets_t?.form;
   const common = dictionary?.common;
 
@@ -63,7 +63,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema as any),
+    resolver: zodResolver(formSchema as unknown),
     defaultValues: {
       name: wallet?.name ?? "",
       groupId: wallet?.groupId ?? "none",
@@ -195,7 +195,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
                     </FormControl>
                     <SelectContent className="rounded-none">
                       <SelectItem value="none">{walletForm.group.none}</SelectItem>
-                      {(groups || []).map((group: any) => (
+                      {(groups || []).map((group: unknown) => (
                         <SelectItem key={group.id} value={group.id}>
                           {group.name}
                         </SelectItem>

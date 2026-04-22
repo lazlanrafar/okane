@@ -1,6 +1,8 @@
 "use client";
 
+import type { TooltipProps } from "recharts";
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import type { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 
 import { BaseChart, ChartLegend, StyledBar, StyledTooltip, StyledXAxis, StyledYAxis } from "./base-charts";
 import type { BaseChartProps } from "./chart-utils";
@@ -8,13 +10,13 @@ import { createYAxisTickFormatter, useChartMargin } from "./chart-utils";
 import { formatAmount } from "./format-amount";
 import { SelectableChartWrapper } from "./selectable-chart-wrapper";
 
-interface ExpenseData {
+interface ExpenseData extends Record<string, unknown> {
   month: string;
   amount: number;
   category: string;
 }
 
-interface CategoryData {
+interface CategoryData extends Record<string, unknown> {
   name: string;
   value: number;
   color: string;
@@ -34,10 +36,16 @@ interface ExpensesChartProps extends BaseChartProps {
 }
 
 // Custom formatter for expenses tooltip
-const expensesTooltipFormatter = (value: any, name: string, currency = "USD", locale?: string): [string, string] => {
+const expensesTooltipFormatter = (
+  value: number | string,
+  name: string,
+  currency = "USD",
+  locale?: string,
+): [string, string] => {
+  const numericValue = typeof value === "number" ? value : Number(value);
   const formattedValue =
     formatAmount({
-      amount: value,
+      amount: Number.isFinite(numericValue) ? numericValue : 0,
       currency,
       locale: locale ?? undefined,
       maximumFractionDigits: 0,
@@ -47,19 +55,27 @@ const expensesTooltipFormatter = (value: any, name: string, currency = "USD", lo
 };
 
 // Custom pie chart tooltip
-const pieTooltipFormatter = ({ active, payload }: any, currency = "USD", locale?: string) => {
-  if (active && payload && payload.length) {
-    const data = payload[0];
+const pieTooltipFormatter = (
+  { active, payload }: TooltipProps<ValueType, NameType>,
+  currency = "USD",
+  locale?: string,
+) => {
+  if (active && Array.isArray(payload) && payload.length > 0) {
+    const firstPayload = payload[0];
+    const rawValue = firstPayload?.value;
+    const numericValue = typeof rawValue === "number" ? rawValue : Number(rawValue);
     const formattedValue =
       formatAmount({
-        amount: data.value,
+        amount: Number.isFinite(numericValue) ? numericValue : 0,
         currency,
         locale: locale ?? undefined,
         maximumFractionDigits: 0,
-      }) || `${currency}${data.value.toLocaleString()}`;
+      }) || `${currency}${numericValue.toLocaleString()}`;
+    const payloadRecord = firstPayload?.payload as { name?: string } | undefined;
+    const entryName = String(payloadRecord?.name ?? "");
     return (
       <div className="border border-gray-200 bg-white p-2 text-black text-xs dark:border-[#1d1d1d] dark:bg-[#0c0c0c] dark:text-white">
-        <p className="mb-1 text-gray-500 dark:text-[#666666]">{data.payload.name}</p>
+        <p className="mb-1 text-gray-500 dark:text-[#666666]">{entryName}</p>
         <p>{formattedValue}</p>
       </div>
     );
@@ -81,6 +97,10 @@ export function ExpensesChart({
   onSelectionComplete,
   onSelectionStateChange,
 }: ExpensesChartProps) {
+  const tickFormatter = createYAxisTickFormatter(currency, locale);
+  const maxValues = data.map((d) => ({ maxValue: d.amount }));
+  const { marginLeft } = useChartMargin(maxValues, "maxValue", tickFormatter);
+
   if (chartType === "pie" && categoryData) {
     return (
       <div className={`w-full ${className}`}>
@@ -114,10 +134,6 @@ export function ExpensesChart({
     );
   }
 
-  const tickFormatter = createYAxisTickFormatter(currency, locale);
-  const maxValues = data.map((d) => ({ maxValue: d.amount }));
-  const { marginLeft } = useChartMargin(maxValues, "maxValue", tickFormatter);
-
   const chartContent = (
     <div className={`w-full ${className}`}>
       {/* Legend */}
@@ -131,7 +147,9 @@ export function ExpensesChart({
         <Tooltip
           content={
             <StyledTooltip
-              formatter={(value: any, name: string) => expensesTooltipFormatter(value, name, currency, locale)}
+              formatter={(value: number | string, name: string) =>
+                expensesTooltipFormatter(value, name, currency, locale)
+              }
             />
           }
           wrapperStyle={{ zIndex: 9999 }}

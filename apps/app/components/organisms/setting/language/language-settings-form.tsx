@@ -21,13 +21,13 @@ function LanguageSkeleton() {
 }
 
 interface LanguageSettingsFormProps {
-  dictionary: any;
+  dictionary: unknown;
 }
 
 export function LanguageSettingsForm({ dictionary: dict }: LanguageSettingsFormProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { dictionary: storeDict, isLoading } = useAppStore() as any;
+  const { dictionary: storeDict, isLoading } = useAppStore() as unknown;
   const dictionary = dict || storeDict;
 
   const currentLocale = pathname.split("/")[1] as Locale;

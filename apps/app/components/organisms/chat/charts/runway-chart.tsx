@@ -1,14 +1,32 @@
 "use client";
 
-import { Area, CartesianGrid, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Area,
+  CartesianGrid,
+  ComposedChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
-import { ChartLegend, StyledArea, StyledLine, StyledTooltip } from "./base-charts";
+import {
+  ChartLegend,
+  StyledArea,
+  StyledLine,
+  StyledTooltip,
+} from "./base-charts";
 import type { BaseChartProps } from "./chart-utils";
-import { commonChartConfig, createMonthsTickFormatter, createYAxisTickFormatter, useChartMargin } from "./chart-utils";
+import {
+  commonChartConfig,
+  createMonthsTickFormatter,
+  createYAxisTickFormatter,
+  useChartMargin,
+} from "./chart-utils";
 import { formatAmount } from "./format-amount";
 import { SelectableChartWrapper } from "./selectable-chart-wrapper";
 
-interface RunwayData {
+interface RunwayData extends Record<string, unknown> {
   month: string;
   cashRemaining: number;
   burnRate: number;
@@ -24,34 +42,52 @@ interface RunwayChartProps extends BaseChartProps {
   locale?: string;
   displayMode?: "currency" | "months";
   enableSelection?: boolean;
-  onSelectionChange?: (startDate: string | null, endDate: string | null) => void;
-  onSelectionComplete?: (startDate: string, endDate: string, chartType: string) => void;
+  onSelectionChange?: (
+    startDate: string | null,
+    endDate: string | null,
+  ) => void;
+  onSelectionComplete?: (
+    startDate: string,
+    endDate: string,
+    chartType: string,
+  ) => void;
   onSelectionStateChange?: (isSelecting: boolean) => void;
 }
 
 // Custom formatter for runway tooltip
 const runwayTooltipFormatter = (
-  value: any,
+  value: number | string,
   name: string,
   currency = "USD",
   locale?: string,
   displayMode: "currency" | "months" = "currency",
 ): [string, string] => {
+  const numericValue = typeof value === "number" ? value : Number(value);
+
   if (displayMode === "months") {
-    const formattedValue = `${value.toFixed(1)} months`;
-    const displayName = name === "runwayMonths" ? "Runway" : name === "burnRate" ? "Burn Rate" : name;
+    const formattedValue = `${(Number.isFinite(numericValue) ? numericValue : 0).toFixed(1)} months`;
+    const displayName =
+      name === "runwayMonths"
+        ? "Runway"
+        : name === "burnRate"
+          ? "Burn Rate"
+          : name;
     return [formattedValue, displayName];
   }
 
   const formattedValue =
     formatAmount({
-      amount: value,
+      amount: Number.isFinite(numericValue) ? numericValue : 0,
       currency,
       locale: locale ?? undefined,
       maximumFractionDigits: 0,
     }) || `${currency}${value.toLocaleString()}`;
   const displayName =
-    name === "cashRemaining" ? "Cash Remaining" : name === "burnRate" ? "Burn Rate" : "Projected Cash";
+    name === "cashRemaining"
+      ? "Cash Remaining"
+      : name === "burnRate"
+        ? "Burn Rate"
+        : "Projected Cash";
   return [formattedValue, displayName];
 };
 
@@ -70,19 +106,28 @@ export function RunwayChart({
   onSelectionStateChange,
 }: RunwayChartProps) {
   const isMonthsMode = displayMode === "months";
-  const tickFormatter = isMonthsMode ? createMonthsTickFormatter() : createYAxisTickFormatter(currency, locale);
+  const tickFormatter = isMonthsMode
+    ? createMonthsTickFormatter()
+    : createYAxisTickFormatter(currency, locale);
+  // Calculate margin using the actual data field
+  const { marginLeft } = useChartMargin(
+    data || [],
+    isMonthsMode ? "runwayMonths" : "cashRemaining",
+    tickFormatter,
+  );
 
   // Guard against empty data
   if (!data || data.length === 0) {
     return (
-      <div className={`flex h-full w-full items-center justify-center ${className}`}>
-        <div className="-mt-12 text-muted-foreground text-xs">No runway data available</div>
+      <div
+        className={`flex h-full w-full items-center justify-center ${className}`}
+      >
+        <div className="-mt-12 text-muted-foreground text-xs">
+          No runway data available
+        </div>
       </div>
     );
   }
-
-  // Calculate margin using the actual data field
-  const { marginLeft } = useChartMargin(data, isMonthsMode ? "runwayMonths" : "cashRemaining", tickFormatter);
 
   const chartContent = (
     <div className={`w-full ${className}`}>
@@ -99,7 +144,9 @@ export function RunwayChart({
               ? []
               : [
                   { label: "Burn Rate", type: "pattern" as const },
-                  ...(showProjection ? [{ label: "Projected", type: "dashed" as const }] : []),
+                  ...(showProjection
+                    ? [{ label: "Projected", type: "dashed" as const }]
+                    : []),
                 ]),
           ]}
         />
@@ -119,13 +166,30 @@ export function RunwayChart({
           >
             {isMonthsMode && (
               <defs>
-                <linearGradient id="runwayMonthsGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0.05} />
+                <linearGradient
+                  id="runwayMonthsGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor="hsl(var(--foreground))"
+                    stopOpacity={0.3}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor="hsl(var(--foreground))"
+                    stopOpacity={0.05}
+                  />
                 </linearGradient>
               </defs>
             )}
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid-stroke)" />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="var(--chart-grid-stroke)"
+            />
             <XAxis
               dataKey="month"
               axisLine={false}
@@ -151,8 +215,14 @@ export function RunwayChart({
             <Tooltip
               content={
                 <StyledTooltip
-                  formatter={(value: any, name: string) =>
-                    runwayTooltipFormatter(value, name, currency, locale, displayMode)
+                  formatter={(value: number | string, name: string) =>
+                    runwayTooltipFormatter(
+                      value,
+                      name,
+                      currency,
+                      locale,
+                      displayMode,
+                    )
                   }
                 />
               }
@@ -181,9 +251,15 @@ export function RunwayChart({
               />
             ) : (
               <>
-                <StyledArea dataKey="cashRemaining" usePattern={false} useGradient />
+                <StyledArea
+                  dataKey="cashRemaining"
+                  usePattern={false}
+                  useGradient
+                />
                 <StyledArea dataKey="burnRate" usePattern useGradient={false} />
-                {showProjection && <StyledLine dataKey="projectedCash" strokeDasharray="5 5" />}
+                {showProjection && (
+                  <StyledLine dataKey="projectedCash" strokeDasharray="5 5" />
+                )}
               </>
             )}
           </ComposedChart>

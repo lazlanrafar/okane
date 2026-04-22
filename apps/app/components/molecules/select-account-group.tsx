@@ -52,7 +52,7 @@ export function SelectAccountGroup({
         toast.success(`Group "${data.name}" created`);
       }
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to create group");
     },
   });

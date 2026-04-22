@@ -20,7 +20,7 @@ interface GrowthRateChartProps {
 }
 
 // Custom tooltip component
-const CustomTooltip = ({ active, payload, label, currency = "USD", locale }: any) => {
+const CustomTooltip = ({ active, payload, label, currency = "USD", locale }: Record<string, unknown>) => {
   if (active && Array.isArray(payload) && payload.length > 0) {
     const current = payload.find((p) => p.dataKey === "currentTotal").value;
     const previous = payload.find((p) => p.dataKey === "previousTotal").value;

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import {
   CONTENT_LAYOUT_VALUES,
+  type FontKey,
   fontRegistry,
   fontVars,
   NAVBAR_STYLE_VALUES,
@@ -23,7 +24,7 @@ import { ThemeBootScript } from "@/scripts/theme-boot";
 import { getPreference } from "@/server/server-actions";
 import "@workspace/ui/globals.css";
 
-const FONT_VALUES_PREF = Object.keys(fontRegistry) as any;
+const FONT_VALUES_PREF = Object.keys(fontRegistry) as FontKey[];
 // import { i18n } from "@/i18n-config";
 
 export const metadata: Metadata = {

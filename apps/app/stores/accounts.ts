@@ -2,8 +2,8 @@ import type { Column, RowSelectionState, Updater } from "@tanstack/react-table";
 import { create } from "zustand";
 
 interface AccountsState {
-  columns: Column<any, unknown>[];
-  setColumns: (columns?: Column<any, unknown>[]) => void;
+  columns: Column<Record<string, unknown>, unknown>[];
+  setColumns: (columns?: Column<Record<string, unknown>, unknown>[]) => void;
   rowSelection: Record<string, boolean>;
   setRowSelection: (updater: Updater<RowSelectionState>) => void;
   clearRowSelection: () => void;

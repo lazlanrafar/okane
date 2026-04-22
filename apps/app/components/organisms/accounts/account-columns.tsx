@@ -2,6 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { Dictionary } from "@workspace/dictionaries";
 import { deleteWallet, updateWallet } from "@workspace/modules/client";
 import type { Wallet } from "@workspace/types";
 import {
@@ -26,7 +27,7 @@ const CellActions = ({
 }: {
   row: { original: Wallet };
   onEdit: (wallet: Wallet) => void;
-  dictionary: any;
+  dictionary: Dictionary;
 }) => {
   const wallet = row.original;
   const queryClient = useQueryClient();
@@ -78,7 +79,7 @@ const GroupCell = ({
 }: {
   wallet: Wallet;
   updateWalletInCache: (updatedWallet: Wallet) => void;
-  dictionary: any;
+  dictionary: Dictionary;
 }) => {
   const handleGroupChange = async (groupId: string) => {
     try {
@@ -95,7 +96,13 @@ const GroupCell = ({
   };
 
   return (
-    <div onClick={(e) => e.stopPropagation()}>
+    // biome-ignore lint/a11y/useSemanticElements: wrapper to stop propagation without invalid HTML nesting
+    <div
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.key === "Enter" && e.stopPropagation()}
+      role="button"
+      tabIndex={-1}
+    >
       <SelectAccountGroup
         value={wallet.groupId || undefined}
         onChange={handleGroupChange}
@@ -110,7 +117,7 @@ const GroupCell = ({
 export const accountColumns = (
   onEdit: (wallet: Wallet) => void,
   updateWalletInCache: (updatedWallet: Wallet) => void,
-  dictionary: any,
+  dictionary: Dictionary,
 ): ColumnDef<Wallet>[] => [
   {
     accessorKey: "name",
@@ -160,7 +167,7 @@ export const accountColumns = (
     },
     cell: ({ getValue, table }) => {
       const balance = getValue<number>();
-      const { formatCurrency } = (table.options.meta as any) || {};
+      const { formatCurrency } = (table.options.meta || {}) as { formatCurrency?: (value: number) => string };
 
       return (
         <span className="block w-full px-2 text-right font-medium font-sans text-sm">
@@ -187,7 +194,7 @@ export const accountColumns = (
       return (
         <span className="px-2 font-sans text-muted-foreground">
           {isValid(date)
-            ? date.toLocaleDateString(dictionary.language.locale || "en-US", {
+            ? date.toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "short",
                 day: "numeric",

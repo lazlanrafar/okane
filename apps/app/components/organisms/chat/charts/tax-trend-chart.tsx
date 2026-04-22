@@ -20,7 +20,7 @@ interface TaxTrendChartProps {
 }
 
 // Custom tooltip component
-const CustomTooltip = ({ active, payload, label, currency = "USD", locale }: any) => {
+const CustomTooltip = ({ active, payload, label, currency = "USD", locale }: Record<string, unknown>) => {
   if (active && Array.isArray(payload) && payload.length > 0) {
     const taxAmount = payload.find((p) => p.dataKey === "taxAmount").value;
     const taxableIncome = payload.find((p) => p.dataKey === "taxableIncome").value;

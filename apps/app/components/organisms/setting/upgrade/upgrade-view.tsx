@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { useAppStore } from "@/stores/app";
 
 export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[]; locale: string }) {
-  const { workspace, settings, dictionary } = useAppStore() as any;
+  const { workspace, settings, dictionary } = useAppStore() as unknown;
   const [billingCycle, setBillingCycle] = React.useState<"monthly" | "annual">("monthly");
 
   const currency = settings?.mainCurrencyCode.toLowerCase() || "usd";
@@ -50,7 +50,7 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
     onSuccess: (data) => {
       if (data.url) window.location.href = data.url;
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error.message),
   });
 
   const downgradeMutation = useMutation({
@@ -62,7 +62,7 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
     onSuccess: () => {
       toast.success("Subscription scheduled for cancellation");
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error.message),
   });
 
   if (!dict) return null;
@@ -165,8 +165,11 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
                       )}
                     </div>
                     <ul className="space-y-2.5">
-                      {(plan.features || []).slice(0, 10).map((feature: string, i: number) => (
-                        <li key={i} className="flex items-start gap-2.5 text-[11px] text-muted-foreground leading-snug">
+                      {(plan.features || []).slice(0, 10).map((feature: string) => (
+                        <li
+                          key={feature}
+                          className="flex items-start gap-2.5 text-[11px] text-muted-foreground leading-snug"
+                        >
                           <Check className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" />
                           <span>{feature}</span>
                         </li>

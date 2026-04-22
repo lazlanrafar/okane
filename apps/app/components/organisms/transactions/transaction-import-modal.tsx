@@ -35,7 +35,12 @@ interface ImportModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
-  wallets: any[];
+  wallets: WalletOption[];
+}
+
+interface WalletOption {
+  id: string;
+  name: string;
 }
 
 export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportModalProps) {
@@ -62,7 +67,7 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
   const queryClient = useQueryClient();
 
   const form = useForm<ImportCsvFormData>({
-    resolver: zodResolver(importSchema as any),
+    resolver: zodResolver(importSchema),
     defaultValues: {
       file: undefined,
       currency: settings?.mainCurrencyCode || "USD",
@@ -104,8 +109,9 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
 
   // Set default wallet if none selected
   useEffect(() => {
-    if (wallets.length > 0 && !watch("walletId")) {
-      setValue("walletId", wallets[0].id);
+    const firstWallet = wallets[0];
+    if (firstWallet && !watch("walletId")) {
+      setValue("walletId", firstWallet.id);
     }
   }, [wallets, setValue, watch]);
 
@@ -166,7 +172,7 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
 
     try {
       // Helper to parse date dd/mm/yyyy
-      const parseDate = (dateStr: any) => {
+      const parseDate = (dateStr: unknown) => {
         if (!dateStr) return new Date().toISOString();
         const str = String(dateStr);
         const parts = str.split("/");
@@ -195,7 +201,7 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
         const categoryValue = data.category ? row[data.category] : undefined;
         const resolvedCategoryId = categoryValue ? valueMappings.categories[categoryValue] : undefined;
 
-        const walletValue = (data as any).walletIdColumn ? row[(data as any).walletIdColumn] : undefined;
+        const walletValue = data.walletIdColumn ? row[data.walletIdColumn] : undefined;
         const resolvedWalletId = walletValue ? valueMappings.wallets[walletValue] : data.walletId;
 
         return {
@@ -209,7 +215,7 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
         };
       });
 
-      const res = await bulkCreateTransactions(transactionsToCreate as any);
+      const res = await bulkCreateTransactions(transactionsToCreate);
 
       if (res.success && res.data) {
         setImportedCount(res.data.imported);
@@ -229,9 +235,10 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
         setImportFailures([]);
         setStep("error");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[Import Error]", error);
-      setErrorMessage(error.message || "An unexpected error occurred during import");
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred during import";
+      setErrorMessage(errorMessage);
       setStep("error");
     }
   };
@@ -278,7 +285,7 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
             <DialogHeader>
               <div className="mb-2 flex items-center gap-3">
                 {(step === "mapping" || step === "mapping-values" || step === "summary") && (
-                  <button onClick={onBack} className="rounded-md p-1 transition-colors hover:bg-muted">
+                  <button type="button" onClick={onBack} className="rounded-md p-1 transition-colors hover:bg-muted">
                     <ArrowLeft className="h-4 w-4" />
                   </button>
                 )}
@@ -404,8 +411,8 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
                         {importFailures.length} rows skipped due to errors:
                       </p>
                       <ul className="max-h-[150px] space-y-1 overflow-y-auto pr-2 text-[11px] text-muted-foreground">
-                        {importFailures.map((f, i) => (
-                          <li key={i} className="flex gap-2">
+                        {importFailures.map((f) => (
+                          <li key={`${f.index}-${f.reason}`} className="flex gap-2">
                             <span className="w-12 shrink-0 font-medium text-foreground/70">Row {f.index + 1}:</span>
                             <span>{f.reason}</span>
                           </li>
@@ -432,8 +439,8 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
                     <div className="mt-4 max-w-[350px] rounded-lg border border-destructive/10 bg-destructive/5 p-3 text-left">
                       <p className="mb-2 font-semibold text-destructive/80 text-xs">Common issues:</p>
                       <ul className="max-h-[150px] space-y-1 overflow-y-auto pr-2 text-[11px] text-muted-foreground">
-                        {importFailures.slice(0, 10).map((f, i) => (
-                          <li key={i} className="flex gap-2">
+                        {importFailures.slice(0, 10).map((f) => (
+                          <li key={`${f.index}-${f.reason}`} className="flex gap-2">
                             <span className="w-12 shrink-0 font-medium text-foreground/70">Row {f.index + 1}:</span>
                             <span>{f.reason}</span>
                           </li>

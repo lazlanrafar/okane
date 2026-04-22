@@ -50,7 +50,7 @@ export function AcceptInviteClient({ token }: AcceptInviteClientProps) {
         setErrorMessage(result.error || "Failed to accept invitation");
         toast.error(result.error || "Failed to accept invitation");
       }
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       setStatus("error");
       setErrorMessage("An unexpected error occurred");
       toast.error("An unexpected error occurred");

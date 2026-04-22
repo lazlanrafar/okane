@@ -29,7 +29,7 @@ interface StressTestChartProps {
 }
 
 // Custom tooltip for cash balance projection
-const ProjectionTooltip = ({ active, payload, label, currency = "USD", locale }: any) => {
+const ProjectionTooltip = ({ active, payload, label, currency = "USD", locale }: Record<string, unknown>) => {
   if (active && Array.isArray(payload) && payload.length > 0) {
     const formatCurrency = (amount: number) =>
       formatAmount({

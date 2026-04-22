@@ -46,9 +46,16 @@ export function InvoicesClient({ dictionary }: Props) {
     initialPage: 0,
   });
 
-  const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
+  const {
+    data,
+    isLoading: _isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery({
     queryKey: ["invoices", filters.q, filters.status],
-    queryFn: async ({ pageParam = 1 }) => {
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) => {
       const res = await getInvoices({
         search: filters.q as string,
         status: (filters.status as string) || undefined,
@@ -58,7 +65,6 @@ export function InvoicesClient({ dictionary }: Props) {
       if (!res.success) throw new Error(res.error || "Failed to fetch invoices");
       return res;
     },
-    initialPageParam: 1,
     getNextPageParam: (lastPage: ApiResponse<PaginatedList<InvoiceRow>>) => {
       const meta = lastPage.meta?.pagination;
       if (!meta) return undefined;
@@ -75,20 +81,23 @@ export function InvoicesClient({ dictionary }: Props) {
       if (!items) return [];
 
       if (Array.isArray(items)) {
-        return items.map((item: any) => {
-          if (item.invoice) {
-            return {
-              ...item.invoice,
-              contact: item.contact,
-            };
-          }
-          return item;
-        });
+        return items.map(
+          (item: InvoiceRow & { invoice?: Invoice; contact?: { name?: string; email?: string } | null }) => {
+            if (item.invoice) {
+              return {
+                ...item.invoice,
+                contact: item.contact,
+              };
+            }
+            return item;
+          },
+        );
       }
 
       // Handle single object response if any
       if (items && typeof items === "object" && "invoice" in items) {
-        return [{ ...(items as any).invoice, contact: (items as any).contact }];
+        const typed = items as { invoice: Invoice; contact?: { name?: string; email?: string } | null };
+        return [{ ...typed.invoice, contact: typed.contact }];
       }
 
       return [];
@@ -242,7 +251,7 @@ export function InvoicesClient({ dictionary }: Props) {
       <div className="relative min-h-0 flex-1">
         <DataTable
           data={allInvoices}
-          columns={tableColumns as any}
+          columns={tableColumns}
           setColumns={setColumns}
           tableId="invoices"
           hFull

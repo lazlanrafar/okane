@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { getContacts, getTransactionSettings } from "@workspace/modules/server";
+import type { TransactionSettings } from "@workspace/types";
 import type { Metadata } from "next";
 
 import { ContactTableSkeleton } from "@/components/organisms/contacts/contact-table-skeleton";
@@ -34,23 +35,34 @@ async function ContactsPageContent({ locale }: { locale: Locale }) {
   ]);
 
   const contacts = result.success ? (result.data ?? []) : [];
-  const settings =
-    settingsResult.success && settingsResult.data
-      ? settingsResult.data
-      : ({
-          monthly_start_date: 1,
-          weekly_start_day: "monday",
-          default_period: "monthly",
-          start_screen: "daily",
-          income_expense_color: "blue-red",
-          carry_over: false,
-          autocomplete: true,
-          time_input: "time",
-          swipe_action: "delete",
-          input_order: "amount",
-          show_description: true,
-          quick_note_button: true,
-        } as any);
+  const fallbackSettings: TransactionSettings = {
+    id: "",
+    workspaceId: "",
+    monthlyStartDate: 1,
+    monthlyStartDateWeekendHandling: "no-changes",
+    weeklyStartDay: "monday",
+    period: "monthly",
+    startScreen: "daily",
+    incomeExpensesColor: "blue-red",
+    carryOver: false,
+    autocomplete: true,
+    timeInput: "time",
+    swipeAction: "delete",
+    inputOrder: "amount",
+    showDescription: true,
+    noteButton: true,
+    mainCurrencyCode: "USD",
+    mainCurrencySymbol: "$",
+    mainCurrencySymbolPosition: "Front",
+    mainCurrencyDecimalPlaces: 2,
+    r2Endpoint: null,
+    r2AccessKeyId: null,
+    r2SecretAccessKey: null,
+    r2BucketName: null,
+    invoiceLogoUrl: null,
+  };
+
+  const settings = settingsResult.success && settingsResult.data ? settingsResult.data : fallbackSettings;
 
   return (
     <Hydrated fallback={<ContactTableSkeleton />}>

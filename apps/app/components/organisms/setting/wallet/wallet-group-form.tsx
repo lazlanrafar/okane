@@ -32,13 +32,13 @@ interface WalletGroupFormProps {
   open: boolean;
   group?: WalletGroup | null;
   onClose: () => void;
-  dictionary: any;
+  dictionary: unknown;
 }
 
 export function WalletGroupForm({ open, group, onClose, dictionary }: WalletGroupFormProps) {
   const queryClient = useQueryClient();
 
-  const wallets_t = dictionary?.wallets || (dictionary as any)?.settings?.wallets;
+  const wallets_t = dictionary?.wallets || (dictionary as unknown)?.settings?.wallets;
   const groups_t = wallets_t?.groups;
   const common = dictionary?.common;
 
@@ -47,7 +47,7 @@ export function WalletGroupForm({ open, group, onClose, dictionary }: WalletGrou
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema as any),
+    resolver: zodResolver(formSchema as unknown),
     defaultValues: {
       name: group?.name ?? "",
     },

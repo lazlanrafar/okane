@@ -58,7 +58,7 @@ test.describe("Workspace: Switcher", () => {
     await page.waitForLoadState("domcontentloaded");
   });
 
-  test("should show the workspace switcher", async ({ page, dictionary }) => {
+  test("should show the workspace switcher", async ({ page }) => {
     // Workspace switcher is a button in the sidebar header showing workspace name and plan
     const switcher = page
       .getByRole("button")
@@ -67,13 +67,12 @@ test.describe("Workspace: Switcher", () => {
     await expect(switcher).toBeVisible();
   });
 
-  test("should open workspace switcher menu", async ({ page, dictionary }) => {
+  test("should open workspace switcher menu", async ({ page }) => {
     const switcher = page
       .getByRole("button")
       .filter({ hasText: /Free|Pro/i })
       .first();
     await switcher.click();
-    // Look for "Workspaces" or workspace list title from dictionary
-    await expect(page.getByText(dictionary.workspace.switcher.title).first()).toBeVisible();
+    await expect(page.getByText(/Workspaces/i).first()).toBeVisible();
   });
 });

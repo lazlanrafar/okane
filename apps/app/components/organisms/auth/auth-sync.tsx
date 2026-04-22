@@ -50,7 +50,7 @@ export function AuthSync({ locale, returnTo = "/overview" }: AuthSyncProps) {
 
         // 3. Perfect! Redirect to target
         router.push(`/${locale}${returnTo}`);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Auth sync error:", err);
         setStatus("error");
         setErrorMsg(err.message || "An unexpected error occurred.");
@@ -84,6 +84,7 @@ export function AuthSync({ locale, returnTo = "/overview" }: AuthSyncProps) {
             </p>
           </div>
           <button
+            type="button"
             onClick={() => window.location.reload()}
             className="font-medium text-sm underline underline-offset-4 transition-colors hover:text-primary"
           >

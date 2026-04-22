@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getVaultFiles, uploadVaultFile } from "@workspace/modules/vault/vault.action";
+import { getVaultFiles, uploadVaultFile, type VaultFile } from "@workspace/modules/vault/vault.action";
 import {
   Button,
   cn,
@@ -44,14 +44,6 @@ const ALLOWED_TYPES = [
   "text/csv",
 ];
 
-interface VaultFile {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  url: string; // added url for image preview
-}
-
 interface VaultPickerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -70,6 +62,17 @@ function FileIcon({ type }: { type: string }) {
   if (type.startsWith("video/")) return <Film className="h-4 w-4 shrink-0" />;
   if (type === "application/pdf") return <FileText className="h-4 w-4 shrink-0" />;
   return <FileIconLucide className="h-4 w-4 shrink-0" />;
+}
+
+function getFileOrientation(metadata: VaultFile["metadata"]) {
+  if (!metadata) return "Landscape";
+
+  try {
+    const parsed = JSON.parse(metadata) as { orientation?: string };
+    return parsed.orientation || "Landscape";
+  } catch {
+    return "Landscape";
+  }
 }
 
 export function VaultPickerModal({ open, onOpenChange, selectedIds, onConfirm }: VaultPickerModalProps) {
@@ -143,7 +146,7 @@ export function VaultPickerModal({ open, onOpenChange, selectedIds, onConfirm }:
     setPending(new Set(selectedIds));
   }, [selectedIds]);
 
-  const loadFiles = () => {
+  const loadFiles = useCallback(() => {
     setIsLoading(true);
     getVaultFiles(page, LIMIT)
       .then((res) => {
@@ -153,7 +156,7 @@ export function VaultPickerModal({ open, onOpenChange, selectedIds, onConfirm }:
         }
       })
       .finally(() => setIsLoading(false));
-  };
+  }, [page]);
 
   useEffect(() => {
     if (!open) return;
@@ -171,14 +174,14 @@ export function VaultPickerModal({ open, onOpenChange, selectedIds, onConfirm }:
       if (result.success) return result.data;
       throw new Error(result.error);
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: VaultFile) => {
       queryClient.invalidateQueries({ queryKey: ["vault-files"] });
 
       // Auto-select the newly uploaded file and append it locally without reloading immediately
       setFiles((prev) => [data, ...prev]);
       setPending((prev) => new Set(prev).add(data.id));
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Upload failed");
     },
   });
@@ -339,6 +342,7 @@ export function VaultPickerModal({ open, onOpenChange, selectedIds, onConfirm }:
             </DropdownMenu>
           </div>
 
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: Dropzone area */}
           <div
             className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed p-8 py-10 text-center transition-colors hover:bg-muted/50"
             onDragOver={(e) => e.preventDefault()}
@@ -398,13 +402,17 @@ export function VaultPickerModal({ open, onOpenChange, selectedIds, onConfirm }:
                         </div>
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded border bg-muted">
                           {file.type.startsWith("image/") && file.url ? (
-                            <img src={file.url} alt={file.name} className="h-full w-full object-cover" />
+                            <>
+                              {/* biome-ignore lint/performance/noImgElement: external url */}
+                              <img src={file.url} alt={file.name} className="h-full w-full object-cover" />
+                            </>
                           ) : (
                             <FileIcon type={file.type} />
                           )}
                         </div>
                         <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 sm:flex-row sm:items-center">
                           <div className="flex-1 truncate pr-4">
+                            {/* biome-ignore lint/a11y/useKeyWithClickEvents: non-critical file toggle */}
                             <p className="cursor-pointer truncate font-medium text-sm" onClick={() => toggle(file.id)}>
                               {file.name}
                             </p>
@@ -414,7 +422,7 @@ export function VaultPickerModal({ open, onOpenChange, selectedIds, onConfirm }:
                             <span className="w-16 truncate font-semibold text-xs uppercase">
                               {file.type.split("/")[1] || file.type}
                             </span>
-                            <span className="w-24 truncate">{(file as any).metadata.orientation || "Landscape"}</span>
+                            <span className="w-24 truncate">{getFileOrientation(file.metadata)}</span>
                             <span className="w-20 truncate text-right">{formatBytes(file.size)}</span>
                           </div>
                         </div>
@@ -428,16 +436,21 @@ export function VaultPickerModal({ open, onOpenChange, selectedIds, onConfirm }:
                     const selected = pending.has(file.id);
                     return (
                       <div key={file.id} className="group relative flex flex-col gap-2 rounded-xl bg-muted/20 pb-3">
+                        {/* biome-ignore lint/a11y/noStaticElementInteractions: parent container click */}
+                        {/* biome-ignore lint/a11y/useKeyWithClickEvents: parent container click */}
                         <div
                           className="relative aspect-square w-full cursor-pointer overflow-hidden rounded-t-xl rounded-b-md border bg-muted"
                           onClick={() => toggle(file.id)}
                         >
                           {file.type.startsWith("image/") && file.url ? (
-                            <img
-                              src={file.url}
-                              alt={file.name}
-                              className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                            />
+                            <>
+                              {/* biome-ignore lint/performance/noImgElement: external url */}
+                              <img
+                                src={file.url}
+                                alt={file.name}
+                                className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                              />
+                            </>
                           ) : (
                             <div className="flex h-full w-full items-center justify-center">
                               <FileIcon type={file.type} />

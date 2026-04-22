@@ -14,34 +14,34 @@ import { WalletForm } from "./wallet-form";
 import { WalletGroupForm } from "./wallet-group-form";
 
 interface WalletClientProps {
-  dictionary?: any;
+  dictionary?: unknown;
 }
 
 export function WalletClient({ dictionary: dict }: WalletClientProps) {
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
+  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
   const dictionary = dict || storeDict;
   const [isWalletOpen, setIsWalletOpen] = React.useState(false);
   const [isGroupOpen, setIsGroupOpen] = React.useState(false);
-  const [editingWallet, setEditingWallet] = React.useState<any>(null);
-  const [editingGroup, setEditingGroup] = React.useState<any>(null);
+  const [editingWallet, setEditingWallet] = React.useState<unknown>(null);
+  const [editingGroup, setEditingGroup] = React.useState<unknown>(null);
 
   const _queryClient = useQueryClient();
 
-  const { data: walletsData, isLoading: isWalletsLoading } = useQuery({
+  const { isLoading: isWalletsLoading } = useQuery({
     queryKey: ["wallets"],
     queryFn: async () => {
       const result = await getWallets();
       if (result.success) return result.data;
-      throw new Error((result.error as any) || "Failed to fetch wallets");
+      throw new Error((result.error as unknown) || "Failed to fetch wallets");
     },
   });
 
-  const { data: groupsData, isLoading: isGroupsLoading } = useQuery({
+  const { isLoading: isGroupsLoading } = useQuery({
     queryKey: ["wallet-groups"],
     queryFn: async () => {
       const result = await getWalletGroups();
       if (result.success) return result.data;
-      throw new Error((result.error as any) || "Failed to fetch wallet groups");
+      throw new Error((result.error as unknown) || "Failed to fetch wallet groups");
     },
   });
 

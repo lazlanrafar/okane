@@ -2,9 +2,9 @@
 
 import type { ReactNode } from "react";
 
-interface SelectableChartWrapperProps {
+interface SelectableChartWrapperProps<T extends Record<string, unknown> = Record<string, unknown>> {
   children: ReactNode;
-  data: any[];
+  data: T[];
   dateKey: string;
   enableSelection?: boolean;
   onSelectionChange?: (startDate: string | null, endDate: string | null) => void;
@@ -13,7 +13,10 @@ interface SelectableChartWrapperProps {
   chartType?: string;
 }
 
-export function SelectableChartWrapper({ children, enableSelection = false }: SelectableChartWrapperProps) {
+export function SelectableChartWrapper<T extends Record<string, unknown>>({
+  children,
+  enableSelection = false,
+}: SelectableChartWrapperProps<T>) {
   // Chart selection is not enabled in Oewang canvas - just render children
   if (!enableSelection) {
     return <>{children}</>;

@@ -9,7 +9,7 @@ type MyFixtures = {
 
 // Extend the base test with the dictionary fixture
 export const test = base.extend<MyFixtures>({
-  dictionary: async ({}, use) => {
+  dictionary: async (_args, use) => {
     // We use the English dictionary by default for E2E tests
     await use(en);
   },

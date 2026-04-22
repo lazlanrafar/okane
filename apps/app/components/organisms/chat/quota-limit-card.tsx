@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import type { Dictionary } from "@workspace/dictionaries";
 import { Button, cn } from "@workspace/ui";
 import { AnimatePresence, motion } from "framer-motion";
 import { Zap } from "lucide-react";
@@ -11,7 +12,7 @@ import { useAppStore } from "@/stores/app";
 import { useLocalizedRoute } from "@/utils/localized-route";
 
 export function QuotaLimitCard() {
-  const { dictionary } = useAppStore() as any;
+  const { dictionary } = useAppStore() as unknown as { dictionary: Dictionary };
   const { quota, isExceeded, loading } = useAiQuota();
   const { getLocalizedUrl } = useLocalizedRoute();
 

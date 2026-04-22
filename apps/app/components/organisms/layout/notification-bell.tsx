@@ -2,13 +2,15 @@
 
 import { useRouter } from "next/navigation";
 
+import type { Notification } from "@workspace/database";
 import { Badge, Button, cn, Popover, PopoverContent, PopoverTrigger, ScrollArea } from "@workspace/ui";
 import { formatDistanceToNow } from "date-fns";
 import { Bell, Trash2 } from "lucide-react";
 
 import { useNotifications } from "@/hooks/use-notifications";
+import type { AppDictionary } from "@/modules/types/dictionary";
 
-export function NotificationBell({ dictionary }: { dictionary: any }) {
+export function NotificationBell({ dictionary }: { dictionary: AppDictionary }) {
   const { notifications, unreadCount, markAsRead, deleteNotification, isLoading } = useNotifications();
   const router = useRouter();
 
@@ -19,7 +21,7 @@ export function NotificationBell({ dictionary }: { dictionary: any }) {
     }
   };
 
-  const handleNotificationClick = (notification: any) => {
+  const handleNotificationClick = (notification: Notification) => {
     if (!notification.is_read) {
       markAsRead([notification.id]);
     }
@@ -82,6 +84,14 @@ export function NotificationBell({ dictionary }: { dictionary: any }) {
                     !n.is_read && "border-l-2 border-l-primary bg-accent/30",
                   )}
                   onClick={() => handleNotificationClick(n)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handleNotificationClick(n);
+                    }
+                  }}
+                  role="option"
+                  tabIndex={0}
                 >
                   <div className="flex items-start justify-between">
                     <span className="font-semibold text-sm">{n.title}</span>

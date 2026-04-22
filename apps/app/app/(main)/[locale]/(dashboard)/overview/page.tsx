@@ -49,12 +49,12 @@ export default async function OverviewPage(props: {
   const user = meResult.success ? meResult.data?.user : null;
   const displayName = user?.name ? user.name.split(" ")[0] : (user?.email?.split("@")[0] ?? "there");
 
-  const incomeData = incomeResult.success ? incomeResult.data! : [];
-  const expenseData = expenseResult.success ? expenseResult.data! : [];
-  const burnRateData = burnRateResult.success ? burnRateResult.data! : [];
-  const expenseCategoryData = expenseCategoryResult.success ? expenseCategoryResult.data! : [];
-  const incomeCategoryData = incomeCategoryResult.success ? incomeCategoryResult.data! : [];
-  const settings = settingsResult.success ? settingsResult.data! : null;
+  const incomeData = incomeResult.success ? (incomeResult.data ?? []) : [];
+  const expenseData = expenseResult.success ? (expenseResult.data ?? []) : [];
+  const burnRateData = burnRateResult.success ? (burnRateResult.data ?? []) : [];
+  const expenseCategoryData = expenseCategoryResult.success ? (expenseCategoryResult.data ?? []) : [];
+  const incomeCategoryData = incomeCategoryResult.success ? (incomeCategoryResult.data ?? []) : [];
+  const settings = settingsResult.success ? (settingsResult.data ?? null) : null;
 
   return (
     <ChatProviderWrapper key={"home"}>
