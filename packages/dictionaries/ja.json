@@ -559,7 +559,9 @@
       "toast_removed": "{code} が削除されました",
       "workspace_label": "ワークスペースの通貨",
       "rate_now": "現在のレート",
-      "empty": "補助通貨はまだ追加されていません。"
+      "empty": "補助通貨はまだ追加されていません。",
+      "workspace_currency": "ワークスペース通貨",
+      "no_sub_currencies": "補助通貨はまだありません"
     },
     "notifications": {
       "title": "通知",
@@ -774,6 +776,21 @@
       "submit": "保存",
       "cancel": "キャンセル",
       "saving": "保存中..."
+    },
+    "bulk": {
+      "selected": "{count}件を選択中",
+      "deselect": "選択解除",
+      "confirmations": {
+        "delete_title": "{count}件の貸し借りを削除しますか？",
+        "delete_description": "選択中の{count}件を削除しますか？この操作は元に戻せません。"
+      },
+      "toasts": {
+        "deleted_success": "{count}件の貸し借りを削除しました"
+      },
+      "tooltips": {
+        "delete": "選択を削除",
+        "close": "閉じる"
+      }
     }
   },
   "overview": {
@@ -924,7 +941,11 @@
       "save_failed": "変更の保存に失敗しました",
       "amount_positive": "金額は正である必要があります",
       "invalid_date": "有効な日付を入力してください",
-      "at_least_one_attachment": "少なくとも1つの添付ファイルをアップロードしてください"
+      "at_least_one_attachment": "少なくとも1つの添付ファイルをアップロードしてください",
+      "wallet_required": "アカウントを選択してください",
+      "upload_failed": "ファイルのアップロードに失敗しました",
+      "some_uploads_failed": "一部のファイルのアップロードに失敗しました",
+      "preview_failed": "添付ファイルのプレビューに失敗しました"
     },
     "group_by": {
       "placeholder": "グループ化...",
@@ -956,7 +977,9 @@
       "item_deleted": "アイテムを削除しました",
       "delete_failed": "アイテムの削除に失敗しました",
       "qty_unit": "{qty} {unit}"
-    }
+    },
+    "uploading_files": "{count}件のファイルをアップロード中...",
+    "all_uploads_success": "すべてのファイルをアップロードしました"
   },
   "contacts": {
     "title": "連絡先",
@@ -1085,7 +1108,9 @@
         "label": "現在の残高",
         "placeholder": "0.00"
       }
-    }
+    },
+    "by": "by",
+    "system": "システム"
   },
   "vault": {
     "title": "保管庫",
@@ -1354,7 +1379,9 @@
       "due": "支払期限",
       "from": "差出人",
       "bill_to": "宛先",
-      "subtotal": "小計"
+      "subtotal": "小計",
+      "details_label": "詳細",
+      "no_activity": "アクティビティはまだありません"
     },
     "statuses": {
       "draft": "下書き",
@@ -1414,6 +1441,10 @@
       "select_contact": "連絡先を選択",
       "payment_details": "銀行口座、PayPalなど...",
       "note": "ご利用ありがとうございます！"
+    },
+    "activities": {
+      "created": "作成",
+      "updated": "更新"
     }
   },
   "chat": {

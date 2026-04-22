@@ -526,7 +526,7 @@
         }
       }
     },
-      "sub_currencies": {
+    "sub_currencies": {
       "title": "Mata Uang Pendukung",
       "description": "Kelola mata uang sekunder untuk workspace Anda.",
       "add_button": "Tambah Mata Uang",
@@ -534,7 +534,9 @@
       "toast_removed": "{code} dihapus",
       "workspace_label": "Mata Uang Workspace",
       "rate_now": "KURS SEKARANG",
-      "empty": "Belum ada mata uang pendukung yang ditambahkan."
+      "empty": "Belum ada mata uang pendukung yang ditambahkan.",
+      "workspace_currency": "Mata Uang Workspace",
+      "no_sub_currencies": "Belum ada mata uang pendukung"
     },
     "notifications": {
       "title": "Notifikasi",
@@ -745,6 +747,21 @@
       "submit": "Simpan",
       "cancel": "Batal",
       "saving": "Menyimpan..."
+    },
+    "bulk": {
+      "selected": "{count} dipilih",
+      "deselect": "Batalkan pilih",
+      "confirmations": {
+        "delete_title": "Hapus {count} hutang?",
+        "delete_description": "Yakin ingin menghapus {count} hutang terpilih? Tindakan ini tidak dapat dibatalkan."
+      },
+      "toasts": {
+        "deleted_success": "Berhasil menghapus {count} hutang"
+      },
+      "tooltips": {
+        "delete": "Hapus yang dipilih",
+        "close": "Tutup"
+      }
     }
   },
   "overview": {
@@ -895,7 +912,11 @@
       "save_failed": "Gagal menyimpan perubahan",
       "amount_positive": "Jumlah harus bernilai positif",
       "invalid_date": "Silakan masukkan tanggal yang valid",
-      "at_least_one_attachment": "Silakan unggah setidaknya satu lampiran"
+      "at_least_one_attachment": "Silakan unggah setidaknya satu lampiran",
+      "wallet_required": "Akun wajib dipilih",
+      "upload_failed": "Gagal mengunggah file",
+      "some_uploads_failed": "Beberapa file gagal diunggah",
+      "preview_failed": "Gagal menampilkan pratinjau lampiran"
     },
     "group_by": {
       "placeholder": "Kelompokkan berdasarkan",
@@ -927,7 +948,9 @@
       "item_deleted": "Item dihapus",
       "delete_failed": "Gagal menghapus item",
       "qty_unit": "{qty} {unit}"
-    }
+    },
+    "uploading_files": "Mengunggah {count} file...",
+    "all_uploads_success": "Semua file berhasil diunggah"
   },
   "contacts": {
     "title": "Kontak",
@@ -1056,7 +1079,9 @@
         "label": "Saldo Saat Ini",
         "placeholder": "0.00"
       }
-    }
+    },
+    "by": "oleh",
+    "system": "Sistem"
   },
   "vault": {
     "title": "Brankas",
@@ -1325,7 +1350,9 @@
       "due": "Tanggal Jatuh Tempo",
       "from": "Dari",
       "bill_to": "Kepada",
-      "subtotal": "Subtotal"
+      "subtotal": "Subtotal",
+      "details_label": "Detail",
+      "no_activity": "Belum ada aktivitas"
     },
     "statuses": {
       "draft": "Draft",
@@ -1385,6 +1412,10 @@
       "select_contact": "Pilih kontak",
       "payment_details": "Rekening bank, PayPal, dll...",
       "note": "Terima kasih atas bisnis Anda!"
+    },
+    "activities": {
+      "created": "Dibuat",
+      "updated": "Diperbarui"
     }
   },
   "chat": {
