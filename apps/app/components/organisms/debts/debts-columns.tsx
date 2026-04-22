@@ -1,34 +1,32 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
-import { 
-  Badge, 
-  Checkbox, 
+import type { ColumnDef } from "@tanstack/react-table";
+import type { DebtWithContact } from "@workspace/modules/client";
+import {
+  Badge,
   Button,
+  Checkbox,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui";
-import { type DebtWithContact } from "@workspace/modules/client";
-import { ArrowDownLeft, ArrowUpRight, MoreHorizontal, Edit, Trash, ExternalLink } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Edit, ExternalLink, MoreHorizontal, Trash } from "lucide-react";
+ 
+import type { Dictionary } from "@workspace/dictionaries";
 
 export const debtColumns = (
   onRowClick: (debt: DebtWithContact) => void,
   onEdit: (debt: DebtWithContact) => void,
   onContactClick: (contactId: string) => void,
   onDelete: (id: string) => void,
-  dictionary: any,
+  dictionary: Dictionary,
 ): ColumnDef<DebtWithContact>[] => [
   {
     id: "select",
     header: ({ table }) => (
       <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
+        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
         className="translate-y-[2px]"
@@ -109,11 +107,9 @@ export const debtColumns = (
     header: dictionary.debts.columns.summary,
     cell: ({ row, table }) => {
       const amount = Number.parseFloat(row.getValue("amount") as string);
-      const remainingAmount = Number.parseFloat(
-        row.original.remainingAmount as string,
-      );
+      const remainingAmount = Number.parseFloat(row.original.remainingAmount as string);
       const status = row.original.status;
-      const { formatCurrency } = (table.options.meta as any) || {};
+      const { formatCurrency } = (table.options.meta as { formatCurrency?: (val: number) => string }) || {};
 
       return (
         <div className="flex flex-col gap-1 text-right sm:text-left">
@@ -136,13 +132,7 @@ export const debtColumns = (
       const status = row.getValue("status") as string;
       return (
         <Badge
-          variant={
-            status === "paid"
-              ? "default"
-              : status === "partial"
-                ? "secondary"
-                : "outline"
-          }
+          variant={status === "paid" ? "default" : status === "partial" ? "secondary" : "outline"}
           className="capitalize shadow-none"
         >
           {dictionary.debts.statuses[status] || status}
@@ -156,11 +146,7 @@ export const debtColumns = (
     cell: ({ row }) => {
       const dueDateStr = row.getValue("dueDate") as string;
       if (!dueDateStr) return <span className="text-sm text-muted-foreground">-</span>;
-      return (
-        <span className="text-sm">
-          {format(new Date(dueDateStr), "MMM d, yyyy")}
-        </span>
-      );
+      return <span className="text-sm">{format(new Date(dueDateStr), "MMM d, yyyy")}</span>;
     },
   },
   {
@@ -173,14 +159,11 @@ export const debtColumns = (
     },
     cell: ({ row, table }) => {
       const debt = row.original;
-      
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0 hover:bg-transparent"
-            >
+            <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-transparent">
               <span className="sr-only">{dictionary.debts.actions.open_menu}</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>

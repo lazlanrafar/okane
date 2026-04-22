@@ -3,19 +3,12 @@ import { NextResponse } from "next/server";
 
 import { match as matchLocale } from "@formatjs/intl-localematcher";
 import { createMiddlewareClient } from "@workspace/supabase/middleware";
-import Negotiator from "negotiator";
 import { jwtVerify } from "jose";
+import Negotiator from "negotiator";
 
 import { i18n } from "./i18n-config";
 
-const IGNORED_LOCALE_PATHS = [
-  "/manifest.json",
-  "/favicon.ico",
-  "/robots.txt",
-  "/sitemap.xml",
-  "/terms",
-  "/policy",
-];
+const IGNORED_LOCALE_PATHS = ["/manifest.json", "/favicon.ico", "/robots.txt", "/sitemap.xml", "/terms", "/policy"];
 
 function getLocale(request: NextRequest): string | undefined {
   const negotiatorHeaders: Record<string, string> = {};
@@ -25,9 +18,7 @@ function getLocale(request: NextRequest): string | undefined {
 
   // @ts-expect-error locales are readonly
   const locales: string[] = i18n.locales;
-  const languages = new Negotiator({ headers: negotiatorHeaders }).languages(
-    locales,
-  );
+  const languages = new Negotiator({ headers: negotiatorHeaders }).languages(locales);
 
   return matchLocale(languages, locales, i18n.defaultLocale);
 }
@@ -40,8 +31,7 @@ export async function proxy(request: NextRequest) {
 
   // Check if there is any supported locale in the pathname
   const pathnameIsMissingLocale = i18n.locales.every(
-    (locale) =>
-      !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`,
+    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`,
   );
 
   // Redirect or Rewrite if there is no locale
@@ -55,10 +45,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.rewrite(rewriteUrl);
     }
 
-    const url = new URL(
-      `/${locale}${pathname.startsWith("/") ? "" : "/"}${pathname}`,
-      request.url,
-    );
+    const url = new URL(`/${locale}${pathname.startsWith("/") ? "" : "/"}${pathname}`, request.url);
     url.search = request.nextUrl.search;
     return NextResponse.redirect(url);
   }
@@ -95,8 +82,7 @@ export async function proxy(request: NextRequest) {
     pathAfterLocale.startsWith("/contacts") ||
     pathAfterLocale.startsWith("/vault");
 
-  const isAuthRoute =
-    pathAfterLocale === "/login" || pathAfterLocale === "/register";
+  const isAuthRoute = pathAfterLocale === "/login" || pathAfterLocale === "/register";
 
   // 1. Auth Guard
   if (isDashboardRoute && !session) {
@@ -110,9 +96,7 @@ export async function proxy(request: NextRequest) {
   // 2. Workspace Guard (Lightweight JWT check)
   if (isDashboardRoute && token) {
     try {
-      const secret = new TextEncoder().encode(
-        process.env.JWT_SECRET || "default_secret",
-      );
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET || "default_secret");
       const { payload } = await jwtVerify(token, secret);
 
       if (
@@ -124,9 +108,7 @@ export async function proxy(request: NextRequest) {
       }
     } catch (e) {
       console.error("[Proxy] JWT verification failed:", e);
-      const redirectResponse = NextResponse.redirect(
-        new URL(`/${locale}/login`, request.url),
-      );
+      const redirectResponse = NextResponse.redirect(new URL(`/${locale}/login`, request.url));
       redirectResponse.cookies.delete("oewang-session");
       return redirectResponse;
     }

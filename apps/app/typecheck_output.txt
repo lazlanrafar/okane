@@ -1,0 +1,3 @@
+$ NODE_OPTIONS='--max-old-space-size=4096' tsc --noEmit "--filter=app"
+error TS5023: Unknown compiler option '--filter=app'.
+error: script "typecheck" exited with code 1

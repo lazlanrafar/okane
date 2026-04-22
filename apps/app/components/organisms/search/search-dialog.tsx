@@ -1,16 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
-import { useSearchStore } from "@/stores/search";
+
+import { getTransactions } from "@workspace/modules/transaction/transaction.action";
+import { getVaultFiles, type VaultFile } from "@workspace/modules/vault/vault.action";
+import type { Transaction } from "@workspace/types";
 import {
   Button,
-  Icons,
-  Kbd,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
   Command,
   CommandEmpty,
   CommandGroup,
@@ -18,19 +16,19 @@ import {
   CommandItem,
   CommandList,
   cn,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  Icons,
+  Kbd,
 } from "@workspace/ui";
-import { getTransactions } from "@workspace/modules/transaction/transaction.action";
-import {
-  getVaultFiles,
-  type VaultFile,
-} from "@workspace/modules/vault/vault.action";
-import type { Transaction } from "@workspace/types";
 import { formatBytes } from "@workspace/utils";
-import { format } from "date-fns";
-import { useAppStore } from "@/stores/app";
-import { useLocalizedRoute } from "@/utils/localized-route";
-import { isValid } from "date-fns";
+import { format, isValid } from "date-fns";
 
+import { useAppStore } from "@/stores/app";
+import { useSearchStore } from "@/stores/search";
+import { useLocalizedRoute } from "@/utils/localized-route";
 
 export function SearchDialog({ dictionary }: { dictionary: any }) {
   const { isOpen, setOpen } = useSearchStore();
@@ -43,40 +41,39 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
   const { settings, formatCurrency } = useAppStore();
   const { getLocalizedUrl } = useLocalizedRoute();
 
-
   const t = (key: string) => {
     if (!key || !key.includes(".") || !dictionary) return key;
     const keys = key.split(".");
     let result: any = dictionary;
     for (const k of keys) {
-      if (!result?.[k]) return key;
+      if (!result || !result[k]) return key;
       result = result[k];
     }
     return typeof result === "string" ? result : key;
   };
 
   const SHORTCUTS = [
-    { label: t("sidebar.overview"), icon: Icons.Overview, href: getLocalizedUrl("/overview") },
+    { label: t("sidebar.overview_label"), icon: Icons.Overview, href: getLocalizedUrl("/overview") },
     {
-      label: t("sidebar.transactions"),
+      label: t("sidebar.transactions_label"),
       icon: Icons.Transactions,
       href: getLocalizedUrl("/transactions"),
     },
-    { label: t("sidebar.calendar"), icon: Icons.CalendarMonth, href: getLocalizedUrl("/calendar") },
-    { label: t("sidebar.accounts"), icon: Icons.Accounts, href: getLocalizedUrl("/accounts") },
-    { label: t("sidebar.debts"), icon: Icons.Currency, href: getLocalizedUrl("/debts") },
-    { label: t("sidebar.contacts"), icon: Icons.Customers, href: getLocalizedUrl("/contacts") },
-    { label: t("sidebar.vault"), icon: Icons.Vault, href: getLocalizedUrl("/vault") },
+    { label: t("sidebar.calendar_label"), icon: Icons.CalendarMonth, href: getLocalizedUrl("/calendar") },
+    { label: t("sidebar.accounts_label"), icon: Icons.Accounts, href: getLocalizedUrl("/accounts") },
+    { label: t("sidebar.debts_label"), icon: Icons.Currency, href: getLocalizedUrl("/debts") },
+    { label: t("sidebar.contacts_label"), icon: Icons.Customers, href: getLocalizedUrl("/contacts") },
+    { label: t("sidebar.vault_label"), icon: Icons.Vault, href: getLocalizedUrl("/vault") },
   ];
 
   const SETTINGS_ITEMS = [
     {
-      label: t("settings.account.title"),
+      label: t("settings?.account.title"),
       icon: Icons.Settings,
       href: getLocalizedUrl("/settings/profile"),
     },
     {
-      label: t("settings.appearance.title"),
+      label: t("settings?.appearance.title"),
       icon: Icons.Settings,
       href: getLocalizedUrl("/settings/appearance"),
     },
@@ -132,18 +129,19 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
   };
 
   const filteredShortcuts = SHORTCUTS.filter((s) =>
-    String(s.label || "").toLowerCase().includes(debouncedSearch.toLowerCase()),
+    String(s.label || "")
+      .toLowerCase()
+      .includes(debouncedSearch.toLowerCase()),
   );
 
   const filteredSettings = SETTINGS_ITEMS.filter((s) =>
-    String(s.label || "").toLowerCase().includes(debouncedSearch.toLowerCase()),
+    String(s.label || "")
+      .toLowerCase()
+      .includes(debouncedSearch.toLowerCase()),
   );
 
   const hasResults =
-    filteredShortcuts.length > 0 ||
-    filteredSettings.length > 0 ||
-    transactions.length > 0 ||
-    vaultFiles.length > 0;
+    filteredShortcuts.length > 0 || filteredSettings.length > 0 || transactions.length > 0 || vaultFiles.length > 0;
 
   if (!dictionary) return null;
 
@@ -169,13 +167,8 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
           showCloseButton={false}
         >
           <DialogTitle className="sr-only">{t("search.shortcuts")}</DialogTitle>
-          <DialogDescription className="sr-only">
-            {t("search.input_placeholder")}
-          </DialogDescription>
-          <Command
-            shouldFilter={false}
-            className="rounded-t-xl border-none flex-1 bg-transparent"
-          >
+          <DialogDescription className="sr-only">{t("search.input_placeholder")}</DialogDescription>
+          <Command shouldFilter={false} className="rounded-t-xl border-none flex-1 bg-transparent">
             <div className="border-b border-border relative">
               <CommandInput
                 placeholder={t("search.input_placeholder")}
@@ -198,9 +191,7 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
               )}
             </div>
             <CommandList className="max-h-full h-full pb-2 scrollbar-thin scrollbar-thumb-muted-foreground/20">
-              {!hasResults && !isFetching && (
-                <CommandEmpty>{t("search.no_results")}</CommandEmpty>
-              )}
+              {!hasResults && !isFetching && <CommandEmpty>{t("search.no_results")}</CommandEmpty>}
 
               {filteredShortcuts.length > 0 && (
                 <CommandGroup
@@ -213,10 +204,7 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
                       onSelect={() => onSelect(shortcut.href)}
                       className="px-3 py-2.5  cursor-pointer"
                     >
-                      <shortcut.icon
-                        size={16}
-                        className="mr-3 text-muted-foreground"
-                      />
+                      <shortcut.icon size={16} className="mr-3 text-muted-foreground" />
                       <span className="text-sm">{shortcut.label}</span>
                     </CommandItem>
                   ))}
@@ -229,31 +217,28 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
                   className="px-2 **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider **:[[cmdk-group-heading]]:text-muted-foreground"
                 >
                   {transactions.map((transaction) => {
-                    const isIncome = transaction.type === "income";
-                    const isExpense = transaction.type === "expense";
-                    const amount = Number(transaction.amount);
+                    const isIncome = transaction?.type === "income";
+                    const isExpense = transaction?.type === "expense";
+                    const amount = Number(transaction?.amount);
 
                     return (
                       <CommandItem
-                        key={transaction.id}
+                        key={transaction?.id}
                         onSelect={() => onSelect(getLocalizedUrl("/transactions"))}
                         className="px-3 py-2.5 rounded-md cursor-pointer flex items-center justify-between"
                       >
                         <div className="flex items-center">
-                          <Icons.Transactions
-                            size={16}
-                            className="mr-3 text-muted-foreground"
-                          />
+                          <Icons.Transactions size={16} className="mr-3 text-muted-foreground" />
                           <div className="flex flex-col">
                             <span className="text-sm truncate max-w-[150px] md:max-w-[350px]">
-                              {transaction.name ||
-                                transaction.description ||
-                                transaction.category?.name ||
+                              {transaction?.name ||
+                                transaction?.description ||
+                                transaction?.category?.name ||
                                 "Transaction"}
                             </span>
                             <span className="text-[10px] text-muted-foreground">
-                              {transaction.date && isValid(new Date(transaction.date))
-                                ? format(new Date(transaction.date), "MMM dd, yyyy")
+                              {transaction?.date && isValid(new Date(transaction?.date))
+                                ? format(new Date(transaction?.date), "MMM dd, yyyy")
                                 : "—"}
                             </span>
                           </div>
@@ -261,11 +246,7 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
                         <span
                           className={cn(
                             "text-sm font-medium font-serif",
-                            isIncome
-                              ? "text-emerald-500"
-                              : isExpense
-                                ? "text-red-500"
-                                : "text-blue-500",
+                            isIncome ? "text-emerald-500" : isExpense ? "text-red-500" : "text-blue-500",
                           )}
                         >
                           {formatCurrency(amount)}
@@ -295,17 +276,10 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
                       className="px-3 py-2.5 rounded-md cursor-pointer flex items-center justify-between"
                     >
                       <div className="flex items-center">
-                        <Icons.Vault
-                          size={16}
-                          className="mr-3 text-muted-foreground"
-                        />
-                        <span className="text-sm truncate max-w-[200px] md:max-w-[400px]">
-                          {file.name}
-                        </span>
+                        <Icons.Vault size={16} className="mr-3 text-muted-foreground" />
+                        <span className="text-sm truncate max-w-[200px] md:max-w-[400px]">{file.name}</span>
                       </div>
-                      <span className="text-[10px] text-muted-foreground uppercase">
-                        {formatBytes(file.size)}
-                      </span>
+                      <span className="text-[10px] text-muted-foreground uppercase">{formatBytes(file.size)}</span>
                     </CommandItem>
                   ))}
                   <CommandItem
@@ -329,10 +303,7 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
                       onSelect={() => onSelect(item.href)}
                       className="px-3 py-2.5  cursor-pointer"
                     >
-                      <item.icon
-                        size={16}
-                        className="mr-3 text-muted-foreground"
-                      />
+                      <item.icon size={16} className="mr-3 text-muted-foreground" />
                       <span className="text-sm">{item.label}</span>
                     </CommandItem>
                   ))}
@@ -342,21 +313,15 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
           </Command>
 
           <footer className="search-footer flex px-4 h-11 w-full border-t border-border/50 items-center bg-muted/30 backdrop-blur-xl">
-            <div></div>
+            <div />
 
             <div className="ml-auto flex items-center space-x-2">
               <div className="flex items-center gap-1.5">
                 <div className="size-5 select-none items-center border border-border/50 bg-background flex justify-center rounded-[4px] shadow-sm">
-                  <Icons.ChevronUp
-                    size={10}
-                    className="text-muted-foreground"
-                  />
+                  <Icons.ChevronUp size={10} className="text-muted-foreground" />
                 </div>
                 <div className="size-5 select-none items-center border border-border/50 bg-background flex justify-center rounded-[4px] shadow-sm">
-                  <Icons.ChevronDown
-                    size={10}
-                    className="text-muted-foreground"
-                  />
+                  <Icons.ChevronDown size={10} className="text-muted-foreground" />
                 </div>
                 <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">
                   {t("search.navigate")}
@@ -367,10 +332,7 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
 
               <div className="flex items-center gap-1.5">
                 <div className="size-5 select-none items-center border border-border/50 bg-background flex justify-center rounded-[4px] shadow-sm">
-                  <Icons.SubdirectoryArrowLeft
-                    size={10}
-                    className="text-muted-foreground"
-                  />
+                  <Icons.SubdirectoryArrowLeft size={10} className="text-muted-foreground" />
                 </div>
                 <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">
                   {t("search.open")}

@@ -1,8 +1,9 @@
 "use client";
-import { Combobox, Spinner, cn } from "@workspace/ui";
-import { getCategories, createCategory } from "@workspace/modules/client";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createCategory, getCategories } from "@workspace/modules/client";
+import { Combobox, cn, Spinner } from "@workspace/ui";
 import { toast } from "sonner";
 
 export interface SelectCategoryProps {
@@ -22,11 +23,7 @@ const CategoryColor = ({ type, color }: { type: string; color?: string }) => (
   <div
     className={cn(
       "w-2.5 h-2.5 rounded-[2px] shrink-0",
-      color
-        ? `bg-${color}`
-        : type === "income"
-          ? "bg-emerald-500"
-          : "bg-red-500",
+      color ? `bg-${color}` : type === "income" ? "bg-emerald-500" : "bg-red-500",
     )}
   />
 );
@@ -117,9 +114,7 @@ export function SelectCategory({
       renderSelectedItem={(item) => (
         <div className="flex items-center space-x-2">
           <CategoryColor type={selectedCategory?.type || type || "expense"} />
-          <span className="text-left truncate max-w-[90%] font-medium">
-            {!Array.isArray(item) ? item.label : ""}
-          </span>
+          <span className="text-left truncate max-w-[90%] font-medium">{!Array.isArray(item) ? item.label : ""}</span>
         </div>
       )}
       renderOnCreate={(value) => (

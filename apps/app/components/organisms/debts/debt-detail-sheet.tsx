@@ -1,24 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import type { Wallet } from "@workspace/types";
-import { type DebtWithContact, payDebt } from "@workspace/modules/client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { type DebtWithContact, payDebt } from "@workspace/modules/client";
+import type { Wallet } from "@workspace/types";
 import {
+  Alert,
+  AlertDescription,
+  Badge,
   Button,
+  Separator,
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-  Badge,
-  Alert,
-  AlertDescription,
-  Separator,
 } from "@workspace/ui";
-import { useAppStore } from "@/stores/app";
-import { toast } from "sonner";
-import { ArrowDownLeft, ArrowUpRight, Calendar, Trash, Wallet as WalletIcon, CreditCard } from "lucide-react";
 import { format } from "date-fns";
+import { ArrowDownLeft, ArrowUpRight, Calendar, CreditCard, Trash, Wallet as WalletIcon } from "lucide-react";
+import { toast } from "sonner";
+
+import type { Dictionary } from "@workspace/dictionaries";
+import type { TransactionSettings } from "@workspace/types";
+import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
+
 import { PaymentFormSheet } from "./payment-form-sheet";
 
 interface Props {
@@ -27,20 +32,16 @@ interface Props {
   debt?: DebtWithContact;
   wallets: Wallet[];
   onDelete: (id: string) => void;
-  dictionary: any;
+  dictionary: Dictionary;
+  settings: TransactionSettings;
 }
 
-export function DebtDetailSheet({
-  open,
-  onOpenChange,
-  debt,
-  wallets,
-  onDelete,
-  dictionary,
-}: Props) {
+export function DebtDetailSheet({ open, onOpenChange, debt, wallets, onDelete, dictionary, settings }: Props) {
   const [paymentFormOpen, setPaymentFormOpen] = useState(false);
-  const { settings, formatCurrency } = useAppStore() as any;
-  const dict = dictionary?.debts;
+  const dict = dictionary.debts;
+ 
+  const formatCurrency = (amount: number, options?: Parameters<typeof formatCurrencyUtil>[2]) =>
+    formatCurrencyUtil(amount, settings, options);
 
   if (!debt) return null;
 
@@ -54,9 +55,7 @@ export function DebtDetailSheet({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent className="flex flex-col h-full p-0 rounded-none shadow-none border-l sm:max-w-[540px]">
           <SheetHeader className="px-6 py-6 border-b shrink-0 flex flex-row items-center justify-between bg-muted/5 text-left">
-            <SheetTitle className="font-serif text-xl font-normal">
-              {dict.details.title}
-            </SheetTitle>
+            <SheetTitle className="font-serif text-xl font-normal">{dict.details.title}</SheetTitle>
             <div className="flex gap-2">
               <Button
                 variant="ghost"
@@ -75,9 +74,7 @@ export function DebtDetailSheet({
           <div className="flex-1 overflow-y-auto px-6 py-6 no-scrollbar relative space-y-8">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-4xl font-serif tracking-tight font-normal">
-                  {formatCurrency(remainingAmount)}
-                </p>
+                <p className="text-4xl font-serif tracking-tight font-normal">{formatCurrency(remainingAmount)}</p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   {isReceivable ? (
                     <ArrowDownLeft className="h-4 w-4 text-emerald-500" />
@@ -85,9 +82,7 @@ export function DebtDetailSheet({
                     <ArrowUpRight className="h-4 w-4 text-rose-500" />
                   )}
                   <span className="text-[10px] font-medium uppercase tracking-widest">
-                    {isReceivable
-                      ? dict.types.you_are_owed
-                      : dict.types.you_owe}
+                    {isReceivable ? dict.types.you_are_owed : dict.types.you_owe}
                   </span>
                   <span className="text-[10px] font-medium uppercase tracking-widest text-foreground">
                     {debt.contactName}
@@ -96,13 +91,7 @@ export function DebtDetailSheet({
               </div>
 
               <Badge
-                variant={
-                  debt.status === "paid"
-                    ? "default"
-                    : debt.status === "partial"
-                      ? "secondary"
-                      : "outline"
-                }
+                variant={debt.status === "paid" ? "default" : debt.status === "partial" ? "secondary" : "outline"}
                 className="capitalize rounded-none shadow-none text-[10px] font-medium tracking-widest"
               >
                 {dict.statuses[debt.status] || debt.status}
@@ -121,18 +110,14 @@ export function DebtDetailSheet({
                   <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
                     {dict.details.original_amount}
                   </p>
-                  <p className="font-serif text-lg font-normal">
-                    {formatCurrency(amount)}
-                  </p>
+                  <p className="font-serif text-lg font-normal">{formatCurrency(amount)}</p>
                 </div>
 
                 <div className="space-y-1">
                   <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
                     {dict.details.paid_amount}
                   </p>
-                  <p className="font-serif text-lg font-normal text-emerald-500">
-                    {formatCurrency(paidAmount)}
-                  </p>
+                  <p className="font-serif text-lg font-normal text-emerald-500">{formatCurrency(paidAmount)}</p>
                 </div>
 
                 <div className="space-y-1">
@@ -141,9 +126,7 @@ export function DebtDetailSheet({
                     {dict.details.due_date}
                   </p>
                   <p className="font-serif text-lg font-normal">
-                    {debt.dueDate
-                      ? format(new Date(debt.dueDate), "MMM d, yyyy")
-                      : dict.details.no_due_date}
+                    {debt.dueDate ? format(new Date(debt.dueDate), "MMM d, yyyy") : dict.details.no_due_date}
                   </p>
                 </div>
 
@@ -179,9 +162,7 @@ export function DebtDetailSheet({
               disabled={debt.status === "paid"}
               onClick={() => setPaymentFormOpen(true)}
             >
-              {debt.status === "paid"
-                ? dict.details.settled
-                : dict.details.record_payment}
+              {debt.status === "paid" ? dict.details.settled : dict.details.record_payment}
             </Button>
           </div>
         </SheetContent>
@@ -193,6 +174,7 @@ export function DebtDetailSheet({
         debt={debt}
         wallets={wallets}
         dictionary={dictionary}
+        settings={settings}
       />
     </>
   );

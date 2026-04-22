@@ -1,26 +1,15 @@
 "use client";
 
-import { AnimatedSizeContainer } from "@workspace/ui";
-import { cn } from "@workspace/ui";
-import { Icons } from "@workspace/ui";
-import { Input } from "@workspace/ui";
-import { Skeleton } from "@workspace/ui";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
-import { useRouter } from "next/navigation";
-import {
-  type ReactNode,
-  type RefObject,
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { useDebounceCallback } from "usehooks-ts";
-import { useOnClickOutside } from "usehooks-ts";
-import { getChatSessions } from "@workspace/modules/ai/ai.action";
+import { createContext, type ReactNode, type RefObject, useContext, useEffect, useRef, useState } from "react";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getChatSessions } from "@workspace/modules/ai/ai.action";
+import { AnimatedSizeContainer, cn, Icons, Input, Skeleton } from "@workspace/ui";
+import { formatDistanceToNow } from "date-fns";
+import { useDebounceCallback, useOnClickOutside } from "usehooks-ts";
 
 const ChatHistoryContext = createContext<{
   isOpen: boolean;
@@ -30,9 +19,7 @@ const ChatHistoryContext = createContext<{
 export function useChatHistoryContext() {
   const context = useContext(ChatHistoryContext);
   if (!context) {
-    throw new Error(
-      "useChatHistoryContext must be used within ChatHistoryProvider",
-    );
+    throw new Error("useChatHistoryContext must be used within ChatHistoryProvider");
   }
   return context;
 }
@@ -41,10 +28,7 @@ function ChatHistorySkeleton() {
   return (
     <div className="space-y-1">
       {Array.from({ length: 10 }, (_, i) => (
-        <div
-          key={`chat-skeleton-${i + 1}`}
-          className="flex items-center justify-between px-2 py-2"
-        >
+        <div key={`chat-skeleton-${i + 1}`} className="flex items-center justify-between px-2 py-2">
           <Skeleton className="h-4 w-3/4" />
           <Skeleton className="h-3 w-16" />
         </div>
@@ -56,11 +40,7 @@ function ChatHistorySkeleton() {
 export function ChatHistoryProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  return (
-    <ChatHistoryContext.Provider value={{ isOpen, setIsOpen }}>
-      {children}
-    </ChatHistoryContext.Provider>
-  );
+  return <ChatHistoryContext.Provider value={{ isOpen, setIsOpen }}>{children}</ChatHistoryContext.Provider>;
 }
 
 export function ChatHistory() {
@@ -118,7 +98,7 @@ export function ChatHistoryDropdown() {
     if (isOpen && searchInputRef.current) {
       // Small delay to ensure the dropdown is rendered
       setTimeout(() => {
-        searchInputRef.current?.focus();
+        searchInputRef.current.focus();
       }, 100);
       // Reset selected index when opening
       setSelectedIndex(-1);
@@ -130,9 +110,7 @@ export function ChatHistoryDropdown() {
     if (isOpen) {
       const target = event.target as Element;
       const clickedButton = target.closest("button");
-      const isHistoryButton = clickedButton?.closest(
-        "[data-chat-history-button]",
-      );
+      const isHistoryButton = clickedButton.closest("[data-chat-history-button]");
 
       // Don't close if clicking on the history button itself
       if (!isHistoryButton) {
@@ -144,9 +122,7 @@ export function ChatHistoryDropdown() {
   // Scroll selected chat into view
   useEffect(() => {
     if (historyListRef.current && selectedIndex >= 0) {
-      const selectedElement = historyListRef.current.querySelector(
-        `[data-chat-index="${selectedIndex}"]`,
-      );
+      const selectedElement = historyListRef.current.querySelector(`[data-chat-index="${selectedIndex}"]`);
       if (selectedElement) {
         selectedElement.scrollIntoView({ block: "nearest" });
       }
@@ -175,14 +151,10 @@ export function ChatHistoryDropdown() {
 
   if (!isOpen) return null;
 
-  const chats = (sessionsResponse?.data as any[]) || [];
+  const chats = (sessionsResponse.data as any[]) || [];
 
   return (
-    <div
-      ref={historyListRef}
-      data-chat-history-menu
-      className="absolute bottom-full left-0 right-0 mb-2 w-full z-100"
-    >
+    <div ref={historyListRef} data-chat-history-menu className="absolute bottom-full left-0 right-0 mb-2 w-full z-100">
       <AnimatedSizeContainer
         height
         className="bg-[#f7f7f7]/85 dark:bg-[#171717]/85 backdrop-blur-lg max-h-80 flex flex-col overflow-hidden"
@@ -219,7 +191,7 @@ export function ChatHistoryDropdown() {
           <div className="p-2 pt-0">
             {isLoading ? (
               <ChatHistorySkeleton />
-            ) : chats?.length === 0 ? (
+            ) : chats.length === 0 ? (
               <div className="flex items-center justify-center py-8">
                 <div className="text-sm text-muted-foreground">
                   {searchQuery ? "No chats found" : "No chat history"}
@@ -227,7 +199,7 @@ export function ChatHistoryDropdown() {
               </div>
             ) : (
               <div className="space-y-1">
-                {chats?.map((chat, index) => {
+                {chats.map((chat, index) => {
                   if (!chat) return null;
                   const isSelected = selectedIndex === index;
                   return (
@@ -237,9 +209,7 @@ export function ChatHistoryDropdown() {
                       data-chat-index={index}
                       className={cn(
                         "group relative flex items-center justify-between px-2 py-2 text-sm cursor-pointer transition-colors h-[32px] no-underline",
-                        isSelected
-                          ? "bg-black/5 dark:bg-white/5"
-                          : "hover:bg-black/5 dark:hover:bg-white/5",
+                        isSelected ? "bg-black/5 dark:bg-white/5" : "hover:bg-black/5 dark:hover:bg-white/5",
                       )}
                       onMouseEnter={() => setSelectedIndex(index)}
                       onClick={() => setIsOpen(false)}
@@ -265,10 +235,7 @@ export function ChatHistoryDropdown() {
                             // Implementation for deleteChat soon
                           }}
                         >
-                          <Icons.Delete
-                            size={14}
-                            className="text-muted-foreground hover:text-destructive"
-                          />
+                          <Icons.Delete size={14} className="text-muted-foreground hover:text-destructive" />
                         </button>
                       </div>
                     </Link>

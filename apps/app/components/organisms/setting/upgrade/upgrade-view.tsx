@@ -1,45 +1,39 @@
 "use client";
 
 import * as React from "react";
+
 import { useMutation } from "@tanstack/react-query";
+import { cancelSubscription, createCheckoutSession } from "@workspace/modules/mayar/mayar.action";
+import type { Pricing } from "@workspace/types";
 import {
+  Badge,
   Button,
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  Badge,
   cn,
+  Separator,
 } from "@workspace/ui";
-import { Check } from "lucide-react";
-import type { Pricing } from "@workspace/types";
-import {
-  createCheckoutSession,
-  cancelSubscription,
-} from "@workspace/modules/mayar/mayar.action";
-import { toast } from "sonner";
-import { useAppStore } from "@/stores/app";
-import { Separator } from "@workspace/ui";
 import { displayPrice, getGatewayPrice } from "@workspace/utils";
+import { Check } from "lucide-react";
+import { toast } from "sonner";
+
+import { useAppStore } from "@/stores/app";
 
 export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[]; locale: string }) {
   const { workspace, settings, dictionary } = useAppStore() as any;
-  const [billingCycle, setBillingCycle] = React.useState<"monthly" | "annual">(
-    "monthly",
-  );
+  const [billingCycle, setBillingCycle] = React.useState<"monthly" | "annual">("monthly");
 
-  const currency = settings?.mainCurrencyCode?.toLowerCase() || "usd";
+  const currency = settings?.mainCurrencyCode.toLowerCase() || "usd";
   const workspaceId = workspace?.id;
-  const dict = dictionary?.settings?.billing || dictionary?.billing;
+  const dict = dictionary.settings.billing || dictionary.billing;
   const currentPlanId = workspace?.plan_id;
 
   const checkoutMutation = useMutation({
-    mutationFn: async (params: {
-      priceId: string;
-      type?: "subscription" | "payment";
-    }) => {
+    mutationFn: async (params: { priceId: string; type?: "subscription" | "payment" }) => {
       const result = await createCheckoutSession(
         params.priceId,
         workspaceId,
@@ -76,26 +70,21 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
 
   const sortedPlans = [...(initialPlans || [])].sort((a, b) => {
     const order = ["starter", "pro", "business"];
-    return (
-      order.indexOf(a.name.toLowerCase()) - order.indexOf(b.name.toLowerCase())
-    );
+    return order.indexOf(a.name.toLowerCase()) - order.indexOf(b.name.toLowerCase());
   });
 
   return (
     <div className="space-y-8 max-w-3xl mx-auto mt-10">
       <div className="space-y-1 text-center">
-        <h2 className="text-2xl font-medium tracking-tight">
-          {dict.available_plans}
-        </h2>
+        <h2 className="text-2xl font-medium tracking-tight">{dict.available_plans}</h2>
         <p className="text-base text-muted-foreground">
-          {dict.choose_plan_description ||
-            "Choose the plan that best fits your needs."}
+          {dict.choose_plan_description || "Choose the plan that best fits your needs."}
         </p>
       </div>
 
       <div className="space-y-6">
         <div className="flex items-center justify-between pb-2">
-          <div className=""></div>
+          <div className="" />
           <div className="flex border bg-background">
             <button
               type="button"
@@ -114,9 +103,7 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
               onClick={() => setBillingCycle("annual")}
               className={cn(
                 "px-4 py-1.5 text-[10px] uppercase tracking-wider transition-all border-l font-medium",
-                billingCycle === "annual"
-                  ? "bg-foreground text-background"
-                  : "text-muted-foreground hover:bg-accent/5",
+                billingCycle === "annual" ? "bg-foreground text-background" : "text-muted-foreground hover:bg-accent/5",
               )}
             >
               {dict.annual_toggle}
@@ -133,8 +120,7 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
             {sortedPlans.map((plan, i) => {
               const isStarter = plan.name.toLowerCase() === "starter";
               const isCurrent = currentPlanId === plan.id || (currentPlanId === null && isStarter);
-              const canDowngrade =
-                isStarter && workspace?.mayar_transaction_id;
+              const canDowngrade = isStarter && workspace?.mayar_transaction_id;
 
               const price = displayPrice(plan, billingCycle, {
                 currency,
@@ -148,8 +134,7 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
                   className={cn(
                     "rounded-none shadow-none flex flex-col transition-all border group relative",
                     isCurrent && "border-foreground ring-1 ring-foreground/10",
-                    !isCurrent &&
-                      "hover:border-foreground/40 hover:bg-accent/5",
+                    !isCurrent && "hover:border-foreground/40 hover:bg-accent/5",
                     i == 1 && "md:scale-105",
                   )}
                 >
@@ -163,7 +148,7 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
                           variant="outline"
                           className="rounded-none text-[9px] uppercase tracking-widest px-1.5 py-0 border-foreground bg-foreground text-background font-semibold"
                         >
-                          {dictionary?.settings?.common?.current || "Current"}
+                          {dictionary.settings.common.current || "Current"}
                         </Badge>
                       )}
                     </div>
@@ -173,9 +158,7 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
                   </CardHeader>
                   <CardContent className="p-5 pt-0 flex-1 space-y-6">
                     <div className="flex items-baseline gap-1 pt-4 border-t">
-                      <span className="text-2xl font-serif tracking-tight font-medium">
-                        {price.label}
-                      </span>
+                      <span className="text-2xl font-serif tracking-tight font-medium">{price?.label}</span>
                       {plan.name.toLowerCase() !== "starter" && (
                         <span className="text-xs text-muted-foreground font-medium">
                           / {billingCycle === "monthly" ? dict.mo : dict.yr}
@@ -183,30 +166,21 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
                       )}
                     </div>
                     <ul className="space-y-2.5">
-                      {(plan.features || [])
-                        .slice(0, 10)
-                        .map((feature: string, i: number) => (
-                          <li
-                            key={i}
-                            className="flex items-start gap-2.5 text-[11px] text-muted-foreground leading-snug"
-                          >
-                            <Check className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
+                      {(plan.features || []).slice(0, 10).map((feature: string, i: number) => (
+                        <li key={i} className="flex items-start gap-2.5 text-[11px] text-muted-foreground leading-snug">
+                          <Check className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
                     </ul>
                   </CardContent>
                   <CardFooter className="p-5 pt-0">
                     <Button
                       className={cn(
                         "w-full h-9 text-[10px] uppercase tracking-widest rounded-none font-semibold transition-all",
-                        isCurrent && !canDowngrade
-                          ? "bg-muted text-muted-foreground border-transparent"
-                          : "shadow-sm",
+                        isCurrent && !canDowngrade ? "bg-muted text-muted-foreground border-transparent" : "shadow-sm",
                       )}
-                      variant={
-                        isCurrent && !canDowngrade ? "secondary" : "default"
-                      }
+                      variant={isCurrent && !canDowngrade ? "secondary" : "default"}
                       disabled={
                         (isCurrent && !canDowngrade) ||
                         checkoutMutation.isPending ||
@@ -223,25 +197,19 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
                         }
                       }}
                     >
-                      {isCurrent ? (
-                        canDowngrade ? (
-                          dict.upgrade
-                        ) : (
-                          dict.current_plan
-                        )
-                      ) : canDowngrade ? (
-                        downgradeMutation.isPending ? (
-                          dictionary?.settings?.common?.processing || "Processing..."
-                        ) : (
-                          dict.upgrade
-                        )
-                      ) : checkoutMutation.isPending ? (
-                        dictionary?.settings?.common?.connecting || "Connecting..."
-                      ) : isStarter ? (
-                        dict.free_plan
-                      ) : (
-                        dict.get_started
-                      )}
+                      {isCurrent
+                        ? canDowngrade
+                          ? dict.upgrade
+                          : dict.current_plan
+                        : canDowngrade
+                          ? downgradeMutation.isPending
+                            ? dictionary.settings.common.processing || "Processing..."
+                            : dict.upgrade
+                          : checkoutMutation.isPending
+                            ? dictionary.settings.common.connecting || "Connecting..."
+                            : isStarter
+                              ? dict.free_plan
+                              : dict.get_started}
                     </Button>
                   </CardFooter>
                 </Card>

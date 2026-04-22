@@ -20,11 +20,7 @@ export function ChartSelectionOverlay({
   containerHeight,
 }: ChartSelectionOverlayProps) {
   const overlayStyles = useMemo(() => {
-    if (
-      selection.startIndex === null ||
-      selection.endIndex === null ||
-      data.length === 0
-    ) {
+    if (selection.startIndex === null || selection.endIndex === null || data.length === 0) {
       return null;
     }
 
@@ -46,13 +42,7 @@ export function ChartSelectionOverlay({
       endPos,
       width,
     };
-  }, [
-    data.length,
-    selection.startIndex,
-    selection.endIndex,
-    containerWidth,
-    containerHeight,
-  ]);
+  }, [data.length, selection.startIndex, selection.endIndex, containerWidth, containerHeight]);
 
   if (!overlayStyles) {
     return null;

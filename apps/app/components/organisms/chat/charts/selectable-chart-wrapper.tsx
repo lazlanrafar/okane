@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
+
 import { ChartSelectionOverlay } from "./chart-selection-overlay";
 
 interface SelectableChartWrapperProps {
@@ -15,10 +16,7 @@ interface SelectableChartWrapperProps {
   chartType?: string;
 }
 
-export function SelectableChartWrapper({
-  children,
-  enableSelection = false,
-}: SelectableChartWrapperProps) {
+export function SelectableChartWrapper({ children, enableSelection = false }: SelectableChartWrapperProps) {
   // Chart selection is not enabled in Oewang canvas - just render children
   if (!enableSelection) {
     return <>{children}</>;

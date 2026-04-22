@@ -1,6 +1,5 @@
 "use client";
 
-import { formatAmount } from "./format-amount";
 import {
   CartesianGrid,
   ComposedChart,
@@ -11,11 +10,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import {
-  commonChartConfig,
-  createCompactTickFormatter,
-  useChartMargin,
-} from "./chart-utils";
+
+import { commonChartConfig, createCompactTickFormatter, useChartMargin } from "./chart-utils";
+import { formatAmount } from "./format-amount";
 
 interface ProjectedCashBalanceData {
   month: number;
@@ -32,13 +29,7 @@ interface StressTestChartProps {
 }
 
 // Custom tooltip for cash balance projection
-const ProjectionTooltip = ({
-  active,
-  payload,
-  label,
-  currency = "USD",
-  locale,
-}: any) => {
+const ProjectionTooltip = ({ active, payload, label, currency = "USD", locale }: any) => {
   if (active && Array.isArray(payload) && payload.length > 0) {
     const formatCurrency = (amount: number) =>
       formatAmount({
@@ -48,27 +39,21 @@ const ProjectionTooltip = ({
         maximumFractionDigits: 0,
       }) ?? `${currency}${amount.toLocaleString()}`;
 
-    const baseCase = payload.find((p) => p.dataKey === "baseCase")?.value;
-    const worstCase = payload.find((p) => p.dataKey === "worstCase")?.value;
-    const bestCase = payload.find((p) => p.dataKey === "bestCase")?.value;
+    const baseCase = payload.find((p) => p.dataKey === "baseCase").value;
+    const worstCase = payload.find((p) => p.dataKey === "worstCase").value;
+    const bestCase = payload.find((p) => p.dataKey === "bestCase").value;
 
     return (
       <div className="border p-2 text-[10px] font-hedvig-sans bg-white dark:bg-[#0c0c0c] border-[#e6e6e6] dark:border-[#1d1d1d] text-black dark:text-white shadow-sm">
         <p className="mb-1 text-[#707070] dark:text-[#666666]">Month {label}</p>
         {typeof baseCase === "number" && (
-          <p className="text-black dark:text-white">
-            Base Case: {formatCurrency(baseCase)}
-          </p>
+          <p className="text-black dark:text-white">Base Case: {formatCurrency(baseCase)}</p>
         )}
         {typeof worstCase === "number" && (
-          <p className="text-black dark:text-white">
-            Worst Case: {formatCurrency(worstCase)}
-          </p>
+          <p className="text-black dark:text-white">Worst Case: {formatCurrency(worstCase)}</p>
         )}
         {typeof bestCase === "number" && (
-          <p className="text-black dark:text-white">
-            Best Case: {formatCurrency(bestCase)}
-          </p>
+          <p className="text-black dark:text-white">Best Case: {formatCurrency(bestCase)}</p>
         )}
       </div>
     );
@@ -99,14 +84,8 @@ export function CashBalanceProjectionChart({
   return (
     <div className="w-full" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%" debounce={1}>
-        <ComposedChart
-          data={data}
-          margin={{ top: 6, right: 6, left: -marginLeft, bottom: 6 }}
-        >
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="var(--chart-grid-stroke)"
-          />
+        <ComposedChart data={data} margin={{ top: 6, right: 6, left: -marginLeft, bottom: 6 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid-stroke)" />
           <XAxis
             dataKey="month"
             axisLine={false}
@@ -175,11 +154,7 @@ export function CashBalanceProjectionChart({
             isAnimationActive={false}
           />
           {/* Reference line at zero */}
-          <ReferenceLine
-            y={0}
-            stroke="hsl(var(--border))"
-            strokeDasharray="2 2"
-          />
+          <ReferenceLine y={0} stroke="hsl(var(--border))" strokeDasharray="2 2" />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
@@ -193,12 +168,5 @@ export function StressTestChart({
   currency = "USD",
   locale,
 }: StressTestChartProps) {
-  return (
-    <CashBalanceProjectionChart
-      data={projectedCashBalance}
-      height={height}
-      currency={currency}
-      locale={locale}
-    />
-  );
+  return <CashBalanceProjectionChart data={projectedCashBalance} height={height} currency={currency} locale={locale} />;
 }

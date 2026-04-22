@@ -1,33 +1,12 @@
 "use client";
 
+import { useChatActions } from "@ai-sdk-tools/store";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  cn,
-  Skeleton,
-} from "@workspace/ui";
-import {
-  LineChart,
-  PieChart,
-  Receipt,
-  TrendingUp,
-  Wallet,
-  ArrowDownRight,
-  ArrowUpRight,
-  Minus,
-} from "lucide-react";
+import { getCategoryBreakdown, getExpenseMetrics, getRevenueMetrics } from "@workspace/modules/server";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Skeleton } from "@workspace/ui";
+import { ArrowDownRight, ArrowUpRight, LineChart, Minus, PieChart, Receipt, TrendingUp, Wallet } from "lucide-react";
 
 import { useAppStore } from "@/stores/app";
-import { useChatActions } from "@ai-sdk-tools/store";
-import {
-  getCategoryBreakdown,
-  getExpenseMetrics,
-  getRevenueMetrics,
-} from "@workspace/modules/server";
 
 /** Skeleton block for a monetary value line */
 function ValueSkeleton() {
@@ -103,23 +82,17 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
 
   const currentRevenue = revenueData[revenueData.length - 1]?.current ?? 0;
   const previousRevenue =
-    revenueData[revenueData.length - 1]?.previous ??
-    revenueData[revenueData.length - 2]?.current ??
-    0;
+    revenueData[revenueData.length - 1]?.previous ?? revenueData[revenueData.length - 2]?.current ?? 0;
 
   const currentExpense = expenseData[expenseData.length - 1]?.current ?? 0;
   const previousExpense =
-    expenseData[expenseData.length - 1]?.previous ??
-    expenseData[expenseData.length - 2]?.current ??
-    0;
+    expenseData[expenseData.length - 1]?.previous ?? expenseData[expenseData.length - 2]?.current ?? 0;
 
   const currentNetIncome = currentRevenue - currentExpense;
   const previousNetIncome = previousRevenue - previousExpense;
 
-  const topCategory = categoryData?.length
-    ? categoryData.reduce((prev, current) =>
-        prev.value > current.value ? prev : current,
-      )
+  const topCategory = categoryData.length
+    ? categoryData.reduce((prev, current) => (prev.value > current.value ? prev : current))
     : null;
 
   // —— Helpers ——
@@ -130,40 +103,23 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
     } as any);
   };
 
-  const renderTrend = (
-    current: number,
-    previous: number,
-    reverseColors = false,
-  ) => {
+  const renderTrend = (current: number, previous: number, reverseColors = false) => {
     if (isLoading) return <TrendSkeleton />;
     if (!previous && !current) return null;
     if (!previous)
-      return (
-        <span className="text-xs text-muted-foreground ml-2">
-          {dictionary.overview.metrics.no_prior_data}
-        </span>
-      );
+      return <span className="text-xs text-muted-foreground ml-2">{dictionary.overview.metrics.no_prior_data}</span>;
 
     const percentage = ((current - previous) / previous) * 100;
     const isPositive = percentage > 0;
     const isNeutral = percentage === 0;
 
-    let colorClass = isNeutral
-      ? "text-muted-foreground"
-      : isPositive
-        ? "text-emerald-500"
-        : "text-red-500";
+    let colorClass = isNeutral ? "text-muted-foreground" : isPositive ? "text-emerald-500" : "text-red-500";
     if (reverseColors && !isNeutral) {
       colorClass = isPositive ? "text-red-500" : "text-emerald-500";
     }
 
     return (
-      <span
-        className={cn(
-          "text-xs flex items-center ml-2 font-medium tracking-tight",
-          colorClass,
-        )}
-      >
+      <span className={cn("text-xs flex items-center ml-2 font-medium tracking-tight", colorClass)}>
         {isPositive ? (
           <ArrowUpRight className="h-3 w-3 mr-0.5" />
         ) : isNeutral ? (
@@ -189,17 +145,13 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
               {dictionary.overview.metrics.total_income}
               <TrendingUp className="h-4 w-4 text-emerald-500" />
             </CardTitle>
-            <CardDescription className="sr-only">
-              Current month total income
-            </CardDescription>
+            <CardDescription className="sr-only">Current month total income</CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
             {isLoading ? (
               <ValueSkeleton />
             ) : (
-              <div className="text-2xl font-serif tracking-tight font-medium">
-                {fmt(currentRevenue)}
-              </div>
+              <div className="text-2xl font-serif tracking-tight font-medium">{fmt(currentRevenue)}</div>
             )}
             <div className="flex items-center mt-1">
               <span className="text-xs text-muted-foreground">{dictionary.overview.metrics.this_month}</span>
@@ -218,17 +170,13 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
               {dictionary.overview.metrics.total_expenses}
               <Receipt className="h-4 w-4 text-red-500" />
             </CardTitle>
-            <CardDescription className="sr-only">
-              Current month total expenses
-            </CardDescription>
+            <CardDescription className="sr-only">Current month total expenses</CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
             {isLoading ? (
               <ValueSkeleton />
             ) : (
-              <div className="text-2xl font-serif tracking-tight font-medium">
-                {fmt(currentExpense)}
-              </div>
+              <div className="text-2xl font-serif tracking-tight font-medium">{fmt(currentExpense)}</div>
             )}
             <div className="flex items-center mt-1">
               <span className="text-xs text-muted-foreground">{dictionary.overview.metrics.this_month}</span>
@@ -240,26 +188,20 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
         {/* Net Income */}
         <Card
           className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
-          onClick={() =>
-            handleCardClick(dictionary.overview.chips.monthly_summary_msg)
-          }
+          onClick={() => handleCardClick(dictionary.overview.chips.monthly_summary_msg)}
         >
           <CardHeader className="p-4 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center justify-between">
               {dictionary.overview.metrics.net_income}
               <Wallet className="h-4 w-4 text-blue-500" />
             </CardTitle>
-            <CardDescription className="sr-only">
-              Current month net income
-            </CardDescription>
+            <CardDescription className="sr-only">Current month net income</CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
             {isLoading ? (
               <ValueSkeleton />
             ) : (
-              <div className="text-2xl font-serif tracking-tight font-medium">
-                {fmt(currentNetIncome)}
-              </div>
+              <div className="text-2xl font-serif tracking-tight font-medium">{fmt(currentNetIncome)}</div>
             )}
             <div className="flex items-center mt-1">
               <span className="text-xs text-muted-foreground">{dictionary.overview.metrics.this_month}</span>
@@ -271,18 +213,14 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
         {/* Top Expense Category */}
         <Card
           className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none flex flex-col justify-between"
-          onClick={() =>
-            handleCardClick(dictionary.overview.chips.top_expenses_msg)
-          }
+          onClick={() => handleCardClick(dictionary.overview.chips.top_expenses_msg)}
         >
           <CardHeader className="p-4 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center justify-between">
               {dictionary.overview.metrics.top_expense}
               <PieChart className="h-4 w-4 text-amber-500" />
             </CardTitle>
-            <CardDescription className="sr-only">
-              Highest expense category this month
-            </CardDescription>
+            <CardDescription className="sr-only">Highest expense category this month</CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
             {loadingCategory ? (
@@ -292,17 +230,13 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
               </>
             ) : topCategory ? (
               <>
-                <div className="text-lg font-medium truncate">
-                  {topCategory.name}
-                </div>
+                <div className="text-lg font-medium truncate">{topCategory.name}</div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {fmt(topCategory.value)} {dictionary.overview.metrics.this_month}
                 </div>
               </>
             ) : (
-              <div className="text-sm text-muted-foreground mt-2">
-                {dictionary.overview.metrics.no_expenses}
-              </div>
+              <div className="text-sm text-muted-foreground mt-2">{dictionary.overview.metrics.no_expenses}</div>
             )}
           </CardContent>
         </Card>

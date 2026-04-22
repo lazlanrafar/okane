@@ -9,11 +9,7 @@ export const metadata: Metadata = {
   title: "Login",
 };
 
-export default async function LoginV2({
-  params,
-}: {
-  params: Promise<{ locale: Locale }>;
-}) {
+export default async function LoginV2({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
   const dictionary = await getDictionary(locale);
 
@@ -22,9 +18,7 @@ export default async function LoginV2({
       <div className="mx-auto flex w-full flex-col justify-center space-y-10 sm:w-[400px] p-4 sm:p-0">
         <div className="flex flex-col items-center justify-center text-center space-y-4">
           <div className="space-y-3">
-            <h1 className="text-2xl tracking-tight font-sans">
-              {dictionary.auth.welcome}
-            </h1>
+            <h1 className="text-2xl tracking-tight font-sans">{dictionary.auth.welcome}</h1>
           </div>
         </div>
 
@@ -39,9 +33,7 @@ export default async function LoginV2({
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-background px-4 text-muted-foreground text-sm">
-                {dictionary.auth.or}
-              </span>
+              <span className="bg-background px-4 text-muted-foreground text-sm">{dictionary.auth.or}</span>
             </div>
           </div>
 

@@ -1,10 +1,14 @@
 "use client";
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@workspace/ui";
 import { useRouter } from "next/navigation";
-import { format, startOfMonth, endOfMonth } from "date-fns";
-import { Transaction, Debt } from "@workspace/types";
-import { useAppStore } from "@/stores/app";
+
+import type { Debt, Transaction, TransactionSettings } from "@workspace/types";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@workspace/ui";
+import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
+import { endOfMonth, format, startOfMonth } from "date-fns";
+
+import { INCOME_EXPENSES_COLOR_OPTIONS } from "@workspace/constants";
+import type { Dictionary } from "@workspace/dictionaries";
 
 interface CalendarDaySheetProps {
   date: Date | null;
@@ -12,19 +16,37 @@ interface CalendarDaySheetProps {
   onOpenChange: (open: boolean) => void;
   transactions: Transaction[];
   debts: (Debt & { contactName: string })[];
-  dictionary: any;
+  dictionary: Dictionary;
+  settings: TransactionSettings;
 }
 
-export function CalendarDaySheet({
-  date,
-  open,
-  onOpenChange,
-  transactions,
-  debts,
-  dictionary,
-}: CalendarDaySheetProps) {
+export function CalendarDaySheet({ date, open, onOpenChange, transactions, debts, dictionary, settings }: CalendarDaySheetProps) {
   const router = useRouter();
-  const { formatCurrency, getTransactionColor } = useAppStore();
+ 
+  const formatCurrency = (amount: number, options?: Parameters<typeof formatCurrencyUtil>[2]) =>
+    formatCurrencyUtil(amount, settings, options);
+ 
+  const getTransactionColor = (type: string) => {
+    const option =
+      INCOME_EXPENSES_COLOR_OPTIONS.find((o) => o.value === settings?.incomeExpensesColor) ||
+      INCOME_EXPENSES_COLOR_OPTIONS[0];
+ 
+    const normalizedType = type.toLowerCase();
+ 
+    if (normalizedType === "income" || normalizedType === "transfer-in") {
+      return (option.incomeColor as string) || "text-blue-600 dark:text-blue-400";
+    }
+ 
+    if (normalizedType === "expense" || normalizedType === "transfer-out") {
+      return (option.expensesColor as string) || "text-red-600 dark:text-red-400";
+    }
+ 
+    if (normalizedType === "transfer") {
+      return "text-foreground";
+    }
+ 
+    return "text-muted-foreground";
+  };
 
   if (!dictionary) return null;
   const t = dictionary.calendar.sheet;
@@ -33,9 +55,7 @@ export function CalendarDaySheet({
     onOpenChange(false);
     const start = startOfMonth(date || new Date()).toISOString();
     const end = endOfMonth(date || new Date()).toISOString();
-    router.push(
-      `/transactions?transactionId=${id}&startDate=${start}&endDate=${end}&page=1`,
-    );
+    router.push(`/transactions?transactionId=${id}&startDate=${start}&endDate=${end}&page=1`);
   };
 
   if (!date) return null;
@@ -52,26 +72,18 @@ export function CalendarDaySheet({
             {/* Summary */}
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 border bg-muted/20">
-                <p className="text-sm text-muted-foreground mb-1">
-                  {t.income_total}
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">{t.income_total}</p>
                 <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
                   {formatCurrency(
-                    transactions
-                      .filter((t) => t.type === "income")
-                      .reduce((acc, t) => acc + Number(t.amount), 0),
+                    transactions.filter((t) => t.type === "income").reduce((acc, t) => acc + Number(t.amount), 0),
                   )}
                 </p>
               </div>
               <div className="p-4 border bg-muted/20">
-                <p className="text-sm text-muted-foreground mb-1">
-                  {t.expense_total}
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">{t.expense_total}</p>
                 <p className="text-lg font-semibold text-red-600 dark:text-red-400">
                   {formatCurrency(
-                    transactions
-                      .filter((t) => t.type === "expense")
-                      .reduce((acc, t) => acc + Number(t.amount), 0),
+                    transactions.filter((t) => t.type === "expense").reduce((acc, t) => acc + Number(t.amount), 0),
                   )}
                 </p>
               </div>
@@ -94,9 +106,7 @@ export function CalendarDaySheet({
                         <span className="font-medium text-sm group-hover:text-primary transition-colors">
                           {tx.name || t.unknown_transaction}
                         </span>
-                        <span
-                          className={`font-serif tracking-tight ${getTransactionColor(tx.type)}`}
-                        >
+                        <span className={`font-serif tracking-tight ${getTransactionColor(tx.type)}`}>
                           {tx.type === "income" ? "+" : "-"}
                           {formatCurrency(Number(tx.amount))}
                         </span>
@@ -105,9 +115,7 @@ export function CalendarDaySheet({
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-muted-foreground p-4 bg-muted/20  text-center">
-                  {t.no_transactions}
-                </div>
+                <div className="text-sm text-muted-foreground p-4 bg-muted/20  text-center">{t.no_transactions}</div>
               )}
             </div>
 
@@ -119,15 +127,10 @@ export function CalendarDaySheet({
               {debts.length > 0 ? (
                 <div className="space-y-3">
                   {debts.map((d) => (
-                    <div
-                      key={d.id}
-                      className="p-3 border  bg-card flex flex-col gap-1"
-                    >
+                    <div key={d.id} className="p-3 border  bg-card flex flex-col gap-1">
                       <div className="flex justify-between items-start">
                         <span className="font-medium">{d.contactName}</span>
-                        <span className="font-medium">
-                          {formatCurrency(Number(d.amount))}
-                        </span>
+                        <span className="font-medium">{formatCurrency(Number(d.amount))}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs text-muted-foreground">
                         <span className="capitalize">{d.type}</span>
@@ -144,17 +147,13 @@ export function CalendarDaySheet({
                         </span>
                       </div>
                       {d.description && (
-                        <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          {d.description}
-                        </div>
+                        <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{d.description}</div>
                       )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-muted-foreground p-4 bg-muted/20  text-center">
-                  {t.no_debts}
-                </div>
+                <div className="text-sm text-muted-foreground p-4 bg-muted/20  text-center">{t.no_debts}</div>
               )}
             </div>
           </div>

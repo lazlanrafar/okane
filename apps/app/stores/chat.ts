@@ -1,10 +1,4 @@
-import {
-  endOfMonth,
-  startOfMonth,
-  startOfYear,
-  subDays,
-  subMonths,
-} from "date-fns";
+import { endOfMonth, startOfMonth, startOfYear, subDays, subMonths } from "date-fns";
 import { create } from "zustand";
 
 // Command system with / prefix - natural language suggestions
@@ -121,14 +115,7 @@ const COMMAND_SUGGESTIONS = [
     title: "Analyze financial resilience",
     toolName: "getCashFlowStressTest",
     toolParams: { showCanvas: true },
-    keywords: [
-      "analyze",
-      "stress",
-      "test",
-      "resilience",
-      "scenarios",
-      "financial",
-    ],
+    keywords: ["analyze", "stress", "test", "resilience", "scenarios", "financial"],
   },
   // Balance Sheet
   {
@@ -442,8 +429,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   setIsRecording: (isRecording) => set({ isRecording }),
   setIsProcessing: (isProcessing) => set({ isProcessing }),
   setShowCommands: (showCommands) => set({ showCommands }),
-  setSelectedCommandIndex: (selectedCommandIndex) =>
-    set({ selectedCommandIndex }),
+  setSelectedCommandIndex: (selectedCommandIndex) => set({ selectedCommandIndex }),
   setCommandQuery: (commandQuery) => set({ commandQuery }),
   setCursorPosition: (cursorPosition) => set({ cursorPosition }),
   setScrollY: (scrollY) => set({ scrollY }),
@@ -467,9 +453,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       const filtered = COMMAND_SUGGESTIONS.filter((command) => {
         const matchesCommand = command.command.toLowerCase().includes(query);
         const matchesTitle = command.title.toLowerCase().includes(query);
-        const matchesKeywords = command.keywords.some((keyword) =>
-          keyword.toLowerCase().includes(query),
-        );
+        const matchesKeywords = command.keywords.some((keyword) => keyword.toLowerCase().includes(query));
         return matchesCommand || matchesTitle || matchesKeywords;
       });
 
@@ -517,10 +501,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       case "ArrowDown":
         e.preventDefault();
         set({
-          selectedCommandIndex: Math.min(
-            selectedCommandIndex + 1,
-            filteredCommands.length - 1,
-          ),
+          selectedCommandIndex: Math.min(selectedCommandIndex + 1, filteredCommands.length - 1),
         });
         break;
       case "ArrowUp":
@@ -562,10 +543,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   navigateCommandDown: () => {
     const { selectedCommandIndex, filteredCommands } = get();
     set({
-      selectedCommandIndex: Math.min(
-        selectedCommandIndex + 1,
-        filteredCommands.length - 1,
-      ),
+      selectedCommandIndex: Math.min(selectedCommandIndex + 1, filteredCommands.length - 1),
     });
   },
 

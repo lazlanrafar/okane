@@ -1,29 +1,18 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+
 import { useQueryClient } from "@tanstack/react-query";
-import { useCsvContext } from "./transaction-import-context";
-import { Loader2, Plus, Wallet as WalletIcon, Tag } from "lucide-react";
-import {
-  Button,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Icons,
-} from "@workspace/ui";
-import {
-  getCategories,
-  createCategory,
-} from "@workspace/modules/category/category.action";
-import {
-  getWallets,
-  createWallet,
-} from "@workspace/modules/wallet/wallet.action";
+import { createCategory, getCategories } from "@workspace/modules/category/category.action";
+import { createWallet, getWallets } from "@workspace/modules/wallet/wallet.action";
+import { Button, Icons, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui";
+import { Loader2, Plus, Tag, Wallet as WalletIcon } from "lucide-react";
 import { toast } from "sonner";
+
 import { SelectAccount } from "@/components/molecules/select-account";
 import { SelectCategory } from "@/components/molecules/select-category";
+
+import { useCsvContext } from "./transaction-import-context";
 
 export function ValueMapping({ onNext }: { onNext: () => void }) {
   const { firstRows, watch, valueMappings, setValueMappings } = useCsvContext();
@@ -35,20 +24,20 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
 
   const uniqueCategories = useMemo(() => {
     if (!categoryCol || !firstRows) return [];
-    
+
     // Set of categories that appear in at least one non-transfer row
     const nonTransferCategories = new Set<string>();
-    
-    firstRows.forEach((row) => {
+
+    firstRows?.forEach((row) => {
       const catVal = row[categoryCol];
       if (!catVal) return;
 
       const csvType = typeCol ? row[typeCol] : null;
       const mappedType = csvType ? valueMappings.types[csvType] : null;
-      
+
       // If it's not a transfer (or we don't know yet, default to showing it)
       const isTransfer = mappedType === "transfer-in" || mappedType === "transfer-out";
-      
+
       if (!isTransfer) {
         nonTransferCategories.add(catVal);
       }
@@ -60,7 +49,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
   const uniqueWallets = useMemo(() => {
     if (!walletCol || !firstRows) return [];
     const values = new Set<string>();
-    firstRows.forEach((row) => {
+    firstRows?.forEach((row) => {
       const val = row[walletCol];
       if (val) values.add(val);
     });
@@ -70,7 +59,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
   const uniqueTypes = useMemo(() => {
     if (!typeCol || !firstRows) return [];
     const values = new Set<string>();
-    firstRows.forEach((row) => {
+    firstRows?.forEach((row) => {
       const val = row[typeCol];
       if (val) values.add(val);
     });
@@ -107,9 +96,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
         if (!newMappings.types[val]) {
           const normalizedVal = normalize(val);
           for (const [type, variants] of Object.entries(TRANSACTION_TYPE_MAP)) {
-            if (
-              (variants as string[]).some((v) => normalize(v) === normalizedVal)
-            ) {
+            if ((variants as string[]).some((v) => normalize(v) === normalizedVal)) {
               newMappings.types[val] = type;
               changed = true;
               break;
@@ -199,11 +186,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
     );
   }
 
-  if (
-    !uniqueCategories.length &&
-    !uniqueWallets.length &&
-    !uniqueTypes.length
-  ) {
+  if (!uniqueCategories.length && !uniqueWallets.length && !uniqueTypes.length) {
     return (
       <div className="py-12 text-center space-y-4">
         <p className="text-sm text-muted-foreground">
@@ -222,9 +205,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
         <div className="space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-border/50">
             <Icons.Apps className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold tracking-tight">
-              Map Transaction Types
-            </h3>
+            <h3 className="text-sm font-semibold tracking-tight">Map Transaction Types</h3>
             <span className="text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 ml-auto">
               {uniqueTypes.length} types
             </span>
@@ -239,10 +220,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
                   <p className="text-sm font-medium truncate">{val}</p>
                 </div>
                 <div className="w-[240px]">
-                  <Select
-                    value={valueMappings.types[val] || ""}
-                    onValueChange={(type) => handleTypeMap(val, type)}
-                  >
+                  <Select value={valueMappings.types[val] || ""} onValueChange={(type) => handleTypeMap(val, type)}>
                     <SelectTrigger className="h-8 text-xs">
                       <SelectValue placeholder="Select type..." />
                     </SelectTrigger>
@@ -272,9 +250,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
         <div className="space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-border/50">
             <WalletIcon className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold tracking-tight">
-              Map Accounts
-            </h3>
+            <h3 className="text-sm font-semibold tracking-tight">Map Accounts</h3>
             <span className="text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 ml-auto">
               {uniqueWallets.length} values
             </span>
@@ -305,9 +281,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
         <div className="space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-border/50">
             <Tag className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold tracking-tight">
-              Map Categories
-            </h3>
+            <h3 className="text-sm font-semibold tracking-tight">Map Categories</h3>
             <span className="text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 ml-auto">
               {uniqueCategories.length} categories
             </span>
@@ -321,7 +295,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{val}</p>
                 </div>
-                 <CategoryMappingRow
+                <CategoryMappingRow
                   csvValue={val}
                   handleCategoryMap={handleCategoryMap}
                   valueMappings={valueMappings}

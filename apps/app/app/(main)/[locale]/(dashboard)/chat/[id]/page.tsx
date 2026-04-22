@@ -1,11 +1,12 @@
-import ChatInterface from "@/components/organisms/chat/chat-interface";
-import { Metadata } from "next";
 import { headers } from "next/headers";
-import { geolocation } from "@vercel/functions";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
-import { getChatSessionMessages, getChatSession } from "@workspace/modules/ai/ai.action";
-import { notFound } from "next/navigation";
+import { geolocation } from "@vercel/functions";
+import { getChatSession, getChatSessionMessages } from "@workspace/modules/ai/ai.action";
+import type { Metadata } from "next";
+
+import { getDictionary } from "@/get-dictionary";
+import ChatInterface from "@/components/organisms/chat/chat-interface";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -36,7 +37,10 @@ export default async function ChatPage(props: Props) {
     headers: headersList,
   });
 
-  const response = await getChatSessionMessages(id);
+  const [response, dictionary] = await Promise.all([
+    getChatSessionMessages(id),
+    getDictionary(locale as any),
+  ]);
 
   if (!response.success || !response.data) {
     notFound();
@@ -50,7 +54,7 @@ export default async function ChatPage(props: Props) {
     const parts: any[] = [{ type: "text", text: m.content }];
     const attachment = m.attachments;
     const artifact = Array.isArray(attachment) ? attachment[0]?.artifact : attachment?.artifact;
-    
+
     if (artifact) {
       parts.push({
         type: `data-artifact-${artifact.type}`,
@@ -70,7 +74,7 @@ export default async function ChatPage(props: Props) {
           id: artifact.type,
           type: artifact.type,
           payload: artifact.payload,
-        }
+        },
       });
     }
 
@@ -85,7 +89,7 @@ export default async function ChatPage(props: Props) {
 
   return (
     <ChatProviderWrapper initialMessages={initialMessages}>
-      <ChatInterface geo={geo} />
+      <ChatInterface geo={geo} dictionary={dictionary} />
     </ChatProviderWrapper>
   );
 }

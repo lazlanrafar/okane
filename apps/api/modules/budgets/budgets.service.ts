@@ -35,6 +35,15 @@ export abstract class BudgetsService {
       workspaceId,
     });
 
+    if (!budget) {
+      return buildApiResponse({
+        success: false,
+        code: ErrorCode.INTERNAL_ERROR,
+        message: "Failed to create budget",
+        status: 500,
+      });
+    }
+
     await AuditLogsService.log({
       workspace_id: workspaceId,
       user_id: userId,

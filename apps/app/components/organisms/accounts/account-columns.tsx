@@ -1,6 +1,8 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
+import { deleteWallet, updateWallet } from "@workspace/modules/client";
 import type { Wallet } from "@workspace/types";
 import {
   Button,
@@ -11,12 +13,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui";
+import { format, isValid } from "date-fns";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { format, isValid } from "date-fns";
-import { deleteWallet, updateWallet } from "@workspace/modules/client";
+
 import { SelectAccountGroup } from "@/components/molecules/select-account-group";
-import { useQueryClient } from "@tanstack/react-query";
 
 const CellActions = ({
   row,
@@ -50,16 +51,12 @@ const CellActions = ({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-8 w-8 p-0">
-          <span className="sr-only">
-            {dictionary.common.open_menu}
-          </span>
+          <span className="sr-only">{dictionary.common.open_menu}</span>
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>
-          {dictionary.accounts.table.actions}
-        </DropdownMenuLabel>
+        <DropdownMenuLabel>{dictionary.accounts.table.actions}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => onEdit(wallet)}>
           <Pencil className="mr-2 h-4 w-4" />
@@ -131,7 +128,7 @@ export const accountColumns = (
     },
     cell: ({ getValue }) => (
       <span className="truncate font-medium font-sans px-2">
-        {getValue<string>() || (dictionary?.common?.na ?? "N/A")}
+        {getValue<string>() || (dictionary.common.na ?? "N/A")}
       </span>
     ),
   },
@@ -147,11 +144,7 @@ export const accountColumns = (
       className: "w-[150px] min-w-[100px]",
     },
     cell: ({ row }) => (
-      <GroupCell
-        wallet={row.original}
-        updateWalletInCache={updateWalletInCache}
-        dictionary={dictionary}
-      />
+      <GroupCell wallet={row.original} updateWalletInCache={updateWalletInCache} dictionary={dictionary} />
     ),
   },
   {
@@ -189,17 +182,17 @@ export const accountColumns = (
     },
     cell: ({ getValue }) => {
       const val = getValue<string>();
-      if (!val) return dictionary?.common?.na ?? "N/A";
+      if (!val) return dictionary.common.na ?? "N/A";
       const date = new Date(val);
       return (
         <span className="font-sans text-muted-foreground px-2">
-          {isValid(date) 
-            ? date.toLocaleDateString(dictionary?.language?.locale || "en-US", {
+          {isValid(date)
+            ? date.toLocaleDateString(dictionary.language.locale || "en-US", {
                 year: "numeric",
                 month: "short",
                 day: "numeric",
               })
-            : (dictionary?.common?.na ?? "N/A")}
+            : (dictionary.common.na ?? "N/A")}
         </span>
       );
     },
@@ -211,8 +204,6 @@ export const accountColumns = (
     meta: {
       headerLabel: dictionary.accounts.table.actions,
     },
-    cell: ({ row }) => (
-      <CellActions row={row} onEdit={onEdit} dictionary={dictionary} />
-    ),
+    cell: ({ row }) => <CellActions row={row} onEdit={onEdit} dictionary={dictionary} />,
   },
 ];

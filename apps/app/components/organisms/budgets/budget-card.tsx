@@ -1,21 +1,21 @@
 "use client";
 
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle,
-  Progress,
-  cn,
+import type { BudgetStatus } from "@workspace/types";
+import {
   Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  cn,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  Progress,
 } from "@workspace/ui";
 import { formatCurrency } from "@workspace/utils";
-import { BudgetStatus } from "@workspace/types";
-import { MoreHorizontal, Edit2, Trash2 } from "lucide-react";
+import { Edit2, MoreHorizontal, Trash2 } from "lucide-react";
 
 interface BudgetCardProps {
   budget: BudgetStatus;
@@ -38,9 +38,7 @@ export function BudgetCard({ budget, onEdit, onDelete, currencyCode = "USD", loc
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium truncate flex-1">
-          {budget.categoryName}
-        </CardTitle>
+        <CardTitle className="text-sm font-medium truncate flex-1">{budget.categoryName}</CardTitle>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -52,10 +50,7 @@ export function BudgetCard({ budget, onEdit, onDelete, currencyCode = "USD", loc
               <Edit2 className="mr-2 h-4 w-4" />
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem 
-              className="text-destructive focus:text-destructive" 
-              onClick={() => onDelete(budget.id)}
-            >
+            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(budget.id)}>
               <Trash2 className="mr-2 h-4 w-4" />
               Delete
             </DropdownMenuItem>
@@ -65,33 +60,28 @@ export function BudgetCard({ budget, onEdit, onDelete, currencyCode = "USD", loc
       <CardContent className="flex-1 flex flex-col justify-between pt-2">
         <div className="space-y-3">
           <div className="flex items-baseline justify-between gap-1">
-            <span className="text-2xl font-bold">
-              {formatCurrency(budget.spent, currencySettings, { locale })}
-            </span>
+            <span className="text-2xl font-bold">{formatCurrency(budget.spent, currencySettings, { locale })}</span>
             <span className="text-sm text-muted-foreground whitespace-nowrap">
               of {formatCurrency(budget.amount, currencySettings, { locale })}
             </span>
           </div>
-          
+
           <div className="space-y-1">
-            <Progress 
-              value={Math.min(budget.percentage, 100)} 
-              className={cn(
-                "h-2",
-                isOverBudget ? "[&>div]:bg-destructive" : isWarning ? "[&>div]:bg-yellow-500" : ""
-              )}
+            <Progress
+              value={Math.min(budget.percentage, 100)}
+              className={cn("h-2", isOverBudget ? "[&>div]:bg-destructive" : isWarning ? "[&>div]:bg-yellow-500" : "")}
             />
             <div className="flex justify-between items-center text-xs">
-              <span className={cn(
-                "font-medium",
-                isOverBudget ? "text-destructive" : isWarning ? "text-yellow-600" : "text-muted-foreground"
-              )}>
+              <span
+                className={cn(
+                  "font-medium",
+                  isOverBudget ? "text-destructive" : isWarning ? "text-yellow-600" : "text-muted-foreground",
+                )}
+              >
                 {budget.percentage}% spent
               </span>
               {isOverBudget && (
-                <span className="text-destructive font-medium uppercase tracking-wider">
-                  Over Budget
-                </span>
+                <span className="text-destructive font-medium uppercase tracking-wider">Over Budget</span>
               )}
             </div>
           </div>

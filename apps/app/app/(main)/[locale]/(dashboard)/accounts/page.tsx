@@ -1,12 +1,13 @@
 import { Suspense } from "react";
-import { getWallets, getWalletGroups } from "@workspace/modules/server";
-import { AccountsClient } from "@/components/organisms/accounts/accounts-client";
-import { AccountTableSkeleton } from "@/components/organisms/accounts/account-table-skeleton";
-import { Hydrated } from "@/components/shared/hydrated";
+
+import { getWalletGroups, getWallets } from "@workspace/modules/server";
 import type { Metadata } from "next";
 
+import { AccountTableSkeleton } from "@/components/organisms/accounts/account-table-skeleton";
+import { AccountsClient } from "@/components/organisms/accounts/accounts-client";
+import { Hydrated } from "@/components/shared/hydrated";
 import { getDictionary } from "@/get-dictionary";
-import { Locale } from "@/i18n-config";
+import type { Locale } from "@/i18n-config";
 
 export const metadata: Metadata = {
   title: "Accounts",
@@ -25,12 +26,7 @@ export default async function AccountsPage(props: {
     <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col bg-background no-scrollbar">
       <div className="flex-1 min-h-0 no-scrollbar">
         <Suspense fallback={<AccountTableSkeleton />}>
-          <AccountsPageContent
-            locale={locale}
-            searchParams={searchParams}
-            page={page}
-            limit={limit}
-          />
+          <AccountsPageContent locale={locale} searchParams={searchParams} page={page} limit={limit} />
         </Suspense>
       </div>
     </div>
@@ -48,12 +44,8 @@ async function AccountsPageContent({
   page: number;
   limit: number;
 }) {
-  const search = Array.isArray(searchParams.search)
-    ? searchParams.search[0]
-    : searchParams.search;
-  const groupId = Array.isArray(searchParams.groupId)
-    ? searchParams.groupId[0]
-    : searchParams.groupId;
+  const search = Array.isArray(searchParams.search) ? searchParams.search[0] : searchParams.search;
+  const groupId = Array.isArray(searchParams.groupId) ? searchParams.groupId[0] : searchParams.groupId;
 
   // Get initial data for SSR
   const [walletsRes, groupsRes, dictionary] = await Promise.all([

@@ -1,20 +1,18 @@
 "use client";
 
-import { AnimatedStatus } from "@workspace/ui";
-import {
-  getArtifactSectionMessageForStatus,
-  getArtifactStageMessageForStatus,
-} from "@workspace/constants";
 import {
   type ArtifactStage,
   type ArtifactType,
-  TOOL_TO_ARTIFACT_MAP,
+  getArtifactSectionMessageForStatus,
+  getArtifactStageMessageForStatus,
   getArtifactTypeFromTool,
   getToolIcon,
+  TOOL_TO_ARTIFACT_MAP,
 } from "@workspace/constants";
-import { getStatusMessage, getToolMessage } from "@workspace/utils";
 import type { AgentStatus } from "@workspace/types";
 import { ErrorCode } from "@workspace/types";
+import { AnimatedStatus } from "@workspace/ui";
+import { getStatusMessage, getToolMessage } from "@workspace/utils";
 import { format } from "date-fns";
 
 interface ChatStatusIndicatorsProps {
@@ -46,12 +44,12 @@ export function ChatStatusIndicators({
   if (bankAccountRequired || hasInsightData) {
     return null;
   }
-  
+
   if (status === "error") {
     let errorMessage = "Message failed to send. Please try again.";
 
-    if (error?.code === ErrorCode.PLAN_LIMIT_REACHED) {
-      const resetAt = error.meta?.reset_at;
+    if (error.code === ErrorCode.PLAN_LIMIT_REACHED) {
+      const resetAt = error.meta.reset_at;
       const formattedDate = resetAt ? format(new Date(resetAt), "PPP") : "next month";
       errorMessage = `AI limit reached. Resets on ${formattedDate}.`;
     }
@@ -67,8 +65,7 @@ export function ChatStatusIndicators({
   const toolMessage = getToolMessage(currentToolCall);
 
   // Determine artifact type from tool name or use provided artifact type
-  const resolvedArtifactType =
-    artifactType || getArtifactTypeFromTool(currentToolCall);
+  const resolvedArtifactType = artifactType || getArtifactTypeFromTool(currentToolCall);
   const isStreaming = status === "streaming" || status === "submitted";
 
   // Show artifact status when:
@@ -84,13 +81,9 @@ export function ChatStatusIndicators({
   let displayMessage: string | null = null;
   if (shouldShowArtifactStatus) {
     // Show section message if available, otherwise show stage message
-    displayMessage = getArtifactSectionMessageForStatus(
-      resolvedArtifactType,
-      currentSection ?? null,
-    ) || getArtifactStageMessageForStatus(
-      resolvedArtifactType,
-      artifactStage,
-    );
+    displayMessage =
+      getArtifactSectionMessageForStatus(resolvedArtifactType, currentSection ?? null) ||
+      getArtifactStageMessageForStatus(resolvedArtifactType, artifactStage);
   } else {
     // Default behavior: prioritize tool message over agent status
     displayMessage = toolMessage || statusMessage;
@@ -105,18 +98,13 @@ export function ChatStatusIndicators({
   // Find the tool name that maps to the artifact type for icon display
   const getToolNameForArtifact = (type: ArtifactType | null): string | null => {
     if (!type) return null;
-    const toolEntry = Object.entries(TOOL_TO_ARTIFACT_MAP).find(
-      ([, artifactType]) => artifactType === type,
-    );
+    const toolEntry = Object.entries(TOOL_TO_ARTIFACT_MAP).find(([, artifactType]) => artifactType === type);
     return toolEntry ? toolEntry[0] : null;
   };
 
   const toolIcon = currentToolCall
     ? getToolIcon(currentToolCall)
-    : displayMessage &&
-        artifactStage &&
-        artifactStage !== "analysis_ready" &&
-        resolvedArtifactType
+    : displayMessage && artifactStage && artifactStage !== "analysis_ready" && resolvedArtifactType
       ? getToolIcon(getToolNameForArtifact(resolvedArtifactType) || "")
       : null;
 

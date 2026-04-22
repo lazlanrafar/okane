@@ -2,37 +2,38 @@
 
 import {
   BaseCanvas,
-  CanvasHeader,
-  CanvasContent,
   CanvasChart,
+  CanvasContent,
   CanvasGrid,
+  CanvasHeader,
   CanvasSection,
   shouldShowChart,
   shouldShowMetricsSkeleton,
   shouldShowSummarySkeleton,
 } from "@workspace/ui";
+
 import { useAppStore } from "../../../../stores/app";
-import { ArtifactTabs, useStaticArtifactData } from "./chat-canvas";
-import { RevenueTrendChart } from "../charts/revenue-trend-chart";
 import { formatAmount } from "../charts/format-amount";
+import { RevenueTrendChart } from "../charts/revenue-trend-chart";
+import { ArtifactTabs, useStaticArtifactData } from "./chat-canvas";
 
 export function RevenueCanvas() {
   const data = useStaticArtifactData("revenue-canvas");
   const user = useAppStore((state) => state.user) as any;
   const locale = user?.locale || "en-US";
-  const stage = data?.stage;
-  const currency = data?.currency || "USD";
+  const stage = data.stage;
+  const currency = data.currency || "USD";
 
   // Map monthly data if available (Oewang may return flat metrics, not chart data)
   const revenueData =
-    data?.chart?.monthlyData?.map((item: any) => ({
+    data.chart.monthlyData.map((item: any) => ({
       month: item.month,
       revenue: item.revenue,
       lastYearRevenue: item.lastYearRevenue,
       average: item.average,
     })) || [];
 
-  const revenueMetrics = data?.metrics
+  const revenueMetrics = data.metrics
     ? [
         {
           id: "total-revenue",
@@ -109,18 +110,11 @@ export function RevenueCanvas() {
           )}
 
           {/* Revenue grid metrics */}
-          <CanvasGrid
-            items={revenueMetrics}
-            layout="2/2"
-            isLoading={shouldShowMetricsSkeleton(stage)}
-          />
+          <CanvasGrid items={revenueMetrics} layout="2/2" isLoading={shouldShowMetricsSkeleton(stage)} />
 
           {/* Summary */}
-          <CanvasSection
-            title="Summary"
-            isLoading={shouldShowSummarySkeleton(stage)}
-          >
-            {data?.analysis?.summary}
+          <CanvasSection title="Summary" isLoading={shouldShowSummarySkeleton(stage)}>
+            {data.analysis.summary}
           </CanvasSection>
         </div>
       </CanvasContent>

@@ -1,28 +1,28 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import {
-  Button,
-  DataTable,
-  DataTableColumnsVisibility,
-  DataTableFilter,
-  DataTableEmptyState,
-} from "@workspace/ui";
-import { ContactFormSheet } from "./contact-form-sheet";
-import { ContactDetailSheet } from "./contact-detail-sheet";
-import { ContactTableSkeleton } from "./contact-table-skeleton";
-import { getContactColumns } from "./contact-columns";
-import type { Contact } from "@workspace/types";
-import { Plus } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { getContacts } from "@workspace/modules/client";
+import type { Contact } from "@workspace/types";
+import { Button, DataTable, DataTableColumnsVisibility, DataTableEmptyState, DataTableFilter } from "@workspace/ui";
+import { Plus } from "lucide-react";
+
 import { useDataTableFilter } from "@/hooks/use-data-table-filter";
 import { useContactsStore } from "@/stores/contacts";
 
+import { getContactColumns } from "./contact-columns";
+import { ContactDetailSheet } from "./contact-detail-sheet";
+import { ContactFormSheet } from "./contact-form-sheet";
+import { ContactTableSkeleton } from "./contact-table-skeleton";
+ 
+import type { Dictionary } from "@workspace/dictionaries";
+import type { TransactionSettings } from "@workspace/types";
+
 interface Props {
   initialData: Contact[];
-  dictionary: any;
-  settings: any;
+  dictionary: Dictionary;
+  settings: TransactionSettings;
 }
 
 export function ContactsClient({ initialData, dictionary, settings }: Props) {
@@ -32,11 +32,8 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
 
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(
-    null,
-  );
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [editContact, setEditContact] = useState<Contact | null>(null);
-
 
   const { filters, handleFilterChange } = useDataTableFilter({
     initialFilters: { q: "" },
@@ -59,9 +56,7 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
     getNextPageParam: (lastPage) => {
       const pagination = lastPage.meta?.pagination;
       if (!pagination) return undefined;
-      return pagination.page < pagination.total_pages
-        ? pagination.page + 1
-        : undefined;
+      return pagination.page < pagination.total_pages ? pagination.page + 1 : undefined;
     },
     initialData: {
       pages: [
@@ -87,17 +82,11 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
     refetchOnWindowFocus: false,
   });
 
-  const allContacts = data?.pages.flatMap((p: any) => p.data ?? []) ?? [];
+  const allContacts = data.pages?.flatMap((p) => p.data ?? []) ?? [];
 
   const now = new Date();
-  const thisMonthStart = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    1,
-  ).toISOString();
-  const addedThisMonth = allContacts.filter(
-    (c) => c.createdAt && c.createdAt >= thisMonthStart,
-  ).length;
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const addedThisMonth = allContacts.filter((c) => c.createdAt && c.createdAt >= thisMonthStart).length;
 
   const handleEdit = useCallback((contact: Contact) => {
     setEditContact(contact);
@@ -119,9 +108,7 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
             {dictionary.contacts.summary.total}
           </span>
-          <span className="text-3xl font-serif font-medium tracking-tight">
-            {allContacts.length}
-          </span>
+          <span className="text-3xl font-serif font-medium tracking-tight">{allContacts.length}</span>
         </div>
 
         <div className="p-6 flex flex-col gap-1 border border-border">
@@ -138,11 +125,9 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
             {dictionary.contacts.summary.most_active}
           </span>
           <span className="text-lg font-serif font-medium tracking-tight truncate">
-            {allContacts.length > 0 ? (allContacts[0]?.name ?? "–") : "–"}
+            {allContacts.length > 0 ? (allContacts[0].name ?? "–") : "–"}
           </span>
-          <span className="text-[10px] text-muted-foreground">
-            {dictionary.contacts.summary.no_activity}
-          </span>
+          <span className="text-[10px] text-muted-foreground">{dictionary.contacts.summary.no_activity}</span>
         </div>
 
         <div className="p-6 flex flex-col gap-1 border border-border bg-muted/5">
@@ -150,11 +135,9 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
             {dictionary.contacts.summary.top_revenue}
           </span>
           <span className="text-lg font-serif font-medium tracking-tight truncate">
-            {allContacts.length > 0 ? (allContacts[0]?.name ?? "–") : "–"}
+            {allContacts.length > 0 ? (allContacts[0].name ?? "–") : "–"}
           </span>
-          <span className="text-[10px] text-muted-foreground">
-            {dictionary.contacts.summary.no_revenue}
-          </span>
+          <span className="text-[10px] text-muted-foreground">{dictionary.contacts.summary.no_revenue}</span>
         </div>
       </div>
 
@@ -190,7 +173,7 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
       <div className="flex-1 min-h-0 relative">
         <DataTable
           data={allContacts}
-          columns={tableColumns as any}
+          columns={tableColumns}
           setColumns={setColumns}
           tableId="contacts"
           hFull

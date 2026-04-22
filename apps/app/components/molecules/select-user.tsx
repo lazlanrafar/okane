@@ -1,18 +1,12 @@
 "use client";
 
-import * as React from "react";
-import {
-  Combobox,
-  Spinner,
-  Avatar,
-  AvatarImage,
-  AvatarFallback,
-  cn,
-} from "@workspace/ui";
-import { User } from "lucide-react";
-import { getWorkspaceMembers } from "@workspace/modules/client";
-import { getInitials } from "@workspace/utils";
+import type * as React from "react";
+
 import { useQuery } from "@tanstack/react-query";
+import { getWorkspaceMembers } from "@workspace/modules/client";
+import { Avatar, AvatarFallback, AvatarImage, Combobox, cn, Spinner } from "@workspace/ui";
+import { getInitials } from "@workspace/utils";
+import { User } from "lucide-react";
 
 interface Member {
   id: string;
@@ -110,9 +104,7 @@ export function SelectUser({
               {getInitials(item.label)}
             </AvatarFallback>
           </Avatar>
-          <span className="text-left truncate max-w-[90%] font-medium text-xs">
-            {item.label}
-          </span>
+          <span className="text-left truncate max-w-[90%] font-medium text-xs">{item.label}</span>
         </div>
       )}
       renderListItem={({ item }: { item: any }) => (
@@ -125,9 +117,7 @@ export function SelectUser({
           </Avatar>
           <div className="flex flex-col truncate">
             <span className="font-medium truncate text-xs">{item.label}</span>
-            <span className="text-[10px] text-muted-foreground truncate">
-              {item.email}
-            </span>
+            <span className="text-[10px] text-muted-foreground truncate">{item.email}</span>
           </div>
         </div>
       )}

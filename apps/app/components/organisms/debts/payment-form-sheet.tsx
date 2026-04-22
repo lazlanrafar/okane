@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type DebtWithContact, payDebt } from "@workspace/modules/client";
 import type { Wallet } from "@workspace/types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Button,
   CurrencyInput,
@@ -22,36 +24,34 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui";
-import { SelectAccount } from "@/components/molecules/select-account";
-import { useAppStore } from "@/stores/app";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
+
+import type { Dictionary } from "@workspace/dictionaries";
+import type { TransactionSettings } from "@workspace/types";
+import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
+import { SelectAccount } from "@/components/molecules/select-account";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   debt?: DebtWithContact;
   wallets: Wallet[];
-  dictionary: any;
+  dictionary: Dictionary;
+  settings: TransactionSettings;
 }
 
-export function PaymentFormSheet({
-  open,
-  onOpenChange,
-  debt,
-  wallets,
-  dictionary,
-}: Props) {
+export function PaymentFormSheet({ open, onOpenChange, debt, wallets, dictionary, settings }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
-  const { settings, formatCurrency } = useAppStore() as any;
-  const dict = dictionary?.debts;
+  const dict = dictionary.debts;
+ 
+  const formatCurrency = (amount: number, options?: Parameters<typeof formatCurrencyUtil>[2]) =>
+    formatCurrencyUtil(amount, settings, options);
 
-  const remaining = debt
-    ? Number.parseFloat(debt.remainingAmount as string)
-    : 0;
+  const remaining = debt ? Number.parseFloat(debt.remainingAmount as string) : 0;
 
   const paymentSchema = z.object({
     amount: z.coerce
@@ -64,7 +64,7 @@ export function PaymentFormSheet({
   type PaymentFormValues = z.infer<typeof paymentSchema>;
 
   const form = useForm<PaymentFormValues>({
-    resolver: zodResolver(paymentSchema as any),
+    resolver: zodResolver(paymentSchema),
     defaultValues: {
       amount: remaining,
       walletId: "",
@@ -82,7 +82,7 @@ export function PaymentFormSheet({
 
   const mutation = useMutation({
     mutationFn: async (data: PaymentFormValues) => {
-      if (!debt?.id) throw new Error("Debt ID missing");
+      if (!debt.id) throw new Error("Debt ID missing");
       return payDebt(debt.id, {
         amount: data.amount,
         walletId: data.walletId,
@@ -98,7 +98,7 @@ export function PaymentFormSheet({
       onOpenChange(false);
       router.refresh();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || dict.toasts.payment_failed);
     },
   });
@@ -114,32 +114,22 @@ export function PaymentFormSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="flex flex-col h-full p-0 rounded-none shadow-none border-l sm:max-w-[540px]">
         <SheetHeader className="px-6 py-6 border-b shrink-0 bg-muted/5 text-left">
-          <SheetTitle className="font-serif text-xl font-normal">
-            {dict.form.payment.title}
-          </SheetTitle>
+          <SheetTitle className="font-serif text-xl font-normal">{dict.form.payment.title}</SheetTitle>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-6 no-scrollbar">
           <Form {...form}>
-            <form
-              id="payment-form"
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6"
-            >
+            <form id="payment-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="rounded-none border border-border/50 p-4 bg-muted/5 space-y-2 mb-8">
                 <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
                   {dict.form.payment.paying_to_from}
                 </p>
-                <p className="text-lg font-serif font-normal">
-                  {debt.contactName}
-                </p>
+                <p className="text-lg font-serif font-normal">{debt.contactName}</p>
                 <div className="pt-2 border-t border-border/50">
                   <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
                     {dict.form.payment.remaining_balance}
                   </p>
-                  <p className="text-lg font-serif text-primary font-normal">
-                    {formatCurrency(remaining)}
-                  </p>
+                  <p className="text-lg font-serif text-primary font-normal">{formatCurrency(remaining)}</p>
                 </div>
               </div>
 
@@ -163,9 +153,7 @@ export function PaymentFormSheet({
                           decimalPlaces={settings?.mainCurrencyDecimalPlaces}
                           className={cn(
                             "pl-8 text-2xl bg-transparent h-12 rounded-none border-border focus:border-foreground font-serif tracking-tight font-normal",
-                            debt.type === "payable"
-                              ? "text-rose-500"
-                              : "text-emerald-500",
+                            debt.type === "payable" ? "text-rose-500" : "text-emerald-500",
                           )}
                         />
                       </div>

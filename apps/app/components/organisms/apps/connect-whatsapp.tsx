@@ -1,26 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui";
-import { Button } from "@workspace/ui";
-import { Icons } from "@workspace/ui";
-import { Check, Copy, QrCode, Lock } from "lucide-react";
-import * as QRCode from "qrcode";
-import { useQuery } from "@tanstack/react-query";
-import { getMe } from "@workspace/modules/user/user.action";
-import { Env } from "@workspace/constants";
+import { useEffect, useState } from "react";
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-import { useAppStore } from "@/stores/app";
+import { useQuery } from "@tanstack/react-query";
+import { Env } from "@workspace/constants";
+import { getMe } from "@workspace/modules/user/user.action";
+import { Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Icons } from "@workspace/ui";
+import { Check, Copy, Lock, QrCode } from "lucide-react";
+import * as QRCode from "qrcode";
 
-export function ConnectWhatsApp({ dictionary }: { dictionary: any }) {
+import type { Dictionary } from "@workspace/dictionaries";
+
+export function ConnectWhatsApp({ dictionary }: { dictionary: Dictionary }) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<"meta" | "twilio">("meta");
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
@@ -35,17 +29,14 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: any }) {
   });
 
   const params = useParams();
-  const locale = (params?.locale as string) || "en";
-  const workspaceId = me?.user.workspace_id;
+  const locale = (params.locale as string) || "en";
+  const workspaceId = me.user.workspace_id;
 
-  const activeWorkspace = me?.workspaces.find((w) => w.id === workspaceId);
-  const planName = activeWorkspace?.plan_name || "Starter";
+  const activeWorkspace = me.workspaces.find((w) => w.id === workspaceId);
+  const planName = activeWorkspace.plan_name || "Starter";
   const isPro = planName === "Pro" || planName === "Business";
   // Use a fallback if the env var is not set to ensure the dialog at least opens
-  const whatsappNumber =
-    type === "meta"
-      ? Env.NEXT_PUBLIC_WHATSAPP_NUMBER
-      : Env.NEXT_PUBLIC_TWILIO_WHATSAPP_NUMBER;
+  const whatsappNumber = type === "meta" ? Env.NEXT_PUBLIC_WHATSAPP_NUMBER : Env.NEXT_PUBLIC_TWILIO_WHATSAPP_NUMBER;
   const message = `Connect Oewang ${workspaceId}`;
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
@@ -110,11 +101,10 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: any }) {
         <div className="p-8">
           <DialogHeader>
             <DialogTitle className="text-xl tracking-tight">
-              Connect WhatsApp {type === "twilio" && "(Twilio)"}
+              {dictionary.apps.connect.whatsapp.title} {type === "twilio" && "(Twilio)"}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground pt-2">
-              Scan the QR code or open WhatsApp to connect your account to
-              Oewang.
+              {dictionary.apps.connect.whatsapp.description}
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -125,12 +115,12 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: any }) {
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Lock className="h-8 w-8 text-primary" />
               </div>
-              <h4 className="text-lg font-bold">WhatsApp Integration</h4>
+              <h4 className="text-lg font-bold">{dictionary.apps.connect.whatsapp.premium_title}</h4>
               <p className="text-sm text-muted-foreground text-center mt-2 mb-6">
-                WhatsApp integration is a premium feature. We are currently setting up our payment gateway to enable upgrades.
+                {dictionary.apps.connect.whatsapp.premium_description}
               </p>
               <Button disabled className="w-full">
-                {dictionary?.settings?.common?.coming_soon || "Coming Soon"}
+                {dictionary.apps.connect.whatsapp.coming_soon_title}
               </Button>
             </div>
           ) : (
@@ -138,11 +128,7 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: any }) {
               <div className="relative group">
                 <div className="relative bg-white p-3 border">
                   {qrCodeUrl ? (
-                    <img
-                      src={qrCodeUrl}
-                      alt="WhatsApp QR Code"
-                      className="w-[200px] h-[200px]"
-                    />
+                    <img src={qrCodeUrl} alt="WhatsApp QR Code" className="w-[200px] h-[200px]" />
                   ) : (
                     <div className="flex items-center justify-center w-[200px] h-[200px] bg-secondary/30 rounded-md">
                       <QrCode className="h-12 w-12 text-muted-foreground animate-pulse" />
@@ -160,7 +146,7 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: any }) {
                     className="flex items-center justify-center"
                   >
                     <Icons.WhatsApp className="mr-2 h-5 w-5 fill-current" />
-                    <span>Open App</span>
+                    <span>{dictionary.apps.connect.whatsapp.button}</span>
                   </a>
                 </Button>
                 <Button
@@ -171,20 +157,19 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: any }) {
                   {copied ? (
                     <div className="flex items-center text-green-600">
                       <Check className="mr-2 h-4 w-4" />
-                      <span>Copied</span>
+                      <span>{dictionary.common.copied}</span>
                     </div>
                   ) : (
                     <div className="flex items-center">
                       <Copy className="mr-2 h-4 w-4" />
-                      <span>Copy Link</span>
+                      <span>{dictionary.common.copy_link}</span>
                     </div>
                   )}
                 </Button>
               </div>
 
               <p className="text-xs text-muted-foreground/80 text-center leading-relaxed max-w-[280px]">
-                Once you scan or open the link, just send the prefilled message to
-                securely connect your number.
+                {dictionary.apps.connect.whatsapp.footer_info}
               </p>
             </>
           )}
@@ -193,7 +178,7 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: any }) {
         <div className="bg-secondary/30 p-4 border-t border-border/50">
           <div className="flex items-center justify-center space-x-2 text-[10px] text-muted-foreground/60 uppercase tracking-widest font-semibold">
             <div className="h-1 w-1 rounded-full bg-green-500" />
-            <span>Secure End-to-End Connection</span>
+            <span>{dictionary.apps.connect.secure_connection}</span>
           </div>
         </div>
       </DialogContent>

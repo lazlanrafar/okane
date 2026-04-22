@@ -1,9 +1,20 @@
 "use client";
 import * as React from "react";
 
+import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from "@workspace/ui";
 import {
+  applyContentLayout,
+  applyFont,
+  applyNavbarStyle,
+  applySidebarCollapsible,
+  applySidebarVariant,
+  applyThemePreset,
   Button,
+  type FontKey,
+  fontOptions,
   Label,
+  PREFERENCE_DEFAULTS,
+  persistPreference,
   Select,
   SelectContent,
   SelectItem,
@@ -11,35 +22,15 @@ import {
   SelectValue,
   Separator,
   Skeleton,
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@workspace/ui";
-
-import { type FontKey, fontOptions } from "@workspace/ui";
-import type {
-  ContentLayout,
-  NavbarStyle,
-  SidebarCollapsible,
-  SidebarVariant,
-} from "@workspace/ui";
-import {
-  applyContentLayout,
-  applyFont,
-  applyNavbarStyle,
-  applySidebarCollapsible,
-  applySidebarVariant,
-} from "@workspace/ui";
-import { PREFERENCE_DEFAULTS } from "@workspace/ui";
-import { persistPreference } from "@workspace/ui";
-import {
   THEME_PRESET_OPTIONS,
   type ThemeMode,
   type ThemePreset,
+  ToggleGroup,
+  ToggleGroupItem,
+  usePreferencesStore,
 } from "@workspace/ui";
-import { applyThemePreset } from "@workspace/ui";
-import { usePreferencesStore } from "@workspace/ui";
 
-import { useAppStore, type AppState } from "@/stores/app";
+import { type AppState, useAppStore } from "@/stores/app";
 
 function SettingAppearanceSkeleton() {
   return (
@@ -76,7 +67,7 @@ function SettingAppearanceSkeleton() {
 }
 
 interface AppearanceFormProps {
-  dictionary?: any;
+  dictionary: any;
 }
 
 export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
@@ -95,9 +86,7 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
   const variant = usePreferencesStore((s) => s.sidebarVariant);
   const setSidebarVariant = usePreferencesStore((s) => s.setSidebarVariant);
   const collapsible = usePreferencesStore((s) => s.sidebarCollapsible);
-  const setSidebarCollapsible = usePreferencesStore(
-    (s) => s.setSidebarCollapsible,
-  );
+  const setSidebarCollapsible = usePreferencesStore((s) => s.setSidebarCollapsible);
   const font = usePreferencesStore((s) => s.font);
   const setFont = usePreferencesStore((s) => s.setFont);
 
@@ -173,12 +162,8 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
   return (
     <div className="space-y-8 pb-10 focus:outline-none">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">
-          {appearance?.title}
-        </h2>
-        <p className="text-xs text-muted-foreground">
-          {appearance?.description}
-        </p>
+        <h2 className="text-lg font-medium tracking-tight">{appearance.title}</h2>
+        <p className="text-xs text-muted-foreground">{appearance.description}</p>
       </div>
       <Separator className="" />
 
@@ -186,21 +171,17 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
         {/* Theme Settings */}
         <section className="space-y-6">
           <div className="space-y-1">
-            <h3 className="text-sm font-medium tracking-tight">
-              {appearance?.theme?.title}
-            </h3>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              {appearance?.theme?.description}
-            </p>
+            <h3 className="text-sm font-medium tracking-tight">{appearance.theme.title}</h3>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{appearance.theme.description}</p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
               <Label className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold px-0.5">
-                {appearance?.theme?.preset}
+                {appearance.theme.preset}
               </Label>
               <Select value={themePreset} onValueChange={onThemePresetChange}>
                 <SelectTrigger className="w-full h-8 text-xs font-normal border bg-background hover:bg-accent/5 transition-colors">
-                  <SelectValue placeholder={appearance?.theme?.preset_placeholder} />
+                  <SelectValue placeholder={appearance.theme.preset_placeholder} />
                 </SelectTrigger>
                 <SelectContent className="border bg-background p-0">
                   {THEME_PRESET_OPTIONS.map((preset) => (
@@ -214,9 +195,7 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
                           className="size-2.5  ring-1 ring-border/50"
                           style={{
                             backgroundColor:
-                              (resolvedThemeMode ?? "light") === "dark"
-                                ? preset.primary.dark
-                                : preset.primary.light,
+                              (resolvedThemeMode ?? "light") === "dark" ? preset.primary.dark : preset.primary.light,
                           }}
                         />
                         <span className="text-[11px]">{preset.label}</span>
@@ -228,7 +207,7 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold px-0.5">
-                {appearance?.theme?.mode}
+                {appearance.theme.mode}
               </Label>
               <ToggleGroup
                 type="single"
@@ -242,21 +221,21 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
                   aria-label="Toggle light"
                   className=" h-8 text-[11px] px-3.5 font-normal border-r-0 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
                 >
-                  {appearance?.theme?.light}
+                  {appearance.theme.light}
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value="dark"
                   aria-label="Toggle dark"
                   className=" h-8 text-[11px] px-3.5 font-normal border-r-0 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
                 >
-                  {appearance?.theme?.dark}
+                  {appearance.theme.dark}
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value="system"
                   aria-label="Toggle system"
                   className=" h-8 text-[11px] px-3.5 font-normal data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
                 >
-                  {appearance?.theme?.system}
+                  {appearance.theme.system}
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
@@ -268,17 +247,13 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
         {/* Layout Settings */}
         <section className="space-y-6">
           <div className="space-y-1">
-            <h3 className="text-sm font-medium tracking-tight">
-              {appearance?.layout?.title}
-            </h3>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              {appearance?.layout?.description}
-            </p>
+            <h3 className="text-sm font-medium tracking-tight">{appearance.layout.title}</h3>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{appearance.layout.description}</p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
               <Label className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold px-0.5">
-                {appearance?.layout?.page_layout}
+                {appearance.layout.page_layout}
               </Label>
               <ToggleGroup
                 type="single"
@@ -292,20 +267,20 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
                   aria-label="Toggle centered"
                   className=" h-8 text-[11px] px-3.5 font-normal border-r-0 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
                 >
-                  {appearance?.layout?.centered}
+                  {appearance.layout.centered}
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value="full-width"
                   aria-label="Toggle full-width"
                   className=" h-8 text-[11px] px-3.5 font-normal data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
                 >
-                  {appearance?.layout?.full_width}
+                  {appearance.layout.full_width}
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold px-0.5">
-                {appearance?.layout?.navbar_behavior}
+                {appearance.layout.navbar_behavior}
               </Label>
               <ToggleGroup
                 type="single"
@@ -319,14 +294,14 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
                   aria-label="Toggle sticky"
                   className=" h-8 text-[11px] px-3.5 font-normal border-r-0 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
                 >
-                  {appearance?.layout?.sticky}
+                  {appearance.layout.sticky}
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value="scroll"
                   aria-label="Toggle scroll"
                   className=" h-8 text-[11px] px-3.5 font-normal data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
                 >
-                  {appearance?.layout?.scroll}
+                  {appearance.layout.scroll}
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
@@ -338,17 +313,13 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
         {/* Sidebar Settings */}
         <section className="space-y-6">
           <div className="space-y-1">
-            <h3 className="text-sm font-medium tracking-tight">
-              {appearance?.sidebar?.title}
-            </h3>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              {appearance?.sidebar?.description}
-            </p>
+            <h3 className="text-sm font-medium tracking-tight">{appearance.sidebar.title}</h3>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{appearance.sidebar.description}</p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
               <Label className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold px-0.5">
-                {appearance?.sidebar?.style}
+                {appearance.sidebar.style}
               </Label>
               <ToggleGroup
                 type="single"
@@ -362,27 +333,27 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
                   aria-label="Toggle inset"
                   className=" h-8 text-[11px] px-3.5 font-normal border-r-0 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
                 >
-                  {appearance?.sidebar?.inset}
+                  {appearance.sidebar.inset}
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value="sidebar"
                   aria-label="Toggle sidebar"
                   className=" h-8 text-[11px] px-3.5 font-normal border-r-0 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
                 >
-                  {appearance?.sidebar?.sidebar}
+                  {appearance.sidebar.sidebar}
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value="floating"
                   aria-label="Toggle floating"
                   className=" h-8 text-[11px] px-3.5 font-normal data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
                 >
-                  {appearance?.sidebar?.floating}
+                  {appearance.sidebar.floating}
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold px-0.5">
-                {appearance?.sidebar?.collapse_mode}
+                {appearance.sidebar.collapse_mode}
               </Label>
               <ToggleGroup
                 type="single"
@@ -396,14 +367,14 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
                   aria-label="Toggle icon"
                   className=" h-8 text-[11px] px-3.5 font-normal border-r-0 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
                 >
-                  {appearance?.sidebar?.icon}
+                  {appearance.sidebar.icon}
                 </ToggleGroupItem>
                 <ToggleGroupItem
                   value="offcanvas"
                   aria-label="Toggle offcanvas"
                   className=" h-8 text-[11px] px-3.5 font-normal data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
                 >
-                  {appearance?.sidebar?.offcanvas}
+                  {appearance.sidebar.offcanvas}
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
@@ -415,21 +386,17 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
         {/* Typography */}
         <section className="space-y-6">
           <div className="space-y-1">
-            <h3 className="text-sm font-medium tracking-tight">
-              {appearance?.typography?.title}
-            </h3>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              {appearance?.typography?.description}
-            </p>
+            <h3 className="text-sm font-medium tracking-tight">{appearance.typography.title}</h3>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{appearance.typography.description}</p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 items-end">
             <div className="space-y-2">
               <Label className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold px-0.5">
-                {appearance?.typography?.font_family}
+                {appearance.typography.font_family}
               </Label>
               <Select value={font} onValueChange={onFontChange}>
                 <SelectTrigger className="w-full h-8 text-xs font-normal border bg-background hover:bg-accent/5 transition-colors">
-                  <SelectValue placeholder={appearance?.typography?.font_placeholder} />
+                  <SelectValue placeholder={appearance.typography.font_placeholder} />
                 </SelectTrigger>
                 <SelectContent className="border bg-background p-0">
                   {fontOptions.map((font) => (
@@ -451,7 +418,7 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
                 onClick={handleRestore}
                 className=" text-[11px] h-8 font-normal px-4 opacity-90 hover:opacity-100 transition-opacity"
               >
-                {appearance?.restore_defaults}
+                {appearance.restore_defaults}
               </Button>
             </div>
           </div>

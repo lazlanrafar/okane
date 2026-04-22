@@ -11,6 +11,7 @@ import type { PaginationQuery } from "@workspace/types";
 import { ErrorCode } from "@workspace/types";
 import { status } from "elysia";
 import { Env } from "@workspace/constants";
+import { logger } from "@workspace/logger";
 
 export abstract class VaultService {
   private static async getBucketClient(workspaceId: string) {

@@ -1,4 +1,5 @@
 "use client";
+
 import { TableSkeleton } from "@workspace/ui";
 
 export function DebtTableSkeleton() {

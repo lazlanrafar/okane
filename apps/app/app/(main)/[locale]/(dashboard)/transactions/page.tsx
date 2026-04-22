@@ -1,18 +1,13 @@
-import type { Metadata } from "next";
 import { Suspense } from "react";
-import { startOfMonth, endOfMonth } from "date-fns";
 
+import { getCategories, getTransactions, getWallets } from "@workspace/modules/server";
 import type { Category, Transaction, Wallet } from "@workspace/types";
+import { endOfMonth, startOfMonth } from "date-fns";
+import type { Metadata } from "next";
 
-import { getCategories } from "@workspace/modules/server";
-import { getTransactions } from "@workspace/modules/server";
-import { getWallets } from "@workspace/modules/server";
 import { TransactionsClient } from "@/components/organisms/transactions/transaction-client";
 import { TransactionTableSkeleton } from "@/components/organisms/transactions/transaction-table-skeleton";
 import { Hydrated } from "@/components/shared/hydrated";
-import { getTransactionsAction } from "@/actions/transaction.actions";
-import { getWalletsAction } from "@/actions/wallet.actions";
-import { getCategoriesAction } from "@/actions/category.actions";
 import { getDictionary } from "@/get-dictionary";
 import type { Locale } from "@/i18n-config";
 
@@ -37,12 +32,7 @@ export default async function TransactionPage(props: {
     <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col bg-background no-scrollbar">
       <div className="flex-1 min-h-0 no-scrollbar">
         <Suspense fallback={<TransactionTableSkeleton />}>
-          <TransactionPageContent
-            locale={locale}
-            searchParams={searchParams}
-            page={page}
-            limit={limit}
-          />
+          <TransactionPageContent locale={locale} searchParams={searchParams} page={page} limit={limit} />
         </Suspense>
       </div>
     </div>
@@ -60,24 +50,13 @@ async function TransactionPageContent({
   page: number;
   limit: number;
 }) {
-  const type =
-    typeof searchParams.type === "string" ? searchParams.type : undefined;
-  const walletId =
-    typeof searchParams.walletId === "string"
-      ? searchParams.walletId
-      : undefined;
-  const categoryId =
-    typeof searchParams.categoryId === "string"
-      ? searchParams.categoryId
-      : undefined;
+  const type = typeof searchParams.type === "string" ? searchParams.type : undefined;
+  const walletId = typeof searchParams.walletId === "string" ? searchParams.walletId : undefined;
+  const categoryId = typeof searchParams.categoryId === "string" ? searchParams.categoryId : undefined;
   const startDate =
-    typeof searchParams.startDate === "string"
-      ? searchParams.startDate
-      : startOfMonth(new Date()).toISOString();
+    typeof searchParams.startDate === "string" ? searchParams.startDate : startOfMonth(new Date()).toISOString();
   const endDate =
-    typeof searchParams.endDate === "string"
-      ? searchParams.endDate
-      : endOfMonth(new Date()).toISOString();
+    typeof searchParams.endDate === "string" ? searchParams.endDate : endOfMonth(new Date()).toISOString();
 
   let initialTransactions: Transaction[] = [];
   let rowCount = 0;

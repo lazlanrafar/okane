@@ -1,7 +1,8 @@
 "use client";
 
-import { useCsvContext, mappableFields } from "./transaction-import-context";
 import {
+  cn,
+  Label,
   Select,
   SelectContent,
   SelectGroup,
@@ -9,12 +10,12 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-  Label,
   Switch,
-  cn,
 } from "@workspace/ui";
 import { ArrowRight, Info } from "lucide-react";
 import { Controller } from "react-hook-form";
+
+import { mappableFields, useCsvContext } from "./transaction-import-context";
 
 export function FieldMapping() {
   const { fileColumns, firstRows, control } = useCsvContext();
@@ -128,9 +129,7 @@ function FieldRow({
 
       <div className="flex items-center justify-between px-3 h-10 bg-muted/30 border w-[45%] min-w-0">
         <span className="text-xs font-medium text-foreground/80">{label}</span>
-        {required && (
-          <span className="text-[10px] text-red-500 font-bold ml-1">*</span>
-        )}
+        {required && <span className="text-[10px] text-red-500 font-bold ml-1">*</span>}
       </div>
     </div>
   );

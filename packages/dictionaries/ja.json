@@ -126,8 +126,8 @@
       "error": "エラー",
       "form": {
         "balance": {
-           "label": "現在の残高",
-           "placeholder": "0.00"
+          "label": "現在の残高",
+          "placeholder": "0.00"
         }
       }
     },
@@ -153,8 +153,8 @@
       "display": "表示設定",
       "transaction": "取引設定",
       "category_accounts": "カテゴリ & アカウント",
-      "income_category": "収入手順",
-      "expenses_category": "支出手順",
+      "income_category": "収入カテゴリ",
+      "expenses_category": "支出カテゴリ",
       "accounts": "ウォレット & 銀行",
       "budget": "予算設定",
       "general": "一般設定",
@@ -220,13 +220,13 @@
       "vault_storage": "保管庫ストレージ",
       "ai_tokens": "AIトークン",
       "available_plans": "利用可能なプラン",
-    "addons": "アドオン",
-    "ai_token_pack": "AIトークンパック",
-    "ai_token_pack_description": "ワークスペースに1回限りのAIトークンを追加します。",
-    "storage_pack": "ストレージパック",
-    "storage_pack_description": "ワークスペースに1回限りのストレージ容量を追加します。",
-    "buy_now": "今すぐ購入",
-    "extra_quota_active": "+{amount} {unit} エクストラが有効",
+      "addons": "アドオン",
+      "ai_token_pack": "AIトークンパック",
+      "ai_token_pack_description": "ワークスペースに1回限りのAIトークンを追加します。",
+      "storage_pack": "ストレージパック",
+      "storage_pack_description": "ワークスペースに1回限りのストレージ容量を追加します。",
+      "buy_now": "今すぐ購入",
+      "extra_quota_active": "+{amount} {unit} エクストラが有効",
       "monthly_toggle": "月払い",
       "annual_toggle": "年払い",
       "no_plans": "利用可能なプランはありません",
@@ -234,6 +234,13 @@
       "yr": "年",
       "downgrade_confirm": "本当にダウングレードしますか？",
       "upgrade": "アップグレード",
+      "upgrade_title": "Oewangで財務をスケールアップ",
+      "upgrade_description": "現在のニーズに合ったプランを選択してください。小さく始めて、ビジネスの成長に合わせて拡張しましょう。",
+      "special_launch_pricing": "特別ローンチ価格",
+      "highest_value": "最高コスパ",
+      "whats_included": "含まれるもの：",
+      "selected_plan": "選択中のプラン",
+      "cancel_subscription": "サブスクリプションをキャンセル",
       "get_started": "始める",
       "history": {
         "title": "請求履歴",
@@ -301,6 +308,9 @@
         "name_placeholder": "名前を入力してください",
         "username_label": "ユーザー名",
         "username_placeholder": "ユニークなユーザー名を選択してください",
+        "mobile_label": "携帯番号",
+        "mobile_placeholder": "例：628123456789",
+        "mobile_description": "公式請求書と支払いに使用されます（インドネシア形式推奨：628xxx）。",
         "bio_label": "略歴",
         "bio_placeholder": "自分自身について教えてください",
         "website_label": "ウェブサイト",
@@ -550,6 +560,35 @@
       "workspace_label": "ワークスペースの通貨",
       "rate_now": "現在のレート",
       "empty": "補助通貨はまだ追加されていません。"
+    },
+    "notifications": {
+      "title": "通知",
+      "description": "さまざまなチャンネルでの通知の受け取り方を管理します。",
+      "inbox": "受信トレイ",
+      "settings": "設定",
+      "recent_activity": "最近のアクティビティ",
+      "mark_all_read": "すべて既読にする",
+      "all_marked_read": "すべての通知を既読にしました",
+      "no_notifications": "通知はありません",
+      "no_notifications_description": "アラートを受け取ると、ここに表示されます。",
+      "mark_read": "既読にする",
+      "delete": "削除",
+      "load_more": "さらに読み込む",
+      "preference_updated": "通知設定が更新されました",
+      "push_notifications": "プッシュ通知",
+      "push_description": "ブラウザでリアルタイムのアラートを受け取ります。",
+      "email_notifications": "メール通知",
+      "email_description": "メールで詳細な更新とレポートを受け取ります。",
+      "whatsapp_notifications": "WhatsApp通知",
+      "whatsapp_description": "WhatsAppでクイックアラートを受け取ります。",
+      "marketing_comms": "マーケティングコミュニケーション",
+      "marketing_description": "新機能やプロモーションに関するニュースを受け取ります。",
+      "pro_tip": "プロのヒント",
+      "pro_tip_description": "カテゴリ設定で予算や大きな取引に対する特定のアラートを設定することもできます。"
+    },
+    "faq": {
+      "title": "よくある質問",
+      "description": "プランに関して知っておくべきすべてのこと。"
     },
     "wallets": {
       "title": "ウォレット & 銀行",
@@ -844,6 +883,12 @@
     "drag_drop": "またはここにファイルをドラッグ＆ドロップ",
     "upload_hint": "コンピューターまたは保管庫からの画像、PDF、スプレッドシート",
     "loading_debts": "貸し借りを読み込み中...",
+    "filter": {
+      "has_attachments": "添付ファイルあり",
+      "no_attachments": "添付ファイルなし",
+      "manual": "手動",
+      "bank_connection": "銀行接続"
+    },
     "types": {
       "income": "収入",
       "expense": "支出",
@@ -872,19 +917,14 @@
       "notes": "取引に関する詳細やコンテキストを追加します"
     },
     "errors": {
+      "process_failed": "トランザクションの処理に失敗しました",
+      "delete_failed": "トランザクションの削除に失敗しました",
+      "update_failed": "トランザクションの更新に失敗しました",
+      "create_failed": "トランザクションの作成に失敗しました",
+      "save_failed": "変更の保存に失敗しました",
       "amount_positive": "金額は正である必要があります",
-      "invalid_date": "無効な日付",
-      "wallet_required": "ウォレットは必須です",
-      "load_failed": "フォームデータの読み込みに失敗しました",
-      "save_failed": "取引の保存に失敗しました",
-      "file_size_limit": "ファイルサイズが3MBの制限を超えています",
-      "file_type_limit": "画像とPDFのみが許可されています",
-      "upload_failed": "アップロードに失敗しました",
-      "parse_failed": "AI解析に失敗しました",
-      "process_failed": "レシートの処理に失敗しました",
-      "invalid_file_type": "{name} のファイルタイプが無効です。ドキュメントと画像のみが許可されています。",
-      "some_uploads_failed": "一部のファイルのアップロードに失敗しました",
-      "preview_failed": "ファイルプレビューの読み込みに失敗しました"
+      "invalid_date": "有効な日付を入力してください",
+      "at_least_one_attachment": "少なくとも1つの添付ファイルをアップロードしてください"
     },
     "group_by": {
       "placeholder": "グループ化...",
@@ -894,22 +934,19 @@
       "monthly": "毎月"
     },
     "toasts": {
-      "deleted": "取引を削除しました",
-      "delete_failed": "取引の削除に失敗しました",
-      "updated": "取引を更新しました",
-      "created": "取引を作成しました",
-      "category_updated": "カテゴリを更新しました",
-      "account_updated": "アカウントを更新しました",
-      "assignee_updated": "担当者を更新しました",
+      "deleted": "トランザクションが正常に削除されました",
+      "updated": "トランザクションが正常に更新されました",
+      "created": "トランザクションが正常に作成されました",
+      "category_updated": "カテゴリーが正常に更新されました",
+      "account_updated": "アカウントが正常に更新されました",
+      "date_updated": "日付が正常に更新されました",
+      "amount_updated": "金額が正常に更新されました",
       "link_copied": "リンクをクリップボードにコピーしました",
-      "marked_pending": "保留としてマークしました",
-      "marked_ready": "準備完了としてマークしました",
-      "marked_exported": "エクスポート済としてマークしました",
-      "unmarked_exported": "エクスポート済マークを解除しました",
-      "parsing_receipt": "レシートをアップロードして処理中...",
-      "parse_success": "レシートの解析に成功しました",
-      "uploading_files": "{count} 個のファイルをアップロード中...",
-      "all_uploads_success": "すべてのファイルのアップロードに成功しました"
+      "marked_ready": "トランザクションを準備完了としてマークしました",
+      "marked_pending": "トランザクションを保留中としてマークしました",
+      "marked_exported": "トランザクションを書き出し済みとしてマークしました",
+      "unmarked_exported": "トランザクションの書き出しマークを解除しました",
+      "assignee_updated": "担当者が正常に更新されました"
     },
     "items": {
       "section_title": "アイテム",
@@ -1013,7 +1050,42 @@
     }
   },
   "common": {
-    "loading_more": "さらに読み込み中..."
+    "loading_more": "さらに読み込み中...",
+    "select_currency": "通貨を選択...",
+    "search_currency": "通貨を検索...",
+    "no_currency_found": "通貨が見つかりません。",
+    "change": "変更",
+    "active": "有効",
+    "processing": "処理中...",
+    "connecting": "接続中...",
+    "loading": "読み込み中...",
+    "copied": "コピーしました",
+    "copy_link": "リンクをコピー",
+    "close": "閉じる",
+    "current": "現在",
+    "na": "N/A",
+    "actions": "アクション",
+    "remove": "削除",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "saving": "保存中...",
+    "create": "作成",
+    "delete": "削除",
+    "opening": "開始中...",
+    "view_pdf": "PDFを表示",
+    "coming_soon": "近日公開",
+    "used": "使用済み",
+    "remaining": "残り",
+    "open_menu": "メニューを開く",
+    "error": "エラー",
+    "empty": "空",
+    "email": "メールアドレス",
+    "form": {
+      "balance": {
+        "label": "現在の残高",
+        "placeholder": "0.00"
+      }
+    }
   },
   "vault": {
     "title": "保管庫",
@@ -1075,7 +1147,10 @@
   },
   "calendar": {
     "title": "カレンダー",
-    "description": "財務イベントを時系列で可視化します。",
+    "description": {
+      "month": "毎月の財務イベントを可視化します。",
+      "week": "週次の財務スケジュールを詳しく確認します。"
+    },
     "view": {
       "month": "月",
       "week": "週",
@@ -1125,6 +1200,29 @@
     }
   },
   "sidebar": {
+    "dashboard_label": "ダッシュボード",
+    "finance_label": "財務",
+    "people_label": "ピープル",
+    "workspace_label": "ワークスペース",
+    "system_label": "システム",
+    "overview_label": "概要",
+    "transactions_label": "取引",
+    "calendar_label": "カレンダー",
+    "planning_label": "計画",
+    "accounts_label": "アカウント",
+    "budget_label": "予算",
+    "debts_label": "借金",
+    "contacts_label": "連絡先",
+    "vault_label": "保管庫",
+    "apps_label": "アプリ",
+    "settings_label": "設定",
+    "invoices_label": "請求書",
+    "customers_label": "顧客",
+    "coming_soon_label": "まもなく",
+    "account_label": "アカウント",
+    "billing_label": "請求",
+    "notifications_label": "通知",
+    "logout_label": "ログアウト",
     "dashboard": "ダッシュボード",
     "finance": "財務",
     "people": "ピープル",
@@ -1173,6 +1271,29 @@
       "no_apps_title": "利用可能なアプリがありません",
       "no_results_desc": "\"{search}\"に一致するアプリは見つかりませんでした。",
       "no_apps_desc": "新しい統合については、後で確認してください。"
+    },
+    "connect": {
+      "telegram": {
+        "title": "Telegramと連携",
+        "description": "QRコードをスキャンするかTelegramを開いて、アカウントをOewangに連携してください。",
+        "open_bot": "ボットを開く",
+        "footer": "スキャンまたはリンクを開いた後、Telegramで「開始」をタップするだけで、アカウントが自動的に連携されます。"
+      },
+      "whatsapp": {
+        "title": "WhatsAppと連携",
+        "description": "WhatsApp Businessを通じて財務更新とレポートを自動化します。",
+        "premium_title": "プレミアム機能",
+        "premium_description": "WhatsApp連携はEnterpriseプランで利用可能なプレミアム機能です。ワークスペースで有効にするには、セールスチームにお問い合わせください。",
+        "coming_soon_title": "近日公開",
+        "features": {
+          "notifications": "リアルタイムの取引通知",
+          "reminders": "自動支払いリマインダー",
+          "reports": "週次財務サマリー"
+        },
+        "button": "セールスに問い合わせる",
+        "footer_info": "公式WhatsApp Business連携"
+      },
+      "secure_connection": "安全なエンドツーエンド接続"
     }
   },
   "ai": {
@@ -1208,11 +1329,105 @@
       "updated": "請求書を更新しました",
       "update_failed": "請求書の更新に失敗しました"
     },
-    "chat": {
-      "new_chat": "新しいチャット",
-      "placeholder": "何でも聞いてください...",
-      "search_placeholder": "ウェブで検索...",
-      "esc": "Esc"
+    "details": {
+      "title": "請求書の詳細",
+      "total_amount": "合計金額",
+      "currency": "通貨",
+      "public_sharing": "公開共有",
+      "public_sharing_description": "公開リンクでこの請求書を共有できるようにします。",
+      "code_protected": "コード保護",
+      "generating_link": "リンクを生成中...",
+      "protection_code": "保護コード（任意）",
+      "set_access_code": "アクセスコードを設定...",
+      "access_code_description": "訪問者はこの請求書を表示するためにこのコードを入力する必要があります。",
+      "internal_note": "内部メモ",
+      "no_internal_notes": "この請求書に内部メモはまだ追加されていません。",
+      "activity": "アクティビティ",
+      "total": "合計",
+      "vat": "消費税",
+      "discount": "割引",
+      "payment_details": "支払い詳細",
+      "note": "メモ",
+      "template_label": "テンプレート",
+      "number": "請求書番号",
+      "issued": "発行日",
+      "due": "支払期限",
+      "from": "差出人",
+      "bill_to": "宛先",
+      "subtotal": "小計"
+    },
+    "statuses": {
+      "draft": "下書き",
+      "unpaid": "未払い",
+      "paid": "支払い済み",
+      "overdue": "期限切れ",
+      "canceled": "キャンセル"
+    },
+    "actions": {
+      "copy": "コピー",
+      "copied": "コピーしました",
+      "edit": "編集",
+      "add_item": "アイテムを追加",
+      "rename_template": "テンプレート名を変更",
+      "duplicate_template": "テンプレートを複製",
+      "delete_template": "テンプレートを削除"
+    },
+    "columns": {
+      "contact": "連絡先",
+      "issue_date": "発行日",
+      "due_date": "支払期限",
+      "description": "説明",
+      "qty": "数量",
+      "rate": "単価",
+      "tax": "税金",
+      "amount": "合計"
+    },
+    "settings": {
+      "invoice": "請求書",
+      "size": "請求書サイズ",
+      "currency": "通貨",
+      "date_format": "日付形式",
+      "payment_terms": "支払条件",
+      "tax_pricing": "税金 & 価格設定",
+      "sales_tax": "消費税",
+      "vat": "VAT",
+      "line_item_tax": "行項目税",
+      "discount": "割引",
+      "decimals": "小数点",
+      "units": "単位",
+      "qr_code": "QRコード",
+      "payments": "支払い",
+      "sharing": "共有",
+      "terms": {
+        "due_on_receipt": "受領時支払い",
+        "net_7": "Net 7",
+        "net_10": "Net 10",
+        "net_15": "Net 15",
+        "net_30": "Net 30",
+        "net_45": "Net 45",
+        "net_60": "Net 60",
+        "net_90": "Net 90"
+      }
+    },
+    "placeholders": {
+      "from_details": "会社の詳細...",
+      "select_contact": "連絡先を選択",
+      "payment_details": "銀行口座、PayPalなど...",
+      "note": "ご利用ありがとうございます！"
+    }
+  },
+  "chat": {
+    "new_chat": "新しいチャット",
+    "placeholder": "何でも聞いてください...",
+    "search_placeholder": "ウェブを検索...",
+    "esc": "Esc",
+    "actions": {
+      "copy": "コピー",
+      "retry": "再試行",
+      "positive": "ポジティブなフィードバック",
+      "negative": "ネガティブなフィードバック",
+      "remove_positive": "ポジティブなフィードバックを削除",
+      "remove_negative": "ネガティブなフィードバックを削除"
     }
   }
 }

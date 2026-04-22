@@ -1,13 +1,10 @@
 import type { ReactNode } from "react";
 
+import { APP_CONFIG } from "@workspace/constants";
 import { Separator } from "@workspace/ui";
 import { Command } from "lucide-react";
 
-import { APP_CONFIG } from "@workspace/constants";
-
-export default function Layout({
-  children,
-}: Readonly<{ children: ReactNode }>) {
+export default function Layout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <main>
       <div className="grid h-dvh justify-center p-2">

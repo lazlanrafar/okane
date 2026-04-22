@@ -1,11 +1,9 @@
-import {
-  getWorkspaceInvitations,
-  getWorkspaceMembers,
-} from "@workspace/modules/server";
-import { MembersClient } from "@/components/organisms/setting/members/members-client";
+import { getWorkspaceInvitations, getWorkspaceMembers } from "@workspace/modules/server";
 import type { Metadata } from "next";
+
+import { MembersClient } from "@/components/organisms/setting/members/members-client";
 import { getDictionary } from "@/get-dictionary";
-import { Locale } from "@/i18n-config";
+import type { Locale } from "@/i18n-config";
 
 export const metadata: Metadata = {
   title: "Members | Settings",
@@ -21,19 +19,10 @@ export default async function MembersPage({ params }: Props) {
   const { locale } = await params;
   const dictionary = await getDictionary(locale as Locale);
 
-  const [membersResult, invitationsResult] = await Promise.all([
-    getWorkspaceMembers(),
-    getWorkspaceInvitations(),
-  ]);
+  const [membersResult, invitationsResult] = await Promise.all([getWorkspaceMembers(), getWorkspaceInvitations()]);
 
   const members = membersResult.success ? membersResult.data : [];
   const invitations = invitationsResult.success ? invitationsResult.data : [];
 
-  return (
-    <MembersClient
-      members={members}
-      invitations={invitations}
-      dictionary={dictionary}
-    />
-  );
+  return <MembersClient members={members} invitations={invitations} dictionary={dictionary} />;
 }

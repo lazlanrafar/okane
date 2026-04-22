@@ -1,21 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Button,
-  Separator,
-  DataTable,
-  Skeleton,
-} from "@workspace/ui";
-import { Plus, Wallet, Pencil, Trash2, FolderPlus } from "lucide-react";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getWalletGroups } from "@workspace/modules/wallet-group/wallet-group.action";
+import { getWallets } from "@workspace/modules/wallet/wallet.action";
+import { Button, Separator, Skeleton } from "@workspace/ui";
+import { FolderPlus, Plus, Wallet } from "lucide-react";
+
 import { useAppStore } from "@/stores/app";
+
 import { WalletForm } from "./wallet-form";
 import { WalletGroupForm } from "./wallet-group-form";
-import { getWallets, deleteWallet } from "@workspace/modules/wallet/wallet.action";
-import { getWalletGroups, deleteWalletGroup } from "@workspace/modules/wallet-group/wallet-group.action";
-import { toast } from "sonner";
-import { cn } from "@workspace/ui";
 
 interface WalletClientProps {
   dictionary?: any;
@@ -36,7 +32,7 @@ export function WalletClient({ dictionary: dict }: WalletClientProps) {
     queryFn: async () => {
       const result = await getWallets();
       if (result.success) return result.data;
-      throw new Error(result.error);
+      throw new Error((result.error as any) || "Failed to fetch wallets");
     },
   });
 
@@ -45,11 +41,11 @@ export function WalletClient({ dictionary: dict }: WalletClientProps) {
     queryFn: async () => {
       const result = await getWalletGroups();
       if (result.success) return result.data;
-      throw new Error(result.error);
+      throw new Error((result.error as any) || "Failed to fetch wallet groups");
     },
   });
 
-  const wallets_t = dictionary?.settings?.wallets || (dictionary as any)?.wallets;
+  const wallets_t = dictionary.wallets;
 
   if (isDictLoading || !dictionary || isWalletsLoading || isGroupsLoading || !wallets_t) {
     return (
@@ -104,11 +100,11 @@ export function WalletClient({ dictionary: dict }: WalletClientProps) {
       <Separator className="rounded-none" />
 
       <div className="grid grid-cols-1 gap-6">
-        {/* Groups and Wallets List could be implemented here */}
-        <div className="border -dashed rounded-none p-12 flex flex-col items-center justify-center text-center space-y-4 bg-accent/5">
+        {/* Placeholder for the wallets/groups list - restored from original */}
+        <div className="border border-dashed rounded-none p-12 flex flex-col items-center justify-center text-center space-y-4 bg-accent/5">
           <Wallet className="h-12 w-12 text-muted-foreground/50" />
           <div className="space-y-1">
-            <h3 className="text-sm font-medium">{wallets_t?.empty}</h3>
+            <h3 className="text-sm font-medium">{wallets_t?.empty?.title || wallets_t?.empty}</h3>
           </div>
         </div>
       </div>

@@ -1,24 +1,18 @@
 "use client";
 
+import { useRef, useState } from "react";
+
+import { useParams, useSearchParams } from "next/navigation";
+
 import { useQuery } from "@tanstack/react-query";
 import { getPublicInvoice } from "@workspace/modules/invoice/invoice.action";
-import { useParams, useSearchParams } from "next/navigation";
-import { useState, useRef } from "react";
-import { downloadInvoiceAsPdf } from "@/lib/invoice-download";
-import {
-  Button,
-  Input,
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  Badge,
-  Separator,
-} from "@workspace/ui";
-import { Lock, Download, Printer, Loader2, Copy, Check } from "lucide-react";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Separator } from "@workspace/ui";
 import { format } from "date-fns";
+import { Check, Copy, Download, Loader2, Lock, Printer } from "lucide-react";
 import { toast } from "sonner";
+
 import { InvoiceA4 } from "@/components/organisms/invoices/invoice-a4";
+import { downloadInvoiceAsPdf } from "@/lib/invoice-download";
 
 export default function PublicInvoicePage() {
   const params = useParams();
@@ -84,12 +78,9 @@ export default function PublicInvoicePage() {
               <Lock className="h-8 w-8 text-destructive" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-2xl text-foreground tracking-wider font-serif">
-                Access Denied
-              </h3>
+              <h3 className="text-2xl text-foreground tracking-wider font-serif">Access Denied</h3>
               <p className="text-muted-foreground">
-                {response?.error ||
-                  "Invoice link is no longer valid or has expired."}
+                {response?.error || "Invoice link is no longer valid or has expired."}
               </p>
             </div>
             <Button
@@ -113,12 +104,9 @@ export default function PublicInvoicePage() {
             <div className="mx-auto w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mb-6">
               <Lock className="h-8 w-8 text-amber-500" />
             </div>
-            <h1 className="text-2xl text-foreground tracking-wider font-serif">
-              Protected Invoice
-            </h1>
+            <h1 className="text-2xl text-foreground tracking-wider font-serif">Protected Invoice</h1>
             <p className="text-sm text-foreground mt-2">
-              Invoice {response?.data?.invoiceNumber} is protected by an access
-              code.
+              Invoice {response?.data?.invoiceNumber} is protected by an access code.
             </p>
           </CardHeader>
           <CardContent className="pt-4">
@@ -189,11 +177,7 @@ export default function PublicInvoicePage() {
           <div className="flex items-center gap-2.5">
             <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-[10px] overflow-hidden shrink-0">
               {settings?.invoiceLogoUrl ? (
-                <img
-                  src={settings.invoiceLogoUrl}
-                  alt={workspace?.name}
-                  className="w-full h-full object-cover"
-                />
+                <img src={settings.invoiceLogoUrl} alt={workspace?.name} className="w-full h-full object-cover" />
               ) : (
                 <span>{workspace?.name?.charAt(0)}</span>
               )}
@@ -225,11 +209,7 @@ export default function PublicInvoicePage() {
           onClick={handleDownload}
           disabled={isDownloading}
         >
-          {isDownloading ? (
-            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-          ) : (
-            <Download className="h-4 w-4" />
-          )}
+          {isDownloading ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <Download className="h-4 w-4" />}
         </Button>
         <Button
           variant="ghost"
@@ -237,11 +217,7 @@ export default function PublicInvoicePage() {
           className="h-10 w-10 text-foreground hover:text-foreground hover:bg-muted transition-colors"
           onClick={handleCopy}
         >
-          {isCopying ? (
-            <Check className="h-4 w-4 text-emerald-500" />
-          ) : (
-            <Copy className="h-4 w-4" />
-          )}
+          {isCopying ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
         </Button>
         <Button
           variant="ghost"
@@ -254,9 +230,7 @@ export default function PublicInvoicePage() {
       </div>
 
       <div className="no-print text-center pb-12 text-foreground/30 select-none">
-        <p className="text-[9px] uppercase font-bold tracking-[0.4em]">
-          Powered by Oewang
-        </p>
+        <p className="text-[9px] uppercase font-bold tracking-[0.4em]">Powered by Oewang</p>
       </div>
     </div>
   );

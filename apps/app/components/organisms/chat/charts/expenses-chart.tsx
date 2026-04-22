@@ -1,24 +1,11 @@
 "use client";
 
-import { formatAmount } from "./format-amount";
-import {
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
-import {
-  BaseChart,
-  ChartLegend,
-  StyledBar,
-  StyledTooltip,
-  StyledXAxis,
-  StyledYAxis,
-} from "./base-charts";
-import { createYAxisTickFormatter, useChartMargin } from "./chart-utils";
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+
+import { BaseChart, ChartLegend, StyledBar, StyledTooltip, StyledXAxis, StyledYAxis } from "./base-charts";
 import type { BaseChartProps } from "./chart-utils";
+import { createYAxisTickFormatter, useChartMargin } from "./chart-utils";
+import { formatAmount } from "./format-amount";
 import { SelectableChartWrapper } from "./selectable-chart-wrapper";
 
 interface ExpenseData {
@@ -41,25 +28,13 @@ interface ExpensesChartProps extends BaseChartProps {
   currency?: string;
   locale?: string;
   enableSelection?: boolean;
-  onSelectionChange?: (
-    startDate: string | null,
-    endDate: string | null,
-  ) => void;
-  onSelectionComplete?: (
-    startDate: string,
-    endDate: string,
-    chartType: string,
-  ) => void;
+  onSelectionChange?: (startDate: string | null, endDate: string | null) => void;
+  onSelectionComplete?: (startDate: string, endDate: string, chartType: string) => void;
   onSelectionStateChange?: (isSelecting: boolean) => void;
 }
 
 // Custom formatter for expenses tooltip
-const expensesTooltipFormatter = (
-  value: any,
-  name: string,
-  currency = "USD",
-  locale?: string,
-): [string, string] => {
+const expensesTooltipFormatter = (value: any, name: string, currency = "USD", locale?: string): [string, string] => {
   const formattedValue =
     formatAmount({
       amount: value,
@@ -72,11 +47,7 @@ const expensesTooltipFormatter = (
 };
 
 // Custom pie chart tooltip
-const pieTooltipFormatter = (
-  { active, payload }: any,
-  currency = "USD",
-  locale?: string,
-) => {
+const pieTooltipFormatter = ({ active, payload }: any, currency = "USD", locale?: string) => {
   if (active && payload && payload.length) {
     const data = payload[0];
     const formattedValue =
@@ -88,9 +59,7 @@ const pieTooltipFormatter = (
       }) || `${currency}${data.value.toLocaleString()}`;
     return (
       <div className="p-2 bg-white dark:bg-[#0c0c0c] border border-gray-200 dark:border-[#1d1d1d] text-black dark:text-white text-xs">
-        <p className="mb-1 text-gray-500 dark:text-[#666666]">
-          {data.payload.name}
-        </p>
+        <p className="mb-1 text-gray-500 dark:text-[#666666]">{data.payload.name}</p>
         <p>{formattedValue}</p>
       </div>
     );
@@ -131,23 +100,12 @@ export function ExpensesChart({
         <div className="relative" style={{ height }}>
           <ResponsiveContainer width="100%" height="100%" debounce={1}>
             <PieChart>
-              <Pie
-                data={categoryData}
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                fill="hsl(var(--foreground))"
-                dataKey="value"
-              >
+              <Pie data={categoryData} cx="50%" cy="50%" outerRadius={80} fill="hsl(var(--foreground))" dataKey="value">
                 {categoryData.map((entry) => (
                   <Cell key={`cell-${entry.name}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip
-                content={(props) =>
-                  pieTooltipFormatter(props, currency, locale)
-                }
-              />
+              <Tooltip content={(props) => pieTooltipFormatter(props, currency, locale)} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -163,28 +121,17 @@ export function ExpensesChart({
   const chartContent = (
     <div className={`w-full ${className}`}>
       {/* Legend */}
-      {showLegend && (
-        <ChartLegend
-          title="Monthly Expenses"
-          items={[{ label: "Expenses", type: "solid" }]}
-        />
-      )}
+      {showLegend && <ChartLegend title="Monthly Expenses" items={[{ label: "Expenses", type: "solid" }]} />}
 
       {/* Bar Chart */}
-      <BaseChart
-        data={data}
-        height={height}
-        margin={{ top: 6, right: 6, left: -marginLeft, bottom: 6 }}
-      >
+      <BaseChart data={data} height={height} margin={{ top: 6, right: 6, left: -marginLeft, bottom: 6 }}>
         <StyledXAxis dataKey="month" />
         <StyledYAxis tickFormatter={tickFormatter} />
 
         <Tooltip
           content={
             <StyledTooltip
-              formatter={(value: any, name: string) =>
-                expensesTooltipFormatter(value, name, currency, locale)
-              }
+              formatter={(value: any, name: string) => expensesTooltipFormatter(value, name, currency, locale)}
             />
           }
           wrapperStyle={{ zIndex: 9999 }}

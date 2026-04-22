@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { useRouter } from "next/navigation";
 
+import { cancelInvitation } from "@workspace/modules/workspace/workspace.action";
 import {
   Avatar,
   AvatarFallback,
@@ -16,17 +17,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  Skeleton,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-  Skeleton,
 } from "@workspace/ui";
 import { format } from "date-fns";
 import { Clock, MoreHorizontal, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
-
-import { cancelInvitation } from "@workspace/modules/workspace/workspace.action";
 
 import { InviteMemberDialog } from "./invite-member-dialog";
 
@@ -51,11 +50,12 @@ interface Invitation {
 interface MembersClientProps {
   members: Member[];
   invitations: Invitation[];
-  dictionary?: any;
+  dictionary: any;
 }
 
-import { useAppStore } from "@/stores/app";
 import { Separator } from "@workspace/ui";
+
+import { useAppStore } from "@/stores/app";
 
 export function MembersSkeleton() {
   return (
@@ -72,10 +72,7 @@ export function MembersSkeleton() {
         </div>
         <div className="border border-t-0 overflow-hidden">
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between p-4 border-b last:border-0"
-            >
+            <div key={i} className="flex items-center justify-between p-4 border-b last:border-0">
               <div className="flex items-center gap-4">
                 <Skeleton className="h-9 w-9 rounded-full" />
                 <div className="space-y-2">
@@ -95,15 +92,11 @@ export function MembersSkeleton() {
   );
 }
 
-export function MembersClient({
-  members,
-  invitations,
-  dictionary,
-}: MembersClientProps) {
+export function MembersClient({ members, invitations, dictionary }: MembersClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("members");
 
-  const settingsDict = (dictionary as any)?.settings?.members;
+  const settingsDict = (dictionary as any).settings.members;
 
   const handleRefresh = () => {
     router.refresh();
@@ -119,36 +112,32 @@ export function MembersClient({
     }
   };
 
-  const common = (dictionary as any)?.settings?.common;
+  const common = (dictionary as any).settings.common;
 
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">{settingsDict?.title}</h2>
-        <p className="text-xs text-muted-foreground">{settingsDict?.description}</p>
+        <h2 className="text-lg font-medium tracking-tight">{settingsDict.title}</h2>
+        <p className="text-xs text-muted-foreground">{settingsDict.description}</p>
       </div>
 
       <Separator className="rounded-none" />
 
       <div className="flex flex-col gap-6">
-        <Tabs
-          defaultValue="members"
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
+        <Tabs defaultValue="members" onValueChange={setActiveTab} className="w-full">
           <div className="flex items-center justify-between mb-4">
             <TabsList className="rounded-none h-9 bg-muted/50 p-0.5">
               <TabsTrigger
                 value="members"
                 className="rounded-none px-6 text-xs h-8 data-[state=active]:bg-background data-[state=active]:shadow-none"
               >
-                {settingsDict?.tabs?.members}
+                {settingsDict.tabs.members}
               </TabsTrigger>
               <TabsTrigger
                 value="invitations"
                 className="rounded-none px-6 text-xs h-8 data-[state=active]:bg-background data-[state=active]:shadow-none"
               >
-                {settingsDict?.tabs?.invitations}
+                {settingsDict.tabs.invitations}
               </TabsTrigger>
             </TabsList>
             <InviteMemberDialog onSuccess={handleRefresh} dictionary={dictionary} />
@@ -158,7 +147,7 @@ export function MembersClient({
             <div className="border border-t">
               {members.length === 0 ? (
                 <div className="py-12 text-center text-sm text-muted-foreground">
-                  {settingsDict?.no_members || "No members found."}
+                  {settingsDict.no_members || "No members found."}
                 </div>
               ) : (
                 <div>
@@ -175,54 +164,38 @@ export function MembersClient({
                             className="rounded-none"
                           />
                           <AvatarFallback className="text-xs rounded-none">
-                            {(member.name || member.email || "")
-                              .slice(0, 1)
-                              .toUpperCase()}
+                            {(member.name || member.email || "").slice(0, 1).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-sm font-medium">
-                            {member.name || common?.na || "N/A"}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {member.email}
-                          </span>
+                          <span className="text-sm font-medium">{member.name || common.na || "N/A"}</span>
+                          <span className="text-xs text-muted-foreground">{member.email}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge
-                          variant={
-                            member.role === "owner" ? "default" : "secondary"
-                          }
+                          variant={member.role === "owner" ? "default" : "secondary"}
                           className="capitalize rounded-none font-normal text-[10px] h-5 px-2"
                         >
-                          {settingsDict?.form?.role?.options?.[
+                          {settingsDict.form.role.options[
                             member.role as keyof typeof settingsDict.form.role.options
                           ] || member.role}
                         </Badge>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              className="h-8 w-8 p-0 rounded-none hover:bg-muted"
-                            >
-                              <span className="sr-only">
-                                {common?.open_menu || "Open menu"}
-                              </span>
+                            <Button variant="ghost" className="h-8 w-8 p-0 rounded-none hover:bg-muted">
+                              <span className="sr-only">{common.open_menu || "Open menu"}</span>
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="rounded-none border min-w-[150px]"
-                          >
+                          <DropdownMenuContent align="end" className="rounded-none border min-w-[150px]">
                             <DropdownMenuLabel className="font-normal text-[10px] text-muted-foreground px-2 py-1.5 transition-none">
-                              {common?.actions || "Actions"}
+                              {common.actions || "Actions"}
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator className="rounded-none" />
                             <DropdownMenuItem className="text-destructive focus:text-destructive rounded-none text-xs cursor-pointer px-2 py-1.5 transition-none">
                               <Trash2 className="mr-2 h-4 w-4" />
-                              {common?.remove || "Remove"}
+                              {common.remove || "Remove"}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -238,7 +211,7 @@ export function MembersClient({
             <div className="border border-t">
               {invitations.length === 0 ? (
                 <div className="py-12 text-center text-sm text-muted-foreground">
-                  {settingsDict?.no_invitations || "No pending invitations."}
+                  {settingsDict.no_invitations || "No pending invitations."}
                 </div>
               ) : (
                 <div>
@@ -252,42 +225,28 @@ export function MembersClient({
                           <Clock className="w-4 h-4 text-muted-foreground" />
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-sm font-medium">
-                            {invite.email}
-                          </span>
+                          <span className="text-sm font-medium">{invite.email}</span>
                           <span className="text-xs text-muted-foreground capitalize">
-                            {settingsDict?.invitation_status?.[invite.status] ||
-                              invite.status}
+                            {settingsDict.invitation_status[invite.status] || invite.status}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Badge
-                          variant="outline"
-                          className="capitalize rounded-none font-normal text-[10px] h-5 px-2"
-                        >
-                          {settingsDict?.form?.role?.options?.[
+                        <Badge variant="outline" className="capitalize rounded-none font-normal text-[10px] h-5 px-2">
+                          {settingsDict.form.role.options[
                             invite.role as keyof typeof settingsDict.form.role.options
                           ] || invite.role}
                         </Badge>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              className="h-8 w-8 p-0 rounded-none hover:bg-muted"
-                            >
-                              <span className="sr-only">
-                                {common?.open_menu || "Open menu"}
-                              </span>
+                            <Button variant="ghost" className="h-8 w-8 p-0 rounded-none hover:bg-muted">
+                              <span className="sr-only">{common.open_menu || "Open menu"}</span>
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="rounded-none border min-w-[150px]"
-                          >
+                          <DropdownMenuContent align="end" className="rounded-none border min-w-[150px]">
                             <DropdownMenuLabel className="font-normal text-[10px] text-muted-foreground px-2 py-1.5 transition-none">
-                              {common?.actions || "Actions"}
+                              {common.actions || "Actions"}
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator className="rounded-none" />
                             <DropdownMenuItem
@@ -295,7 +254,7 @@ export function MembersClient({
                               onClick={() => handleCancelInvitation(invite.id)}
                             >
                               <XCircle className="mr-2 h-4 w-4" />
-                              {settingsDict?.cancel_invitation || "Cancel Invitation"}
+                              {settingsDict.cancel_invitation || "Cancel Invitation"}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

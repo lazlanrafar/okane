@@ -1,7 +1,8 @@
 "use client";
 
-import { useChatMessages } from "@ai-sdk-tools/store";
 import { useMemo } from "react";
+
+import { useChatMessages } from "@ai-sdk-tools/store";
 import type { ArtifactType } from "@workspace/constants";
 
 export function useCanvasData<T = any>(type: ArtifactType) {
@@ -15,9 +16,7 @@ export function useCanvasData<T = any>(type: ArtifactType) {
       if (!msg || msg.role !== "assistant") continue;
 
       // First search in parts (AI SDK streaming format)
-      const artifactPart = (msg as any).parts?.find(
-        (p: any) => p.type === "artifact" && p.artifactType === type,
-      );
+      const artifactPart = (msg as any).parts?.find((p: any) => p.type === "artifact" && p.artifactType === type);
 
       if (artifactPart) {
         return (artifactPart as any).payload as T;

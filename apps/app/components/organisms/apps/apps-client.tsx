@@ -1,24 +1,29 @@
 "use client";
 
 import * as React from "react";
+
 import { useRouter } from "next/navigation";
-import { cn, Input, Tabs, TabsList, TabsTrigger } from "@workspace/ui";
-import { Search, Grid2X2, Link as LinkIcon } from "lucide-react";
-import { apps as appStoreApps } from "@workspace/integrations";
+
 import { useQuery } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
+import { apps as appStoreApps } from "@workspace/integrations";
 import { getIntegrationsAction } from "@workspace/modules/integrations/integrations.action";
 import { getMe } from "@workspace/modules/user/user.action";
+import { cn, Input, Tabs, TabsList, TabsTrigger } from "@workspace/ui";
+import { Grid2X2, Link as LinkIcon, Search } from "lucide-react";
+
+import { useAppStore } from "@/stores/app";
+
 import { AppsCard } from "./apps-card";
 import { ConnectTelegram } from "./connect-telegram";
 import { ConnectWhatsApp } from "./connect-whatsapp";
-import { useAppStore } from "@/stores/app";
 
 interface Props {
-  dictionary: any;
+  dictionary: Dictionary;
 }
 
 export function AppsClient({ dictionary }: Props) {
-  const t = dictionary?.apps;
+  const t = dictionary.apps;
 
   const router = useRouter();
   const [search, setSearch] = React.useState("");
@@ -47,58 +52,41 @@ export function AppsClient({ dictionary }: Props) {
   const transformedOfficialApps = appStoreApps
     .filter((app) => !app.hidden)
     .map((app) => {
-    // Check if the app is installed via the integrations API response
-    const isInstalled =
-      installedApps?.some(
-        (installed: any) => installed.provider === app.id && installed.isActive,
-      ) ?? false;
+      // Check if the app is installed via the integrations API response
+      const isInstalled =
+        installedApps.some((installed: any) => installed.provider === app.id && installed.isActive) ?? false;
 
-    return {
-      id: app.id,
-      name: app.name,
-      category: "category" in app ? app.category : "Integration",
-      requires_plan: app.id.startsWith("whatsapp") ? "Pro" : undefined,
-      active: app.active,
-      beta:
-        "beta" in app && typeof app.beta === "boolean" ? app.beta : undefined,
-      logo: app.logo,
-      short_description: app.short_description,
-      description: "description" in app ? app.description : undefined,
-      images: "images" in app ? app.images : [],
-      installed: isInstalled,
-      type: "official" as const,
-      onInitialize:
-        "onInitialize" in app && typeof (app as any).onInitialize === "function"
-          ? async ({
-              accessToken,
-              onComplete,
-            }: {
-              accessToken: string;
-              onComplete?: () => void;
-            }) => {
-              const result = (app as any).onInitialize({
-                accessToken,
-                onComplete,
-              });
-              return result instanceof Promise
-                ? result
-                : Promise.resolve(result);
-            }
-          : undefined,
-      settings:
-        "settings" in app && Array.isArray((app as any).settings)
-          ? (app as any).settings
-          : undefined,
-      userSettings:
-        (installedApps?.find((inst: any) => inst.provider === app.id)
-          ?.settings as Record<string, any>) || undefined,
-      // Include installUrl for apps with external download pages
-      installUrl:
-        "installUrl" in app && typeof (app as any).installUrl === "string"
-          ? (app as any).installUrl
-          : undefined,
-    };
-  });
+      return {
+        id: app.id,
+        name: app.name,
+        category: "category" in app ? app.category : "Integration",
+        requires_plan: app.id.startsWith("whatsapp") ? "Pro" : undefined,
+        active: app.active,
+        beta: "beta" in app && typeof app.beta === "boolean" ? app.beta : undefined,
+        logo: app.logo,
+        short_description: app.short_description,
+        description: "description" in app ? app.description : undefined,
+        images: "images" in app ? app.images : [],
+        installed: isInstalled,
+        type: "official" as const,
+        onInitialize:
+          "onInitialize" in app && typeof (app as any).onInitialize === "function"
+            ? async ({ accessToken, onComplete }: { accessToken: string; onComplete?: () => void }) => {
+                const result = (app as any).onInitialize({
+                  accessToken,
+                  onComplete,
+                });
+                return result instanceof Promise ? result : Promise.resolve(result);
+              }
+            : undefined,
+        settings: "settings" in app && Array.isArray((app as any).settings) ? (app as any).settings : undefined,
+        userSettings:
+          (installedApps.find((inst: any) => inst.provider === app.id).settings as Record<string, any>) || undefined,
+        // Include installUrl for apps with external download pages
+        installUrl:
+          "installUrl" in app && typeof (app as any).installUrl === "string" ? (app as any).installUrl : undefined,
+      };
+    });
 
   // Since Oewang doesn't have OAuth Applications currently, we use an empty array.
   // In the future, this is where transformedExternalApps will go.
@@ -110,7 +98,8 @@ export function AppsClient({ dictionary }: Props) {
       active: false, // Coming soon
       logo: undefined,
       short_description: "Manage your finances on the go with the Oewang mobile app.",
-      description: "The Oewang mobile app will allow you to track expenses, scan receipts, and manage your budget directly from your smartphone.\n\n**Coming Soon**\nWe are currently developing our mobile application for both iOS and Android. Stay tuned for updates!",
+      description:
+        "The Oewang mobile app will allow you to track expenses, scan receipts, and manage your budget directly from your smartphone.\n\n**Coming Soon**\nWe are currently developing our mobile application for both iOS and Android. Stay tuned for updates!",
       installed: false,
       type: "official",
     },
@@ -121,15 +110,12 @@ export function AppsClient({ dictionary }: Props) {
 
   const filteredApps = allApps.filter((app) => {
     if (filter === "connected" && !app.installed) return false;
-    if (search && !app.name.toLowerCase().includes(search.toLowerCase()))
-      return false;
+    if (search && !app.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
-  const activeWorkspace = me?.workspaces.find(
-    (w) => w.id === me.user.workspace_id,
-  );
-  const planName = activeWorkspace?.plan_name || "Starter";
+  const activeWorkspace = me.workspaces.find((w) => w.id === me.user.workspace_id);
+  const planName = activeWorkspace.plan_name || "Starter";
 
   const activeApp = allApps.find((a) => a.id === expandedApp);
 
@@ -213,15 +199,13 @@ export function AppsClient({ dictionary }: Props) {
               {search ? t.empty.no_results_title : t.empty.no_apps_title}
             </h3>
             <p className="mt-2 text-sm text-muted-foreground max-w-sm">
-              {search
-                ? t.empty.no_results_desc.replace("{search}", search)
-                : t.empty.no_apps_desc}
+              {search ? t.empty.no_results_desc.replace("{search}", search) : t.empty.no_apps_desc}
             </p>
           </div>
         )}
       </div>
-      <ConnectTelegram />
-      <ConnectWhatsApp />
+      <ConnectTelegram dictionary={dictionary} />
+      <ConnectWhatsApp dictionary={dictionary} />
     </div>
   );
 }

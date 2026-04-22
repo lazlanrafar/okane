@@ -2,40 +2,44 @@
 
 import * as React from "react";
 import { useEffect, useState } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { toast } from "sonner";
+import { createWallet, getWallet, updateWallet } from "@workspace/modules/client";
+import type { Wallet } from "@workspace/types";
 import {
   Button,
+  CurrencyInput,
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
   Input,
-  Switch,
-  CurrencyInput,
+  ScrollArea,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  ScrollArea,
-  FormDescription,
+  Switch,
 } from "@workspace/ui";
-import { createWallet, updateWallet, getWallet } from "@workspace/modules/client";
-import type { Wallet } from "@workspace/types";
-import { useAppStore } from "@/stores/app";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+
 import { SelectAccountGroup } from "@/components/molecules/select-account-group";
+import { useAppStore } from "@/stores/app";
 
 const getAccountSchema = (dictionary: any) => {
-  const nameError =
-    dictionary?.accounts?.form?.name?.error_required || "Name is required";
+  const nameError = dictionary.accounts.form.name.error_required || "Name is required";
 
   return z.object({
-    name: z.string().trim().min(1, { message: String(nameError) }),
+    name: z
+      .string()
+      .trim()
+      .min(1, { message: String(nameError) }),
     groupId: z.string().optional().nullable(),
     balance: z.coerce.number().default(0),
     isIncludedInTotals: z.boolean().default(true),
@@ -60,17 +64,17 @@ function InternalAccountForm({
   dictionary: any;
 }) {
   const [isLoading, setIsLoading] = React.useState(false);
-  
+
   const schema = React.useMemo(() => getAccountSchema(dictionary), [dictionary]);
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     mode: "onSubmit", // Reset to onSubmit for production
     defaultValues: {
-      name: wallet?.name || "",
-      groupId: wallet?.groupId || null,
-      balance: wallet?.balance ? Number(wallet.balance) : 0,
-      isIncludedInTotals: wallet?.isIncludedInTotals ?? true,
+      name: wallet.name || "",
+      groupId: wallet.groupId || null,
+      balance: wallet.balance ? Number(wallet.balance) : 0,
+      isIncludedInTotals: wallet.isIncludedInTotals ?? true,
     },
   });
 
@@ -102,16 +106,10 @@ function InternalAccountForm({
         balance: values.balance.toString(),
       };
 
-      const result = walletId
-        ? await updateWallet(walletId, formattedValues)
-        : await createWallet(formattedValues);
+      const result = walletId ? await updateWallet(walletId, formattedValues) : await createWallet(formattedValues);
 
       if (result.success) {
-        toast.success(
-          walletId
-            ? dictionary.accounts.toasts.updated
-            : dictionary.accounts.toasts.created,
-        );
+        toast.success(walletId ? dictionary.accounts.toasts.updated : dictionary.accounts.toasts.created);
         onSuccess?.(result.data);
         onOpenChange(false);
       } else {
@@ -127,11 +125,7 @@ function InternalAccountForm({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col h-full"
-        noValidate
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full" noValidate>
         <ScrollArea className="flex-1 px-6">
           <div className="space-y-6 py-6 pb-24">
             <div className="space-y-4">
@@ -142,12 +136,7 @@ function InternalAccountForm({
                   <FormItem>
                     <FormLabel>{dictionary.accounts.account_name}</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder={
-                          dictionary.accounts.account_name_placeholder
-                        }
-                        {...field}
-                      />
+                      <Input placeholder={dictionary.accounts.account_name_placeholder} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -177,10 +166,7 @@ function InternalAccountForm({
                   <FormItem>
                     <FormLabel>{dictionary.accounts.initial_balance}</FormLabel>
                     <FormControl>
-                      <CurrencyInput
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
+                      <CurrencyInput value={field.value} onChange={field.onChange} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -193,18 +179,11 @@ function InternalAccountForm({
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">
-                        {dictionary.accounts.include_in_totals_label}
-                      </FormLabel>
-                      <FormDescription>
-                        {dictionary.accounts.include_in_totals_description}
-                      </FormDescription>
+                      <FormLabel className="text-base">{dictionary.accounts.include_in_totals_label}</FormLabel>
+                      <FormDescription>{dictionary.accounts.include_in_totals_description}</FormDescription>
                     </div>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -217,7 +196,7 @@ function InternalAccountForm({
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading
               ? dictionary.accounts.saving
-              : wallet?.id
+              : wallet.id
                 ? dictionary.accounts.update_account
                 : dictionary.accounts.create_account}
           </Button>
@@ -273,14 +252,10 @@ export function AccountFormSheet({
       <SheetContent className="p-0 flex flex-col h-full w-full sm:max-w-[450px]">
         <div className="px-6 pt-6 mb-2">
           <h2 className="text-lg font-semibold border-b pb-2">
-            {walletId
-              ? dictionary.accounts.edit_account
-              : dictionary.accounts.add_account}
+            {walletId ? dictionary.accounts.edit_account : dictionary.accounts.add_account}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            {walletId
-              ? dictionary.accounts.edit_description
-              : dictionary.accounts.create_description}
+            {walletId ? dictionary.accounts.edit_description : dictionary.accounts.create_description}
           </p>
         </div>
 

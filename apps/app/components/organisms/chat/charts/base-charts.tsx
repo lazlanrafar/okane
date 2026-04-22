@@ -1,7 +1,9 @@
 "use client";
 
 import type * as React from "react";
+
 import * as RechartsPrimitive from "recharts";
+
 import { commonChartConfig } from "./chart-utils";
 
 // Base Chart Wrapper with common styling
@@ -18,10 +20,7 @@ export function BaseChart({
 }) {
   return (
     <RechartsPrimitive.ComposedChart data={data} margin={margin}>
-      <RechartsPrimitive.CartesianGrid
-        strokeDasharray="3 3"
-        stroke="var(--chart-grid-stroke)"
-      />
+      <RechartsPrimitive.CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid-stroke)" />
       {children}
     </RechartsPrimitive.ComposedChart>
   );
@@ -53,27 +52,12 @@ export function StyledYAxis(props: any) {
 
 // Styled Area
 export function StyledArea(props: any) {
-  return (
-    <RechartsPrimitive.Area
-      type="monotone"
-      strokeWidth={2}
-      isAnimationActive={false}
-      {...props}
-    />
-  );
+  return <RechartsPrimitive.Area type="monotone" strokeWidth={2} isAnimationActive={false} {...props} />;
 }
 
 // Styled Line
 export function StyledLine(props: any) {
-  return (
-    <RechartsPrimitive.Line
-      type="monotone"
-      strokeWidth={2}
-      dot={false}
-      isAnimationActive={false}
-      {...props}
-    />
-  );
+  return <RechartsPrimitive.Line type="monotone" strokeWidth={2} dot={false} isAnimationActive={false} {...props} />;
 }
 
 // Styled Bar
@@ -111,10 +95,7 @@ export function StyledTooltip({
             : [`${value.toLocaleString()}`, entry.dataKey];
 
           return (
-            <p
-              key={`${entry.dataKey}-${index}`}
-              className="text-black dark:text-white"
-            >
+            <p key={`${entry.dataKey}-${index}`} className="text-black dark:text-white">
               {name}: {formattedValue}
             </p>
           );
@@ -139,20 +120,11 @@ export function ChartLegend({
   }[];
 }) {
   return (
-    <div
-      className={`flex items-center ${title ? "justify-between" : "justify-end"} mb-4`}
-    >
-      {title && (
-        <h4 className="text-[18px] font-normal font-serif text-black dark:text-white">
-          {title}
-        </h4>
-      )}
+    <div className={`flex items-center ${title ? "justify-between" : "justify-end"} mb-4`}>
+      {title && <h4 className="text-[18px] font-normal font-serif text-black dark:text-white">{title}</h4>}
       <div className="flex gap-4 items-center">
         {items.map((item, index) => (
-          <div
-            key={`legend-${item.label}-${index}`}
-            className="flex gap-2 items-center"
-          >
+          <div key={`legend-${item.label}-${index}`} className="flex gap-2 items-center">
             <div
               className="w-2 h-2"
               style={{
@@ -165,9 +137,7 @@ export function ChartLegend({
                 borderRadius: "0",
               }}
             />
-            <span className="text-[12px] text-gray-500 dark:text-[#666666]">
-              {item.label}
-            </span>
+            <span className="text-[12px] text-gray-500 dark:text-[#666666]">{item.label}</span>
           </div>
         ))}
       </div>

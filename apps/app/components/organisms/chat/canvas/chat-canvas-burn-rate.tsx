@@ -2,37 +2,38 @@
 
 import {
   BaseCanvas,
-  CanvasHeader,
-  CanvasContent,
   CanvasChart,
+  CanvasContent,
   CanvasGrid,
+  CanvasHeader,
   CanvasSection,
   shouldShowMetricsSkeleton,
   shouldShowSummarySkeleton,
 } from "@workspace/ui";
+
 import { useAppStore } from "../../../../stores/app";
-import { ArtifactTabs, useStaticArtifactData } from "./chat-canvas";
 import { BurnRateChart } from "../charts/burn-rate-chart";
 import { formatAmount } from "../charts/format-amount";
+import { ArtifactTabs, useStaticArtifactData } from "./chat-canvas";
 
 export function BurnRateCanvas() {
   const data = useStaticArtifactData("burn-rate-canvas");
   const user = useAppStore((state) => state.user) as any;
   const locale = user?.locale || "en-US";
-  const currency = data?.currency || "USD";
-  const stage = data?.stage;
+  const currency = data.currency || "USD";
+  const stage = data.stage;
 
   // Map the oewang chart data format to what BurnRateChart expects
   const burnRateData =
-    data?.chart?.map((item: any) => ({
+    data.chart.map((item: any) => ({
       month: item.label,
       amount: item.value,
-      average: data.metrics?.avgMonthlyBurn || 0,
+      average: data.metrics.avgMonthlyBurn || 0,
       currentBurn: item.value,
-      averageBurn: data.metrics?.avgMonthlyBurn || 0,
+      averageBurn: data.metrics.avgMonthlyBurn || 0,
     })) || [];
 
-  const burnMetrics = data?.metrics
+  const burnMetrics = data.metrics
     ? [
         {
           id: "avg-burn",
@@ -75,26 +76,16 @@ export function BurnRateCanvas() {
               isLoading={stage === "loading"}
               height="20rem"
             >
-              <BurnRateChart
-                data={burnRateData}
-                height={320}
-                showLegend={false}
-                currency={currency}
-                locale={locale}
-              />
+              <BurnRateChart data={burnRateData} height={320} showLegend={false} currency={currency} locale={locale} />
             </CanvasChart>
           )}
 
           {/* Metric cards */}
-          <CanvasGrid
-            items={burnMetrics}
-            layout="2/2"
-            isLoading={shouldShowMetricsSkeleton(stage)}
-          />
+          <CanvasGrid items={burnMetrics} layout="2/2" isLoading={shouldShowMetricsSkeleton(stage)} />
 
           {/* Summary */}
           <CanvasSection title="Summary" isLoading={shouldShowSummarySkeleton(stage)}>
-            {data?.analysis?.summary}
+            {data.analysis.summary}
           </CanvasSection>
         </div>
       </CanvasContent>

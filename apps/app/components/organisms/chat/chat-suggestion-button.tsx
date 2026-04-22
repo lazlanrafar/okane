@@ -1,9 +1,10 @@
 "use client";
 
-import { useChatStore } from "@/stores/chat";
-import { cn } from "@workspace/ui";
-import { Icons } from "@workspace/ui";
 import type React from "react";
+
+import { cn, Icons } from "@workspace/ui";
+
+import { useChatStore } from "@/stores/chat";
 
 export function ChatSuggestionButton() {
   const { showCommands, setShowCommands } = useChatStore();
@@ -18,7 +19,7 @@ export function ChatSuggestionButton() {
     // Focus textarea for keyboard navigation when opening
     if (!showCommands) {
       requestAnimationFrame(() => {
-        document.querySelector("textarea")?.focus();
+        document.querySelector("textarea").focus();
       });
     }
   };

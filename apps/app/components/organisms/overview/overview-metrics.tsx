@@ -1,11 +1,8 @@
 "use client";
 
+import type { CategoryBreakdownPoint, ChartDataPoint } from "@workspace/modules/metrics/metrics.action";
 import { BarMetricChart, LineMetricChart } from "@workspace/ui";
 
-import type {
-  CategoryBreakdownPoint,
-  ChartDataPoint,
-} from "@workspace/modules/metrics/metrics.action";
 import { useAppStore } from "@/stores/app";
 
 export function OverviewMetrics({

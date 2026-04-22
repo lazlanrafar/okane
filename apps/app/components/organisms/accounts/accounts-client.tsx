@@ -1,23 +1,20 @@
 "use client";
 
-import { accountColumns } from "./account-columns";
-import type { Wallet } from "@workspace/types";
-import { useState, useMemo, useCallback, useEffect } from "react";
-import {
-  Button,
-  DataTable,
-  DataTableColumnsVisibility,
-  DataTableFilter,
-  DataTableEmptyState,
-} from "@workspace/ui";
-import { AccountFormSheet } from "./account-form-sheet";
-import { AccountDetailSheet } from "./account-detail-sheet";
-import { useDataTableFilter } from "@/hooks/use-data-table-filter";
-import { Plus } from "lucide-react";
-import { useAccountsStore } from "@/stores/accounts";
-import { useAppStore } from "@/stores/app";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { getWallets } from "@workspace/modules/client";
+import type { Wallet } from "@workspace/types";
+import { Button, DataTable, DataTableColumnsVisibility, DataTableEmptyState, DataTableFilter } from "@workspace/ui";
+import { Plus } from "lucide-react";
+
+import { useDataTableFilter } from "@/hooks/use-data-table-filter";
+import { useAccountsStore } from "@/stores/accounts";
+import { useAppStore } from "@/stores/app";
+
+import { accountColumns } from "./account-columns";
+import { AccountDetailSheet } from "./account-detail-sheet";
+import { AccountFormSheet } from "./account-form-sheet";
 
 interface Props {
   initialData: Wallet[];
@@ -44,23 +41,18 @@ export function AccountsClient({
 }: Props) {
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
-  const [selectedWalletId, setSelectedWalletId] = useState<
-    string | undefined
-  >();
+  const [selectedWalletId, setSelectedWalletId] = useState<string | undefined>();
   const { settings, formatCurrency } = useAppStore();
   const queryClient = useQueryClient();
 
-
-
-  const { filters, handleFilterChange, pagination, handlePaginationChange } =
-    useDataTableFilter({
-      initialFilters: initialFilters || {
-        q: "",
-        groupId: "",
-      },
-      pageSize,
-      initialPage,
-    });
+  const { filters, handleFilterChange, pagination, handlePaginationChange } = useDataTableFilter({
+    initialFilters: initialFilters || {
+      q: "",
+      groupId: "",
+    },
+    pageSize,
+    initialPage,
+  });
 
   const { columns, setColumns } = useAccountsStore();
 
@@ -80,9 +72,7 @@ export function AccountsClient({
     getNextPageParam: (lastPage) => {
       const pagination = lastPage.meta?.pagination;
       if (!pagination) return undefined;
-      return pagination.page < pagination.total_pages
-        ? pagination.page + 1
-        : undefined;
+      return pagination.page < pagination.total_pages ? pagination.page + 1 : undefined;
     },
     initialData: {
       pages: [
@@ -110,7 +100,7 @@ export function AccountsClient({
   });
 
   const wallets = useMemo(() => {
-    return data?.pages.flatMap((page: any) => page.data || []) || [];
+    return data.pages?.flatMap((page: any) => page.data || []) || [];
   }, [data]);
 
   const selectedWallet = useMemo(() => {
@@ -131,11 +121,9 @@ export function AccountsClient({
         if (!oldData) return oldData;
         return {
           ...oldData,
-          pages: oldData.pages.map((page: any) => ({
+          pages: oldData.pages?.map((page: any) => ({
             ...page,
-            data: page.data?.map((wallet: Wallet) =>
-              wallet.id === updatedWallet.id ? updatedWallet : wallet,
-            ),
+            data: page.data.map((wallet: Wallet) => (wallet.id === updatedWallet.id ? updatedWallet : wallet)),
           })),
         };
       });
@@ -200,9 +188,7 @@ export function AccountsClient({
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
             {dictionary.accounts.title}
           </span>
-          <span className="text-3xl font-serif font-medium tracking-tight">
-            {wallets.length}
-          </span>
+          <span className="text-3xl font-serif font-medium tracking-tight">{wallets.length}</span>
         </div>
         <div className="p-6 flex flex-col gap-1 border border-border">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">

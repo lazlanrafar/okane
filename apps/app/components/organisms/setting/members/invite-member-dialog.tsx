@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { inviteMember } from "@workspace/modules/workspace/workspace.action";
 import {
   Button,
   Dialog,
@@ -29,7 +30,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-import { inviteMember } from "@workspace/modules/workspace/workspace.action";
 import { useAppStore } from "@/stores/app";
 
 const inviteSchema = z.object({
@@ -41,7 +41,7 @@ type InviteFormValues = z.infer<typeof inviteSchema>;
 
 interface InviteMemberDialogProps {
   onSuccess?: () => void;
-  dictionary?: any;
+  dictionary: any;
 }
 
 export function InviteMemberDialog({ onSuccess, dictionary: dict }: InviteMemberDialogProps) {
@@ -52,7 +52,7 @@ export function InviteMemberDialog({ onSuccess, dictionary: dict }: InviteMember
 
   if (!dictionary) return null;
 
-  const membersDict = dictionary.settings.members;
+  const membersDict = dictionary.members;
 
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteSchema as any),
@@ -67,50 +67,38 @@ export function InviteMemberDialog({ onSuccess, dictionary: dict }: InviteMember
     if (result.success) {
       toast.success(membersDict.form.success || "Invitation sent!", {
         description:
-          membersDict.form.description?.replace("{email}", values.email) ||
+          membersDict.form.description.replace("{email}", values.email) ||
           `${values.email} will receive an invite shortly.`,
       });
       setOpen(false);
       form.reset();
       onSuccess?.();
     } else {
-      toast.error(result.error);
+      toast.error(result.error || "Failed to send invitation");
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Button
-        onClick={() => setOpen(true)}
-        className="rounded-none h-8 text-xs"
-      >
+      <Button onClick={() => setOpen(true)} className="rounded-none h-8 text-xs">
         <UserPlus className="h-4 w-4 mr-2" />
         {membersDict.invite_button}
       </Button>
 
       <DialogContent className="rounded-none sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium">
-            {membersDict.invite_button}
-          </DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
-            {membersDict.description}
-          </DialogDescription>
+          <DialogTitle className="text-lg font-medium">{membersDict.invite_button}</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">{membersDict.description}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6 py-4"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs">
-                    {membersDict.form.email.label}
-                  </FormLabel>
+                  <FormLabel className="text-xs">{membersDict.form.email.label}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder={membersDict.form.email.placeholder}
@@ -128,29 +116,18 @@ export function InviteMemberDialog({ onSuccess, dictionary: dict }: InviteMember
               name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs">
-                    {membersDict.form.role.label}
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <FormLabel className="text-xs">{membersDict.form.role.label}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger className="rounded-none h-10 px-3 text-sm">
                         <SelectValue placeholder={membersDict.form.role.placeholder} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="rounded-none">
-                      <SelectItem
-                        value="member"
-                        className="rounded-none text-xs"
-                      >
+                      <SelectItem value="member" className="rounded-none text-xs">
                         {membersDict.form.role.options.member}
                       </SelectItem>
-                      <SelectItem
-                        value="admin"
-                        className="rounded-none text-xs"
-                      >
+                      <SelectItem value="admin" className="rounded-none text-xs">
                         {membersDict.form.role.options.admin}
                       </SelectItem>
                     </SelectContent>
@@ -170,11 +147,7 @@ export function InviteMemberDialog({ onSuccess, dictionary: dict }: InviteMember
               >
                 {membersDict.form.cancel}
               </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="rounded-none h-9 text-xs flex-1 sm:flex-none"
-              >
+              <Button type="submit" disabled={loading} className="rounded-none h-9 text-xs flex-1 sm:flex-none">
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {membersDict.form.submit}
               </Button>

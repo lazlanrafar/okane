@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
+
+import { exchangeSupabaseToken, syncUser } from "@workspace/modules/server";
 import { createBrowserClient } from "@workspace/supabase/client";
-import { syncUser } from "@workspace/modules/server";
-import { exchangeSupabaseToken } from "@workspace/modules/server";
 import { Loader2 } from "lucide-react";
 
 interface AuthSyncProps {
@@ -14,9 +15,7 @@ interface AuthSyncProps {
 
 export function AuthSync({ locale, returnTo = "/overview" }: AuthSyncProps) {
   const router = useRouter();
-  const [status, setStatus] = useState<"checking" | "syncing" | "error">(
-    "checking",
-  );
+  const [status, setStatus] = useState<"checking" | "syncing" | "error">("checking");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,9 +34,7 @@ export function AuthSync({ locale, returnTo = "/overview" }: AuthSyncProps) {
 
         // 1. Direct Exchange (faster, avoids redundant syncUser)
         setStatus("syncing");
-        const exchangeResult = await exchangeSupabaseToken(
-          session.access_token,
-        );
+        const exchangeResult = await exchangeSupabaseToken(session.access_token);
 
         if (!exchangeResult.success || !exchangeResult.data) {
           setStatus("error");
@@ -70,13 +67,9 @@ export function AuthSync({ locale, returnTo = "/overview" }: AuthSyncProps) {
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
           <div className="space-y-2">
             <h2 className="text-xl font-medium">
-              {status === "checking"
-                ? "Checking your workspace..."
-                : "Preparing your session..."}
+              {status === "checking" ? "Checking your workspace?..." : "Preparing your session..."}
             </h2>
-            <p className="text-muted-foreground text-sm">
-              Please wait while we sync your account state.
-            </p>
+            <p className="text-muted-foreground text-sm">Please wait while we sync your account state.</p>
           </div>
         </>
       ) : (
@@ -85,9 +78,7 @@ export function AuthSync({ locale, returnTo = "/overview" }: AuthSyncProps) {
             <span className="text-xl font-bold">!</span>
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-medium text-destructive">
-              Sync Failed
-            </h2>
+            <h2 className="text-xl font-medium text-destructive">Sync Failed</h2>
             <p className="text-muted-foreground text-sm max-w-xs mx-auto">
               {errorMsg || "We couldn't verify your workspace access."}
             </p>

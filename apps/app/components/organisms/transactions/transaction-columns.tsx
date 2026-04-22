@@ -1,42 +1,45 @@
 "use client";
 
+import { useState } from "react";
+
+import { useRouter } from "next/navigation";
+
+import { useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Transaction } from "@workspace/types";
 import type { Dictionary } from "@workspace/dictionaries";
+import { updateTransaction } from "@workspace/modules/transaction/transaction.action";
+import type { Transaction } from "@workspace/types";
 import {
-  Landmark,
-  Receipt,
-  Loader2,
-  MoreHorizontal,
-  Trash,
-  Edit,
-  Copy,
-  Check,
-  FileCheck,
-  ExternalLink,
-} from "lucide-react";
-import {
-  cn,
-  Checkbox,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
   Button,
+  Checkbox,
+  cn,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@workspace/ui";
-import { SelectCategory } from "@/components/molecules/select-category";
-import { SelectAccount } from "@/components/molecules/select-account";
-import { SelectUser } from "@/components/molecules/select-user";
 import { format } from "date-fns";
-import { updateTransaction } from "@workspace/modules/transaction/transaction.action";
+import {
+  Check,
+  Copy,
+  Edit,
+  ExternalLink,
+  FileCheck,
+  Landmark,
+  Loader2,
+  MoreHorizontal,
+  Receipt,
+  Trash,
+} from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+
+import { SelectAccount } from "@/components/molecules/select-account";
+import { SelectCategory } from "@/components/molecules/select-category";
+import { SelectUser } from "@/components/molecules/select-user";
 
 export const transactionColumns = (
   onEdit: (transaction: Transaction) => void,
@@ -48,10 +51,10 @@ export const transactionColumns = (
     id: "select",
     header: ({ table }) => {
       const meta = table.options.meta as any;
-      const isAllSelected = meta?.isAllTransactionsSelected
+      const isAllSelected = meta.isAllTransactionsSelected
         ? meta.isAllTransactionsSelected()
         : table.getIsAllPageRowsSelected();
-      const isSomeSelected = meta?.isSomeTransactionsSelected
+      const isSomeSelected = meta.isSomeTransactionsSelected
         ? meta.isSomeTransactionsSelected()
         : table.getIsSomePageRowsSelected();
 
@@ -59,7 +62,7 @@ export const transactionColumns = (
         <Checkbox
           checked={isAllSelected || (isSomeSelected && "indeterminate")}
           onCheckedChange={(value) => {
-            if (meta?.toggleAllTransactions) {
+            if (meta.toggleAllTransactions) {
               meta.toggleAllTransactions(!!value);
             } else {
               table.toggleAllPageRowsSelected(!!value);
@@ -97,11 +100,7 @@ export const transactionColumns = (
       const date = row.getValue("date") as string;
 
       if (!date || isNaN(new Date(date).getTime())) {
-        return (
-          <p className="text-xs font-sans text-muted-foreground whitespace-nowrap">
-            -
-          </p>
-        );
+        return <p className="text-xs font-sans text-muted-foreground whitespace-nowrap">-</p>;
       }
 
       return (
@@ -127,47 +126,31 @@ export const transactionColumns = (
     cell: ({ row, table }) => {
       const transaction = row.original;
       const { getTransactionColor } = (table.options.meta as any) || {};
-      const isIncome = transaction.type === "income";
-      const isTransfer = transaction.type === "transfer";
-      const isExpense = transaction.type === "expense";
+      const isIncome = transaction?.type === "income";
+      const isTransfer = transaction?.type === "transfer";
+      const isExpense = transaction?.type === "expense";
 
       const label =
-        transaction.name ||
+        transaction?.name ||
         (isTransfer
           ? dictionary.transactions.types.transfer
-          : transaction.type === "transfer-in"
+          : transaction?.type === "transfer-in"
             ? dictionary.transactions.types.transfer_in
-            : transaction.type === "transfer-out"
+            : transaction?.type === "transfer-out"
               ? dictionary.transactions.types.transfer_out
-              : (transaction.category?.name ?? dictionary.transactions.types.transaction));
-      const Icon = transaction.name ? Landmark : Receipt;
+              : (transaction?.category?.name ?? dictionary.transactions.types.transaction));
+      const Icon = transaction?.name ? Landmark : Receipt;
 
       return (
         <TooltipProvider delayDuration={400}>
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-2 min-w-0 font-sans cursor-default">
-                <Icon
-                  className={cn(
-                    "h-3 w-3 shrink-0",
-                    getTransactionColor(transaction.type),
-                  )}
-                />
-                <p
-                  className={cn(
-                    "text-xs font-medium truncate",
-                    getTransactionColor(transaction.type),
-                  )}
-                >
-                  {label}
-                </p>
+                <Icon className={cn("h-3 w-3 shrink-0", getTransactionColor(transaction?.type))} />
+                <p className={cn("text-xs font-medium truncate", getTransactionColor(transaction?.type))}>{label}</p>
               </div>
             </TooltipTrigger>
-            <TooltipContent
-              side="bottom"
-              align="start"
-              className="text-[11px] px-2 py-1 max-w-[300px] wrap-break-word"
-            >
+            <TooltipContent side="bottom" align="start" className="text-[11px] px-2 py-1 max-w-[300px] wrap-break-word">
               {label}
             </TooltipContent>
           </Tooltip>
@@ -192,19 +175,13 @@ export const transactionColumns = (
     cell: ({ row, table }) => {
       const amount = Number(row.getValue("amount"));
       const transaction = row.original;
-      const isExpense = transaction.type === "expense";
-      const isIncome = transaction.type === "income";
+      const isExpense = transaction?.type === "expense";
+      const isIncome = transaction?.type === "income";
 
-      const { getTransactionColor, formatCurrency } =
-        (table.options.meta as any) || {};
+      const { getTransactionColor, formatCurrency } = (table.options.meta as any) || {};
 
       return (
-        <div
-          className={cn(
-            "text-xs font-medium text-right",
-            getTransactionColor?.(transaction.type),
-          )}
-        >
+        <div className={cn("text-xs font-medium text-right", getTransactionColor?.(transaction?.type))}>
           {formatCurrency ? formatCurrency(amount) : amount}
         </div>
       );
@@ -223,9 +200,7 @@ export const transactionColumns = (
     id: "account",
     accessorKey: "wallet.name",
     header: dictionary.transactions.account,
-    cell: ({ row, table }) => (
-      <AccountCell transaction={row.original} table={table} dictionary={dictionary} />
-    ),
+    cell: ({ row, table }) => <AccountCell transaction={row.original} table={table} dictionary={dictionary} />,
     size: 200,
     minSize: 120,
     maxSize: 300,
@@ -240,9 +215,7 @@ export const transactionColumns = (
     id: "category",
     accessorKey: "category.name",
     header: dictionary.transactions.category,
-    cell: ({ row, table }) => (
-      <CategoryCell transaction={row.original} table={table} dictionary={dictionary} />
-    ),
+    cell: ({ row, table }) => <CategoryCell transaction={row.original} table={table} dictionary={dictionary} />,
     size: 250,
     minSize: 150,
     maxSize: 400,
@@ -255,11 +228,9 @@ export const transactionColumns = (
   },
   {
     id: "assignee",
-    accessorKey: "user.name",
+    accessorKey: "user?.name",
     header: dictionary.transactions.assign,
-    cell: ({ row, table }) => (
-      <UserCell transaction={row.original} table={table} dictionary={dictionary} />
-    ),
+    cell: ({ row, table }) => <UserCell transaction={row.original} table={table} dictionary={dictionary} />,
     size: 200,
     minSize: 120,
     maxSize: 300,
@@ -274,12 +245,7 @@ export const transactionColumns = (
     id: "actions",
     header: dictionary.common.actions,
     cell: ({ row, table }) => (
-      <ActionCell
-        transaction={row.original}
-        table={table}
-        dictionary={dictionary}
-        onEdit={onEdit}
-      />
+      <ActionCell transaction={row.original} table={table} dictionary={dictionary} onEdit={onEdit} />
     ),
     enableSorting: false,
     enableHiding: false,
@@ -310,10 +276,10 @@ function CategoryCell({
   const meta = table.options.meta as any;
 
   const handleCategoryChange = async (categoryId: string) => {
-    if (categoryId === transaction.categoryId) return;
+    if (categoryId === transaction?.categoryId) return;
 
     setUpdating(true);
-    const res = await updateTransaction(transaction.id, {
+    const res = await updateTransaction(transaction?.id, {
       categoryId,
     });
 
@@ -327,16 +293,15 @@ function CategoryCell({
     setUpdating(false);
   };
 
-  const canHaveCategory =
-    transaction.type === "income" || transaction.type === "expense";
+  const canHaveCategory = transaction?.type === "income" || transaction?.type === "expense";
 
   return (
     <div className="relative group w-full h-full flex items-center">
       {canHaveCategory ? (
         <>
           <SelectCategory
-            value={transaction.categoryId ?? undefined}
-            type={transaction.type as "income" | "expense"}
+            value={transaction?.categoryId ?? undefined}
+            type={transaction?.type as "income" | "expense"}
             onChange={handleCategoryChange}
             disabled={updating}
             variant="ghost"
@@ -370,10 +335,10 @@ function AccountCell({
   const meta = table.options.meta as any;
 
   const handleAccountChange = async (walletId: string) => {
-    if (walletId === transaction.walletId) return;
+    if (walletId === transaction?.walletId) return;
 
     setUpdating(true);
-    const res = await updateTransaction(transaction.id, {
+    const res = await updateTransaction(transaction?.id, {
       walletId,
     });
 
@@ -390,7 +355,7 @@ function AccountCell({
   return (
     <div className="relative group w-full h-full flex items-center">
       <SelectAccount
-        value={transaction.walletId}
+        value={transaction?.walletId}
         onChange={handleAccountChange}
         disabled={updating}
         variant="ghost"
@@ -428,23 +393,17 @@ function ActionCell({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48 font-sans">
-        <DropdownMenuItem
-          onClick={() => meta?.onRowClick?.(transaction)}
-          className="gap-2 cursor-pointer"
-        >
+        <DropdownMenuItem onClick={() => meta.onRowClick?.(transaction)} className="gap-2 cursor-pointer">
           <ExternalLink className="h-4 w-4" />
           {dictionary.transactions.view_details}
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => onEdit(transaction)}
-          className="gap-2 cursor-pointer"
-        >
+        <DropdownMenuItem onClick={() => onEdit(transaction)} className="gap-2 cursor-pointer">
           <Edit className="h-4 w-4" />
           {dictionary.transactions.edit}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
-            const url = `${window.location.origin}${window.location.pathname}?transactionId=${transaction.id}`;
+            const url = `${window.location.origin}${window.location.pathname}?transactionId=${transaction?.id}`;
             navigator.clipboard.writeText(url);
             toast.success(dictionary.transactions.toasts.link_copied);
           }}
@@ -458,7 +417,7 @@ function ActionCell({
 
         <DropdownMenuItem
           onClick={async () => {
-            const res = await updateTransaction(transaction.id, {
+            const res = await updateTransaction(transaction?.id, {
               isReady: !transaction.isReady,
             });
             if (res.success) {
@@ -473,13 +432,11 @@ function ActionCell({
           className="gap-2 cursor-pointer"
         >
           <Check className="h-4 w-4" />
-          {transaction.isReady
-            ? dictionary.transactions.reset_status
-            : dictionary.transactions.mark_ready}
+          {transaction.isReady ? dictionary.transactions.reset_status : dictionary.transactions.mark_ready}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={async () => {
-            const res = await updateTransaction(transaction.id, {
+            const res = await updateTransaction(transaction?.id, {
               isExported: !transaction.isExported,
             });
             if (res.success) {
@@ -494,15 +451,13 @@ function ActionCell({
           className="gap-2 cursor-pointer"
         >
           <FileCheck className="h-4 w-4" />
-          {transaction.isExported
-            ? dictionary.transactions.reset_export
-            : dictionary.transactions.mark_exported}
+          {transaction.isExported ? dictionary.transactions.reset_export : dictionary.transactions.mark_exported}
         </DropdownMenuItem>
 
         <div className="h-px bg-muted my-1" />
 
         <DropdownMenuItem
-          onClick={() => meta?.onDelete?.(transaction.id)}
+          onClick={() => meta.onDelete?.(transaction?.id)}
           className="gap-2 cursor-pointer text-destructive focus:text-destructive"
         >
           <Trash className="h-4 w-4" />
@@ -513,23 +468,16 @@ function ActionCell({
   );
 }
 
-function UserCell({
-  transaction,
-  dictionary,
-}: {
-  transaction: Transaction;
-  table: any;
-  dictionary: Dictionary;
-}) {
+function UserCell({ transaction, dictionary }: { transaction: Transaction; table: any; dictionary: Dictionary }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
 
   const handleUserChange = async (userId: string) => {
-    if (userId === transaction.assignedUserId) return;
+    if (userId === transaction?.assignedUserId) return;
 
     setUpdating(true);
-    const res = await updateTransaction(transaction.id, {
+    const res = await updateTransaction(transaction?.id, {
       assignedUserId: userId,
     });
 
@@ -546,7 +494,7 @@ function UserCell({
   return (
     <div className="relative group w-full h-full flex items-center">
       <SelectUser
-        value={transaction.assignedUserId ?? undefined}
+        value={transaction?.assignedUserId ?? undefined}
         onChange={handleUserChange}
         disabled={updating}
         variant="ghost"

@@ -1,56 +1,52 @@
 "use client";
 
+import { useState } from "react";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getTransactionDebts, updateTransaction } from "@workspace/modules/transaction/transaction.action";
+import { deleteTransactionItem, getTransactionItems } from "@workspace/modules/transaction/transaction-items.action";
 import {
-  Sheet,
-  SheetContent,
-  Button,
-  cn,
-  Separator,
+  getVaultDownloadUrl,
+  getVaultFiles,
+  uploadVaultFile,
+  type VaultFile,
+} from "@workspace/modules/vault/vault.action";
+import type { ActionResponse, Transaction, TransactionItem } from "@workspace/types";
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
   Badge,
+  Button,
+  cn,
+  Label,
+  Separator,
+  Sheet,
+  SheetContent,
 } from "@workspace/ui";
-import type { Transaction, TransactionItem, ActionResponse } from "@workspace/types";
 import { format, isValid } from "date-fns";
 import {
-  Landmark,
-  X,
+  ArrowDown,
+  ArrowUp,
   File,
   FileText,
   Film,
   Image as ImageIcon,
-  ArrowUp,
-  ArrowDown,
+  Landmark,
   Plus,
-  Trash2,
   ShoppingBag,
+  Trash2,
+  X,
 } from "lucide-react";
-import { useState } from "react";
-import {
-  getTransactionDebts,
-  updateTransaction,
-} from "@workspace/modules/transaction/transaction.action";
-import {
-  getTransactionItems,
-  deleteTransactionItem,
-} from "@workspace/modules/transaction/transaction-items.action";
-import {
-  getVaultDownloadUrl,
-  uploadVaultFile,
-  getVaultFiles,
-  type VaultFile,
-} from "@workspace/modules/vault/vault.action";
 import { toast } from "sonner";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAppStore } from "@/stores/app";
-import { FilePreviewSheet } from "@/components/organisms/file-preview-sheet";
-import { SelectUser } from "@/components/molecules/select-user";
-import { SelectCategory } from "@/components/molecules/select-category";
+
 import { SelectAccount } from "@/components/molecules/select-account";
+import { SelectCategory } from "@/components/molecules/select-category";
+import { SelectUser } from "@/components/molecules/select-user";
 import { VaultPickerModal } from "@/components/molecules/vault-picker-modal";
-import { Label } from "@workspace/ui";
+import { FilePreviewSheet } from "@/components/organisms/file-preview-sheet";
+import { useAppStore } from "@/stores/app";
 
 interface FilePreview {
   id: string;
@@ -78,17 +74,10 @@ interface Props {
   transaction?: Transaction;
   onNext?: () => void;
   onPrevious?: () => void;
-  dictionary?: any;
+  dictionary: any;
 }
 
-export function TransactionDetailSheet({
-  open,
-  onOpenChange,
-  transaction,
-  onNext,
-  onPrevious,
-  dictionary,
-}: Props) {
+export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext, onPrevious, dictionary }: Props) {
   const { getTransactionColor, formatCurrency } = useAppStore() as any;
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<FilePreview | null>(null);
@@ -98,8 +87,7 @@ export function TransactionDetailSheet({
   if (!dictionary) return null;
 
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<Transaction>) =>
-      updateTransaction(transaction!.id, data),
+    mutationFn: (data: Partial<Transaction>) => updateTransaction(transaction!.id, data),
     onSuccess: (res) => {
       if (res.success) {
         toast.success(dictionary.transactions.toasts.updated);
@@ -132,16 +120,15 @@ export function TransactionDetailSheet({
   const transactionItems: TransactionItem[] = itemsResponse?.data || [];
 
   const deleteItemMutation = useMutation({
-    mutationFn: (itemId: string) =>
-      deleteTransactionItem(transaction!.id, itemId),
+    mutationFn: (itemId: string) => deleteTransactionItem(transaction!.id, itemId),
     onSuccess: (res: ActionResponse<void>) => {
       if (res.success) {
-        toast.success(dictionary!.transactions.items.item_deleted);
+        toast.success(dictionary.transactions.items.item_deleted);
         queryClient.invalidateQueries({
           queryKey: ["transaction-items", transaction?.id],
         });
       } else {
-        toast.error(res.error || dictionary!.transactions.items.delete_failed);
+        toast.error(res.error || dictionary.transactions.items.delete_failed);
       }
     },
   });
@@ -163,9 +150,7 @@ export function TransactionDetailSheet({
 
   const removeAttachment = (fileId: string) => {
     if (!transaction) return;
-    const newAttachmentIds = (transaction.attachmentIds || []).filter(
-      (id) => id !== fileId,
-    );
+    const newAttachmentIds = (transaction?.attachmentIds || []).filter((id) => id !== fileId);
     handleUpdate({ attachmentIds: newAttachmentIds });
   };
 
@@ -178,51 +163,36 @@ export function TransactionDetailSheet({
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <span className="text-[#606060] text-xs select-text">
-                {transaction.date ? (
-                  isValid(new Date(transaction.date)) ? format(new Date(transaction.date), "MMM d, yyyy") : dictionary.common.na
-                ) : dictionary.common.na}
+                {transaction?.date
+                  ? isValid(new Date(transaction?.date))
+                    ? format(new Date(transaction?.date), "MMM d, yyyy")
+                    : dictionary.common.na
+                  : dictionary.common.na}
               </span>
             </div>
 
-            <h2 className="mt-6 mb-3">
-              {transaction.name || dictionary.transactions.no_description}
-            </h2>
+            <h2 className="mt-6 mb-3">{transaction?.name || dictionary.transactions.no_description}</h2>
 
             {/* Type & Title & Amount */}
             <div className="flex justify-between items-center">
               <div className="flex flex-col w-full space-y-1">
-                <h1
-                  className={cn(
-                    "text-4xl select-text font-serif",
-                    getTransactionColor(transaction.type),
-                  )}
-                >
-                  {formatCurrency(Number(transaction.amount))}
+                <h1 className={cn("text-4xl select-text font-serif", getTransactionColor(transaction?.type))}>
+                  {formatCurrency(Number(transaction?.amount))}
                 </h1>
               </div>
             </div>
           </div>
 
           {/* Interactive Selection Grid */}
-          <div
-            className={cn(
-              "grid gap-4 pt-2",
-              transaction.type === "transfer" ? "grid-cols-1" : "grid-cols-2",
-            )}
-          >
-            {transaction.type !== "transfer" && (
+          <div className={cn("grid gap-4 pt-2", transaction?.type === "transfer" ? "grid-cols-1" : "grid-cols-2")}>
+            {transaction?.type !== "transfer" && (
               <div className="flex flex-col gap-2">
                 <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
                   {dictionary.transactions.category}
                 </Label>
                 <SelectCategory
-                  value={transaction.categoryId || undefined}
-                  type={
-                    transaction.type === "income" ||
-                    transaction.type === "transfer-in"
-                      ? "income"
-                      : "expense"
-                  }
+                  value={transaction?.categoryId || undefined}
+                  type={transaction?.type === "income" || transaction?.type === "transfer-in" ? "income" : "expense"}
                   onChange={(id) => handleUpdate({ categoryId: id })}
                   className="w-full text-sm font-medium"
                 />
@@ -233,7 +203,7 @@ export function TransactionDetailSheet({
                 {dictionary.transactions.assign}
               </Label>
               <SelectUser
-                value={transaction.assignedUserId || undefined}
+                value={transaction?.assignedUserId || undefined}
                 onChange={(id: string) => handleUpdate({ assignedUserId: id })}
                 className="w-full text-sm font-medium"
               />
@@ -241,30 +211,25 @@ export function TransactionDetailSheet({
           </div>
 
           {/* Account Selection */}
-          <div
-            className={cn(
-              "grid gap-4 mt-6",
-              transaction.type === "transfer" ? "grid-cols-2" : "grid-cols-1",
-            )}
-          >
+          <div className={cn("grid gap-4 mt-6", transaction?.type === "transfer" ? "grid-cols-2" : "grid-cols-1")}>
             <div className="flex flex-col gap-2">
               <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
                 {dictionary.transactions.account}
               </Label>
               <SelectAccount
-                value={transaction.walletId}
+                value={transaction?.walletId}
                 onChange={(id) => handleUpdate({ walletId: id })}
                 className="w-full text-sm font-medium"
               />
             </div>
 
-            {transaction.type === "transfer" && (
+            {transaction?.type === "transfer" && (
               <div className="flex flex-col gap-2">
                 <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
                   {dictionary.transactions.to_account}
                 </Label>
                 <SelectAccount
-                  value={transaction.toWalletId || undefined}
+                  value={transaction?.toWalletId || undefined}
                   onChange={(id) => handleUpdate({ toWalletId: id })}
                   className="w-full text-sm font-medium"
                   placeholder={dictionary.transactions.select_destination}
@@ -274,61 +239,52 @@ export function TransactionDetailSheet({
           </div>
 
           {/* Accordion Sections */}
-          <Accordion
-            type="multiple"
-            defaultValue={["attachments", "general"]}
-            className="w-full mt-6"
-          >
+          <Accordion type="multiple" defaultValue={["attachments", "general"]} className="w-full mt-6">
             <AccordionItem value="attachments" className="border-none">
-              <AccordionTrigger className="">
-                {dictionary.transactions.attachments}
-              </AccordionTrigger>
+              <AccordionTrigger className="">{dictionary.transactions.attachments}</AccordionTrigger>
               <AccordionContent className="flex flex-col gap-4 pt-1">
                 {/* Add from Vault Button */}
 
                 <VaultPickerModal
                   open={vaultPickerOpen}
                   onOpenChange={setVaultPickerOpen}
-                  selectedIds={transaction.attachmentIds || []}
+                  selectedIds={transaction?.attachmentIds || []}
                   onConfirm={(ids) => {
                     handleUpdate({ attachmentIds: ids });
                   }}
                 />
 
-                {transaction.attachments &&
-                  transaction.attachments.length > 0 && (
-                    <div className="grid grid-cols-1 gap-2 mb-4">
-                      {transaction.attachments.map((file) => (
-                        <div
-                          key={file.id}
-                          className="flex items-center gap-3 px-3 py-2.5 border bg-muted/5 text-sm group transition-colors hover:bg-muted/10 cursor-pointer"
-                          onClick={() => handlePreview(file)}
-                        >
-                          <FileIcon type={file.type} />
-                          <span className="flex-1 truncate font-medium">
-                            {file.name}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            {file.size > 0 && (
-                              <span className="text-xs text-muted-foreground shrink-0 font-sans">
-                                {formatBytes(file.size)}
-                              </span>
-                            )}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeAttachment(file.id);
-                              }}
-                              className="p-1 opacity-0 group-hover:opacity-100 hover:text-destructive transition-all"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </div>
+                {transaction?.attachments && transaction?.attachments?.length > 0 && (
+                  <div className="grid grid-cols-1 gap-2 mb-4">
+                    {transaction?.attachments?.map((file) => (
+                      <div
+                        key={file.id}
+                        className="flex items-center gap-3 px-3 py-2.5 border bg-muted/5 text-sm group transition-colors hover:bg-muted/10 cursor-pointer"
+                        onClick={() => handlePreview(file)}
+                      >
+                        <FileIcon type={file.type} />
+                        <span className="flex-1 truncate font-medium">{file.name}</span>
+                        <div className="flex items-center gap-2">
+                          {file.size > 0 && (
+                            <span className="text-xs text-muted-foreground shrink-0 font-sans">
+                              {formatBytes(file.size)}
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeAttachment(file.id);
+                            }}
+                            className="p-1 opacity-0 group-hover:opacity-100 hover:text-destructive transition-all"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between gap-4 mb-4">
                   <Button
@@ -358,28 +314,23 @@ export function TransactionDetailSheet({
                     <div className="grid grid-cols-1 gap-2 mb-2">
                       {relatedDebts.map((item: any) => (
                         <div
-                          key={item.payment?.id}
+                          key={item.payment.id}
                           className="flex flex-col gap-1 px-3 py-2.5 rounded-md border border-muted/20 bg-muted/5 text-sm"
                         >
                           <div className="flex items-center justify-between">
                             <span className="font-medium truncate max-w-[200px]">
-                              {item.contact?.name ||
-                                dictionary.transactions.unknown}
+                              {item.contact.name || dictionary.transactions.unknown}
                             </span>
                             <span
                               className={cn(
                                 "font-serif tracking-tight",
-                                getTransactionColor(
-                                  item.debt?.type === "payable"
-                                    ? "expense"
-                                    : "income",
-                                ),
+                                getTransactionColor(item.debt.type === "payable" ? "expense" : "income"),
                               )}
                             >
-                              {formatCurrency(Number(item.payment?.amount))}
+                              {formatCurrency(Number(item.payment.amount))}
                             </span>
                           </div>
-                          {item.debt?.description && (
+                          {item.debt.description && (
                             <span className="text-[11px] text-muted-foreground line-clamp-1">
                               {item.debt.description}
                             </span>
@@ -417,9 +368,7 @@ export function TransactionDetailSheet({
                         >
                           <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-sm font-medium truncate">
-                                {item.name}
-                              </span>
+                              <span className="text-sm font-medium truncate">{item.name}</span>
                               {item.brand && (
                                 <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 shrink-0 font-normal">
                                   {item.brand}
@@ -427,12 +376,11 @@ export function TransactionDetailSheet({
                               )}
                             </div>
                             <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                              {item.category && (
-                                <span className="truncate max-w-[100px]">{item.category.name}</span>
-                              )}
+                              {item.category && <span className="truncate max-w-[100px]">{item.category.name}</span>}
                               {item.quantity && (
                                 <span className="tabular-nums shrink-0">
-                                  {item.quantity}{item.unit ? ` ${item.unit}` : ""}
+                                  {item.quantity}
+                                  {item.unit ? ` ${item.unit}` : ""}
                                 </span>
                               )}
                             </div>
@@ -460,75 +408,50 @@ export function TransactionDetailSheet({
             )}
 
             <AccordionItem value="general" className="border-none">
-              <AccordionTrigger>
-                {dictionary.transactions.details}
-              </AccordionTrigger>
+              <AccordionTrigger>{dictionary.transactions.details}</AccordionTrigger>
               <AccordionContent className="flex flex-col pt-2 border-t pt-4 space-y-5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    {dictionary.transactions.type_label}
-                  </span>
-                  <span
-                    className={cn(
-                      "text-xs font-medium capitalize",
-                      getTransactionColor(transaction.type),
-                    )}
-                  >
-                    {transaction.type}
+                  <span className="text-xs text-muted-foreground">{dictionary.transactions.type_label}</span>
+                  <span className={cn("text-xs font-medium capitalize", getTransactionColor(transaction?.type))}>
+                    {transaction?.type}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    {dictionary.transactions.account}
-                  </span>
+                  <span className="text-xs text-muted-foreground">{dictionary.transactions.account}</span>
                   <span className="text-xs font-medium truncate max-w-[150px]">
-                    {transaction.wallet?.name ||
-                      dictionary.transactions.no_account}
+                    {transaction?.wallet?.name || dictionary.transactions.no_account}
                   </span>
                 </div>
-                {transaction.type === "transfer" &&
-                  transaction.toWallet?.name && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">
-                        {dictionary.transactions.to_account}
-                      </span>
-                      <span className="text-xs font-medium truncate max-w-[150px]">
-                        {transaction.toWallet.name}
-                      </span>
-                    </div>
-                  )}
-                {transaction.type !== "transfer" && (
+                {transaction?.type === "transfer" && transaction.toWallet?.name && (
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      {dictionary.transactions.category}
-                    </span>
+                    <span className="text-xs text-muted-foreground">{dictionary.transactions.to_account}</span>
+                    <span className="text-xs font-medium truncate max-w-[150px]">{transaction.toWallet?.name}</span>
+                  </div>
+                )}
+                {transaction?.type !== "transfer" && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">{dictionary.transactions.category}</span>
                     <span className="text-xs font-medium truncate max-w-[150px]">
-                      {transaction.category?.name ||
-                        dictionary.transactions.uncategorized}
+                      {transaction?.category?.name || dictionary.transactions.uncategorized}
                     </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    {dictionary.transactions.assign}
-                  </span>
+                  <span className="text-xs text-muted-foreground">{dictionary.transactions.assign}</span>
                   <span className="text-xs font-medium truncate max-w-[150px]">
-                    {transaction.user?.name ||
-                      dictionary.transactions.unassigned}
+                    {transaction?.user?.name || dictionary.transactions.unassigned}
                   </span>
                 </div>
               </AccordionContent>
             </AccordionItem>
 
-            {transaction.description && (
+            {transaction?.description && (
               <AccordionItem value="note" className="border-none">
                 <AccordionTrigger className="hover:no-underline py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.2em]">
                   {dictionary.transactions.notes_label}
                 </AccordionTrigger>
                 <AccordionContent className="pt-1">
-                  <div className="text-sm leading-relaxed max-w-[90%] wrap-break-word">
-                    {transaction.description}
-                  </div>
+                  <div className="text-sm leading-relaxed max-w-[90%] wrap-break-word">{transaction?.description}</div>
                 </AccordionContent>
               </AccordionItem>
             )}
@@ -540,14 +463,14 @@ export function TransactionDetailSheet({
           <div className="flex items-center gap-4">
             <p className="text-[10px] text-muted-foreground/60">
               {dictionary.transactions.created_at}{" "}
-              {transaction.createdAt || transaction.date ? (
-                isValid(new Date(transaction.createdAt || transaction.date))
+              {transaction.createdAt || transaction?.date
+                ? isValid(new Date(transaction.createdAt || transaction?.date))
                   ? format(
-                      new Date(transaction.createdAt || transaction.date),
+                      new Date(transaction.createdAt || transaction?.date),
                       `MMM d, yyyy '${dictionary.transactions.at}' h:mm a`,
                     )
                   : dictionary.common.na
-              ) : dictionary.common.na}
+                : dictionary.common.na}
             </p>
           </div>
 
@@ -562,13 +485,7 @@ export function TransactionDetailSheet({
               >
                 <ArrowUp className="h-3 w-3 text-foreground/50" />
               </Button>
-              <Button
-                className="border p-0 w-7 h-7"
-                variant="ghost"
-                size="icon"
-                onClick={onNext}
-                disabled={!onNext}
-              >
+              <Button className="border p-0 w-7 h-7" variant="ghost" size="icon" onClick={onNext} disabled={!onNext}>
                 <ArrowDown className="h-3 w-3 text-foreground/50" />
               </Button>
             </div>
@@ -583,11 +500,7 @@ export function TransactionDetailSheet({
           </div>
         </div>
 
-        <FilePreviewSheet
-          open={previewOpen}
-          onOpenChange={setPreviewOpen}
-          file={previewFile}
-        />
+        <FilePreviewSheet open={previewOpen} onOpenChange={setPreviewOpen} file={previewFile} />
       </SheetContent>
     </Sheet>
   );

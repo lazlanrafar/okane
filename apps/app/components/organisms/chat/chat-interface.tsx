@@ -1,45 +1,44 @@
 "use client";
 
-import { useChatStore } from "@/stores/chat";
-import { cn, Conversation, ConversationContent, Portal, useSidebar } from "@workspace/ui";
-import { ChatInput } from "./chat-input";
-import { ChatHistoryProvider } from "./chat-history";
-import { useChatInterface, useChatStatus } from "@workspace/ui/hooks";
 import { useEffect, useMemo, useRef } from "react";
+
+import dynamic from "next/dynamic";
+
 import {
   useChatActions,
-  useChatId as useSDKChatId,
   useChatMessages,
-  useChatStatus as useSDKChatStatus,
-  useChatError as useSDKChatError,
   useDataPart,
+  useChatError as useSDKChatError,
+  useChatId as useSDKChatId,
+  useChatStatus as useSDKChatStatus,
 } from "@ai-sdk-tools/store";
 import type { Geo } from "@vercel/functions";
+import { Conversation, ConversationContent, cn, Portal, useSidebar } from "@workspace/ui";
+import { useChatInterface, useChatStatus } from "@workspace/ui/hooks";
 import { generateId } from "ai";
 import { parseAsString, useQueryState } from "nuqs";
-import dynamic from "next/dynamic";
+
+import { useChatStore } from "@/stores/chat";
+
 import { ChatHeader } from "./chat-header";
+import { ChatHistoryProvider } from "./chat-history";
+import { ChatInput } from "./chat-input";
+ 
+import type { Dictionary } from "@workspace/dictionaries";
 import { ChatMessages } from "./chat-messages";
 import { ChatStatusIndicators } from "./chat-status-indicators";
 
 // Dynamically load Canvas - only loads when user opens an artifact
-const Canvas = dynamic(
-  () => import("./canvas/chat-canvas").then((mod) => mod.Canvas),
-  { ssr: false },
-);
+const Canvas = dynamic(() => import("./canvas/chat-canvas").then((mod) => mod.Canvas), { ssr: false });
 
 type Props = {
   geo?: Geo;
-  dictionary: any;
+  dictionary: Dictionary;
 };
 
 export default function ChatInterface({ geo, dictionary }: Props) {
   const { state: sidebarState } = useSidebar();
-  const {
-    chatId: routeChatId,
-    setChatId,
-    isHome: routeIsHome,
-  } = useChatInterface();
+  const { chatId: routeChatId, setChatId, isHome: routeIsHome } = useChatInterface();
   const chatIdFromStore = useSDKChatId();
   const { reset } = useChatActions();
   const { setScrollY, setIsHome } = useChatStore();
@@ -53,9 +52,7 @@ export default function ChatInterface({ geo, dictionary }: Props) {
   const status = useSDKChatStatus();
   const error = useSDKChatError();
 
-  const [, clearSuggestions] = useDataPart<{ prompts: string[] }>(
-    "suggestions",
-  );
+  const [, clearSuggestions] = useDataPart<{ prompts: string[] }>("suggestions");
 
   const [selectedType] = useQueryState("artifact-type", parseAsString);
 
@@ -87,15 +84,10 @@ export default function ChatInterface({ geo, dictionary }: Props) {
     const element = containerRef.current;
     if (!element) return;
 
-    const getScrollParent = (
-      node: HTMLElement | null,
-    ): HTMLElement | Window => {
+    const getScrollParent = (node: HTMLElement | null): HTMLElement | Window => {
       if (!node) return window;
       const overflowY = window.getComputedStyle(node).overflowY;
-      const isScrollable =
-        overflowY !== "visible" &&
-        overflowY !== "hidden" &&
-        overflowY !== "clip";
+      const isScrollable = overflowY !== "visible" && overflowY !== "hidden" && overflowY !== "clip";
       if (isScrollable) {
         return node;
       }
@@ -105,10 +97,7 @@ export default function ChatInterface({ geo, dictionary }: Props) {
     const scrollParent = getScrollParent(element);
 
     const handleScroll = () => {
-      const scrollTop =
-        scrollParent === window
-          ? window.scrollY
-          : (scrollParent as HTMLElement).scrollTop;
+      const scrollTop = scrollParent === window ? window.scrollY : (scrollParent as HTMLElement).scrollTop;
       setScrollY(scrollTop);
     };
 
@@ -143,16 +132,13 @@ export default function ChatInterface({ geo, dictionary }: Props) {
 
   const [, setSelectedType] = useQueryState("artifact-type", parseAsString);
 
-
   return (
     <ChatHistoryProvider>
       <div
         ref={containerRef}
         className={cn(
           "relative flex flex-row size-full scroll-smooth",
-          !effectiveIsHome
-            ? "h-[calc(100vh-88px)] overflow-hidden"
-            : "h-auto min-h-[100px] pb-24",
+          !effectiveIsHome ? "h-[calc(100vh-88px)] overflow-hidden" : "h-auto min-h-[100px] pb-24",
         )}
       >
         {/* Canvas slides in from right when artifacts are present */}
@@ -178,9 +164,7 @@ export default function ChatInterface({ geo, dictionary }: Props) {
             {/* Conversation view - messages with absolute positioning for proper height */}
             <div className="absolute inset-0 flex flex-col">
               <div
-                className={cn(
-                  "sticky top-0 left-0 z-10 shrink-0 outline-none transition-all duration-300 ease-in-out",
-                )}
+                className={cn("sticky top-0 left-0 z-10 shrink-0 outline-none transition-all duration-300 ease-in-out")}
               >
                 <div className="bg-background/80 dark:bg-background/50 backdrop-blur-sm">
                   <div className="mx-auto w-full px-4 md:px-0">
@@ -193,9 +177,7 @@ export default function ChatInterface({ geo, dictionary }: Props) {
                 <div className="max-w-2xl mx-auto w-full pb-32">
                   <ChatMessages
                     messages={messages}
-                    isStreaming={
-                      status === "streaming" || status === "submitted"
-                    }
+                    isStreaming={status === "streaming" || status === "submitted"}
                     dictionary={dictionary}
                   />
                   <ChatStatusIndicators
@@ -227,7 +209,7 @@ export default function ChatInterface({ geo, dictionary }: Props) {
           )}
         >
           <div className="w-full max-w-[770px] px-4 pointer-events-auto">
-            <ChatInput />
+            <ChatInput dictionary={dictionary} />
           </div>
         </div>
       </div>

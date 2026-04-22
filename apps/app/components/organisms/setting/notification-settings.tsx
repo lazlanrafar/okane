@@ -1,23 +1,17 @@
 "use client";
 
-import { useNotifications } from "@/hooks/use-notifications";
-import {
-  Separator,
-  Switch,
-  Label,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui";
+import { Label, Separator, Switch, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui";
 import { toast } from "sonner";
+
+import { useNotifications } from "@/hooks/use-notifications";
 import { useAppStore } from "@/stores/app";
+
 import { NotificationList } from "./notification-list";
 
 export function NotificationSettings() {
   const { settings, updateSettings, isLoading } = useNotifications();
   const { dictionary } = useAppStore() as any;
-  const dict = dictionary?.settings?.notifications || {};
+  const dict = dictionary.settings.notifications || {};
 
   const handleToggle = (key: string, value: boolean) => {
     updateSettings({ [key]: value });
@@ -28,9 +22,7 @@ export function NotificationSettings() {
     return (
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-medium tracking-tight">
-            {dict.title || "Notifications"}
-          </h3>
+          <h3 className="text-lg font-medium tracking-tight">{dict.title || "Notifications"}</h3>
           <p className="text-sm text-muted-foreground">
             {dict.description || "Manage how you receive alerts and updates."}
           </p>
@@ -54,9 +46,7 @@ export function NotificationSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium tracking-tight">
-          {dict.title || "Notifications"}
-        </h3>
+        <h3 className="text-lg font-medium tracking-tight">{dict.title || "Notifications"}</h3>
         <p className="text-sm text-muted-foreground">
           {dict.description || "Manage how you receive alerts and updates across different channels."}
         </p>
@@ -77,11 +67,11 @@ export function NotificationSettings() {
             {dict.settings || "Settings"}
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="inbox" className="pt-6 border-none shadow-none focus-visible:ring-0">
           <NotificationList />
         </TabsContent>
-        
+
         <TabsContent value="settings" className="pt-6 space-y-6 border-none shadow-none focus-visible:ring-0">
           <div className="grid gap-6">
             <div className="flex items-center justify-between space-x-2">
@@ -92,7 +82,7 @@ export function NotificationSettings() {
                 </p>
               </div>
               <Switch
-                checked={settings.push_enabled}
+                checked={settings?.push_enabled}
                 onCheckedChange={(checked) => handleToggle("push_enabled", checked)}
               />
             </div>
@@ -105,7 +95,7 @@ export function NotificationSettings() {
                 </p>
               </div>
               <Switch
-                checked={settings.email_enabled}
+                checked={settings?.email_enabled}
                 onCheckedChange={(checked) => handleToggle("email_enabled", checked)}
               />
             </div>
@@ -118,7 +108,7 @@ export function NotificationSettings() {
                 </p>
               </div>
               <Switch
-                checked={settings.whatsapp_enabled}
+                checked={settings?.whatsapp_enabled}
                 onCheckedChange={(checked) => handleToggle("whatsapp_enabled", checked)}
               />
             </div>
@@ -131,7 +121,7 @@ export function NotificationSettings() {
                 </p>
               </div>
               <Switch
-                checked={settings.marketing_enabled}
+                checked={settings?.marketing_enabled}
                 onCheckedChange={(checked) => handleToggle("marketing_enabled", checked)}
               />
             </div>
@@ -142,7 +132,8 @@ export function NotificationSettings() {
               {dict.pro_tip || "Pro Tip"}
             </h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {dict.pro_tip_description || "You can also configure specific alerts for budgets and large transactions in the Category settings."}
+              {dict.pro_tip_description ||
+                "You can also configure specific alerts for budgets and large transactions in the Category settings?."}
             </p>
           </div>
         </TabsContent>

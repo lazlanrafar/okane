@@ -18,9 +18,7 @@
     "test:e2e:login": "PLAYWRIGHT_MANUAL_AUTH=true playwright test e2e/auth.setup.ts --project=chromium --headed --timeout=0"
   },
   "lint-staged": {
-    "*.{js,ts,jsx,tsx}": [
-      "biome check --write --no-errors-on-unmatched"
-    ]
+    "*.{js,ts,jsx,tsx}": ["biome check --write --no-errors-on-unmatched"]
   },
   "dependencies": {
     "@ai-sdk-tools/store": "^1.2.0",

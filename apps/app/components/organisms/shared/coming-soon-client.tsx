@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+
 import { Button, Input } from "@workspace/ui";
 import { ArrowRight, HardHat, Mail } from "lucide-react";
 import { toast } from "sonner";

@@ -32,8 +32,8 @@ interface NavMainProps {
   readonly dictionary: any;
 }
 
-import { useLocalizedRoute } from "@/utils/localized-route";
 import { i18n } from "@/i18n-config";
+import { useLocalizedRoute } from "@/utils/localized-route";
 
 const IsComingSoon = ({ dictionary }: { dictionary: any }) => (
   <span className="ml-auto rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
@@ -59,7 +59,7 @@ const NavItemExpanded = ({
     const keys = key.split(".");
     let result: any = dictionary;
     for (const k of keys) {
-      if (!result?.[k]) return key;
+      if (!result[k]) return key;
       result = result[k];
     }
     return typeof result === "string" ? result : key;
@@ -68,39 +68,23 @@ const NavItemExpanded = ({
   const title = t(item.title);
 
   return (
-    <Collapsible
-      key={item.title}
-      asChild
-      defaultOpen={isSubmenuOpen(item.subItems)}
-      className="group/collapsible"
-    >
+    <Collapsible key={item.title} asChild defaultOpen={isSubmenuOpen(item.subItems)} className="group/collapsible">
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
           {item.subItems ? (
-            <SidebarMenuButton
-              disabled={item.comingSoon}
-              isActive={isActive(item.url, item.subItems)}
-              tooltip={title}
-            >
+            <SidebarMenuButton disabled={item.comingSoon} isActive={isActive(item.url, item.subItems)} tooltip={title}>
               {item.icon && <item.icon />}
               <span>{title}</span>
               {item.comingSoon && <IsComingSoon dictionary={dictionary} />}
               <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
             </SidebarMenuButton>
           ) : (
-            <SidebarMenuButton
-              asChild
-              disabled={item.comingSoon}
-              isActive={isActive(item.url)}
-              tooltip={title}
-            >
+            <SidebarMenuButton asChild disabled={item.comingSoon} isActive={isActive(item.url)} tooltip={title}>
               <Link
                 prefetch={false}
                 href={item.comingSoon ? "#" : getLocalizedUrl(item.url)}
                 target={item.newTab ? "_blank" : undefined}
-                className={
-                  item.comingSoon ? "pointer-events-none opacity-50" : ""
-                }
+                className={item.comingSoon ? "pointer-events-none opacity-50" : ""}
                 tabIndex={item.comingSoon ? -1 : undefined}
               >
                 {item.icon && <item.icon />}
@@ -115,11 +99,7 @@ const NavItemExpanded = ({
             <SidebarMenuSub>
               {item.subItems.map((subItem) => (
                 <SidebarMenuSubItem key={subItem.title}>
-                  <SidebarMenuSubButton
-                    aria-disabled={subItem.comingSoon}
-                    isActive={isActive(subItem.url)}
-                    asChild
-                  >
+                  <SidebarMenuSubButton aria-disabled={subItem.comingSoon} isActive={isActive(subItem.url)} asChild>
                     <Link
                       prefetch={false}
                       href={getLocalizedUrl(subItem.url)}
@@ -127,9 +107,7 @@ const NavItemExpanded = ({
                     >
                       {subItem.icon && <subItem.icon />}
                       <span>{t(subItem.title)}</span>
-                      {subItem.comingSoon && (
-                        <IsComingSoon dictionary={dictionary} />
-                      )}
+                      {subItem.comingSoon && <IsComingSoon dictionary={dictionary} />}
                     </Link>
                   </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
@@ -158,7 +136,7 @@ const NavItemCollapsed = ({
     const keys = key.split(".");
     let result: any = dictionary;
     for (const k of keys) {
-      if (!result?.[k]) return key;
+      if (!result[k]) return key;
       result = result[k];
     }
     return typeof result === "string" ? result : key;
@@ -170,21 +148,13 @@ const NavItemCollapsed = ({
     <SidebarMenuItem key={item.title}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <SidebarMenuButton
-            disabled={item.comingSoon}
-            tooltip={title}
-            isActive={isActive(item.url, item.subItems)}
-          >
+          <SidebarMenuButton disabled={item.comingSoon} tooltip={title} isActive={isActive(item.url, item.subItems)}>
             {item.icon && <item.icon />}
             <span>{title}</span>
             <ChevronRight />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
-        <DropdownMenuContent
-          className="w-50 space-y-1"
-          side="right"
-          align="start"
-        >
+        <DropdownMenuContent className="w-50 space-y-1" side="right" align="start">
           {item.subItems?.map((subItem) => (
             <DropdownMenuItem key={subItem.title} asChild>
               <SidebarMenuSubButton
@@ -199,13 +169,9 @@ const NavItemCollapsed = ({
                   href={getLocalizedUrl(subItem.url)}
                   target={subItem.newTab ? "_blank" : undefined}
                 >
-                  {subItem.icon && (
-                    <subItem.icon className="[&>svg]:text-sidebar-foreground" />
-                  )}
+                  {subItem.icon && <subItem.icon className="[&>svg]:text-sidebar-foreground" />}
                   <span>{t(subItem.title)}</span>
-                  {subItem.comingSoon && (
-                    <IsComingSoon dictionary={dictionary} />
-                  )}
+                  {subItem.comingSoon && <IsComingSoon dictionary={dictionary} />}
                 </Link>
               </SidebarMenuSubButton>
             </DropdownMenuItem>
@@ -228,7 +194,7 @@ export function NavMain({ items, dictionary }: NavMainProps) {
     const keys = key.split(".");
     let result: any = dictionary;
     for (const k of keys) {
-      if (!result?.[k]) return key;
+      if (!result[k]) return key;
       result = result[k];
     }
     return typeof result === "string" ? result : key;
@@ -249,16 +215,14 @@ export function NavMain({ items, dictionary }: NavMainProps) {
   };
 
   const isSubmenuOpen = (subItems?: NavMainItem["subItems"]) => {
-    return subItems?.some((sub) => normalizedPath.startsWith(sub.url)) ?? false;
+    return subItems.some((sub) => normalizedPath.startsWith(sub.url)) ?? false;
   };
 
   return (
     <>
       {items.map((group) => (
         <SidebarGroup key={group.id}>
-          {group.label && (
-            <SidebarGroupLabel>{t(group.label)}</SidebarGroupLabel>
-          )}
+          {group.label && <SidebarGroupLabel>{t(group.label)}</SidebarGroupLabel>}
           <SidebarGroupContent className="flex flex-col gap-2">
             <SidebarMenu>
               {group.items.map((item) => {
@@ -277,13 +241,9 @@ export function NavMain({ items, dictionary }: NavMainProps) {
                         >
                           <Link
                             prefetch={false}
-                            href={
-                              item.comingSoon ? "#" : getLocalizedUrl(item.url)
-                            }
+                            href={item.comingSoon ? "#" : getLocalizedUrl(item.url)}
                             target={item.newTab ? "_blank" : undefined}
-                            className={
-                              item.comingSoon ? "pointer-events-none opacity-50" : ""
-                            }
+                            className={item.comingSoon ? "pointer-events-none opacity-50" : ""}
                             tabIndex={item.comingSoon ? -1 : undefined}
                           >
                             {item.icon && <item.icon />}
@@ -295,12 +255,7 @@ export function NavMain({ items, dictionary }: NavMainProps) {
                   }
                   // Otherwise, render the dropdown as before
                   return (
-                    <NavItemCollapsed
-                      key={item.title}
-                      item={item}
-                      isActive={isItemActive}
-                      dictionary={dictionary}
-                    />
+                    <NavItemCollapsed key={item.title} item={item} isActive={isItemActive} dictionary={dictionary} />
                   );
                 }
                 // Expanded view

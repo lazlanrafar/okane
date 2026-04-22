@@ -2,11 +2,20 @@
 
 import * as React from "react";
 
-import { useMutation, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  deleteVaultFile,
+  getVaultFiles,
+  type PaginatedVaultFiles,
+  updateVaultFileTags,
+  uploadVaultFile,
+  type VaultFile,
+} from "@workspace/modules/vault/vault.action";
 import {
   Badge,
   Button,
   cn,
+  DataTableEmptyState,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -16,9 +25,8 @@ import {
   ScrollArea,
   Separator,
   Skeleton,
-  DataTableEmptyState,
 } from "@workspace/ui";
-import { useAppStore } from "@/stores/app";
+import { formatBytes } from "@workspace/utils";
 import {
   ChevronDown,
   ChevronLeft,
@@ -38,25 +46,14 @@ import {
   UploadCloud,
   X,
 } from "lucide-react";
+import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
 
-import {
-  deleteVaultFile,
-  getVaultFiles,
-  updateVaultFileTags,
-  uploadVaultFile,
-} from "@workspace/modules/vault/vault.action";
-import { type VaultFile, type PaginatedVaultFiles } from "@workspace/modules/vault/vault.action";
+import { useAppStore } from "@/stores/app";
 
-import { useQueryState, parseAsString, parseAsInteger } from "nuqs";
-import { formatBytes } from "@workspace/utils";
-import {
-  VaultSkeletonLoading,
-  VaultContentSkeleton,
-  VaultDetailSkeleton,
-} from "./vault-skeleton-loading";
 import { VaultItemCard } from "./vault-item-card";
 import { VaultItemList } from "./vault-item-list";
+import { VaultContentSkeleton, VaultDetailSkeleton, VaultSkeletonLoading } from "./vault-skeleton-loading";
 
 // Allowed file types for upload
 
@@ -71,14 +68,7 @@ const ALLOWED_TYPES = [
   "text/csv",
 ];
 
-const SUGGESTED_TAGS = [
-  "Invoice",
-  "Transaction",
-  "Receipt",
-  "Report",
-  "Contract",
-  "Document",
-];
+const SUGGESTED_TAGS = ["Invoice", "Transaction", "Receipt", "Report", "Contract", "Document"];
 
 interface Props {
   dictionary: any;
@@ -87,34 +77,22 @@ interface Props {
 export function VaultClient({ dictionary }: Props) {
   const queryClient = useQueryClient();
 
-  const t = dictionary?.vault;
-  const [view, setView] = useQueryState(
-    "view",
-    parseAsString.withDefault("list").withOptions({ shallow: true }),
-  );
-  const [search, setSearch] = useQueryState(
-    "search",
-    parseAsString.withDefault("").withOptions({ shallow: true }),
-  );
+  const t = dictionary.vault;
+  const [view, setView] = useQueryState("view", parseAsString.withDefault("list").withOptions({ shallow: true }));
+  const [search, setSearch] = useQueryState("search", parseAsString.withDefault("").withOptions({ shallow: true }));
 
   const [isDragging, setIsDragging] = React.useState(false);
-  const [selectedFile, setSelectedFile] = React.useState<VaultFile | null>(
-    null,
-  );
+  const [selectedFile, setSelectedFile] = React.useState<VaultFile | null>(null);
   const [tagInput, setTagInput] = React.useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const scrollRef = React.useRef<any>(null);
   const loadMoreRef = React.useRef<HTMLDivElement>(null);
   const limit = 15;
 
-  const {
-    data,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isRefetching,
-  } = useInfiniteQuery<PaginatedVaultFiles, Error>({
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage, isRefetching } = useInfiniteQuery<
+    PaginatedVaultFiles,
+    Error
+  >({
     queryKey: ["vault-files", search],
     queryFn: async ({ pageParam }) => {
       const result = await getVaultFiles(pageParam as number, limit, search || undefined);
@@ -123,17 +101,17 @@ export function VaultClient({ dictionary }: Props) {
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage: any) => {
-      const current = lastPage.pagination.page;
-      const total = lastPage.pagination.total_pages;
+      const current = lastPage.pagination?.page;
+      const total = lastPage.pagination?.total_pages;
       return current < total ? current + 1 : undefined;
     },
   });
 
   const files = React.useMemo(() => {
-    return data?.pages.flatMap((page) => page.files) || [];
+    return data?.pages?.flatMap((page) => page.files) || [];
   }, [data]);
 
-  const pagination = data?.pages[0]?.pagination;
+  const pagination = data?.pages?.[0]?.pagination;
 
   // Intersection Observer for Infinite Scroll
   React.useEffect(() => {
@@ -141,7 +119,7 @@ export function VaultClient({ dictionary }: Props) {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+        if (entries?.[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
           fetchNextPage();
         }
       },
@@ -155,9 +133,7 @@ export function VaultClient({ dictionary }: Props) {
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       if (!ALLOWED_TYPES.includes(file.type)) {
-        throw new Error(
-          t.toasts.invalid_type.replace("{name}", file.name),
-        );
+        throw new Error(t.toasts.invalid_type.replace("{name}", file.name));
       }
       const formData = new FormData();
       formData.append("file", file);
@@ -197,9 +173,7 @@ export function VaultClient({ dictionary }: Props) {
     const toastId = toast.loading(t.toasts.uploading.replace("{count}", filesArray.length.toString()));
 
     try {
-      await Promise.all(
-        filesArray.map((file) => uploadMutation.mutateAsync(file)),
-      );
+      await Promise.all(filesArray.map((file) => uploadMutation.mutateAsync(file)));
       toast.success(t.toasts.upload_success, { id: toastId });
     } catch (error: any) {
       toast.error(t.toasts.upload_failed_some, { id: toastId });
@@ -250,17 +224,17 @@ export function VaultClient({ dictionary }: Props) {
     if (!selectedFile) return;
     const cleanTag = tag.trim();
     if (!cleanTag) return;
-    if (selectedFile.tags.includes(cleanTag)) return;
+    if (selectedFile?.tags.includes(cleanTag)) return;
 
     const newTags = [...selectedFile.tags, cleanTag];
-    tagsMutation.mutate({ id: selectedFile.id, tags: newTags });
+    tagsMutation.mutate({ id: selectedFile?.id, tags: newTags });
     setTagInput("");
   };
 
   const handleRemoveTag = (tag: string) => {
     if (!selectedFile) return;
-    const newTags = selectedFile.tags.filter((t) => t !== tag);
-    tagsMutation.mutate({ id: selectedFile.id, tags: newTags });
+    const newTags = selectedFile?.tags.filter((t) => t !== tag);
+    tagsMutation.mutate({ id: selectedFile?.id, tags: newTags });
   };
 
   if (!dictionary || !t) return <VaultSkeletonLoading />;
@@ -290,12 +264,8 @@ export function VaultClient({ dictionary }: Props) {
             <div className="bg-background p-6 rounded-full shadow-xl mb-4">
               <UploadCloud className="h-12 w-12 text-primary animate-bounce" />
             </div>
-            <p className="text-xl font-bold text-primary">
-              {t.drop_zone.title}
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              {t.drop_zone.description}
-            </p>
+            <p className="text-xl font-bold text-primary">{t.drop_zone.title}</p>
+            <p className="text-sm text-muted-foreground mt-2">{t.drop_zone.description}</p>
           </div>
         )}
 
@@ -304,9 +274,7 @@ export function VaultClient({ dictionary }: Props) {
             <div className="flex items-center gap-3">
               <h1 className="text-2xl tracking-tight">{t.title}</h1>
             </div>
-            <p className="text-muted-foreground text-sm">
-              {t.description}
-            </p>
+            <p className="text-muted-foreground text-sm">{t.description}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -342,10 +310,7 @@ export function VaultClient({ dictionary }: Props) {
           </div>
         </div>
 
-        <ScrollArea
-          className="flex-1 h-full min-h-0 bg-card/10 border p-4"
-          ref={scrollRef}
-        >
+        <ScrollArea className="flex-1 h-full min-h-0 bg-card/10 border p-4" ref={scrollRef}>
           {isLoading && !isRefetching ? (
             <VaultContentSkeleton view={view as any} />
           ) : (
@@ -353,11 +318,7 @@ export function VaultClient({ dictionary }: Props) {
               {files.length === 0 ? (
                 <DataTableEmptyState
                   title={t.empty.title}
-                  description={
-                    search
-                      ? t.empty.no_results.replace("{search}", search)
-                      : t.empty.get_started
-                  }
+                  description={search ? t.empty.no_results.replace("{search}", search) : t.empty.get_started}
                   action={
                     search
                       ? {
@@ -371,68 +332,55 @@ export function VaultClient({ dictionary }: Props) {
                   }
                 />
               ) : view === "list" ? (
-            <VaultItemList
-              files={files}
-              selectedFileId={selectedFile?.id}
-              onSelect={setSelectedFile}
-              dictionary={dictionary}
-            />
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-              {files.map((file: VaultFile) => (
-                <VaultItemCard
-                  key={file.id}
-                  file={file}
-                  isSelected={selectedFile?.id === file.id}
+                <VaultItemList
+                  files={files}
+                  selectedFileId={selectedFile?.id}
                   onSelect={setSelectedFile}
                   dictionary={dictionary}
                 />
-              ))}
-            </div>
-          )}
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                  {files.map((file: VaultFile) => (
+                    <VaultItemCard
+                      key={file.id}
+                      file={file}
+                      isSelected={selectedFile?.id === file.id}
+                      onSelect={setSelectedFile}
+                      dictionary={dictionary}
+                    />
+                  ))}
+                </div>
+              )}
 
-          {/* Load More Trigger */}
-          <div
-            ref={loadMoreRef}
-            className="h-10 flex items-center justify-center mt-4"
-          >
-            {isFetchingNextPage && (
-              <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                <div className="h-4 w-4 border-2 border-primary border-t-transparent animate-spin rounded-full" />
-                {dictionary.common?.loading_more || "Loading more..."}
+              {/* Load More Trigger */}
+              <div ref={loadMoreRef} className="h-10 flex items-center justify-center mt-4">
+                {isFetchingNextPage && (
+                  <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                    <div className="h-4 w-4 border-2 border-primary border-t-transparent animate-spin rounded-full" />
+                    {dictionary.common.loading_more || "Loading more..."}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
             </>
           )}
         </ScrollArea>
-
       </div>
 
       {/* Detail Panel */}
-      <div
-        className={cn(
-          "w-full lg:w-[400px] h-full flex flex-col shrink-0 transition-all overflow-hidden",
-        )}
-      >
+      <div className={cn("w-full lg:w-[400px] h-full flex flex-col shrink-0 transition-all overflow-hidden")}>
         <HeaderStorageUsage dictionary={dictionary} />
 
         <div
           className={cn(
             "border mt-4 w-full h-full flex flex-col transition-all overflow-hidden",
-            !selectedFile &&
-              "hidden lg:flex opacity-50 grayscale select-none pointer-events-none",
+            !selectedFile && "hidden lg:flex opacity-50 grayscale select-none pointer-events-none",
           )}
         >
           {selectedFile ? (
             <>
               <div className="p-4 border-b flex justify-between items-center bg-muted/20">
                 <h2 className="font-semibold text-sm">{t.details.title}</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedFile(null)}
-                >
+                <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -444,11 +392,8 @@ export function VaultClient({ dictionary }: Props) {
                   <ScrollArea className="flex-1 h-full min-h-0 p-6">
                     <div className="space-y-6">
                       <div className="aspect-video border bg-muted/30 flex items-center justify-center overflow-hidden shadow-inner">
-                        {selectedFile.type.startsWith("image/") ? (
-                          <img
-                            src={selectedFile.url}
-                            className="max-w-full max-h-full object-contain"
-                          />
+                        {selectedFile?.type.startsWith("image/") ? (
+                          <img src={selectedFile?.url} className="max-w-full max-h-full object-contain" />
                         ) : (
                           <FileText className="h-16 w-16 text-muted-foreground" />
                         )}
@@ -456,9 +401,7 @@ export function VaultClient({ dictionary }: Props) {
 
                       <div className="space-y-4">
                         <div className="flex items-start justify-between group">
-                          <h3 className="font-bold text-lg leading-tight break-all">
-                            {selectedFile.name}
-                          </h3>
+                          <h3 className="font-bold text-lg leading-tight break-all">{selectedFile?.name}</h3>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -469,31 +412,20 @@ export function VaultClient({ dictionary }: Props) {
                         </div>
 
                         <div className="grid grid-cols-[120px,1fr] gap-x-4 gap-y-3 text-sm">
-                          <span className="text-muted-foreground">
-                            {t.details.date_created}
-                          </span>
-                          <span className="font-medium">
-                            {new Date(selectedFile.createdAt).toLocaleString()}
-                          </span>
+                          <span className="text-muted-foreground">{t.details.date_created}</span>
+                          <span className="font-medium">{new Date(selectedFile?.createdAt).toLocaleString()}</span>
 
                           <span className="text-muted-foreground">{t.details.format}</span>
                           <span className="font-medium text-primary uppercase">
-                            {selectedFile.type.split("/")[1] ||
-                              selectedFile.type}
+                            {selectedFile?.type.split("/")[1] || selectedFile?.type}
                           </span>
 
-                          <span className="text-muted-foreground">
-                            {t.details.file_size}
-                          </span>
-                          <span className="font-medium">
-                            {formatBytes(selectedFile.size)}
-                          </span>
+                          <span className="text-muted-foreground">{t.details.file_size}</span>
+                          <span className="font-medium">{formatBytes(selectedFile?.size)}</span>
 
-                          {selectedFile.type.startsWith("image/") && (
+                          {selectedFile?.type.startsWith("image/") && (
                             <>
-                              <span className="text-muted-foreground">
-                                {t.details.dimensions}
-                              </span>
+                              <span className="text-muted-foreground">{t.details.dimensions}</span>
                               <span className="font-medium">N/A</span>
                             </>
                           )}
@@ -510,7 +442,7 @@ export function VaultClient({ dictionary }: Props) {
                           </div>
 
                           <div className="flex flex-wrap gap-1.5 min-h-[32px]">
-                            {selectedFile.tags?.map((tag) => (
+                            {selectedFile?.tags.map((tag) => (
                               <Badge
                                 key={tag}
                                 variant="secondary"
@@ -525,11 +457,8 @@ export function VaultClient({ dictionary }: Props) {
                                 </button>
                               </Badge>
                             ))}
-                            {(!selectedFile.tags ||
-                              selectedFile.tags.length === 0) && (
-                              <p className="text-xs text-muted-foreground italic">
-                                {t.details.no_tags}
-                              </p>
+                            {(!selectedFile?.tags || selectedFile?.tags.length === 0) && (
+                              <p className="text-xs text-muted-foreground italic">{t.details.no_tags}</p>
                             )}
                           </div>
 
@@ -538,9 +467,7 @@ export function VaultClient({ dictionary }: Props) {
                               {t.details.suggested_tags}
                             </p>
                             <div className="flex flex-wrap gap-1.5">
-                              {SUGGESTED_TAGS.filter(
-                                (t) => !selectedFile.tags?.includes(t),
-                              ).map((tag) => (
+                              {SUGGESTED_TAGS.filter((t) => !selectedFile?.tags.includes(t)).map((tag) => (
                                 <button
                                   key={tag}
                                   onClick={() => handleAddTag(tag)}
@@ -581,32 +508,25 @@ export function VaultClient({ dictionary }: Props) {
                       <Button
                         variant="outline"
                         className="flex-1 rounded-r-none h-9 text-xs"
-                        onClick={() => window.open(selectedFile.url, "_blank")}
+                        onClick={() => window.open(selectedFile?.url, "_blank")}
                       >
                         <Download className="mr-2 h-4 w-4" /> {t.details.view_full}
                       </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="px-2 rounded-l-none border-l-0 h-9"
-                          >
+                          <Button variant="outline" className="px-2 rounded-l-none border-l-0 h-9">
                             <ChevronDown className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() =>
-                              window.open(selectedFile.url, "_blank")
-                            }
-                          >
+                          <DropdownMenuItem onClick={() => window.open(selectedFile?.url, "_blank")}>
                             <ExternalLink className="mr-2 h-4 w-4" /> {t.details.open_original}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {
                               const link = document.createElement("a");
-                              link.href = selectedFile.url;
-                              link.download = selectedFile.name;
+                              link.href = selectedFile?.url;
+                              link.download = selectedFile?.name;
                               link.click();
                             }}
                           >
@@ -618,7 +538,7 @@ export function VaultClient({ dictionary }: Props) {
                     <Button
                       variant="outline"
                       className="h-9 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
-                      onClick={() => deleteMutation.mutate(selectedFile.id)}
+                      onClick={() => deleteMutation.mutate(selectedFile?.id)}
                     >
                       <Trash2 className="mr-2 h-4 w-4" /> {t.details.delete}
                     </Button>
@@ -633,9 +553,7 @@ export function VaultClient({ dictionary }: Props) {
               </div>
               <div>
                 <p className="font-semibold text-sm">{t.details.no_file_selected}</p>
-                <p className="text-[10px]">
-                  {t.details.no_file_selected_desc}
-                </p>
+                <p className="text-[10px]">{t.details.no_file_selected_desc}</p>
               </div>
             </div>
           )}
@@ -650,7 +568,7 @@ function HeaderStorageUsage({ dictionary }: { dictionary: any }) {
 
   if (!workspace) return null;
 
-  const usage = workspace.vault_size_used_bytes || 0;
+  const usage = workspace?.vault_size_used_bytes || 0;
   const { limit, percent } = checkLimit("vault_size", usage / (1024 * 1024)); // checkLimit expects MB
   const t = dictionary.vault;
 
@@ -663,11 +581,7 @@ function HeaderStorageUsage({ dictionary }: { dictionary: any }) {
         <span
           className={cn(
             "font-bold",
-            percent > 90
-              ? "text-destructive"
-              : percent > 70
-                ? "text-amber-600"
-                : "text-primary",
+            percent > 90 ? "text-destructive" : percent > 70 ? "text-amber-600" : "text-primary",
           )}
         >
           {Math.round(percent)}%

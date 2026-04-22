@@ -1,10 +1,9 @@
 "use client";
 
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@workspace/ui";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, usePreferencesStore } from "@workspace/ui";
 import { useShallow } from "zustand/react/shallow";
 
 import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
-import { usePreferencesStore } from "@workspace/ui";
 
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
@@ -51,9 +50,9 @@ export function AppSidebar({
   return (
     <Sidebar {...rest} variant={variant} collapsible={collapsible}>
       <SidebarHeader>
-        <WorkspaceSwitcher 
-          workspaces={workspaces} 
-          activeWorkspaceId={currentUser?.workspace_id} 
+        <WorkspaceSwitcher
+          workspaces={workspaces}
+          activeWorkspaceId={currentUser.workspace_id}
           dictionary={dictionary}
         />
       </SidebarHeader>

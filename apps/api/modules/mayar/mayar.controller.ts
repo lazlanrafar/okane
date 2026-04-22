@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 import { MayarService } from "./mayar.service";
+import { MayarRepository } from "./mayar.repository";
 import { CreateMayarCheckoutDto, MayarWebhookDto, CancelAddonDto } from "./mayar.dto";
 import { authPlugin } from "../../plugins/auth";
 import { buildError } from "@workspace/utils";
@@ -33,10 +34,17 @@ export const mayarController = new Elysia({
   .use(authPlugin)
   .post(
     "/portal/magic-link",
-    async ({ jwt_payload }) => {
+    async ({ auth, status }) => {
+      if (!auth) {
+        throw status(
+          401,
+          buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"),
+        );
+      }
+
       // Find workspace owner or customer email from workspace context
       const workspace = await MayarRepository.findWorkspaceById(
-        jwt_payload.workspace_id,
+        auth.workspace_id,
       );
       const email = workspace?.mayar_customer_email;
 

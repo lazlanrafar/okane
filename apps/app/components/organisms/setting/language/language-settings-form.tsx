@@ -1,15 +1,9 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Separator,
-  Skeleton,
-} from "@workspace/ui";
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator, Skeleton } from "@workspace/ui";
+
 import type { Locale } from "@/i18n-config";
 import { useAppStore } from "@/stores/app";
 
@@ -27,7 +21,7 @@ function LanguageSkeleton() {
 }
 
 interface LanguageSettingsFormProps {
-  dictionary?: any;
+  dictionary: any;
 }
 
 export function LanguageSettingsForm({ dictionary: dict }: LanguageSettingsFormProps) {
@@ -49,7 +43,7 @@ export function LanguageSettingsForm({ dictionary: dict }: LanguageSettingsFormP
     return <LanguageSkeleton />;
   }
 
-  const { title, description, options } = dictionary.settings.language;
+  const { title, description, options, placeholder } = dictionary.language;
 
   return (
     <div className="space-y-8">
@@ -61,10 +55,10 @@ export function LanguageSettingsForm({ dictionary: dict }: LanguageSettingsFormP
 
       <Select value={currentLocale} onValueChange={handleLanguageChange}>
         <SelectTrigger className="w-[180px] rounded-none h-8 text-xs font-normal border bg-background">
-          <SelectValue placeholder={dictionary.settings.language.placeholder} />
+          <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent className="rounded-none border bg-background">
-          {Object.entries(options).map(([value, label]) => (
+          {Object.entries(options as Record<string, string>).map(([value, label]) => (
             <SelectItem
               key={value}
               value={value}

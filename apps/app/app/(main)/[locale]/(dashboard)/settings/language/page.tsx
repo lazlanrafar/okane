@@ -1,9 +1,10 @@
 import React from "react";
-import { LanguageSettingsForm } from "@/components/organisms/setting/language/language-settings-form";
+
 import type { Metadata } from "next";
 
+import { LanguageSettingsForm } from "@/components/organisms/setting/language/language-settings-form";
 import { getDictionary } from "@/get-dictionary";
-import { Locale } from "@/i18n-config";
+import type { Locale } from "@/i18n-config";
 
 export const metadata: Metadata = {
   title: "Language | Settings",

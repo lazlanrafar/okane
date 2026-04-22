@@ -1,7 +1,20 @@
 "use client";
 
 import * as React from "react";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  INCOME_EXPENSES_COLOR_OPTIONS,
+  INPUT_ORDER_OPTIONS,
+  MONTHLY_START_DATE_WEEKEND_HANDLING_OPTIONS,
+  PERIOD_OPTIONS,
+  START_SCREEN_OPTIONS,
+  SWIPE_ACTION_OPTIONS,
+  TIME_INPUT_OPTIONS,
+  WEEKLY_START_DAY_OPTIONS,
+} from "@workspace/constants";
+import { getTransactionSettings, updateTransactionSettings } from "@workspace/modules/setting/setting.action";
+import type { TransactionSettings } from "@workspace/types";
 import {
   Label,
   RadioGroup,
@@ -16,22 +29,6 @@ import {
   Switch,
 } from "@workspace/ui";
 import { toast } from "sonner";
-
-import {
-  getTransactionSettings,
-  updateTransactionSettings,
-} from "@workspace/modules/setting/setting.action";
-import type { TransactionSettings } from "@workspace/types";
-import {
-  INCOME_EXPENSES_COLOR_OPTIONS,
-   INPUT_ORDER_OPTIONS,
-  MONTHLY_START_DATE_WEEKEND_HANDLING_OPTIONS,
-  PERIOD_OPTIONS,
-  START_SCREEN_OPTIONS,
-  SWIPE_ACTION_OPTIONS,
-  TIME_INPUT_OPTIONS,
-  WEEKLY_START_DAY_OPTIONS,
-} from "@workspace/constants";
 
 import { useAppStore } from "@/stores/app";
 
@@ -73,7 +70,7 @@ function SettingTransactionSkeleton() {
 }
 
 interface TransactionSettingsFormProps {
-  dictionary?: any;
+  dictionary: any;
 }
 
 export function TransactionSettingsForm({ dictionary: dict }: TransactionSettingsFormProps) {
@@ -98,10 +95,10 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings", "transaction"] });
-      toast.success(dictionary?.settings?.transaction?.toast_updated || "Settings updated");
+      toast.success(dictionary.settings.transaction.toast_updated || "Settings updated");
     },
     onError: () => {
-      toast.error(dictionary?.settings?.transaction?.toast_error || "Failed to update settings");
+      toast.error(dictionary.settings.transaction.toast_error || "Failed to update settings");
     },
   });
 
@@ -109,8 +106,8 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
     return <SettingTransactionSkeleton />;
   }
 
-  const transaction = dictionary?.settings?.transaction || (dictionary as any)?.transaction;
-  const common = dictionary?.settings?.common || (dictionary as any)?.common;
+  const transaction = dictionary.settings.transaction || (dictionary as any).transaction;
+  const common = dictionary.settings.common || (dictionary as any).common;
 
   const updateSetting = (key: keyof TransactionSettings, value: any) => {
     mutation.mutate({ [key]: value });
@@ -119,12 +116,8 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">
-          {transaction?.title}
-        </h2>
-        <p className="text-xs text-muted-foreground">
-          {transaction?.description}
-        </p>
+        <h2 className="text-lg font-medium tracking-tight">{transaction.title}</h2>
+        <p className="text-xs text-muted-foreground">{transaction.description}</p>
       </div>
       <Separator className="rounded-none" />
 
@@ -132,43 +125,27 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
         {/* Date & Time Settings */}
         <div className="space-y-4">
           <div>
-            <h4 className="text-sm font-medium">
-              {transaction?.date_time?.title}
-            </h4>
-            <p className="text-sm text-muted-foreground">
-              {transaction?.date_time?.description}
-            </p>
+            <h4 className="text-sm font-medium">{transaction.date_time.title}</h4>
+            <p className="text-sm text-muted-foreground">{transaction.date_time.description}</p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm">
-                  {transaction?.date_time?.monthly_start_date?.label}
-                </Label>
+                <Label className="text-sm">{transaction.date_time.monthly_start_date.label}</Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction?.date_time?.monthly_start_date?.description}
+                  {transaction.date_time.monthly_start_date.description}
                 </p>
               </div>
               <Select
-                value={settings.monthlyStartDate?.toString()}
-                onValueChange={(val) =>
-                  updateSetting("monthlyStartDate", parseInt(val))
-                }
+                value={settings?.monthlyStartDate.toString()}
+                onValueChange={(val) => updateSetting("monthlyStartDate", parseInt(val))}
               >
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
-                  <SelectValue
-                    placeholder={
-                      transaction?.date_time?.monthly_start_date?.placeholder
-                    }
-                  />
+                  <SelectValue placeholder={transaction.date_time.monthly_start_date.placeholder} />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: 31 }, (_, i) => i + 1).map((date) => (
-                    <SelectItem
-                      key={date}
-                      value={date.toString()}
-                      className="cursor-pointer"
-                    >
+                    <SelectItem key={date} value={date.toString()} className="cursor-pointer">
                       {date}
                     </SelectItem>
                   ))}
@@ -177,31 +154,20 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
             </div>
             <div className="space-y-3 pt-1">
               <Label className="text-xs uppercase tracking-wider text-muted-foreground/70 font-medium">
-                {transaction?.date_time?.weekend_handling?.label}
+                {transaction.date_time.weekend_handling.label}
               </Label>
               <RadioGroup
-                value={settings.monthlyStartDateWeekendHandling}
-                onValueChange={(val) =>
-                  updateSetting("monthlyStartDateWeekendHandling", val)
-                }
+                value={settings?.monthlyStartDateWeekendHandling}
+                onValueChange={(val) => updateSetting("monthlyStartDateWeekendHandling", val)}
                 className="space-y-1"
               >
                 {MONTHLY_START_DATE_WEEKEND_HANDLING_OPTIONS.map((option) => (
-                  <div
-                    className="flex items-center space-x-2"
-                    key={option.value}
-                  >
-                    <RadioGroupItem
-                      value={option.value}
-                      id={`handling-${option.value}`}
-                    />
-                    <Label
-                      htmlFor={`handling-${option.value}`}
-                      className="font-normal cursor-pointer text-sm"
-                    >
-                      {transaction?.date_time?.weekend_handling?.options?.[
+                  <div className="flex items-center space-x-2" key={option.value}>
+                    <RadioGroupItem value={option.value} id={`handling-${option.value}`} />
+                    <Label htmlFor={`handling-${option.value}`} className="font-normal cursor-pointer text-sm">
+                      {transaction.date_time.weekend_handling.options[
                         option.value as keyof typeof transaction.date_time.weekend_handling.options
-                      ] || option.label}
+                      ] || option?.label}
                     </Label>
                   </div>
                 ))}
@@ -209,32 +175,17 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
             </div>
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm">
-                  {transaction?.date_time?.weekly_start_day?.label}
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {transaction?.date_time?.weekly_start_day?.description}
-                </p>
+                <Label className="text-sm">{transaction.date_time.weekly_start_day.label}</Label>
+                <p className="text-xs text-muted-foreground">{transaction.date_time.weekly_start_day.description}</p>
               </div>
-              <Select
-                value={settings.weeklyStartDay}
-                onValueChange={(val) => updateSetting("weeklyStartDay", val)}
-              >
+              <Select value={settings?.weeklyStartDay} onValueChange={(val) => updateSetting("weeklyStartDay", val)}>
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
-                  <SelectValue
-                    placeholder={
-                      transaction?.date_time?.weekly_start_day?.placeholder
-                    }
-                  />
+                  <SelectValue placeholder={transaction.date_time.weekly_start_day.placeholder} />
                 </SelectTrigger>
                 <SelectContent>
                   {WEEKLY_START_DAY_OPTIONS.map((day) => (
-                    <SelectItem
-                      key={day}
-                      value={day}
-                      className="cursor-pointer"
-                    >
-                      {transaction?.date_time?.weekly_start_day?.options?.[
+                    <SelectItem key={day} value={day} className="cursor-pointer">
+                      {transaction.date_time.weekly_start_day.options[
                         day.toLowerCase() as keyof typeof transaction.date_time.weekly_start_day.options
                       ] || day}
                     </SelectItem>
@@ -249,38 +200,23 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
         {/* General Preferences */}
         <div className="space-y-4">
           <div>
-            <h4 className="text-sm font-medium">{transaction?.general?.title}</h4>
-            <p className="text-sm text-muted-foreground">
-              {transaction?.general?.description}
-            </p>
+            <h4 className="text-sm font-medium">{transaction.general.title}</h4>
+            <p className="text-sm text-muted-foreground">{transaction.general.description}</p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm">
-                  {transaction?.general?.default_period?.label}
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {transaction?.general?.default_period?.description}
-                </p>
+                <Label className="text-sm">{transaction.general.default_period.label}</Label>
+                <p className="text-xs text-muted-foreground">{transaction.general.default_period.description}</p>
               </div>
-              <Select
-                value={settings.period}
-                onValueChange={(val) => updateSetting("period", val)}
-              >
+              <Select value={settings?.period} onValueChange={(val) => updateSetting("period", val)}>
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
-                  <SelectValue
-                    placeholder={transaction?.general?.default_period?.placeholder}
-                  />
+                  <SelectValue placeholder={transaction.general.default_period.placeholder} />
                 </SelectTrigger>
                 <SelectContent>
                   {PERIOD_OPTIONS.map((period) => (
-                    <SelectItem
-                      key={period}
-                      value={period}
-                      className="cursor-pointer"
-                    >
-                      {transaction?.general?.default_period?.options?.[
+                    <SelectItem key={period} value={period} className="cursor-pointer">
+                      {transaction.general.default_period.options[
                         period.toLowerCase() as keyof typeof transaction.general.default_period.options
                       ] || period}
                     </SelectItem>
@@ -291,30 +227,17 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm">
-                  {transaction?.general?.start_screen?.label}
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {transaction?.general?.start_screen?.description}
-                </p>
+                <Label className="text-sm">{transaction.general.start_screen.label}</Label>
+                <p className="text-xs text-muted-foreground">{transaction.general.start_screen.description}</p>
               </div>
-              <Select
-                value={settings.startScreen}
-                onValueChange={(val) => updateSetting("startScreen", val)}
-              >
+              <Select value={settings?.startScreen} onValueChange={(val) => updateSetting("startScreen", val)}>
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
-                  <SelectValue
-                    placeholder={transaction?.general?.start_screen?.placeholder}
-                  />
+                  <SelectValue placeholder={transaction.general.start_screen.placeholder} />
                 </SelectTrigger>
                 <SelectContent>
                   {START_SCREEN_OPTIONS.map((screen) => (
-                    <SelectItem
-                      key={screen}
-                      value={screen}
-                      className="cursor-pointer"
-                    >
-                      {transaction?.general?.start_screen?.options?.[
+                    <SelectItem key={screen} value={screen} className="cursor-pointer">
+                      {transaction.general.start_screen.options[
                         screen.toLowerCase() as keyof typeof transaction.general.start_screen.options
                       ] || screen}
                     </SelectItem>
@@ -325,42 +248,28 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
 
             <div className="space-y-3 pt-1">
               <Label className="text-xs uppercase tracking-wider text-muted-foreground/70 font-medium">
-                {transaction?.general?.income_expense_color?.description}
+                {transaction.general.income_expense_color.description}
               </Label>
               <RadioGroup
-                value={settings.incomeExpensesColor}
-                onValueChange={(val) =>
-                  updateSetting("incomeExpensesColor", val)
-                }
+                value={settings?.incomeExpensesColor}
+                onValueChange={(val) => updateSetting("incomeExpensesColor", val)}
                 className="space-y-2"
               >
                 {INCOME_EXPENSES_COLOR_OPTIONS.map((option) => (
                   <div key={option.value} className="flex flex-col space-y-2">
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem
-                        value={option.value}
-                        id={`color-${option.value}`}
-                      />
-                      <Label
-                        htmlFor={`color-${option.value}`}
-                        className="font-normal cursor-pointer text-sm"
-                      >
-                        {transaction?.general?.income_expense_color?.options?.[
-                          option.value
-                        ] || option.label}
+                      <RadioGroupItem value={option.value} id={`color-${option.value}`} />
+                      <Label htmlFor={`color-${option.value}`} className="font-normal cursor-pointer text-sm">
+                        {transaction.general.income_expense_color.options[option.value] || option?.label}
                       </Label>
                     </div>
 
                     <div className="flex items-center">
                       <div className="ml-6 border rounded-none p-2 w-full max-w-[100px] bg-card text-[10px] font-medium text-center uppercase tracking-tight">
-                        <span className={option.expensesColor}>
-                          {transaction?.exp}
-                        </span>
+                        <span className={option.expensesColor}>{transaction.exp}</span>
                       </div>
                       <div className="ml-2 border rounded-none p-2 w-full max-w-[100px] bg-card text-[10px] font-medium text-center uppercase tracking-tight">
-                        <span className={option.incomeColor}>
-                          {transaction?.inc}
-                        </span>
+                        <span className={option.incomeColor}>{transaction.inc}</span>
                       </div>
                     </div>
                   </div>
@@ -374,25 +283,19 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
         {/* Input & Interaction */}
         <div className="space-y-4">
           <div>
-            <h4 className="text-sm font-medium">
-              {transaction?.input_interaction?.title}
-            </h4>
-            <p className="text-sm text-muted-foreground">
-              {transaction?.input_interaction?.description}
-            </p>
+            <h4 className="text-sm font-medium">{transaction.input_interaction.title}</h4>
+            <p className="text-sm text-muted-foreground">{transaction.input_interaction.description}</p>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm">
-                  {transaction?.input_interaction?.carry_over?.label}
-                </Label>
+                <Label className="text-sm">{transaction.input_interaction.carry_over.label}</Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction?.input_interaction?.carry_over?.description}
+                  {transaction.input_interaction.carry_over.description}
                 </p>
               </div>
               <Switch
-                checked={settings.carryOver}
+                checked={settings?.carryOver}
                 onCheckedChange={(val) => updateSetting("carryOver", val)}
                 className="cursor-pointer"
               />
@@ -400,15 +303,13 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm">
-                  {transaction?.input_interaction?.autocomplete?.label}
-                </Label>
+                <Label className="text-sm">{transaction.input_interaction.autocomplete.label}</Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction?.input_interaction?.autocomplete?.description}
+                  {transaction.input_interaction.autocomplete.description}
                 </p>
               </div>
               <Switch
-                checked={settings.autocomplete}
+                checked={settings?.autocomplete}
                 onCheckedChange={(val) => updateSetting("autocomplete", val)}
                 className="cursor-pointer"
               />
@@ -416,37 +317,24 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm">
-                  {transaction?.input_interaction?.time_input?.label}
-                </Label>
+                <Label className="text-sm">{transaction.input_interaction.time_input.label}</Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction?.input_interaction?.time_input?.description}
+                  {transaction.input_interaction.time_input.description}
                 </p>
               </div>
-              <Select
-                value={settings.timeInput}
-                onValueChange={(val) => updateSetting("timeInput", val)}
-              >
+              <Select value={settings?.timeInput} onValueChange={(val) => updateSetting("timeInput", val)}>
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
-                  <SelectValue
-                    placeholder={
-                      transaction?.input_interaction?.time_input?.placeholder
-                    }
-                  />
+                  <SelectValue placeholder={transaction.input_interaction.time_input.placeholder} />
                 </SelectTrigger>
                 <SelectContent>
                   {TIME_INPUT_OPTIONS.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      className="cursor-pointer"
-                    >
-                      {transaction?.input_interaction?.time_input?.options?.[
+                    <SelectItem key={option.value} value={option.value} className="cursor-pointer">
+                      {transaction.input_interaction.time_input.options[
                         option.value
                           .toLowerCase()
                           .replace(", ", "-")
                           .replace(/\./, "") as keyof typeof transaction.input_interaction.time_input.options
-                      ] || option.label}
+                      ] || option?.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -455,33 +343,22 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm">
-                  {transaction?.input_interaction?.swipe_action?.label}
-                </Label>
+                <Label className="text-sm">{transaction.input_interaction.swipe_action.label}</Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction?.input_interaction?.swipe_action?.description}
+                  {transaction.input_interaction.swipe_action.description}
                 </p>
               </div>
-              <Select
-                value={settings.swipeAction}
-                onValueChange={(val) => updateSetting("swipeAction", val)}
-              >
+              <Select value={settings?.swipeAction} onValueChange={(val) => updateSetting("swipeAction", val)}>
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
-                  <SelectValue
-                    placeholder={
-                      transaction?.input_interaction?.swipe_action?.placeholder
-                    }
-                  />
+                  <SelectValue placeholder={transaction.input_interaction.swipe_action.placeholder} />
                 </SelectTrigger>
                 <SelectContent>
                   {SWIPE_ACTION_OPTIONS.map((action) => (
-                    <SelectItem
-                      key={action}
-                      value={action}
-                      className="cursor-pointer"
-                    >
-                      {transaction?.input_interaction?.swipe_action?.options?.[
-                        action.toLowerCase().replace(" ", "-") as keyof typeof transaction.input_interaction.swipe_action.options
+                    <SelectItem key={action} value={action} className="cursor-pointer">
+                      {transaction.input_interaction.swipe_action.options[
+                        action
+                          .toLowerCase()
+                          .replace(" ", "-") as keyof typeof transaction.input_interaction.swipe_action.options
                       ] || action}
                     </SelectItem>
                   ))}
@@ -491,34 +368,21 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm">
-                  {transaction?.input_interaction?.input_order?.label}
-                </Label>
+                <Label className="text-sm">{transaction.input_interaction.input_order.label}</Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction?.input_interaction?.input_order?.description}
+                  {transaction.input_interaction.input_order.description}
                 </p>
               </div>
-              <Select
-                value={settings.inputOrder}
-                onValueChange={(val) => updateSetting("inputOrder", val)}
-              >
+              <Select value={settings?.inputOrder} onValueChange={(val) => updateSetting("inputOrder", val)}>
                 <SelectTrigger className="w-[180px] cursor-pointer rounded-none h-8 text-xs">
-                  <SelectValue
-                    placeholder={
-                      transaction?.input_interaction?.input_order?.placeholder
-                    }
-                  />
+                  <SelectValue placeholder={transaction.input_interaction.input_order.placeholder} />
                 </SelectTrigger>
                 <SelectContent>
                   {INPUT_ORDER_OPTIONS.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      className="cursor-pointer"
-                    >
-                      {transaction?.input_interaction?.input_order?.options?.[
+                    <SelectItem key={option.value} value={option.value} className="cursor-pointer">
+                      {transaction.input_interaction.input_order.options[
                         option.value.toLowerCase() as keyof typeof transaction.input_interaction.input_order.options
-                      ] || option.label}
+                      ] || option?.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -527,15 +391,13 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm">
-                  {transaction?.input_interaction?.show_description?.label}
-                </Label>
+                <Label className="text-sm">{transaction.input_interaction.show_description.label}</Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction?.input_interaction?.show_description?.description}
+                  {transaction.input_interaction.show_description.description}
                 </p>
               </div>
               <Switch
-                checked={settings.showDescription}
+                checked={settings?.showDescription}
                 onCheckedChange={(val) => updateSetting("showDescription", val)}
                 className="cursor-pointer"
               />
@@ -543,15 +405,13 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm">
-                  {transaction?.input_interaction?.quick_note_button?.label}
-                </Label>
+                <Label className="text-sm">{transaction.input_interaction.quick_note_button.label}</Label>
                 <p className="text-xs text-muted-foreground">
-                  {transaction?.input_interaction?.quick_note_button?.description}
+                  {transaction.input_interaction.quick_note_button.description}
                 </p>
               </div>
               <Switch
-                checked={settings.noteButton}
+                checked={settings?.noteButton}
                 onCheckedChange={(val) => updateSetting("noteButton", val)}
                 className="cursor-pointer"
               />

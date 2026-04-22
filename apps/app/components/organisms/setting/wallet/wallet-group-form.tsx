@@ -1,10 +1,20 @@
 "use client";
 
 import * as React from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  createWalletGroup,
+  updateWalletGroup,
+  type WalletGroup,
+} from "@workspace/modules/wallet-group/wallet-group.action";
+import {
   Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   Form,
   FormControl,
   FormField,
@@ -12,21 +22,11 @@ import {
   FormLabel,
   FormMessage,
   Input,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@workspace/ui";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
-
-import {
-  createWalletGroup,
-  updateWalletGroup,
-} from "@workspace/modules/wallet-group/wallet-group.action";
-import { type WalletGroup } from "@workspace/modules/wallet-group/wallet-group.action";
 
 interface WalletGroupFormProps {
   open: boolean;
@@ -35,21 +35,15 @@ interface WalletGroupFormProps {
   dictionary: any;
 }
 
-export function WalletGroupForm({
-  open,
-  group,
-  onClose,
-  dictionary,
-}: WalletGroupFormProps) {
+export function WalletGroupForm({ open, group, onClose, dictionary }: WalletGroupFormProps) {
   const queryClient = useQueryClient();
 
-  const groups_t = dictionary?.settings?.wallets?.groups || (dictionary as any)?.wallets?.groups;
+  const wallets_t = dictionary?.wallets || (dictionary as any)?.settings?.wallets;
+  const groups_t = wallets_t?.groups;
   const common = dictionary?.common;
 
   const formSchema = z.object({
-    name: z
-      .string()
-      .min(1, { message: groups_t?.form?.name?.error_required || "Name is required" }),
+    name: z.string().min(1, { message: groups_t?.form?.name?.error_required || "Name is required" }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -70,12 +64,12 @@ export function WalletGroupForm({
   const createMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       const result = await createWalletGroup({ name: data.name });
-      if (!result.success) throw new Error(result.error);
+      if (!result.success) throw new Error(result.error || "Failed to create group");
       return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallet-groups"] });
-      toast.success((dictionary?.settings?.wallets?.form?.create_success ?? common?.save) || "Group created");
+      toast.success((wallets_t?.form?.create_success ?? common?.save) || "Group created");
       onClose();
     },
     onError: (error) => {
@@ -87,12 +81,12 @@ export function WalletGroupForm({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       if (!group) throw new Error("No group to update");
       const result = await updateWalletGroup(group.id, { name: data.name });
-      if (!result.success) throw new Error(result.error);
+      if (!result.success) throw new Error(result.error || "Failed to update group");
       return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallet-groups"] });
-      toast.success((dictionary?.settings?.wallets?.form?.update_success ?? common?.save) || "Group updated");
+      toast.success((wallets_t?.form?.update_success ?? common?.save) || "Group updated");
       onClose();
     },
     onError: (error) => {
@@ -116,9 +110,7 @@ export function WalletGroupForm({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="rounded-none sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
-            {group ? groups_t.edit_title : groups_t.add_title}
-          </DialogTitle>
+          <DialogTitle>{group ? groups_t.edit_title : groups_t.add_title}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -127,13 +119,9 @@ export function WalletGroupForm({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{groups_t.form?.name?.label}</FormLabel>
+                  <FormLabel>{groups_t.form.name.label}</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder={groups_t.form?.name?.placeholder}
-                      {...field}
-                      className="rounded-none"
-                    />
+                    <Input placeholder={groups_t.form.name.placeholder} {...field} className="rounded-none" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -148,11 +136,11 @@ export function WalletGroupForm({
                 disabled={isSubmitting}
                 className="rounded-none h-8 text-xs"
               >
-                {common?.cancel}
+                {common?.cancel || "Cancel"}
               </Button>
               <Button type="submit" disabled={isSubmitting} className="rounded-none h-8 text-xs">
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {common?.save}
+                {common?.save || "Save"}
               </Button>
             </div>
           </form>

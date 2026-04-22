@@ -116,8 +116,9 @@ async function checkRateLimit(
 
 export const rateLimitPlugin = new Elysia({
   name: "rate-limit",
-}).onBeforeHandle(async ({ request, set, auth }) => {
-  const account = auth as { workspace_id?: string } | null;
+}).onBeforeHandle(async (ctx: any) => {
+  const { request, set, auth } = ctx;
+  const account = auth as { workspace_id?: string; user_id?: string } | null;
   const path = new URL(request.url).pathname;
 
   let config: RateLimitConfig;

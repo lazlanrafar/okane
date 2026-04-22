@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
+
+import type { VaultFile } from "@workspace/modules/vault/vault.action";
 import { cn } from "@workspace/ui";
 import { FileText } from "lucide-react";
-import { type VaultFile } from "@workspace/modules/vault/vault.action";
 
 interface VaultItemCardProps {
   file: VaultFile;
@@ -12,12 +13,7 @@ interface VaultItemCardProps {
   dictionary: any;
 }
 
-export function VaultItemCard({
-  file,
-  isSelected,
-  onSelect,
-  dictionary,
-}: VaultItemCardProps) {
+export function VaultItemCard({ file, isSelected, onSelect, dictionary }: VaultItemCardProps) {
   return (
     <div
       className={cn(
@@ -30,19 +26,13 @@ export function VaultItemCard({
     >
       <div className="w-full h-full bg-muted flex items-center justify-center">
         {file.type.startsWith("image/") ? (
-          <img
-            src={file.url}
-            alt={file.name}
-            className="object-cover w-full h-full"
-          />
+          <img src={file.url} alt={file.name} className="object-cover w-full h-full" />
         ) : (
           <FileText className="h-12 w-12 text-muted-foreground" />
         )}
       </div>
       <div className="absolute bottom-0 left-0 right-0 p-2 bg-linear-to-t from-black/60 to-transparent">
-        <p className="text-[10px] text-white font-medium truncate">
-          {file.name}
-        </p>
+        <p className="text-[10px] text-white font-medium truncate">{file.name}</p>
       </div>
     </div>
   );

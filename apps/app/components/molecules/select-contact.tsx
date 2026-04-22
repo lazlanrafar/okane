@@ -1,9 +1,9 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createContact, getContacts } from "@workspace/modules/client";
 import { Combobox, Spinner } from "@workspace/ui";
 import { User } from "lucide-react";
-import { getContacts, createContact } from "@workspace/modules/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export interface SelectContactProps {
@@ -101,9 +101,7 @@ export function SelectContact({
           <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
             <User className="h-3 w-3 text-muted-foreground" />
           </div>
-          <span className="text-left truncate max-w-[90%] font-medium text-xs">
-            {item.label}
-          </span>
+          <span className="text-left truncate max-w-[90%] font-medium text-xs">{item.label}</span>
         </div>
       )}
       renderOnCreate={(value) => (
@@ -121,11 +119,7 @@ export function SelectContact({
           </div>
           <div className="flex flex-col truncate">
             <span className="font-medium truncate text-xs">{item.label}</span>
-            {item.email && (
-              <span className="text-[10px] text-muted-foreground truncate">
-                {item.email}
-              </span>
-            )}
+            {item.email && <span className="text-[10px] text-muted-foreground truncate">{item.email}</span>}
           </div>
         </div>
       )}

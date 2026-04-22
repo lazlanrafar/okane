@@ -2,13 +2,7 @@
 
 import { useEffect } from "react";
 
-export default function ErrorPage({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
+export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -16,17 +10,9 @@ export default function ErrorPage({
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center space-y-4 max-w-2xl mx-auto px-4">
-        <h1 className="font-serif text-4xl text-foreground">
-          Something went wrong
-        </h1>
-        <p className="text-muted-foreground">
-          We encountered an unexpected error. Please try again.
-        </p>
-        {error.digest && (
-          <p className="text-xs text-muted-foreground font-mono">
-            Error ID: {error.digest}
-          </p>
-        )}
+        <h1 className="font-serif text-4xl text-foreground">Something went wrong</h1>
+        <p className="text-muted-foreground">We encountered an unexpected error. Please try again.</p>
+        {error.digest && <p className="text-xs text-muted-foreground font-mono">Error ID: {error.digest}</p>}
         <div className="text-left bg-muted p-4 overflow-auto max-h-64 text-xs font-mono">
           <p className="font-bold text-red-500 mb-2">{error.message}</p>
           <pre className="whitespace-pre-wrap">{error.stack}</pre>

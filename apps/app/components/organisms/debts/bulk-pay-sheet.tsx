@@ -1,24 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  Button,
-  Checkbox,
-  Badge,
-  cn,
-} from "@workspace/ui";
-import { type DebtWithContact, bulkPayDebt } from "@workspace/modules/client";
+
 import { useQueryClient } from "@tanstack/react-query";
-import { useAppStore } from "@/stores/app";
+import { bulkPayDebt, type DebtWithContact } from "@workspace/modules/client";
+import { Badge, Button, Checkbox, cn, Sheet, SheetContent, SheetHeader, SheetTitle } from "@workspace/ui";
 import { format } from "date-fns";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import { SelectAccount } from "@/components/molecules/select-account";
 import { toast } from "sonner";
+
+import { SelectAccount } from "@/components/molecules/select-account";
+import { useAppStore } from "@/stores/app";
 
 interface Props {
   open: boolean;
@@ -28,17 +22,11 @@ interface Props {
   dictionary: any;
 }
 
-export function BulkPaySheet({
-  open,
-  onOpenChange,
-  debts,
-  contactName,
-  dictionary,
-}: Props) {
+export function BulkPaySheet({ open, onOpenChange, debts, contactName, dictionary }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { settings, formatCurrency } = useAppStore() as any;
-  const dict = dictionary?.debts;
+  const dict = dictionary.debts;
 
   // Defensive date formatter
   const formatDate = (date: string | null | undefined) => {
@@ -121,9 +109,7 @@ export function BulkPaySheet({
         router.refresh();
         onOpenChange(false);
       } else {
-        toast.error(
-          result.error || dict.bulk_settlement.error_toast,
-        );
+        toast.error(result.error || dict.bulk_settlement.error_toast);
       }
     } catch {
       toast.error(dict.bulk_settlement.error_toast);
@@ -136,12 +122,8 @@ export function BulkPaySheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="flex flex-col h-full p-0 rounded-none shadow-none border-l sm:max-w-[540px]">
         <SheetHeader className="px-6 py-6 border-b shrink-0 bg-muted/5 text-left">
-          <SheetTitle className="font-serif text-xl font-normal">
-            {dict.bulk_settlement.title}
-          </SheetTitle>
-          <p className="text-xs text-muted-foreground uppercase tracking-widest">
-            {contactName || "Contact"}
-          </p>
+          <SheetTitle className="font-serif text-xl font-normal">{dict.bulk_settlement.title}</SheetTitle>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest">{contactName || "Contact"}</p>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto no-scrollbar">
@@ -155,11 +137,7 @@ export function BulkPaySheet({
               <div className="px-6 py-4 border-b flex items-center gap-3 bg-muted/5">
                 <Checkbox
                   checked={
-                    selectedIds.size === outstanding.length
-                      ? true
-                      : selectedIds.size > 0
-                        ? "indeterminate"
-                        : false
+                    selectedIds.size === outstanding.length ? true : selectedIds.size > 0 ? "indeterminate" : false
                   }
                   onCheckedChange={toggleAll}
                   id="select-all"
@@ -168,8 +146,7 @@ export function BulkPaySheet({
                   htmlFor="select-all"
                   className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground cursor-pointer"
                 >
-                  {dict.bulk_settlement.select_all} (
-                  {outstanding.length})
+                  {dict.bulk_settlement.select_all} ({outstanding.length})
                 </label>
               </div>
 
@@ -177,9 +154,7 @@ export function BulkPaySheet({
               <div className="divide-y divide-border/50">
                 {outstanding.map((debt) => {
                   const amount = Number.parseFloat((debt.amount ?? 0) as string) || 0;
-                  const remaining = Number.parseFloat(
-                    (debt.remainingAmount ?? 0) as string,
-                  ) || 0;
+                  const remaining = Number.parseFloat((debt.remainingAmount ?? 0) as string) || 0;
                   const isReceivable = debt.type === "receivable";
                   const isSelected = selectedIds.has(debt.id);
 
@@ -200,17 +175,8 @@ export function BulkPaySheet({
                       />
 
                       {/* Type icon */}
-                      <div
-                        className={cn(
-                          "mt-0.5 shrink-0",
-                          isReceivable ? "text-emerald-500" : "text-rose-500",
-                        )}
-                      >
-                        {isReceivable ? (
-                          <ArrowDownLeft className="h-4 w-4" />
-                        ) : (
-                          <ArrowUpRight className="h-4 w-4" />
-                        )}
+                      <div className={cn("mt-0.5 shrink-0", isReceivable ? "text-emerald-500" : "text-rose-500")}>
+                        {isReceivable ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
                       </div>
 
                       {/* Content */}
@@ -226,31 +192,23 @@ export function BulkPaySheet({
                               )}
                             >
                               {isReceivable
-                                ? dict.bulk_settlement.owed_to_you ||
-                                  "Owed to you"
-                                : dict.bulk_settlement.you_owe ||
-                                  "You owe"}
+                                ? dict.bulk_settlement.owed_to_you || "Owed to you"
+                                : dict.bulk_settlement.you_owe || "You owe"}
                             </span>
                             <Badge
                               variant="outline"
                               className="h-4 px-1.5 text-[9px] uppercase font-medium tracking-widest rounded-none shadow-none"
                             >
-                              {dict.statuses[debt.status] ||
-                                debt.status}
+                              {dict.statuses[debt.status] || debt.status}
                             </Badge>
                           </div>
-                          <span className="text-[10px] text-muted-foreground">
-                            {formatDate(debt.createdAt)}
-                          </span>
+                          <span className="text-[10px] text-muted-foreground">{formatDate(debt.createdAt)}</span>
                         </div>
 
-                        <p className="text-lg font-serif font-normal">
-                          {formatCurrency(remaining)}
-                        </p>
+                        <p className="text-lg font-serif font-normal">{formatCurrency(remaining)}</p>
                         {remaining < amount && (
                           <p className="text-[10px] text-muted-foreground line-through opacity-60 mt-0.5">
-                            {dict.details.original_amount}:{" "}
-                            {formatCurrency(amount)}
+                            {dict.details.original_amount}: {formatCurrency(amount)}
                           </p>
                         )}
                         {debt.description && (
@@ -275,10 +233,7 @@ export function BulkPaySheet({
               <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
                 {dict.bulk_settlement.pay_from_account}
               </p>
-              <SelectAccount
-                value={walletId || undefined}
-                onChange={setWalletId}
-              />
+              <SelectAccount value={walletId || undefined} onChange={setWalletId} />
             </div>
 
             {/* Total + submit */}
@@ -287,14 +242,10 @@ export function BulkPaySheet({
                 <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
                   {dict.bulk_settlement.total_to_settle}
                 </p>
-                <p className="text-2xl font-serif font-normal">
-                  {formatCurrency(totalToPay)}
-                </p>
+                <p className="text-2xl font-serif font-normal">{formatCurrency(totalToPay)}</p>
                 <p className="text-[10px] text-muted-foreground">
                   {selectedDebts.length}{" "}
-                  {selectedDebts.length === 1
-                    ? dict.columns.debt || "debt"
-                    : dict.title.toLowerCase() || "debts"}{" "}
+                  {selectedDebts.length === 1 ? dict.columns.debt || "debt" : dict.title.toLowerCase() || "debts"}{" "}
                   selected
                 </p>
               </div>
@@ -303,9 +254,7 @@ export function BulkPaySheet({
                 disabled={isLoading || selectedDebts.length === 0 || !walletId}
                 onClick={handleSubmit}
               >
-                {isLoading
-                  ? dict.bulk_settlement.settling
-                  : dict.bulk_settlement.settle_button}
+                {isLoading ? dict.bulk_settlement.settling : dict.bulk_settlement.settle_button}
               </Button>
             </div>
           </div>

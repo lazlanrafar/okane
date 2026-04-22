@@ -1,47 +1,42 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import {
-  Button,
-  DataTable,
-  DataTableColumnsVisibility,
-  DataTableFilter,
-  DataTableEmptyState,
-} from "@workspace/ui";
-import { InvoiceFormSheet } from "./invoice-form-sheet";
-import { InvoiceDetailSheet } from "./invoice-detail-sheet";
-import { buildInvoiceColumns } from "./invoice-columns";
-import type { Invoice } from "@workspace/types";
-import { Plus } from "lucide-react";
+import { useCallback, useState } from "react";
+
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  getInvoices,
-  createInvoice,
-  updateInvoice,
-  deleteInvoice,
   type CreateInvoiceData,
+  createInvoice,
+  deleteInvoice,
+  getInvoices,
+  updateInvoice,
 } from "@workspace/modules/client";
-import { useDataTableFilter } from "@/hooks/use-data-table-filter";
-import { useInvoicesStore } from "@/stores/invoices";
-import { useAppStore } from "@/stores/app";
+import type { Dictionary } from "@workspace/dictionaries";
+import type { ApiResponse, Invoice, PaginatedList } from "@workspace/types";
+import { Button, DataTable, DataTableColumnsVisibility, DataTableEmptyState, DataTableFilter } from "@workspace/ui";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
+
+import { useDataTableFilter } from "@/hooks/use-data-table-filter";
+import { useAppStore } from "@/stores/app";
+import { useInvoicesStore } from "@/stores/invoices";
+
+import { buildInvoiceColumns } from "./invoice-columns";
+import { InvoiceDetailSheet } from "./invoice-detail-sheet";
+import { InvoiceFormSheet } from "./invoice-form-sheet";
 
 type InvoiceRow = Invoice & {
   contact?: { name?: string; email?: string } | null;
 };
 
 interface Props {
-  initialData?: any;
-  dictionary: any;
+  dictionary: Dictionary;
 }
 
-export function InvoicesClient({ initialData, dictionary }: Props) {
+export function InvoicesClient({ dictionary }: Props) {
   const queryClient = useQueryClient();
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
-  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(
-    null,
-  );
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
   const [editInvoice, setEditInvoice] = useState<Invoice | null>(null);
 
   const { columns, setColumns } = useInvoicesStore();
@@ -52,34 +47,34 @@ export function InvoicesClient({ initialData, dictionary }: Props) {
     initialPage: 0,
   });
 
-  const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } =
-    useInfiniteQuery({
-      queryKey: ["invoices", filters.q, filters.status],
-      queryFn: async ({ pageParam = 1 }) => {
-        const res = await getInvoices({
-          search: filters.q as string,
-          status: (filters.status as string) || undefined,
-          page: pageParam as number,
-          limit: 50,
-        });
-        if (!res.success) throw new Error((res as any).error);
-        return res;
-      },
-      initialPageParam: 1,
-      getNextPageParam: (lastPage: any) => {
-        const meta = lastPage.meta?.pagination;
-        if (!meta) return undefined;
-        const nextPage = meta.page + 1;
-        return nextPage <= meta.total_pages ? nextPage : undefined;
-      },
-      staleTime: 60000,
-      refetchOnWindowFocus: false,
-    });
+  const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
+    queryKey: ["invoices", filters.q, filters.status],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await getInvoices({
+        search: filters.q as string,
+        status: (filters.status as string) || undefined,
+        page: pageParam as number,
+        limit: 50,
+      });
+      if (!res.success) throw new Error(res.error || "Failed to fetch invoices");
+      return res;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: ApiResponse<PaginatedList<InvoiceRow>>) => {
+      const meta = lastPage.meta?.pagination;
+      if (!meta) return undefined;
+      const nextPage = meta.page + 1;
+      return nextPage <= meta.total_pages ? nextPage : undefined;
+    },
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
 
   const allInvoices: InvoiceRow[] =
-    data?.pages.flatMap((p: any) => {
+    data.pages?.flatMap((p) => {
       const items = p.data;
       if (!items) return [];
+
       if (Array.isArray(items)) {
         return items.map((item: any) => {
           if (item.invoice) {
@@ -91,16 +86,17 @@ export function InvoicesClient({ initialData, dictionary }: Props) {
           return item;
         });
       }
-      if (typeof items === "object" && "invoice" in items) {
-        return [{ ...items.invoice, contact: (items as any).contact }];
+
+      // Handle single object response if any
+      if (items && typeof items === "object" && "invoice" in items) {
+        return [{ ...(items as any).invoice, contact: (items as any).contact }];
       }
+
       return [];
     }) ?? [];
 
   // Derived counts
-  const openCount = allInvoices.filter(
-    (i) => i.status === "unpaid" || i.status === "draft",
-  ).length;
+  const openCount = allInvoices.filter((i) => i.status === "unpaid" || i.status === "draft").length;
   const overdueCount = allInvoices.filter((i) => i.status === "overdue").length;
   const paidCount = allInvoices.filter((i) => i.status === "paid").length;
 
@@ -133,12 +129,10 @@ export function InvoicesClient({ initialData, dictionary }: Props) {
 
   const handleUpdate = useCallback(
     async (id: string, data: Partial<Invoice>) => {
-      const res = await updateInvoice(id, data as any);
+      const res = await updateInvoice(id, data);
       if (res.success) {
         refresh();
-        setSelectedInvoice((prev) =>
-          prev?.id === id ? { ...prev, ...data } : prev
-        );
+        setSelectedInvoice((prev) => (prev.id === id ? { ...prev, ...data } : prev));
       } else {
         throw new Error("Update failed");
       }
@@ -147,10 +141,10 @@ export function InvoicesClient({ initialData, dictionary }: Props) {
   );
 
   const handleFormSubmit = useCallback(
-    async (formData: CreateInvoiceData, isSilent?: boolean) => {
-      let result: any;
-      if (editInvoice?.id) {
-        const res = await updateInvoice(editInvoice.id, formData as any);
+    async (formData: CreateInvoiceData, isSilent?: boolean): Promise<Invoice | boolean> => {
+      let result: Invoice | boolean = false;
+      if (editInvoice.id) {
+        const res = await updateInvoice(editInvoice.id, formData);
         if (!res.success) {
           if (!isSilent) toast.error("Failed to update invoice");
           return false;
@@ -187,9 +181,7 @@ export function InvoicesClient({ initialData, dictionary }: Props) {
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
             {dictionary.invoices.summary.total}
           </span>
-          <span className="text-3xl font-serif font-medium tracking-tight">
-            {allInvoices.length}
-          </span>
+          <span className="text-3xl font-serif font-medium tracking-tight">{allInvoices.length}</span>
         </div>
         <div className="p-6 flex flex-col gap-1 border border-border">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
@@ -198,9 +190,7 @@ export function InvoicesClient({ initialData, dictionary }: Props) {
           <span className="text-3xl font-serif font-medium tracking-tight text-yellow-600 dark:text-yellow-400">
             {openCount}
           </span>
-          <span className="text-[10px] text-muted-foreground">
-            {dictionary.invoices.summary.open_desc}
-          </span>
+          <span className="text-[10px] text-muted-foreground">{dictionary.invoices.summary.open_desc}</span>
         </div>
         <div className="p-6 flex flex-col gap-1 border border-border">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
@@ -209,9 +199,7 @@ export function InvoicesClient({ initialData, dictionary }: Props) {
           <span className="text-3xl font-serif font-medium tracking-tight text-red-600 dark:text-red-400">
             {overdueCount}
           </span>
-          <span className="text-[10px] text-muted-foreground">
-            {dictionary.invoices.summary.overdue_desc}
-          </span>
+          <span className="text-[10px] text-muted-foreground">{dictionary.invoices.summary.overdue_desc}</span>
         </div>
         <div className="p-6 flex flex-col gap-1 border border-border">
           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
@@ -229,7 +217,7 @@ export function InvoicesClient({ initialData, dictionary }: Props) {
         <div className="flex items-center flex-1 max-w-sm">
           <DataTableFilter
             filters={filters}
-            onFilterChange={handleFilterChange as any}
+            onFilterChange={handleFilterChange}
             placeholder={dictionary.invoices.search_placeholder}
             showDateFilter={false}
             showAmountFilter={false}

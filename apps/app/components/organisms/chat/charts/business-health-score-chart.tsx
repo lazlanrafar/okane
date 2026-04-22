@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+
 import { commonChartConfig } from "./chart-utils";
 
 interface BusinessHealthScoreData {
@@ -26,15 +19,13 @@ interface BusinessHealthScoreChartProps {
 // Custom tooltip component
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && Array.isArray(payload) && payload.length > 0) {
-    const healthScore = payload[0]?.value;
+    const healthScore = payload[0].value;
 
     return (
       <div className="border p-2 text-[10px] font-hedvig-sans bg-white dark:bg-[#0c0c0c] border-[#e6e6e6] dark:border-[#1d1d1d] text-black dark:text-white shadow-sm">
         <p className="mb-1 text-[#707070] dark:text-[#666666]">{label}</p>
         {typeof healthScore === "number" && (
-          <p className="text-black dark:text-white">
-            Health Score: {healthScore.toFixed(1)}/100
-          </p>
+          <p className="text-black dark:text-white">Health Score: {healthScore.toFixed(1)}/100</p>
         )}
       </div>
     );
@@ -42,10 +33,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function BusinessHealthScoreChart({
-  data,
-  height = 320,
-}: BusinessHealthScoreChartProps) {
+export function BusinessHealthScoreChart({ data, height = 320 }: BusinessHealthScoreChartProps) {
   // Simple tick formatter for 0-100 scores
   const tickFormatter = (value: number) => `${value}`;
 
@@ -56,26 +44,14 @@ export function BusinessHealthScoreChart({
       {/* Chart */}
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%" debounce={1}>
-          <LineChart
-            data={data}
-            margin={{ top: 6, right: 6, left: -marginLeft, bottom: 6 }}
-          >
+          <LineChart data={data} margin={{ top: 6, right: 6, left: -marginLeft, bottom: 6 }}>
             <defs>
-              <linearGradient
-                id="healthScoreGradient"
-                x1="0"
-                y1="0"
-                x2="1"
-                y2="0"
-              >
+              <linearGradient id="healthScoreGradient" x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stopColor="var(--chart-gradient-start)" />
                 <stop offset="100%" stopColor="var(--chart-gradient-end)" />
               </linearGradient>
             </defs>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="var(--chart-grid-stroke)"
-            />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid-stroke)" />
             <XAxis
               dataKey="month"
               axisLine={false}
@@ -97,10 +73,7 @@ export function BusinessHealthScoreChart({
               tickFormatter={tickFormatter}
               domain={[0, 100]}
             />
-            <Tooltip
-              content={<CustomTooltip />}
-              wrapperStyle={{ zIndex: 9999 }}
-            />
+            <Tooltip content={<CustomTooltip />} wrapperStyle={{ zIndex: 9999 }} />
             <Line
               type="monotone"
               dataKey="healthScore"

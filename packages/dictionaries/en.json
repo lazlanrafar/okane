@@ -191,13 +191,13 @@
       "vault_storage": "Vault Storage",
       "ai_tokens": "AI Tokens",
       "available_plans": "Available Plans",
-    "addons": "Add-ons",
-    "ai_token_pack": "AI Token Pack",
-    "ai_token_pack_description": "Add one-time AI tokens to your workspace.",
-    "storage_pack": "Storage Pack",
-    "storage_pack_description": "Add one-time storage capacity to your vault.",
-    "buy_now": "Buy Now",
-    "extra_quota_active": "+{amount} {unit} extra active",
+      "addons": "Add-ons",
+      "ai_token_pack": "AI Token Pack",
+      "ai_token_pack_description": "Add one-time AI tokens to your workspace.",
+      "storage_pack": "Storage Pack",
+      "storage_pack_description": "Add one-time storage capacity to your vault.",
+      "buy_now": "Buy Now",
+      "extra_quota_active": "+{amount} {unit} extra active",
       "monthly_toggle": "Monthly",
       "annual_toggle": "Annual",
       "no_plans": "No plans available",
@@ -205,6 +205,13 @@
       "yr": "yr",
       "downgrade_confirm": "Are you sure you want to downgrade?",
       "upgrade": "Upgrade",
+      "upgrade_title": "Scale your finances with Oewang",
+      "upgrade_description": "Choose the plan that fits your current needs. Start small and grow as your business scales.",
+      "special_launch_pricing": "Special Launch Pricing",
+      "highest_value": "Highest Value",
+      "whats_included": "What's included:",
+      "selected_plan": "Selected Plan",
+      "cancel_subscription": "Cancel Subscription",
       "get_started": "Get started",
       "history": {
         "title": "Billing History",
@@ -332,6 +339,10 @@
         "success": "Invitation sent!",
         "description": "{email} will receive an invitation shortly."
       }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "description": "Everything you need to know about our plans."
     },
     "transaction": {
       "title": "Transaction Settings",
@@ -524,6 +535,31 @@
       "workspace_label": "Workspace Currencies",
       "rate_now": "RATE NOW",
       "empty": "No sub currencies added yet."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Manage how you receive alerts and updates across different channels.",
+      "inbox": "Inbox",
+      "settings": "Settings",
+      "recent_activity": "Recent Activity",
+      "mark_all_read": "Mark all as read",
+      "all_marked_read": "All notifications marked as read",
+      "no_notifications": "No notifications",
+      "no_notifications_description": "When you receive alerts, they will appear here.",
+      "mark_read": "Mark read",
+      "delete": "Delete",
+      "load_more": "Load More",
+      "preference_updated": "Notification preference updated",
+      "push_notifications": "Push Notifications",
+      "push_description": "Receive real-time alerts in your browser.",
+      "email_notifications": "Email Notifications",
+      "email_description": "Get detailed updates and reports via email.",
+      "whatsapp_notifications": "WhatsApp Notifications",
+      "whatsapp_description": "Receive quick alerts on your WhatsApp.",
+      "marketing_comms": "Marketing Communications",
+      "marketing_description": "Receive news about new features and promotions.",
+      "pro_tip": "Pro Tip",
+      "pro_tip_description": "You can also configure specific alerts for budgets and large transactions in the Category settings."
     },
     "wallets": {
       "title": "Wallets & Banks",
@@ -852,19 +888,14 @@
       "notes": "Add extra details or context about this transaction"
     },
     "errors": {
+      "process_failed": "Failed to process transaction",
+      "delete_failed": "Failed to delete transaction",
+      "update_failed": "Failed to update transaction",
+      "create_failed": "Failed to create transaction",
+      "save_failed": "Failed to save changes",
       "amount_positive": "Amount must be positive",
-      "invalid_date": "Invalid date",
-      "wallet_required": "Wallet is required",
-      "load_failed": "Failed to load form data",
-      "save_failed": "Failed to save transaction",
-      "file_size_limit": "File size exceeds 3MB limit",
-      "file_type_limit": "Only images and PDFs are allowed",
-      "upload_failed": "Upload failed",
-      "parse_failed": "AI parsing failed",
-      "process_failed": "Failed to process receipt",
-      "invalid_file_type": "Invalid file type for {name}. Only documents and images are allowed.",
-      "some_uploads_failed": "Some files failed to upload",
-      "preview_failed": "Failed to load file preview"
+      "invalid_date": "Please enter a valid date",
+      "at_least_one_attachment": "Please upload at least one attachment"
     },
     "group_by": {
       "placeholder": "Group by...",
@@ -874,22 +905,19 @@
       "monthly": "Monthly"
     },
     "toasts": {
-      "deleted": "Transaction deleted",
-      "delete_failed": "Failed to delete transaction",
-      "updated": "Transaction updated",
-      "created": "Transaction created",
-      "category_updated": "Category updated",
-      "account_updated": "Account updated",
-      "assignee_updated": "Assignee updated",
+      "deleted": "Transaction deleted successfully",
+      "updated": "Transaction updated successfully",
+      "created": "Transaction created successfully",
+      "category_updated": "Category updated successfully",
+      "account_updated": "Account updated successfully",
+      "date_updated": "Date updated successfully",
+      "amount_updated": "Amount updated successfully",
       "link_copied": "Link copied to clipboard",
-      "marked_pending": "Marked as pending",
-      "marked_ready": "Marked as ready",
-      "marked_exported": "Marked as exported",
-      "unmarked_exported": "Unmarked as exported",
-      "parsing_receipt": "Uploading and processing receipt...",
-      "parse_success": "Receipt parsed successfully",
-      "uploading_files": "Uploading {count} files...",
-      "all_uploads_success": "All files uploaded successfully"
+      "marked_ready": "Transaction marked as ready",
+      "marked_pending": "Transaction marked as pending",
+      "marked_exported": "Transaction marked as exported",
+      "unmarked_exported": "Transaction unmarked as exported",
+      "assignee_updated": "Assignee updated successfully"
     },
     "items": {
       "section_title": "Items",
@@ -1001,12 +1029,18 @@
     "active": "Active",
     "processing": "Processing...",
     "connecting": "Connecting...",
+    "loading": "Loading...",
+    "copied": "Copied",
+    "copy_link": "Copy Link",
+    "close": "Close",
     "current": "Current",
     "na": "N/A",
     "actions": "Actions",
     "remove": "Remove",
     "cancel": "Cancel",
     "save": "Save",
+    "saving": "Saving...",
+    "create": "Create",
     "delete": "Delete",
     "opening": "Opening...",
     "view_pdf": "View PDF",
@@ -1015,6 +1049,8 @@
     "remaining": "remaining",
     "open_menu": "Open menu",
     "error": "Trouble",
+    "empty": "Empty",
+    "email": "Email",
     "form": {
       "balance": {
         "label": "Current Balance",
@@ -1082,7 +1118,10 @@
   },
   "calendar": {
     "title": "Calendar",
-    "description": "Visualize your financial events over time.",
+    "description": {
+      "month": "Visualize your financial events month by month.",
+      "week": "A detailed look at your weekly financial schedule."
+    },
     "view": {
       "month": "Month",
       "week": "Week",
@@ -1132,29 +1171,29 @@
     }
   },
   "sidebar": {
-    "dashboard": "Dashboard",
-    "finance": "Finance",
-    "people": "People",
-    "workspace": "Workspace",
-    "system": "System",
-    "overview": "Overview",
-    "transactions": "Transactions",
-    "calendar": "Calendar",
-    "planning": "Planning",
-    "accounts": "Accounts",
-    "budget": "Budget",
-    "debts": "Debts",
-    "contacts": "Contacts",
-    "vault": "Vault",
-    "apps": "Apps",
-    "settings": "Settings",
-    "invoices": "Invoices",
-    "customers": "Customers",
-    "coming_soon": "Coming Soon",
-    "account": "Account",
-    "billing": "Billing",
-    "notifications": "Notifications",
-    "logout": "Log out"
+    "dashboard_label": "Dashboard",
+    "finance_label": "Finance",
+    "people_label": "People",
+    "workspace_label": "Workspace",
+    "system_label": "System",
+    "overview_label": "Overview",
+    "transactions_label": "Transactions",
+    "calendar_label": "Calendar",
+    "planning_label": "Planning",
+    "accounts_label": "Accounts",
+    "budget_label": "Budget",
+    "debts_label": "Debts",
+    "contacts_label": "Contacts",
+    "vault_label": "Vault",
+    "apps_label": "Apps",
+    "settings_label": "Settings",
+    "invoices_label": "Invoices",
+    "customers_label": "Customers",
+    "coming_soon_label": "Coming Soon",
+    "account_label": "Account",
+    "billing_label": "Billing",
+    "notifications_label": "Notifications",
+    "logout_label": "Log out"
   },
   "search": {
     "placeholder": "Find anything...",
@@ -1180,6 +1219,29 @@
       "no_apps_title": "No apps available",
       "no_results_desc": "No apps match your search \"{search}\".",
       "no_apps_desc": "Check back later for new integrations."
+    },
+    "connect": {
+      "telegram": {
+        "title": "Connect Telegram",
+        "description": "Scan the QR code or open Telegram to connect your account to Oewang.",
+        "open_bot": "Open Bot",
+        "footer": "Once you scan or open the link, just tap Start in Telegram to automatically connect your account."
+      },
+      "whatsapp": {
+        "title": "Connect WhatsApp",
+        "description": "Automate your financial updates and reporting via WhatsApp Business.",
+        "premium_title": "Premium Feature",
+        "premium_description": "WhatsApp Integration is a premium feature available on the Enterprise plan. Contact our sales team to enable this for your workspace.",
+        "coming_soon_title": "Coming Soon",
+        "features": {
+          "notifications": "Real-time transaction notifications",
+          "reminders": "Automated payment reminders",
+          "reports": "Weekly financial summaries"
+        },
+        "button": "Contact Sales",
+        "footer_info": "Official WhatsApp Business Integration"
+      },
+      "secure_connection": "Secure End-to-End Connection"
     }
   },
   "ai": {
@@ -1215,11 +1277,105 @@
       "updated": "Invoice updated",
       "update_failed": "Failed to update invoice"
     },
-    "chat": {
-      "new_chat": "New chat",
-      "placeholder": "Ask anything...",
-      "search_placeholder": "Search the web...",
-      "esc": "Esc"
+    "details": {
+      "title": "Invoice Details",
+      "total_amount": "Total Amount",
+      "currency": "Currency",
+      "public_sharing": "Public Sharing",
+      "public_sharing_description": "Enable to share this invoice via a public link.",
+      "code_protected": "Code Protected",
+      "generating_link": "Generating link...",
+      "protection_code": "Protection Code (Optional)",
+      "set_access_code": "Set an access code...",
+      "access_code_description": "Visitors must enter this code to view the invoice.",
+      "internal_note": "Internal Note",
+      "no_internal_notes": "No internal notes have been added for this invoice.",
+      "activity": "Activity",
+      "total": "Total",
+      "vat": "VAT",
+      "discount": "Discount",
+      "payment_details": "Payment Details",
+      "note": "Note",
+      "template_label": "Template",
+      "number": "Invoice No",
+      "issued": "Issue Date",
+      "due": "Due Date",
+      "from": "From",
+      "bill_to": "To",
+      "subtotal": "Subtotal"
+    },
+    "statuses": {
+      "draft": "Draft",
+      "unpaid": "Unpaid",
+      "paid": "Paid",
+      "overdue": "Overdue",
+      "canceled": "Canceled"
+    },
+    "actions": {
+      "copy": "Copy",
+      "copied": "Copied",
+      "edit": "Edit",
+      "add_item": "Add Item",
+      "rename_template": "Rename template",
+      "duplicate_template": "Duplicate template",
+      "delete_template": "Delete template"
+    },
+    "columns": {
+      "contact": "Contact",
+      "issue_date": "Issue Date",
+      "due_date": "Due Date",
+      "description": "Description",
+      "qty": "Quantity",
+      "rate": "Price",
+      "tax": "Tax",
+      "amount": "Total"
+    },
+    "settings": {
+      "invoice": "Invoice",
+      "size": "Invoice size",
+      "currency": "Currency",
+      "date_format": "Date format",
+      "payment_terms": "Payment terms",
+      "tax_pricing": "Tax & Pricing",
+      "sales_tax": "Sales tax",
+      "vat": "VAT",
+      "line_item_tax": "Line item tax",
+      "discount": "Discount",
+      "decimals": "Decimals",
+      "units": "Units",
+      "qr_code": "QR code",
+      "payments": "Payments",
+      "sharing": "Sharing",
+      "terms": {
+        "due_on_receipt": "Due on Receipt",
+        "net_7": "Net 7",
+        "net_10": "Net 10",
+        "net_15": "Net 15",
+        "net_30": "Net 30",
+        "net_45": "Net 45",
+        "net_60": "Net 60",
+        "net_90": "Net 90"
+      }
+    },
+    "placeholders": {
+      "from_details": "Your Company Details...",
+      "select_contact": "Select contact",
+      "payment_details": "Bank account, PayPal, etc...",
+      "note": "Thank you for your business!"
+    }
+  },
+  "chat": {
+    "new_chat": "New Chat",
+    "placeholder": "Ask anything...",
+    "search_placeholder": "Search the web...",
+    "esc": "Esc",
+    "actions": {
+      "copy": "Copy",
+      "retry": "Retry",
+      "positive": "Positive Feedback",
+      "negative": "Negative Feedback",
+      "remove_positive": "Remove Positive Feedback",
+      "remove_negative": "Remove Negative Feedback"
     }
   }
 }

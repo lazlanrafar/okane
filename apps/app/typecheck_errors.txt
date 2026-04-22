@@ -1,0 +1,61 @@
+• turbo 2.8.5
+• Packages in scope: app
+• Running typecheck in 1 packages
+• Remote caching disabled
+@workspace/encryption:typecheck: cache hit, replaying logs bf3a9ad4c1a2e31e
+@workspace/types:typecheck: cache hit, replaying logs c2166ccc30095d0f
+@workspace/encryption:typecheck: 
+@workspace/encryption:typecheck: [0m[2m[35m$[0m [2m[1mtsc --noEmit[0m
+@workspace/types:typecheck: 
+@workspace/types:typecheck: [0m[2m[35m$[0m [2m[1mtsc --noEmit[0m
+@workspace/supabase:typecheck: cache hit, replaying logs b9a9003655da2c03
+@workspace/supabase:typecheck: 
+@workspace/supabase:typecheck: [0m[2m[35m$[0m [2m[1mtsc --noEmit[0m
+@workspace/logger:typecheck: cache hit, replaying logs bb84a79f1491bf42
+@workspace/logger:typecheck: 
+@workspace/logger:typecheck: [0m[2m[35m$[0m [2m[1mtsc --noEmit[0m
+@workspace/utils:typecheck: cache hit, replaying logs 73480a7b4017f954
+@workspace/modules:typecheck: cache hit, replaying logs c7707e9c7a4e97b9
+@workspace/utils:typecheck: 
+@workspace/utils:typecheck: [0m[2m[35m$[0m [2m[1mtsc --noEmit[0m
+@workspace/modules:typecheck: 
+@workspace/modules:typecheck: [0m[2m[35m$[0m [2m[1mtsc --noEmit[0m
+app:typecheck: cache miss, executing b69c5ee4b3b4bbe8
+app:typecheck: $ NODE_OPTIONS='--max-old-space-size=4096' tsc --noEmit
+app:typecheck: components/organisms/accounts/account-form-sheet.tsx(113,19): error TS1003: Identifier expected.
+app:typecheck: components/organisms/budgets/budget-form-sheet.tsx(87,17): error TS1003: Identifier expected.
+app:typecheck: components/organisms/chat/canvas/chat-canvas-error-boundary.tsx(40,24): error TS1003: Identifier expected.
+app:typecheck: components/organisms/chat/charts/burn-rate-chart.tsx(160,29): error TS1003: Identifier expected.
+app:typecheck: components/organisms/chat/charts/expenses-chart.tsx(157,29): error TS1003: Identifier expected.
+app:typecheck: components/organisms/chat/charts/monthly-revenue-chart.tsx(137,29): error TS1003: Identifier expected.
+app:typecheck: components/organisms/chat/charts/profit-chart.tsx(138,29): error TS1003: Identifier expected.
+app:typecheck: components/organisms/chat/charts/revenue-forecast-chart.tsx(395,29): error TS1003: Identifier expected.
+app:typecheck: components/organisms/chat/charts/revenue-trend-chart.tsx(132,29): error TS1003: Identifier expected.
+app:typecheck: components/organisms/chat/charts/runway-chart.tsx(202,29): error TS1003: Identifier expected.
+app:typecheck: components/organisms/chat/charts/stacked-bar-chart.tsx(143,29): error TS1003: Identifier expected.
+app:typecheck: components/organisms/chat/chat-input.tsx(236,12): error TS1003: Identifier expected.
+app:typecheck: components/organisms/chat/chat-input.tsx(298,12): error TS1003: Identifier expected.
+app:typecheck: components/organisms/chat/chat-message-actions.tsx(42,16): error TS1003: Identifier expected.
+app:typecheck: components/organisms/contacts/contact-detail-sheet.tsx(380,56): error TS1003: Identifier expected.
+app:typecheck: components/organisms/invoices/invoice-form-sheet.tsx(73,27): error TS1003: Identifier expected.
+app:typecheck: components/organisms/invoices/invoice-form-sheet.tsx(77,26): error TS1003: Identifier expected.
+app:typecheck: components/organisms/invoices/invoice-form-sheet.tsx(114,27): error TS1003: Identifier expected.
+app:typecheck: components/organisms/invoices/invoice-form-sheet.tsx(118,26): error TS1003: Identifier expected.
+app:typecheck: components/organisms/invoices/invoice-form-sheet.tsx(480,21): error TS1003: Identifier expected.
+app:typecheck: components/organisms/setting/members/invite-member-dialog.tsx(75,17): error TS1003: Identifier expected.
+app:typecheck: components/organisms/transactions/transaction-columns.tsx(184,82): error TS1003: Identifier expected.
+app:typecheck: components/organisms/transactions/transaction-columns.tsx(396,58): error TS1003: Identifier expected.
+app:typecheck: components/organisms/transactions/transaction-columns.tsx(460,40): error TS1003: Identifier expected.
+app:typecheck: components/organisms/transactions/transaction-form-sheet.tsx(205,17): error TS1003: Identifier expected.
+app:typecheck: components/organisms/transactions/transaction-receipt-confirmation-modal.tsx(97,19): error TS1003: Identifier expected.
+app:typecheck: components/providers/confirm-modal-provider.tsx(33,24): error TS1003: Identifier expected.
+app:typecheck: ERROR: command finished with error: command (/Users/boneconsulting/Developer/oewang/apps/app) /private/tmp/bun-node-274e01c73/bun run typecheck exited (2)
+app#typecheck: command (/Users/boneconsulting/Developer/oewang/apps/app) /private/tmp/bun-node-274e01c73/bun run typecheck exited (2)
+
+ Tasks:    6 successful, 7 total
+Cached:    6 cached, 7 total
+  Time:    2.051s 
+Failed:    app#typecheck
+
+ ERROR  run failed: command  exited (2)
+error: "turbo" exited with code 2

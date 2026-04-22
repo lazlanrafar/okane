@@ -3,21 +3,11 @@
 import { useTransition } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Button,
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  Input,
-} from "@workspace/ui";
+import { signup } from "@workspace/modules/auth/auth.action";
+import { Button, Form, FormControl, FormField, FormItem, FormLabel, FormMessage, Input } from "@workspace/ui";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
-import { signup } from "@workspace/modules/auth/auth.action";
 
 import { useAppStore } from "@/stores/app";
 
@@ -36,12 +26,8 @@ const getFormSchema = (dictionary: any) => {
   return z
     .object({
       email: z.string().email({ message: dictionary.auth.form.validation.email_invalid }),
-      password: z
-        .string()
-        .min(6, { message: dictionary.auth.form.validation.password_min }),
-      confirmPassword: z
-        .string()
-        .min(6, { message: dictionary.auth.form.validation.password_min }),
+      password: z.string().min(6, { message: dictionary.auth.form.validation.password_min }),
+      confirmPassword: z.string().min(6, { message: dictionary.auth.form.validation.password_min }),
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: dictionary.auth.form.validation.password_mismatch,

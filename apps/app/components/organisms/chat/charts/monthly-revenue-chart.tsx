@@ -1,21 +1,9 @@
 "use client";
 
+import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+
+import { commonChartConfig, createCompactTickFormatter, useChartMargin } from "./chart-utils";
 import { formatAmount } from "./format-amount";
-import {
-  Bar,
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
-  commonChartConfig,
-  createCompactTickFormatter,
-  useChartMargin,
-} from "./chart-utils";
 import { SelectableChartWrapper } from "./selectable-chart-wrapper";
 
 interface MonthlyRevenueData {
@@ -35,30 +23,17 @@ interface MonthlyRevenueChartProps {
   currency?: string;
   locale?: string;
   enableSelection?: boolean;
-  onSelectionChange?: (
-    startDate: string | null,
-    endDate: string | null,
-  ) => void;
-  onSelectionComplete?: (
-    startDate: string,
-    endDate: string,
-    chartType: string,
-  ) => void;
+  onSelectionChange?: (startDate: string | null, endDate: string | null) => void;
+  onSelectionComplete?: (startDate: string, endDate: string, chartType: string) => void;
   onSelectionStateChange?: (isSelecting: boolean) => void;
 }
 
 // Custom tooltip component
-const CustomTooltip = ({
-  active,
-  payload,
-  label,
-  currency = "USD",
-  locale,
-}: any) => {
+const CustomTooltip = ({ active, payload, label, currency = "USD", locale }: any) => {
   if (active && Array.isArray(payload) && payload.length > 0) {
-    const thisYear = payload.find((p) => p.dataKey === "amount")?.value;
-    const lastYear = payload.find((p) => p.dataKey === "lastYearAmount")?.value;
-    const average = payload.find((p) => p.dataKey === "average")?.value;
+    const thisYear = payload.find((p) => p.dataKey === "amount").value;
+    const lastYear = payload.find((p) => p.dataKey === "lastYearAmount").value;
+    const average = payload.find((p) => p.dataKey === "average").value;
 
     // Format amounts using proper currency formatting
     const formatCurrency = (amount: number) =>
@@ -73,19 +48,13 @@ const CustomTooltip = ({
       <div className="border p-2 text-[10px] font-hedvig-sans bg-white dark:bg-[#0c0c0c] border-[#e6e6e6] dark:border-[#1d1d1d] text-black dark:text-white shadow-sm">
         <p className="mb-1 text-[#707070] dark:text-[#666666]">{label}</p>
         {typeof thisYear === "number" && (
-          <p className="text-black dark:text-white">
-            This Year: {formatCurrency(thisYear)}
-          </p>
+          <p className="text-black dark:text-white">This Year: {formatCurrency(thisYear)}</p>
         )}
         {typeof lastYear === "number" && (
-          <p className="text-black dark:text-white">
-            Last Year: {formatCurrency(lastYear)}
-          </p>
+          <p className="text-black dark:text-white">Last Year: {formatCurrency(lastYear)}</p>
         )}
         {typeof average === "number" && (
-          <p className="text-black dark:text-white">
-            Average: {formatCurrency(average)}
-          </p>
+          <p className="text-black dark:text-white">Average: {formatCurrency(average)}</p>
         )}
       </div>
     );
@@ -114,14 +83,8 @@ export function MonthlyRevenueChart({
       {/* Chart */}
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%" debounce={1}>
-          <ComposedChart
-            data={data}
-            margin={{ top: 6, right: 6, left: -marginLeft, bottom: 6 }}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="var(--chart-grid-stroke)"
-            />
+          <ComposedChart data={data} margin={{ top: 6, right: 6, left: -marginLeft, bottom: 6 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid-stroke)" />
             <XAxis
               dataKey="month"
               axisLine={false}
@@ -143,22 +106,11 @@ export function MonthlyRevenueChart({
               tickFormatter={tickFormatter}
               dataKey="amount"
             />
-            <Tooltip
-              content={<CustomTooltip currency={currency} locale={locale} />}
-              wrapperStyle={{ zIndex: 9999 }}
-            />
+            <Tooltip content={<CustomTooltip currency={currency} locale={locale} />} wrapperStyle={{ zIndex: 9999 }} />
             {/* Last Year bars */}
-            <Bar
-              dataKey="lastYearAmount"
-              fill="var(--chart-bar-fill-secondary)"
-              isAnimationActive={false}
-            />
+            <Bar dataKey="lastYearAmount" fill="var(--chart-bar-fill-secondary)" isAnimationActive={false} />
             {/* This Year bars */}
-            <Bar
-              dataKey="amount"
-              fill="var(--chart-bar-fill)"
-              isAnimationActive={false}
-            />
+            <Bar dataKey="amount" fill="var(--chart-bar-fill)" isAnimationActive={false} />
             {/* Average line */}
             <Line
               type="monotone"

@@ -1,17 +1,11 @@
 "use client";
 
-import { useChatInterface } from "@workspace/ui/hooks";
-import { 
-  Provider as ChatProvider, 
-  createChatStore, 
-  type StoreState 
-} from "@ai-sdk-tools/store";
-import { 
-  extractArtifactTypeFromMessage,
-  getArtifactSectionMessageForStatus 
-} from "@workspace/constants";
+import { type ReactNode, useEffect, useMemo } from "react";
+
+import { Provider as ChatProvider, createChatStore, type StoreState } from "@ai-sdk-tools/store";
+import { extractArtifactTypeFromMessage, getArtifactSectionMessageForStatus } from "@workspace/constants";
 import { sendChatMessage } from "@workspace/modules/ai/ai.action";
-import { useMemo, useEffect, type ReactNode } from "react";
+import { useChatInterface } from "@workspace/ui/hooks";
 import type { UIMessage } from "ai";
 
 interface Props {
@@ -21,7 +15,7 @@ interface Props {
 
 export function ChatProviderWrapper({ children, initialMessages }: Props) {
   const { chatId, setChatId } = useChatInterface();
-  
+
   // Create a stable store instance
   const store = useMemo(() => createChatStore(initialMessages || []), [initialMessages]);
 
@@ -41,9 +35,9 @@ export function ChatProviderWrapper({ children, initialMessages }: Props) {
       state._syncState({
         sendMessage: async (input: any, options?: { metadata?: any }) => {
           const messages = store.getState().messages;
-          
+
           let userMessage: UIMessage;
-          let attachments = options?.metadata?.attachments;
+          let attachments = options.metadata.attachments;
 
           if (typeof input === "string") {
             userMessage = {
@@ -58,38 +52,37 @@ export function ChatProviderWrapper({ children, initialMessages }: Props) {
               parts: [{ type: "text", text: input.text }],
               metadata: input.metadata,
             } as unknown as UIMessage;
-            attachments = attachments || input.metadata?.attachments;
+            attachments = attachments || input.metadata.attachments;
           } else {
             userMessage = input;
           }
 
           const updatedMessages = [...messages, userMessage];
-          
+
           state.setMessages(updatedMessages);
           state.setStatus("streaming");
 
           try {
             const backendMessages = updatedMessages.map((m) => {
-              const textContent = (m as any).parts
-                ?.filter((p: any) => p.type === "text")
-                .map((p: any) => p.text)
-                .join("\n") || (m as any).content || "";
-              
+              const textContent =
+                (m as any).parts
+                  .filter((p: any) => p.type === "text")
+                  .map((p: any) => p.text)
+                  .join("\n") ||
+                (m as any).content ||
+                "";
+
               return {
                 role: m.role as "user" | "assistant",
                 content: textContent,
               };
             });
 
-            const response = await sendChatMessage(
-              backendMessages,
-              chatId || undefined,
-              attachments
-            );
+            const response = await sendChatMessage(backendMessages, chatId || undefined, attachments);
 
             if (response.success && response.data) {
               const parts: any[] = [{ type: "text", text: response.data.reply }];
-              
+
               // If backend returned an artifact, add it as a message part
               // This format is required by @ai-sdk-tools/artifacts/client
               const artifact = (response.data as any).artifact;
@@ -112,7 +105,7 @@ export function ChatProviderWrapper({ children, initialMessages }: Props) {
                     id: artifact.type,
                     type: artifact.type,
                     payload: artifact.payload,
-                  }
+                  },
                 });
               }
 
@@ -140,14 +133,10 @@ export function ChatProviderWrapper({ children, initialMessages }: Props) {
             state.setError(error);
             state.setStatus("error");
           }
-        }
+        },
       });
     }
   }, [store, chatId, setChatId]);
 
-  return (
-    <ChatProvider store={store as any}>
-      {children}
-    </ChatProvider>
-  );
+  return <ChatProvider store={store as any}>{children}</ChatProvider>;
 }

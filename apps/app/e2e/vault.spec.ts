@@ -1,6 +1,7 @@
-import { test, expect } from "./fixtures";
-import path from "path";
 import fs from "fs";
+import path from "path";
+
+import { expect, test } from "./fixtures";
 
 /**
  * Workspace: Vault (Secure File Storage)
@@ -18,8 +19,7 @@ test.describe("Workspace: Vault", () => {
 
   test.beforeAll(async () => {
     const fixturesDir = path.join(__dirname, "fixtures");
-    if (!fs.existsSync(fixturesDir))
-      fs.mkdirSync(fixturesDir, { recursive: true });
+    if (!fs.existsSync(fixturesDir)) fs.mkdirSync(fixturesDir, { recursive: true });
     // Create a minimal valid file (plain text but named .pdf — vault accepts it for testing)
     fs.writeFileSync(testFilePath, "%PDF-1.4\nOewang Vault E2E test file\n");
   });
@@ -32,7 +32,7 @@ test.describe("Workspace: Vault", () => {
     await page.goto("/en/vault");
     await page.waitForLoadState("domcontentloaded");
     // Wait for the Vault title as a first marker
-    await expect(page.getByRole('heading', { name: dictionary.vault.title })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("heading", { name: dictionary.vault.title })).toBeVisible({ timeout: 15000 });
 
     // Wait for the search input to appear — VaultClient returns a skeleton until dictionary/client load completes
     await expect(page.getByPlaceholder(dictionary.vault.search_placeholder)).toBeVisible({
@@ -40,10 +40,7 @@ test.describe("Workspace: Vault", () => {
     });
   });
 
-  test("should render the vault page title and search bar", async ({
-    page,
-    dictionary,
-  }) => {
+  test("should render the vault page title and search bar", async ({ page, dictionary }) => {
     // Page title might be in a header or h1, use getByText for flexibility
     await expect(page.getByText(dictionary.vault.title).first()).toBeVisible();
     await expect(page.getByPlaceholder(dictionary.vault.search_placeholder)).toBeVisible();
@@ -51,7 +48,7 @@ test.describe("Workspace: Vault", () => {
 
   test("should render the Upload button", async ({ page, dictionary }) => {
     // The button has a Plus icon + text "Upload" — match by role with partial name
-    await expect(page.getByRole("button", { name: new RegExp(dictionary.vault.upload_button, 'i') })).toBeVisible();
+    await expect(page.getByRole("button", { name: new RegExp(dictionary.vault.upload_button, "i") })).toBeVisible();
   });
 
   test("should display storage usage progress bar", async ({ page }) => {
@@ -84,19 +81,25 @@ test.describe("Workspace: Vault", () => {
     await expect(page.locator("body")).toBeVisible();
   });
 
-  test('should upload a file to the vault', async ({ page, dictionary }) => {
+  test("should upload a file to the vault", async ({ page, dictionary }) => {
     // Generate a valid 1x1 transparent PNG file
-    const fileContent = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+    const fileContent = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+      "base64",
+    );
     const fileName = `e2e-test-${Date.now()}.png`;
 
-    const fileChooserPromise = page.waitForEvent('filechooser');
+    const fileChooserPromise = page.waitForEvent("filechooser");
     // Click any button or element that triggers the file input click
-    await page.getByRole('button', { name: new RegExp(dictionary.vault.upload_button, 'i') }).first().click();
+    await page
+      .getByRole("button", { name: new RegExp(dictionary.vault.upload_button, "i") })
+      .first()
+      .click();
     const fileChooser = await fileChooserPromise;
-    
+
     await fileChooser.setFiles({
       name: fileName,
-      mimeType: 'image/png',
+      mimeType: "image/png",
       buffer: fileContent,
     });
 
@@ -104,7 +107,7 @@ test.describe("Workspace: Vault", () => {
     // The filename is the most reliable indicator that the upload finished and the list refreshed
     const successToast = page.getByText(dictionary.vault.toasts.upload_success);
     const fileInList = page.getByText(fileName);
-    
+
     await expect(successToast.or(fileInList)).toBeVisible({ timeout: 60000 });
   });
 

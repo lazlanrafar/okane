@@ -1,6 +1,6 @@
 "use client";
 
-import { TableSkeleton, Skeleton } from "@workspace/ui";
+import { Skeleton, TableSkeleton } from "@workspace/ui";
 
 export function ContactTableSkeleton() {
   const columns = [
@@ -68,11 +68,7 @@ export function ContactTableSkeleton() {
       </div>
 
       <div className="flex-1 min-h-0 relative">
-        <TableSkeleton
-          columns={columns as any}
-          rowCount={10}
-          actionsColumnId="actions"
-        />
+        <TableSkeleton columns={columns as any} rowCount={10} actionsColumnId="actions" />
       </div>
     </div>
   );

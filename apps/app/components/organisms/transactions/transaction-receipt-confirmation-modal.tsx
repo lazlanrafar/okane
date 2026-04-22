@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { useQueryClient } from "@tanstack/react-query";
+import type { ParsedReceipt } from "@workspace/modules/ai/ai.action";
+import { createTransaction } from "@workspace/modules/transaction/transaction.action";
 import {
+  Button,
+  CurrencyInput,
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  Button,
   Form,
   FormControl,
   FormField,
@@ -19,15 +22,14 @@ import {
   FormMessage,
   Input,
   InputDate,
-  CurrencyInput,
 } from "@workspace/ui";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+
 import { SelectAccount } from "@/components/molecules/select-account";
 import { SelectCategory } from "@/components/molecules/select-category";
 import { useAppStore } from "@/stores/app";
-import type { ParsedReceipt } from "@workspace/modules/ai/ai.action";
-import { createTransaction } from "@workspace/modules/transaction/transaction.action";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 
 const confirmationSchema = z.object({
   amount: z.coerce.number().positive("Amount must be positive"),
@@ -47,13 +49,7 @@ interface Props {
   onSuccess?: () => void;
 }
 
-export function TransactionReceiptConfirmationModal({
-  open,
-  onOpenChange,
-  data,
-  vaultFileId,
-  onSuccess,
-}: Props) {
+export function TransactionReceiptConfirmationModal({ open, onOpenChange, data, vaultFileId, onSuccess }: Props) {
   const { settings, user } = useAppStore();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -180,10 +176,7 @@ export function TransactionReceiptConfirmationModal({
                 <FormItem>
                   <FormLabel>Account</FormLabel>
                   <FormControl>
-                    <SelectAccount
-                      value={field.value}
-                      onChange={(id) => form.setValue("walletId", id)}
-                    />
+                    <SelectAccount value={field.value} onChange={(id) => form.setValue("walletId", id)} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -209,11 +202,7 @@ export function TransactionReceiptConfirmationModal({
             />
 
             <DialogFooter className="pt-4">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => onOpenChange(false)}
-              >
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>

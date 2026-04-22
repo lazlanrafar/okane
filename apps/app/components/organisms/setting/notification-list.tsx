@@ -1,48 +1,33 @@
 "use client";
 
 import React from "react";
-import { useNotifications } from "@/hooks/use-notifications";
+
+import { Avatar, AvatarFallback, AvatarImage, Button, cn, getInitials, Separator } from "@workspace/ui";
+import { formatDistanceToNow } from "date-fns";
 import {
-  Button,
-  Separator,
-  getInitials,
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-  cn,
-} from "@workspace/ui";
-import {
+  AlertCircle,
   Bell,
   Check,
   CheckCheck,
-  MoreVertical,
-  Trash2,
   Mail,
-  AlertCircle,
-  TrendingUp,
+  MoreVertical,
   Receipt,
+  Trash2,
+  TrendingUp,
   Wallet,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { useAppStore } from "@/stores/app";
 import { toast } from "sonner";
 
+import { useNotifications } from "@/hooks/use-notifications";
+import { useAppStore } from "@/stores/app";
+
 export function NotificationList() {
-  const {
-    notifications,
-    isLoading,
-    markAsRead,
-    deleteNotification,
-    unreadCount,
-    refetch,
-  } = useNotifications();
+  const { notifications, isLoading, markAsRead, deleteNotification, unreadCount, refetch } = useNotifications();
   const { dictionary } = useAppStore() as any;
-  const dict = dictionary?.settings?.notifications || {};
+  const dict = dictionary.settings.notifications || {};
 
   const handleMarkAllAsRead = () => {
-    const unreadIds = notifications
-      .filter((n) => !n.is_read)
-      .map((n) => n.id);
+    const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
     if (unreadIds.length > 0) {
       markAsRead(unreadIds);
       toast.success(dict.all_marked_read || "All notifications marked as read");
@@ -124,7 +109,7 @@ export function NotificationList() {
             key={notification.id}
             className={cn(
               "group relative flex gap-4 p-4 transition-colors hover:bg-accent/50",
-              !notification.is_read && "bg-accent/20"
+              !notification.is_read && "bg-accent/20",
             )}
           >
             <div className="relative flex-none">
@@ -138,20 +123,15 @@ export function NotificationList() {
 
             <div className="flex-1 space-y-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
-                <span className={cn(
-                  "text-sm font-medium leading-none truncate",
-                  !notification.is_read && "font-bold"
-                )}>
+                <span className={cn("text-sm font-medium leading-none truncate", !notification.is_read && "font-bold")}>
                   {notification.title}
                 </span>
                 <span className="flex-none text-[10px] text-muted-foreground">
                   {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground line-clamp-2">
-                {notification.message}
-              </p>
-              
+              <p className="text-xs text-muted-foreground line-clamp-2">{notification.message}</p>
+
               <div className="flex items-center gap-2 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 {!notification.is_read && (
                   <Button
@@ -178,7 +158,7 @@ export function NotificationList() {
           </div>
         ))}
       </div>
-      
+
       {notifications.length >= 20 && (
         <div className="flex justify-center pt-2">
           <Button variant="outline" size="sm" className="h-8 text-[10px] uppercase tracking-wider font-semibold">

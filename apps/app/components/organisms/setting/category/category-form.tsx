@@ -21,6 +21,14 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  createCategory,
+  deleteCategory,
+  getExpenseCategories,
+  getIncomeCategories,
+  reorderCategories,
+  updateCategory,
+} from "@workspace/modules/category/category.action";
 import type { Category } from "@workspace/types";
 import {
   AlertDialog,
@@ -47,6 +55,7 @@ import {
   FormLabel,
   FormMessage,
   Input,
+  Separator,
   Skeleton,
   Table,
   TableBody,
@@ -54,21 +63,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  Separator,
 } from "@workspace/ui";
 import { GripVertical, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-import {
-  createCategory,
-  deleteCategory,
-  getExpenseCategories,
-  getIncomeCategories,
-  reorderCategories,
-  updateCategory,
-} from "@workspace/modules/category/category.action";
 import { useAppStore } from "@/stores/app";
 
 interface SortableRowProps {
@@ -77,19 +77,8 @@ interface SortableRowProps {
   handleDeleteClick: (category: Category) => void;
 }
 
-function SortableRow({
-  category,
-  handleEdit,
-  handleDeleteClick,
-}: SortableRowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: category.id });
+function SortableRow({ category, handleEdit, handleDeleteClick }: SortableRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: category.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -99,19 +88,9 @@ function SortableRow({
   } as React.CSSProperties;
 
   return (
-    <TableRow
-      ref={setNodeRef}
-      style={style}
-      className={isDragging ? "bg-muted/50" : ""}
-    >
+    <TableRow ref={setNodeRef} style={style} className={isDragging ? "bg-muted/50" : ""}>
       <TableCell className="font-medium">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="cursor-move"
-          {...attributes}
-          {...listeners}
-        >
+        <Button variant="ghost" size="icon" className="cursor-move" {...attributes} {...listeners}>
           <GripVertical className="h-4 w-4 text-muted-foreground" />
         </Button>
 
@@ -119,11 +98,7 @@ function SortableRow({
       </TableCell>
       <TableCell className="text-right">
         <div className="flex items-center justify-end gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => handleEdit(category)}
-          >
+          <Button variant="ghost" size="icon" onClick={() => handleEdit(category)}>
             <Pencil className="h-4 w-4" />
           </Button>
           <Button
@@ -184,21 +159,16 @@ function CategorySkeleton() {
   );
 }
 
-export function CategoryForm({ type, dictionary: dict }: { type: "income" | "expense", dictionary?: any }) {
+export function CategoryForm({ type, dictionary: dict }: { type: "income" | "expense"; dictionary: any }) {
   const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
   const dictionary = dict || storeDict;
   const dictionary_t =
-    type === "income"
-      ? dictionary?.settings?.category?.income
-      : dictionary?.settings?.category?.expense;
+    type === "income" ? dictionary.category.income : dictionary.category.expense;
 
   const [isOpen, setIsOpen] = React.useState(false);
-  const [activeCategory, setActiveCategory] = React.useState<Category | null>(
-    null,
-  );
+  const [activeCategory, setActiveCategory] = React.useState<Category | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const [categoryToDelete, setCategoryToDelete] =
-    React.useState<Category | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = React.useState<Category | null>(null);
   const [items, setItems] = React.useState<Category[]>([]);
 
   const queryClient = useQueryClient();
@@ -208,8 +178,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
     () =>
       z.object({
         name: z.string().min(1, {
-          message:
-            dictionary_t?.form?.name?.error_required || "Name is required",
+          message: dictionary_t.form.name.error_required || "Name is required",
         }),
       }),
     [dictionary_t],
@@ -226,9 +195,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
   const { data: categories, isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
-      const result = await (type === "income"
-        ? getIncomeCategories()
-        : getExpenseCategories());
+      const result = await (type === "income" ? getIncomeCategories() : getExpenseCategories());
       if (result.success) return result.data;
       throw new Error(result.error);
     },
@@ -249,11 +216,11 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
-    if (active.id !== over?.id) {
+    if (!over || !active) return;
+    if (active.id !== over.id) {
       setItems((items) => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over?.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
 
         const newItems = arrayMove(items, oldIndex, newIndex);
 
@@ -283,16 +250,12 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
-      toast.success(dictionary_t?.form?.create_success);
+      toast.success(dictionary_t.form.create_success);
       setIsOpen(false);
       form.reset();
     },
     onError: (error) => {
-      toast.error(
-        `${dictionary?.settings?.common?.error || "Error"}: ${
-          (error as Error).message
-        }`,
-      );
+      toast.error(`${dictionary.settings.common.error || "Error"}: ${(error as Error).message}`);
     },
   });
 
@@ -307,17 +270,13 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
-      toast.success(dictionary_t?.form?.update_success);
+      toast.success(dictionary_t.form.update_success);
       setIsOpen(false);
       setActiveCategory(null);
       form.reset();
     },
     onError: (error) => {
-      toast.error(
-        `${dictionary?.settings?.common?.error || "Error"}: ${
-          (error as Error).message
-        }`,
-      );
+      toast.error(`${dictionary.settings.common.error || "Error"}: ${(error as Error).message}`);
     },
   });
 
@@ -329,16 +288,12 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
-      toast.success(dictionary_t?.form?.delete_success);
+      toast.success(dictionary_t.form.delete_success);
       setIsDeleteDialogOpen(false);
       setCategoryToDelete(null);
     },
     onError: (error) => {
-      toast.error(
-        `${dictionary?.settings?.common?.error || "Error"}: ${
-          (error as Error).message
-        }`,
-      );
+      toast.error(`${dictionary.settings.common.error || "Error"}: ${(error as Error).message}`);
     },
   });
 
@@ -370,11 +325,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
       return { previousCategories };
     },
     onError: (error, _, context) => {
-      toast.error(
-        `${dictionary?.settings.common.error || "Error"}: ${
-          (error as Error).message
-        }`,
-      );
+      toast.error(`${dictionary.settings.common.error || "Error"}: ${(error as Error).message}`);
       if (context?.previousCategories) {
         queryClient.setQueryData(queryKey, context.previousCategories);
       }
@@ -422,12 +373,8 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">
-          {dictionary_t.title}
-        </h2>
-        <p className="text-xs text-muted-foreground">
-          {dictionary_t.description}
-        </p>
+        <h2 className="text-lg font-medium tracking-tight">{dictionary_t.title}</h2>
+        <p className="text-xs text-muted-foreground">{dictionary_t.description}</p>
       </div>
       <Separator className="rounded-none" />
 
@@ -435,10 +382,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
         <div className="flex justify-end">
           <Dialog open={isOpen} onOpenChange={handleDialogChange}>
             <DialogTrigger asChild>
-              <Button
-                size="sm"
-                className="rounded-none h-8 text-xs font-normal"
-              >
+              <Button size="sm" className="rounded-none h-8 text-xs font-normal">
                 <Plus className="mr-2 h-3.5 w-3.5" />
                 {dictionary_t.add_button}
               </Button>
@@ -446,27 +390,18 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
             <DialogContent className="rounded-none max-w-sm">
               <DialogHeader>
                 <DialogTitle className="text-base font-medium tracking-tight">
-                  {activeCategory
-                    ? dictionary_t.form.submit
-                    : dictionary_t.add_button}
+                  {activeCategory ? dictionary_t.form.submit : dictionary_t.add_button}
                 </DialogTitle>
-                <DialogDescription className="text-xs">
-                  {dictionary_t.description}
-                </DialogDescription>
+                <DialogDescription className="text-xs">{dictionary_t.description}</DialogDescription>
               </DialogHeader>
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4 pt-4"
-                >
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
                   <FormField
                     control={form.control}
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs font-medium">
-                          {dictionary_t.form.name.label}
-                        </FormLabel>
+                        <FormLabel className="text-xs font-medium">{dictionary_t.form.name.label}</FormLabel>
                         <FormControl>
                           <Input
                             placeholder={dictionary_t.form.name.placeholder}
@@ -484,9 +419,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
                       disabled={isSubmitting}
                       className="rounded-none h-8 text-xs font-normal w-full sm:w-auto"
                     >
-                      {isSubmitting && (
-                        <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                      )}
+                      {isSubmitting && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
                       {dictionary_t.form.submit}
                     </Button>
                   </DialogFooter>
@@ -497,27 +430,18 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
         </div>
 
         <div className="bg-background">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent ">
-                  <TableHead className="text-xs font-medium">
-                    {dictionary_t.table.name}
-                  </TableHead>
+                  <TableHead className="text-xs font-medium">{dictionary_t.table.name}</TableHead>
                   <TableHead className="w-[100px] text-right text-xs font-medium">
                     {dictionary_t.table.actions}
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <SortableContext
-                  items={items}
-                  strategy={verticalListSortingStrategy}
-                >
+                <SortableContext items={items} strategy={verticalListSortingStrategy}>
                   {items.length > 0 ? (
                     items.map((category) => (
                       <SortableRow
@@ -529,10 +453,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
                     ))
                   ) : (
                     <TableRow className="hover:bg-transparent">
-                      <TableCell
-                        colSpan={2}
-                        className="h-32 text-center text-xs text-muted-foreground"
-                      >
+                      <TableCell colSpan={2} className="h-32 text-center text-xs text-muted-foreground">
                         {dictionary_t.empty}
                       </TableCell>
                     </TableRow>
@@ -544,24 +465,16 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
         </div>
       </div>
 
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent className="rounded-none max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base font-medium tracking-tight">
               {dictionary_t.form.delete}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
-              {dictionary_t.form.delete_confirm}
-            </AlertDialogDescription>
+            <AlertDialogDescription className="text-xs">{dictionary_t.form.delete_confirm}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="pt-2">
-            <AlertDialogCancel
-              disabled={deleteMutation.isPending}
-              className="rounded-none h-8 text-xs font-normal"
-            >
+            <AlertDialogCancel disabled={deleteMutation.isPending} className="rounded-none h-8 text-xs font-normal">
               {dictionary_t.form.cancel}
             </AlertDialogCancel>
             <AlertDialogAction
@@ -574,9 +487,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
               disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-none h-8 text-xs font-normal"
             >
-              {deleteMutation.isPending && (
-                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-              )}
+              {deleteMutation.isPending && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
               {dictionary_t.form.delete}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -1,14 +1,11 @@
 "use client";
 
-import {
-  Combobox,
-  Spinner,
-  cn,
-} from "@workspace/ui";
-import { Layers } from "lucide-react";
-import { getWalletGroups, createWalletGroup } from "@workspace/modules/client";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createWalletGroup, getWalletGroups } from "@workspace/modules/client";
+import { Combobox, cn, Spinner } from "@workspace/ui";
+import { Layers } from "lucide-react";
 import { toast } from "sonner";
 
 export interface SelectAccountGroupProps {
@@ -102,9 +99,7 @@ export function SelectAccountGroup({
       renderSelectedItem={(item) => (
         <div className="flex items-center space-x-2">
           <Layers className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <span className="text-left truncate max-w-[90%]">
-            {!Array.isArray(item) ? item.label : ""}
-          </span>
+          <span className="text-left truncate max-w-[90%]">{!Array.isArray(item) ? item.label : ""}</span>
         </div>
       )}
       renderOnCreate={(value) => (

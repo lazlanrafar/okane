@@ -1,11 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { useQuery } from "@tanstack/react-query";
 import { getInvoiceActivity } from "@workspace/modules/invoice/invoice.action";
-import { format } from "date-fns";
-import { User, Clock, FileEdit, CheckCircle2, History } from "lucide-react";
 import { ScrollArea } from "@workspace/ui";
-import { useMemo } from "react";
+import { format } from "date-fns";
+import { CheckCircle2, Clock, FileEdit, History, User } from "lucide-react";
 
 interface InvoiceActivityProps {
   invoiceId: string;
@@ -13,14 +14,14 @@ interface InvoiceActivityProps {
 }
 
 export function InvoiceActivity({ invoiceId, dictionary }: InvoiceActivityProps) {
-  const dict = dictionary?.invoices;
+  const dict = dictionary.invoices;
   const { data: response, isLoading } = useQuery({
     queryKey: ["invoice-activity", invoiceId],
     queryFn: () => getInvoiceActivity(invoiceId),
     enabled: !!invoiceId,
   });
 
-  const activities = useMemo(() => response?.data || [], [response]);
+  const activities = useMemo(() => response.data || [], [response]);
 
   if (isLoading) {
     return (
@@ -45,7 +46,7 @@ export function InvoiceActivity({ invoiceId, dictionary }: InvoiceActivityProps)
           <History className="h-5 w-5 text-muted-foreground/60" />
         </div>
         <p className="text-sm text-muted-foreground font-medium tracking-tight italic">
-          {dict?.details?.no_activity || "No activity recorded yet"}
+          {dict.details.no_activity || "No activity recorded yet"}
         </p>
       </div>
     );
@@ -83,9 +84,9 @@ export function InvoiceActivity({ invoiceId, dictionary }: InvoiceActivityProps)
             <div className="flex items-center justify-between gap-4">
               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest font-mono">
                 {activity.action === "invoice.created"
-                  ? dict?.activities?.created || "Created"
+                  ? dict.activities.created || "Created"
                   : activity.action === "invoice.updated"
-                    ? dict?.activities?.updated || "Updated"
+                    ? dict.activities.updated || "Updated"
                     : activity.action.replace("invoice.", "").replace("_", " ")}
               </span>
               <span className="text-[9px] text-muted-foreground/40 font-bold uppercase tracking-[0.2em] font-mono">
@@ -94,17 +95,15 @@ export function InvoiceActivity({ invoiceId, dictionary }: InvoiceActivityProps)
             </div>
 
             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60 font-mono italic opacity-70">
-              <span>{dictionary?.common?.by || "by"}</span>
+              <span>{dictionary.common.by || "by"}</span>
               <span className="font-bold text-foreground not-italic">
-                {activity.user?.name || activity.user?.email || dictionary?.common?.system || "System"}
+                {activity.user.name || activity.user.email || dictionary.common.system || "System"}
               </span>
             </div>
 
-            {activity.action === "invoice.updated" &&
-              activity.before &&
-              activity.after && (
-                <ActivityDiff before={activity.before} after={activity.after} dict={dict} />
-              )}
+            {activity.action === "invoice.updated" && activity.before && activity.after && (
+              <ActivityDiff before={activity.before} after={activity.after} dict={dict} />
+            )}
           </div>
         </div>
       ))}
@@ -130,23 +129,18 @@ function ActivityDiff({ before, after, dict }: { before: any; after: any; dict: 
   return (
     <div className="mt-2 space-y-1.5 border-l border-border pl-3 py-1">
       {changes.map((change) => (
-        <div
-          key={change.field}
-          className="text-[10px] flex items-center gap-2 font-mono"
-        >
+        <div key={change.field} className="text-[10px] flex items-center gap-2 font-mono">
           <span className="text-muted-foreground/60 uppercase tracking-tighter w-20 shrink-0">
-            {dict?.columns?.[change.field.replace(/([A-Z])/g, "_$1").toLowerCase()] || 
-             dict?.details?.[change.field.replace(/([A-Z])/g, "_$1").toLowerCase()] || 
-             change.field.replace(/([A-Z])/g, " $1")}
+            {dict.columns[change.field.replace(/([A-Z])/g, "_$1").toLowerCase()] ||
+              dict.details[change.field.replace(/([A-Z])/g, "_$1").toLowerCase()] ||
+              change.field.replace(/([A-Z])/g, " $1")}
           </span>
           <div className="flex items-center gap-2 overflow-hidden">
             <span className="line-through text-muted-foreground/40 truncate max-w-[80px]">
               {String(change.from ?? "—")}
             </span>
             <span className="text-muted-foreground/40">→</span>
-            <span className="text-foreground font-bold truncate">
-              {String(change.to ?? "—")}
-            </span>
+            <span className="text-foreground font-bold truncate">{String(change.to ?? "—")}</span>
           </div>
         </div>
       ))}

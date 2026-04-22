@@ -1,6 +1,6 @@
 "use client";
 
-import { TableSkeleton, Skeleton } from "@workspace/ui";
+import { Skeleton, TableSkeleton } from "@workspace/ui";
 
 export function AccountTableSkeleton() {
   const columns = [
@@ -24,17 +24,13 @@ export function AccountTableSkeleton() {
           </span>
         </div>
         <div className="p-6 flex flex-col gap-1 border border-border">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
-            Accounts
-          </span>
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">Accounts</span>
           <span className="text-3xl font-serif font-medium tracking-tight mt-1">
             <Skeleton className="h-9 w-12" />
           </span>
         </div>
         <div className="p-6 flex flex-col gap-1 border border-border">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
-            Active
-          </span>
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">Active</span>
           <span className="text-3xl font-serif font-medium tracking-tight mt-1">
             <Skeleton className="h-9 w-12" />
           </span>
@@ -51,12 +47,7 @@ export function AccountTableSkeleton() {
       </div>
 
       <div className="flex-1 min-h-0 relative">
-        <TableSkeleton
-          columns={columns as any}
-          rowCount={10}
-          stickyColumnIds={["name"]}
-          actionsColumnId="actions"
-        />
+        <TableSkeleton columns={columns as any} rowCount={10} stickyColumnIds={["name"]} actionsColumnId="actions" />
       </div>
     </div>
   );

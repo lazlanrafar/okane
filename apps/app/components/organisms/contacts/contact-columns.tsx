@@ -1,6 +1,8 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
+import { deleteContact } from "@workspace/modules/client";
 import type { Contact } from "@workspace/types";
 import {
   Button,
@@ -13,8 +15,8 @@ import {
 } from "@workspace/ui";
 import { Globe, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { deleteContact } from "@workspace/modules/client";
-import { useQueryClient } from "@tanstack/react-query";
+ 
+import type { Dictionary } from "@workspace/dictionaries";
 
 const CellActions = ({
   row,
@@ -23,7 +25,7 @@ const CellActions = ({
 }: {
   row: { original: Contact };
   onEdit: (contact: Contact) => void;
-  dictionary: any;
+  dictionary: Dictionary;
 }) => {
   const contact = row.original;
   const queryClient = useQueryClient();
@@ -57,9 +59,7 @@ const CellActions = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>
-          {dictionary.contacts.details.title}
-        </DropdownMenuLabel>
+        <DropdownMenuLabel>{dictionary.contacts.details.title}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => onEdit(contact)}>
           <Pencil className="mr-2 h-4 w-4" />
@@ -74,10 +74,7 @@ const CellActions = ({
   );
 };
 
-export const getContactColumns = (
-  onEdit: (contact: Contact) => void,
-  dictionary: any,
-): ColumnDef<Contact>[] => [
+export const getContactColumns = (onEdit: (contact: Contact) => void, dictionary: Dictionary): ColumnDef<Contact>[] => [
   {
     accessorKey: "name",
     header: dictionary.contacts.columns.name,
@@ -99,9 +96,7 @@ export const getContactColumns = (
   {
     accessorKey: "phone",
     header: dictionary.contacts.columns.phone,
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">{row.original.phone ?? "—"}</span>
-    ),
+    cell: ({ row }) => <span className="text-muted-foreground">{row.original.phone ?? "—"}</span>,
   },
   {
     accessorKey: "website",
@@ -127,21 +122,13 @@ export const getContactColumns = (
     header: dictionary.contacts.columns.location,
     cell: ({ row }) => {
       const parts = [row.original.city, row.original.country].filter(Boolean);
-      return (
-        <span className="text-muted-foreground">
-          {parts.length > 0 ? parts.join(", ") : "—"}
-        </span>
-      );
+      return <span className="text-muted-foreground">{parts.length > 0 ? parts.join(", ") : "—"}</span>;
     },
   },
   {
     accessorKey: "addressLine1",
     header: dictionary.contacts.columns.address,
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {row.original.addressLine1 ?? "—"}
-      </span>
-    ),
+    cell: ({ row }) => <span className="text-muted-foreground">{row.original.addressLine1 ?? "—"}</span>,
   },
   {
     id: "actions",
@@ -153,8 +140,6 @@ export const getContactColumns = (
       sticky: true,
       className: "bg-background z-20",
     },
-    cell: ({ row }) => (
-      <CellActions row={row} onEdit={onEdit} dictionary={dictionary} />
-    ),
+    cell: ({ row }) => <CellActions row={row} onEdit={onEdit} dictionary={dictionary} />,
   },
 ];

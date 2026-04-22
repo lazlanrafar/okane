@@ -3,22 +3,11 @@
 import { useTransition } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Button,
-  Checkbox,
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  Input,
-} from "@workspace/ui";
+import { login } from "@workspace/modules/auth/auth.action";
+import { Button, Checkbox, Form, FormControl, FormField, FormItem, FormLabel, FormMessage, Input } from "@workspace/ui";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
-import { login } from "@workspace/modules/auth/auth.action";
 
 import { useAppStore } from "@/stores/app";
 
@@ -32,9 +21,7 @@ const getFormSchema = (dictionary: any) => {
   }
   return z.object({
     email: z.string().email({ message: dictionary.auth.form.validation.email_invalid }),
-    password: z
-      .string()
-      .min(6, { message: dictionary.auth.form.validation.password_min }),
+    password: z.string().min(6, { message: dictionary.auth.form.validation.password_min }),
     remember: z.boolean().optional(),
   });
 };
@@ -42,7 +29,7 @@ const getFormSchema = (dictionary: any) => {
 export function LoginForm({ dictionary }: { dictionary: any }) {
   const [is_pending, start_transition] = useTransition();
 
-  const auth_form = dictionary?.auth?.form || (dictionary as any)?.auth?.form;
+  const auth_form = dictionary.auth.form || (dictionary as any).auth.form;
 
   const form = useForm<z.infer<ReturnType<typeof getFormSchema>>>({
     resolver: zodResolver(getFormSchema(dictionary) as any),
@@ -63,7 +50,7 @@ export function LoginForm({ dictionary }: { dictionary: any }) {
 
       const result = await login(form_data);
       if (result.success) {
-        toast.success(auth_form?.toasts?.login_success || "Logged in");
+        toast.success(auth_form.toasts.login_success || "Logged in");
       } else {
         toast.error(result.error);
       }
@@ -78,11 +65,11 @@ export function LoginForm({ dictionary }: { dictionary: any }) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{auth_form?.email_label}</FormLabel>
+              <FormLabel>{auth_form.email_label}</FormLabel>
               <FormControl>
                 <Input
                   type="email"
-                  placeholder={auth_form?.email_placeholder}
+                  placeholder={auth_form.email_placeholder}
                   autoComplete="email"
                   disabled={is_pending}
                   {...field}
@@ -97,11 +84,11 @@ export function LoginForm({ dictionary }: { dictionary: any }) {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{auth_form?.password_label}</FormLabel>
+              <FormLabel>{auth_form.password_label}</FormLabel>
               <FormControl>
                 <Input
                   type="password"
-                  placeholder={auth_form?.password_placeholder}
+                  placeholder={auth_form.password_placeholder}
                   autoComplete="current-password"
                   disabled={is_pending}
                   {...field}
@@ -125,17 +112,14 @@ export function LoginForm({ dictionary }: { dictionary: any }) {
                   disabled={is_pending}
                 />
               </FormControl>
-              <FormLabel
-                htmlFor="login-remember"
-                className="ml-1 font-medium text-muted-foreground text-sm"
-              >
-                {auth_form?.remember_me}
+              <FormLabel htmlFor="login-remember" className="ml-1 font-medium text-muted-foreground text-sm">
+                {auth_form.remember_me}
               </FormLabel>
             </FormItem>
           )}
         />
         <Button className="w-full" type="submit" disabled={is_pending}>
-          {is_pending ? auth_form?.logging_in : auth_form?.login_button}
+          {is_pending ? auth_form.logging_in : auth_form.login_button}
         </Button>
       </form>
     </Form>

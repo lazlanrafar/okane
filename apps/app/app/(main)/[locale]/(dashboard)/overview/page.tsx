@@ -2,18 +2,17 @@ import {
   getBurnRateMetrics,
   getCategoryBreakdown,
   getExpenseMetrics,
+  getMe,
   getRevenueMetrics,
   getTransactionSettings,
-  getMe,
 } from "@workspace/modules/server";
-
-import { ChatProviderWrapper } from "@/components/organisms/chat/chat-provider-wrapper";
-import ChatInterface from "@/components/organisms/chat/chat-interface";
-import { OverviewClient } from "@/components/organisms/overview/overview-client";
 import type { Metadata } from "next";
 
+import ChatInterface from "@/components/organisms/chat/chat-interface";
+import { ChatProviderWrapper } from "@/components/organisms/chat/chat-provider-wrapper";
+import { OverviewClient } from "@/components/organisms/overview/overview-client";
 import { getDictionary } from "@/get-dictionary";
-import { Locale } from "@/i18n-config";
+import type { Locale } from "@/i18n-config";
 
 export const metadata: Metadata = {
   title: "Overview",
@@ -25,8 +24,7 @@ export default async function OverviewPage(props: {
 }) {
   const { locale } = await props.params;
   const searchParams = await props.searchParams;
-  const initialTab =
-    typeof searchParams.tab === "string" ? searchParams.tab : "overview";
+  const initialTab = typeof searchParams.tab === "string" ? searchParams.tab : "overview";
 
   const [
     meResult,
@@ -49,19 +47,13 @@ export default async function OverviewPage(props: {
   ]);
 
   const user = meResult.success ? meResult.data?.user : null;
-  const displayName = user?.name
-    ? user.name.split(" ")[0]
-    : (user?.email?.split("@")[0] ?? "there");
+  const displayName = user?.name ? user.name.split(" ")[0] : (user?.email?.split("@")[0] ?? "there");
 
   const incomeData = incomeResult.success ? incomeResult.data! : [];
   const expenseData = expenseResult.success ? expenseResult.data! : [];
   const burnRateData = burnRateResult.success ? burnRateResult.data! : [];
-  const expenseCategoryData = expenseCategoryResult.success
-    ? expenseCategoryResult.data!
-    : [];
-  const incomeCategoryData = incomeCategoryResult.success
-    ? incomeCategoryResult.data!
-    : [];
+  const expenseCategoryData = expenseCategoryResult.success ? expenseCategoryResult.data! : [];
+  const incomeCategoryData = incomeCategoryResult.success ? incomeCategoryResult.data! : [];
   const settings = settingsResult.success ? settingsResult.data! : null;
 
   return (

@@ -1,23 +1,18 @@
 "use client";
 
-import { useDebtsStore } from "@/stores/debts";
-import {
-  Button,
-  Icons,
-  cn,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@workspace/ui";
-import { AnimatePresence, motion } from "framer-motion";
-import { Trash2, X, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { useRouter } from "next/navigation";
+
 import { useQueryClient } from "@tanstack/react-query";
 import { bulkDeleteDebts } from "@workspace/modules/debt/debt.action";
+import { Button, cn, Icons, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui";
+import { AnimatePresence, motion } from "framer-motion";
+import { Loader2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+
 import { useConfirm } from "@/components/providers/confirm-modal-provider";
+import { useDebtsStore } from "@/stores/debts";
 
 interface Props {
   dictionary: any;
@@ -88,9 +83,7 @@ export function DebtBulkEditBar({ dictionary }: Props) {
                         setIsDeleting(true);
                         const result = await bulkDeleteDebts(ids);
                         if (result.success) {
-                          toast.success(
-                            dict.toasts.deleted_success.replace("{count}", ids.length.toString()),
-                          );
+                          toast.success(dict.toasts.deleted_success.replace("{count}", ids.length.toString()));
                           await queryClient.invalidateQueries({
                             queryKey: ["debts"],
                           });
@@ -110,9 +103,7 @@ export function DebtBulkEditBar({ dictionary }: Props) {
                       {dictionary.debts.actions.delete}
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="text-xs">
-                    {dict.tooltips.delete}
-                  </TooltipContent>
+                  <TooltipContent className="text-xs">{dict.tooltips.delete}</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
@@ -121,16 +112,11 @@ export function DebtBulkEditBar({ dictionary }: Props) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button
-                      onClick={resetSelection}
-                      className="p-1 hover:bg-muted rounded-md transition-colors"
-                    >
+                    <button onClick={resetSelection} className="p-1 hover:bg-muted rounded-md transition-colors">
                       <X className="h-4 w-4 text-muted-foreground" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent className="text-xs">
-                    {dict.tooltips.close}
-                  </TooltipContent>
+                  <TooltipContent className="text-xs">{dict.tooltips.close}</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>

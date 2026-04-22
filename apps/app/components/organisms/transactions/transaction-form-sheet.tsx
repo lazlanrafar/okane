@@ -1,19 +1,12 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  createTransaction,
-  updateTransaction,
-} from "@workspace/modules/transaction/transaction.action";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createTransaction, updateTransaction } from "@workspace/modules/transaction/transaction.action";
 import { uploadVaultFile } from "@workspace/modules/vault/vault.action";
 import type { Transaction } from "@workspace/types";
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
 import {
   Button,
   Command,
@@ -46,42 +39,25 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui";
-import { SelectAccount } from "@/components/molecules/select-account";
-import { SelectCategory } from "@/components/molecules/select-category";
-import { SelectUser } from "@/components/molecules/select-user";
-import { useAppStore } from "@/stores/app";
-import {
-  Check,
-  ChevronsUpDown,
-  File,
-  FileText,
-  Film,
-  Image,
-  Paperclip,
-  X,
-} from "lucide-react";
+import { Check, ChevronsUpDown, File, FileText, Film, Image, Paperclip, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
+import { SelectAccount } from "@/components/molecules/select-account";
+import { SelectCategory } from "@/components/molecules/select-category";
+import { SelectUser } from "@/components/molecules/select-user";
 import { VaultPickerModal } from "@/components/molecules/vault-picker-modal";
+import { useAppStore } from "@/stores/app";
 
 const getTransactionSchema = (dictionary: any) =>
   z.object({
-    amount: z.coerce
-      .number()
-      .positive(dictionary?.transactions?.errors?.amount_positive || "Amount must be positive"),
+    amount: z.coerce.number().positive(dictionary.transactions.errors.amount_positive || "Amount must be positive"),
     date: z.string().refine((val) => !Number.isNaN(Date.parse(val)), {
-      message: dictionary?.transactions?.errors?.invalid_date || "Invalid date",
+      message: dictionary.transactions.errors.invalid_date || "Invalid date",
     }),
-    type: z.enum([
-      "income",
-      "expense",
-      "transfer",
-      "transfer-in",
-      "transfer-out",
-    ]),
-    walletId: z.string().min(1, dictionary?.transactions?.errors?.wallet_required || "Account is required"),
+    type: z.enum(["income", "expense", "transfer", "transfer-in", "transfer-out"]),
+    walletId: z.string().min(1, dictionary.transactions.errors.wallet_required || "Account is required"),
     toWalletId: z.string().optional(),
     categoryId: z.string().optional(),
     name: z.string().optional().nullable(),
@@ -117,16 +93,10 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   transaction?: Transaction;
   onSuccess?: () => void;
-  dictionary?: any;
+  dictionary: any;
 }
 
-export function TransactionFormSheet({
-  open,
-  onOpenChange,
-  transaction,
-  onSuccess,
-  dictionary,
-}: Props) {
+export function TransactionFormSheet({ open, onOpenChange, transaction, onSuccess, dictionary }: Props) {
   const [mounted, setMounted] = useState(false);
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -141,10 +111,7 @@ export function TransactionFormSheet({
     setMounted(true);
   }, []);
 
-  const schema = useMemo(
-    () => (dictionary ? getTransactionSchema(dictionary) : ({} as any)),
-    [dictionary],
-  );
+  const schema = useMemo(() => (dictionary ? getTransactionSchema(dictionary) : ({} as any)), [dictionary]);
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -167,22 +134,22 @@ export function TransactionFormSheet({
       try {
         if (transaction) {
           form.reset({
-            amount: Number(transaction.amount),
+            amount: Number(transaction?.amount),
             date:
-              typeof transaction.date === "string"
-                ? transaction.date.slice(0, 10)
-                : new Date(transaction.date).toISOString().slice(0, 10),
-            type: transaction.type as "income" | "expense" | "transfer",
-            walletId: transaction.walletId ?? "",
-            toWalletId: transaction.toWalletId ?? "",
-            categoryId: transaction.categoryId ?? "",
-            name: transaction.name ?? "",
-            description: transaction.description ?? "",
-            attachmentIds: transaction.attachmentIds ?? [],
-            assignedUserId: transaction.assignedUserId ?? "",
+              typeof transaction?.date === "string"
+                ? transaction?.date.slice(0, 10)
+                : new Date(transaction?.date).toISOString().slice(0, 10),
+            type: transaction?.type as "income" | "expense" | "transfer",
+            walletId: transaction?.walletId ?? "",
+            toWalletId: transaction?.toWalletId ?? "",
+            categoryId: transaction?.categoryId ?? "",
+            name: transaction?.name ?? "",
+            description: transaction?.description ?? "",
+            attachmentIds: transaction?.attachmentIds ?? [],
+            assignedUserId: transaction?.assignedUserId ?? "",
           });
-          setAttachments(transaction.attachments ?? []);
-          setActiveTab(transaction.type as any);
+          setAttachments(transaction?.attachments ?? []);
+          setActiveTab(transaction?.type as any);
         } else {
           form.reset({
             type: "expense",
@@ -219,7 +186,7 @@ export function TransactionFormSheet({
       };
 
       if (transaction?.id) {
-        const result = await updateTransaction(transaction.id, payload);
+        const result = await updateTransaction(transaction?.id, payload);
         if (!result.success) {
           throw new Error(result.error || dictionary.transactions.errors.save_failed);
         }
@@ -239,11 +206,7 @@ export function TransactionFormSheet({
       void queryClient.invalidateQueries({ queryKey: ["transactions"] });
     } catch (error) {
       console.error(error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : dictionary.transactions.errors.save_failed,
-      );
+      toast.error(error instanceof Error ? error.message : dictionary.transactions.errors.save_failed);
     } finally {
       setIsLoading(false);
     }
@@ -261,15 +224,12 @@ export function TransactionFormSheet({
   const handleVaultConfirm = (ids: string[]) => {
     const newAttachments = ids.map((id) => {
       const existing = attachments.find((a) => a.id === id);
-      return (
-        existing ?? { id, name: id, size: 0, type: "application/octet-stream" }
-      );
+      return existing ?? { id, name: id, size: 0, type: "application/octet-stream" };
     });
     setAttachments(newAttachments);
   };
 
-  const removeAttachment = (id: string) =>
-    setAttachments((prev) => prev.filter((a) => a.id !== id));
+  const removeAttachment = (id: string) => setAttachments((prev) => prev.filter((a) => a.id !== id));
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -284,9 +244,7 @@ export function TransactionFormSheet({
         "text/csv",
       ];
       if (!ALLOWED_TYPES.includes(file.type)) {
-        throw new Error(
-          `Invalid file type for ${file.name}. Only documents and images are allowed.`,
-        );
+        throw new Error(`Invalid file type for ${file.name}. Only documents and images are allowed.`);
       }
       const formData = new FormData();
       formData.append("file", file);
@@ -298,14 +256,11 @@ export function TransactionFormSheet({
       queryClient.invalidateQueries({ queryKey: ["vault-files"] });
       setAttachments((prev) => {
         if (prev.find((a) => a.id === data.id)) return prev;
-        return [
-          ...prev,
-          { id: data.id, name: data.name, size: data.size, type: data.type },
-        ];
+        return [...prev, { id: data.id, name: data.name, size: data.size, type: data.type }];
       });
     },
     onError: (error: any) => {
-      toast.error(error.message || dictionary?.transactions.errors.upload_failed || "Upload failed");
+      toast.error(error.message || dictionary.transactions.errors.upload_failed || "Upload failed");
     },
   });
 
@@ -315,16 +270,11 @@ export function TransactionFormSheet({
     if (filesArray.length === 0) return;
 
     const toastId = toast.loading(
-      dictionary.transactions.toasts.uploading_files.replace(
-        "{count}",
-        filesArray.length.toString(),
-      ),
+      dictionary.transactions.toasts.uploading_files.replace("{count}", filesArray.length.toString()),
     );
 
     try {
-      await Promise.all(
-        filesArray.map((file) => uploadMutation.mutateAsync(file)),
-      );
+      await Promise.all(filesArray.map((file) => uploadMutation.mutateAsync(file)));
       toast.success(dictionary.transactions.toasts.all_uploads_success, {
         id: toastId,
       });
@@ -342,19 +292,13 @@ export function TransactionFormSheet({
       <SheetContent className="flex flex-col h-full p-0">
         <SheetHeader className="px-6 py-6 border-b shrink-0">
           <SheetTitle>
-            {transaction
-              ? dictionary.transactions.edit_transaction
-              : dictionary.transactions.new_transaction}
+            {transaction ? dictionary.transactions.edit_transaction : dictionary.transactions.new_transaction}
           </SheetTitle>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-6 no-scrollbar">
           <Form {...form}>
-            <form
-              id="transaction-form"
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-8"
-            >
+            <form id="transaction-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <div className="flex w-full border border-border bg-muted/30 overflow-hidden">
                 <Button
                   type="button"
@@ -399,18 +343,14 @@ export function TransactionFormSheet({
                   {dictionary.transactions.types.transfer}
                 </Button>
               </div>
-              <p className="text-[11px] text-muted-foreground mt-[-24px] mb-4">
-                {dictionary.transactions.hints.type}
-              </p>
+              <p className="text-[11px] text-muted-foreground mt-[-24px] mb-4">{dictionary.transactions.hints.type}</p>
 
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium">
-                      {dictionary.transactions.description_label}
-                    </FormLabel>
+                    <FormLabel className="text-sm font-medium">{dictionary.transactions.description_label}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder={dictionary.transactions.placeholders.description}
@@ -433,9 +373,7 @@ export function TransactionFormSheet({
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium">
-                        {dictionary.transactions.amount_label}
-                      </FormLabel>
+                      <FormLabel className="text-sm font-medium">{dictionary.transactions.amount_label}</FormLabel>
                       <FormControl>
                         <div className="relative group">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/50 transition-colors group-focus-within:text-foreground">
@@ -457,9 +395,7 @@ export function TransactionFormSheet({
                           />
                         </div>
                       </FormControl>
-                      <FormDescription className="text-[11px]">
-                        {dictionary.transactions.hints.amount}
-                      </FormDescription>
+                      <FormDescription className="text-[11px]">{dictionary.transactions.hints.amount}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -489,9 +425,7 @@ export function TransactionFormSheet({
                   name="walletId"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="text-sm font-medium">
-                        {dictionary.transactions.account}
-                      </FormLabel>
+                      <FormLabel className="text-sm font-medium">{dictionary.transactions.account}</FormLabel>
                       <FormControl>
                         <SelectAccount
                           value={field.value ?? undefined}
@@ -499,9 +433,7 @@ export function TransactionFormSheet({
                           className="w-full justify-start px-3 text-left font-normal bg-transparent h-10 transition-colors hover:bg-muted/10 hover:bg-transparent"
                         />
                       </FormControl>
-                      <FormDescription className="text-[11px]">
-                        {dictionary.transactions.hints.account}
-                      </FormDescription>
+                      <FormDescription className="text-[11px]">{dictionary.transactions.hints.account}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -512,9 +444,7 @@ export function TransactionFormSheet({
                   name="date"
                   render={({ field }) => (
                     <FormItem className="">
-                      <FormLabel className="text-sm font-medium">
-                        {dictionary.transactions.date_label}
-                      </FormLabel>
+                      <FormLabel className="text-sm font-medium">{dictionary.transactions.date_label}</FormLabel>
                       <FormControl>
                         <InputDate
                           value={field.value}
@@ -522,9 +452,7 @@ export function TransactionFormSheet({
                           className="bg-transparent h-10 transition-colors focus:border-foreground"
                         />
                       </FormControl>
-                      <FormDescription className="text-[11px]">
-                        {dictionary.transactions.hints.date}
-                      </FormDescription>
+                      <FormDescription className="text-[11px]">{dictionary.transactions.hints.date}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -538,9 +466,7 @@ export function TransactionFormSheet({
                     name="categoryId"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel className="text-sm font-medium">
-                          {dictionary.transactions.category}
-                        </FormLabel>
+                        <FormLabel className="text-sm font-medium">{dictionary.transactions.category}</FormLabel>
                         <FormControl>
                           <SelectCategory
                             value={field.value ?? undefined}
@@ -561,9 +487,7 @@ export function TransactionFormSheet({
                     name="toWalletId"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel className="text-sm font-medium">
-                          {dictionary.transactions.to_account}
-                        </FormLabel>
+                        <FormLabel className="text-sm font-medium">{dictionary.transactions.to_account}</FormLabel>
                         <FormControl>
                           <SelectAccount
                             value={field.value ?? undefined}
@@ -585,9 +509,7 @@ export function TransactionFormSheet({
                   name="assignedUserId"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="text-sm font-medium">
-                        {dictionary.transactions.assign}
-                      </FormLabel>
+                      <FormLabel className="text-sm font-medium">{dictionary.transactions.assign}</FormLabel>
                       <FormControl>
                         <SelectUser
                           value={field.value ?? undefined}
@@ -595,9 +517,7 @@ export function TransactionFormSheet({
                           placeholder={dictionary.transactions.placeholders.member}
                         />
                       </FormControl>
-                      <FormDescription className="text-[11px]">
-                        {dictionary.transactions.hints.assign}
-                      </FormDescription>
+                      <FormDescription className="text-[11px]">{dictionary.transactions.hints.assign}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -609,9 +529,7 @@ export function TransactionFormSheet({
                 name="description"
                 render={({ field }) => (
                   <FormItem className="space-y-2">
-                    <FormLabel className="text-sm font-medium">
-                      {dictionary.transactions.notes_label}
-                    </FormLabel>
+                    <FormLabel className="text-sm font-medium">{dictionary.transactions.notes_label}</FormLabel>
                     <FormControl>
                       <div className="min-h-[120px] border bg-transparent px-3 py-2 text-sm transition-colors focus-within:border-foreground focus-within:ring-0 mb-4">
                         <Editor
@@ -622,9 +540,7 @@ export function TransactionFormSheet({
                         />
                       </div>
                     </FormControl>
-                    <FormDescription className="text-[11px]">
-                      {dictionary.transactions.hints.notes}
-                    </FormDescription>
+                    <FormDescription className="text-[11px]">{dictionary.transactions.hints.notes}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -685,21 +601,15 @@ export function TransactionFormSheet({
                     <Paperclip className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                   <p className="text-[11px] text-muted-foreground text-center px-4 sm:px-8 leading-relaxed">
-                    <span className="font-medium text-foreground">
-                      {dictionary.transactions.click_to_browse}
-                    </span>{" "}
+                    <span className="font-medium text-foreground">{dictionary.transactions.click_to_browse}</span>{" "}
                     {dictionary.transactions.drag_drop}
                     <br />
-                    <span className="opacity-60 text-[10px]">
-                      {dictionary.transactions.upload_hint}
-                    </span>
+                    <span className="opacity-60 text-[10px]">{dictionary.transactions.upload_hint}</span>
                   </p>
 
                   {uploadMutation.isPending && (
                     <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center">
-                      <span className="text-xs font-medium animate-pulse">
-                        {dictionary.transactions.saving}
-                      </span>
+                      <span className="text-xs font-medium animate-pulse">{dictionary.transactions.saving}</span>
                     </div>
                   )}
                 </div>
@@ -716,15 +626,8 @@ export function TransactionFormSheet({
         </div>
 
         <div className="p-6 border-t bg-background shrink-0 mt-auto">
-          <Button
-            form="transaction-form"
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading
-              ? dictionary.transactions.saving
-              : dictionary.transactions.save_transaction}
+          <Button form="transaction-form" type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? dictionary.transactions.saving : dictionary.transactions.save_transaction}
           </Button>
         </div>
       </SheetContent>

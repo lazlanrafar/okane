@@ -1,22 +1,18 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
 import { useChatMessages } from "@ai-sdk-tools/store";
+import type { CategoryBreakdownPoint, ChartDataPoint } from "@workspace/modules/metrics/metrics.action";
+import type { TransactionSettings } from "@workspace/types";
+import { cn, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui";
 import { useChatInterface } from "@workspace/ui/hooks";
-
-import { cn, Tabs, TabsList, TabsTrigger, TabsContent } from "@workspace/ui";
 import { Grid2X2, LineChart } from "lucide-react";
-
-import { OverviewCards } from "./overview-cards";
-import { OverviewMetrics } from "./overview-metrics";
 
 import { useAppStore } from "@/stores/app";
 
-import type {
-  ChartDataPoint,
-  CategoryBreakdownPoint,
-} from "@workspace/modules/metrics/metrics.action";
-import type { TransactionSettings } from "@workspace/types";
+import { OverviewCards } from "./overview-cards";
+import { OverviewMetrics } from "./overview-metrics";
 
 function getGreeting(dict: any) {
   const hour = new Date().getHours();
@@ -70,18 +66,12 @@ export function OverviewClient({
   if (!dictionary) return null;
 
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={handleTabChange}
-      className="flex flex-col flex-1"
-    >
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col flex-1">
       {/* Header + tabs — fade out and collapse when chat is active */}
       <div
         className={cn(
           "transition-all duration-300 ease-in-out overflow-hidden",
-          isChatActive
-            ? "max-h-0 opacity-0 pointer-events-none mb-0"
-            : "max-h-40 opacity-100 mb-6",
+          isChatActive ? "max-h-0 opacity-0 pointer-events-none mb-0" : "max-h-40 opacity-100 mb-6",
         )}
       >
         <div className="flex justify-between items-end">
@@ -127,9 +117,7 @@ export function OverviewClient({
       <div
         className={cn(
           "transition-all duration-300 ease-in-out overflow-hidden",
-          isChatActive
-            ? "max-h-0 opacity-0 pointer-events-none"
-            : "max-h-[2000px] opacity-100",
+          isChatActive ? "max-h-0 opacity-0 pointer-events-none" : "max-h-[2000px] opacity-100",
         )}
         aria-hidden={isChatActive}
       >

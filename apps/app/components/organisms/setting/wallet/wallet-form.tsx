@@ -1,10 +1,23 @@
 "use client";
 
 import * as React from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  type CreateWalletData,
+  createWallet,
+  type UpdateWalletData,
+  updateWallet,
+} from "@workspace/modules/wallet/wallet.action";
+import { getWalletGroups } from "@workspace/modules/wallet-group/wallet-group.action";
+import type { Wallet } from "@workspace/types";
+import {
   Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   Form,
   FormControl,
   FormField,
@@ -18,27 +31,13 @@ import {
   SelectTrigger,
   SelectValue,
   Switch,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@workspace/ui";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-import {
-  type CreateWalletData,
-  type UpdateWalletData,
-} from "@workspace/modules/wallet/wallet.action";
-import { type Wallet } from "@workspace/types";
-import {
-  createWallet,
-  updateWallet,
-} from "@workspace/modules/wallet/wallet.action";
 import { useAppStore } from "@/stores/app";
-import { getWalletGroups } from "@workspace/modules/wallet-group/wallet-group.action";
 
 interface WalletFormProps {
   open: boolean;
@@ -52,7 +51,8 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
   const dictionary = dictionary_prop || storeDict;
   const queryClient = useQueryClient();
 
-  const walletForm = dictionary?.settings?.wallets?.form || (dictionary as any)?.wallets?.form;
+  const wallets_t = dictionary?.wallets || (dictionary as any)?.settings?.wallets;
+  const walletForm = wallets_t?.form;
   const common = dictionary?.common;
 
   const formSchema = z.object({
@@ -77,7 +77,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
       form.reset({
         name: wallet.name,
         groupId: wallet.groupId ?? "none",
-        balance: wallet.balance?.toString() ?? "0",
+        balance: wallet.balance.toString() ?? "0",
         isIncludedInTotals: wallet.isIncludedInTotals ?? true,
       });
     } else {
@@ -91,12 +91,12 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
   }, [wallet, form]);
 
   // Fetch groups for selection
-  const { data: groups } = useQuery({
+  const { data: groups = [] } = useQuery({
     queryKey: ["wallet-groups"],
     queryFn: async () => {
       const result = await getWalletGroups();
       if (result.success) return result.data;
-      throw new Error(result.error);
+      throw new Error(result.error || "Failed to fetch wallet groups");
     },
   });
 
@@ -109,7 +109,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
         groupId: data.groupId === "none" ? null : data.groupId,
       };
       const result = await createWallet(payload);
-      if (!result.success) throw new Error(result.error);
+      if (!result.success) throw new Error(result.error || "Failed to create wallet");
       return result.data;
     },
     onSuccess: () => {
@@ -132,12 +132,12 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
         groupId: data.groupId === "none" ? null : data.groupId,
       };
       const result = await updateWallet(wallet.id, payload);
-      if (!result.success) throw new Error(result.error);
+      if (!result.success) throw new Error(result.error || "Failed to update wallet");
       return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      toast.success(walletForm?.update_success || "Wallet updated");
+      toast.success(walletForm?.updated || "Wallet updated");
       onClose();
     },
     onError: (error) => {
@@ -161,9 +161,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="rounded-none sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
-            {wallet ? walletForm.edit_title : walletForm.add_title}
-          </DialogTitle>
+          <DialogTitle>{wallet ? walletForm.edit_title : walletForm.add_title}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -173,13 +171,9 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{walletForm?.name?.label}</FormLabel>
+                  <FormLabel>{walletForm.name.label}</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder={walletForm?.name?.placeholder}
-                      {...field}
-                      className="rounded-none"
-                    />
+                    <Input placeholder={walletForm.name.placeholder} {...field} className="rounded-none" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -192,23 +186,16 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
               name="groupId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{walletForm?.group?.label}</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value ?? "none"}
-                  >
+                  <FormLabel>{walletForm.group.label}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value ?? "none"}>
                     <FormControl>
                       <SelectTrigger className="rounded-none h-8 text-xs">
-                        <SelectValue
-                          placeholder={walletForm?.group?.placeholder}
-                        />
+                        <SelectValue placeholder={walletForm.group.placeholder} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="rounded-none">
-                      <SelectItem value="none">
-                        {walletForm?.group?.none}
-                      </SelectItem>
-                      {groups?.map((group) => (
+                      <SelectItem value="none">{walletForm.group.none}</SelectItem>
+                      {(groups || []).map((group: any) => (
                         <SelectItem key={group.id} value={group.id}>
                           {group.name}
                         </SelectItem>
@@ -226,12 +213,12 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
               name="balance"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{common?.form?.balance?.label}</FormLabel>
+                  <FormLabel>{common?.form?.balance?.label || "Balance"}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       step="0.01"
-                      placeholder={common?.form?.balance?.placeholder}
+                      placeholder={common?.form?.balance?.placeholder || "0"}
                       {...field}
                       className="rounded-none border h-8 text-xs"
                     />
@@ -248,17 +235,11 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-none border p-3 shadow-sm">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-sm">{walletForm?.is_included?.label}</FormLabel>
-                    <p className="text-[0.7rem] text-muted-foreground">
-                      {walletForm?.is_included?.description}
-                    </p>
+                    <FormLabel className="text-sm">{walletForm.is_included.label}</FormLabel>
+                    <p className="text-[0.7rem] text-muted-foreground">{walletForm.is_included.description}</p>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className="rounded-none scale-75"
-                    />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} className="rounded-none scale-75" />
                   </FormControl>
                 </FormItem>
               )}
@@ -272,11 +253,11 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
                 disabled={isSubmitting}
                 className="rounded-none h-8 text-xs"
               >
-                {common?.cancel}
+                {common?.cancel || "Cancel"}
               </Button>
               <Button type="submit" disabled={isSubmitting} className="rounded-none h-8 text-xs">
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {common?.save}
+                {common?.save || "Save"}
               </Button>
             </div>
           </form>

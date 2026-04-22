@@ -1,35 +1,37 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getTransactionSettings, getSubCurrencies } from "@workspace/modules/setting/setting.action";
-import { getActiveWorkspace } from "@workspace/modules/workspace/workspace.action";
-import { getMe } from "@workspace/modules/user/user.action";
-import { useAppStore, type AppState } from "../../stores/app";
-import type { Dictionary } from "@workspace/dictionaries";
-import { useRealtime } from "../../hooks/use-realtime";
+import type * as React from "react";
+import { useEffect } from "react";
 
-export function AppProvider({
-  children,
-  dictionary,
-}: {
-  children: React.ReactNode;
-  dictionary: Dictionary;
-}) {
+import { useQuery } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
+import { getSubCurrencies, getTransactionSettings } from "@workspace/modules/setting/setting.action";
+import { getMe } from "@workspace/modules/user/user.action";
+import { getActiveWorkspace } from "@workspace/modules/workspace/workspace.action";
+
+import { useRealtime } from "../../hooks/use-realtime";
+import { type AppState, useAppStore } from "../../stores/app";
+
+export function AppProvider({ children, dictionary }: { children: React.ReactNode; dictionary: Dictionary }) {
   const setUser = useAppStore((state: AppState) => state.setUser);
   const setWorkspace = useAppStore((state: AppState) => state.setWorkspace);
   const setSettings = useAppStore((state: AppState) => state.setSettings);
   const setSubCurrencies = useAppStore((state: AppState) => state.setSubCurrencies);
   const setIsLoading = useAppStore((state: AppState) => state.setIsLoading);
   const fetchAiQuota = useAppStore((state: AppState) => state.fetchAiQuota);
-  
+  const setDictionary = useAppStore((state: AppState) => state.setDictionary);
+
   // Realtime Sync
   useRealtime();
 
   useEffect(() => {
     fetchAiQuota();
   }, [fetchAiQuota]);
+
+  // Set dictionary immediately and when it changes
+  useEffect(() => {
+    if (dictionary) setDictionary(dictionary);
+  }, [dictionary, setDictionary]);
 
   const { data: userData, isLoading: isUserLoading } = useQuery({
     queryKey: ["user", "me"],
@@ -61,7 +63,7 @@ export function AppProvider({
     staleTime: 1000 * 60 * 60, // 1 hour
     refetchOnWindowFocus: false,
   });
-  
+
   const { data: subCurrenciesData, isLoading: isSubCurrenciesLoading } = useQuery({
     queryKey: ["settings", "sub-currencies"],
     queryFn: async () => {
@@ -78,8 +80,6 @@ export function AppProvider({
     if (workspaceData) setWorkspace(workspaceData);
     if (settingsData) setSettings(settingsData);
     if (subCurrenciesData) setSubCurrencies(subCurrenciesData);
-    
-    // Note: Dictionary is already set during render above
 
     setIsLoading(isUserLoading || isWorkspaceLoading || isSettingsLoading || isSubCurrenciesLoading);
   }, [

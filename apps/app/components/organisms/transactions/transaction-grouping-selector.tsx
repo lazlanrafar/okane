@@ -1,13 +1,8 @@
 "use client";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui";
 import { LayoutGrid } from "lucide-react";
+
 import { useAppStore } from "@/stores/app";
 
 export type GroupByInterval = "none" | "daily" | "weekly" | "monthly";
@@ -18,17 +13,9 @@ interface Props {
   dictionary: any;
 }
 
-export function TransactionGroupingSelector({
-  value,
-  onValueChange,
-  dictionary,
-}: Props) {
-
+export function TransactionGroupingSelector({ value, onValueChange, dictionary }: Props) {
   return (
-    <Select
-      value={value}
-      onValueChange={(v) => onValueChange(v as GroupByInterval)}
-    >
+    <Select value={value} onValueChange={(v) => onValueChange(v as GroupByInterval)}>
       <SelectTrigger className="w-[140px]">
         <div className="flex items-center gap-2">
           <LayoutGrid className="h-4 w-4 text-muted-foreground" />
@@ -36,18 +23,10 @@ export function TransactionGroupingSelector({
         </div>
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="none">
-          {dictionary.transactions.group_by.none}
-        </SelectItem>
-        <SelectItem value="daily">
-          {dictionary.transactions.group_by.daily}
-        </SelectItem>
-        <SelectItem value="weekly">
-          {dictionary.transactions.group_by.weekly}
-        </SelectItem>
-        <SelectItem value="monthly">
-          {dictionary.transactions.group_by.monthly}
-        </SelectItem>
+        <SelectItem value="none">{dictionary.transactions.group_by.none}</SelectItem>
+        <SelectItem value="daily">{dictionary.transactions.group_by.daily}</SelectItem>
+        <SelectItem value="weekly">{dictionary.transactions.group_by.weekly}</SelectItem>
+        <SelectItem value="monthly">{dictionary.transactions.group_by.monthly}</SelectItem>
       </SelectContent>
     </Select>
   );

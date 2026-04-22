@@ -65,10 +65,7 @@ export function ChatFaviconStack({ sources }: FaviconStackProps) {
               className="relative -ml-2 first:ml-0"
               style={{ zIndex: sources.length - index }}
             >
-              <span
-                onClick={() => handleOnClick(source.url)}
-                className="cursor-pointer"
-              >
+              <span onClick={() => handleOnClick(source.url)} className="cursor-pointer">
                 <div className="relative w-5 h-5 rounded-full bg-background border-2 border-border overflow-hidden flex items-center justify-center shadow-sm cursor-pointer">
                   <img
                     src={getFaviconUrl(source.url)}
@@ -79,9 +76,7 @@ export function ChatFaviconStack({ sources }: FaviconStackProps) {
                       const target = e.target as HTMLImageElement;
                       target.style.display = "none";
                       const parent = target.parentElement;
-                      const fallback = parent?.querySelector(
-                        ".fallback-icon",
-                      ) as HTMLElement;
+                      const fallback = parent.querySelector(".fallback-icon") as HTMLElement;
                       if (fallback) fallback.style.display = "block";
                     }}
                   />

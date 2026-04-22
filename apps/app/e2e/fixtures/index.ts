@@ -1,4 +1,5 @@
 import { test as base } from "@playwright/test";
+
 import en from "../../../../packages/dictionaries/en.json";
 
 // Define the custom fixture types

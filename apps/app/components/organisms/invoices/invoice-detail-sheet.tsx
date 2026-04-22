@@ -1,67 +1,61 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { toast } from "sonner";
+import { useEffect, useRef, useState } from "react";
+
+import { getInvoiceToken } from "@workspace/modules/invoice/invoice.action";
+import type { Invoice } from "@workspace/types";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
   Badge,
   Button,
-  Separator,
+  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
+  Separator,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
   Switch,
-  Input,
 } from "@workspace/ui";
 import { format } from "date-fns";
-import type { Invoice } from "@workspace/types";
-import { InvoiceActivity } from "./invoice-activity";
-import { InvoiceA4 } from "./invoice-a4";
-import { downloadInvoiceAsPdf } from "@/lib/invoice-download";
-import { useDebounce } from "@/hooks/use-debounce";
 import {
-  Copy,
-  ExternalLink,
-  Download,
-  MoreHorizontal,
-  Mail,
-  Eye,
-  Share2,
   ChevronDown,
-  Lock,
+  Copy,
+  Download,
+  ExternalLink,
+  Eye,
   Globe,
   History,
+  Lock,
+  Mail,
+  MoreHorizontal,
+  Share2,
 } from "lucide-react";
-import { getInvoiceToken } from "@workspace/modules/invoice/invoice.action";
+import { toast } from "sonner";
+
+import type { Dictionary } from "@workspace/dictionaries";
+import { useDebounce } from "@/hooks/use-debounce";
+import { downloadInvoiceAsPdf } from "@/lib/invoice-download";
+
+import { InvoiceA4 } from "./invoice-a4";
+import { InvoiceActivity } from "./invoice-activity";
 
 const STATUS_STYLES: Record<string, string> = {
-  draft:
-    "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 border-gray-200",
-  unpaid:
-    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 border-yellow-200",
+  draft: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 border-gray-200",
+  unpaid: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 border-yellow-200",
   paid: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-200",
-  overdue:
-    "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 border-red-200",
-  canceled:
-    "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500 border-gray-200",
+  overdue: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 border-red-200",
+  canceled: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500 border-gray-200",
 };
 
-const ALLOWED_STATUSES = [
-  "draft",
-  "unpaid",
-  "paid",
-  "overdue",
-  "canceled",
-] as const;
+const ALLOWED_STATUSES = ["draft", "unpaid", "paid", "overdue", "canceled"] as const;
 
 function formatDate(dateStr: string | null | undefined) {
   if (!dateStr) return "-";
@@ -94,18 +88,10 @@ interface InvoiceDetailSheetProps {
   onEdit?: (invoice: InvoiceRow) => void;
   onDelete?: (id: string) => void;
   onUpdate?: (id: string, data: Partial<Invoice>) => void;
-  dictionary: any;
+  dictionary: Dictionary;
 }
 
-function InfoRow({
-  label,
-  value,
-  className = "",
-}: {
-  label: string;
-  value: React.ReactNode;
-  className?: string;
-}) {
+function InfoRow({ label, value, className = "" }: { label: string; value: React.ReactNode; className?: string }) {
   return (
     <div className={`flex justify-between items-center py-1.5 ${className}`}>
       <span className="text-sm text-muted-foreground">{label}</span>
@@ -123,7 +109,7 @@ export function InvoiceDetailSheet({
   onUpdate,
   dictionary,
 }: InvoiceDetailSheetProps) {
-  const dict = dictionary?.invoices;
+  const dict = dictionary.invoices;
   const [statusLoading, setStatusLoading] = useState(false);
   const [publicToken, setPublicToken] = useState<string | null>(null);
   const [isCopying, setIsCopying] = useState(false);
@@ -146,7 +132,7 @@ export function InvoiceDetailSheet({
   }, [debouncedAccessCode, invoice?.id]);
 
   useEffect(() => {
-    if (open && invoice?.id && invoice?.isPublic && !publicToken) {
+    if (open && invoice?.id && invoice.isPublic && !publicToken) {
       getInvoiceToken(invoice.id).then((res) => {
         if (res.success) setPublicToken(res.data.token);
       });
@@ -158,7 +144,7 @@ export function InvoiceDetailSheet({
 
   if (!invoice) return null;
 
-  const handleStatusChange = async (newStatus: any) => {
+  const handleStatusChange = async (newStatus: Invoice["status"]) => {
     if (!onUpdate) return;
     setStatusLoading(true);
     try {
@@ -204,7 +190,7 @@ export function InvoiceDetailSheet({
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-0.5">
               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-                {dict?.details?.title || "Invoice Details"}
+                {dict.details.title || "Invoice Details"}
               </span>
               <SheetTitle className="text-2xl font-serif font-medium tracking-tight flex items-center gap-2">
                 {invoice.invoiceNumber}
@@ -212,7 +198,7 @@ export function InvoiceDetailSheet({
                   variant="outline"
                   className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0 h-5 inline-flex items-center ${STATUS_STYLES[invoice.status] ?? ""}`}
                 >
-                  {dict?.statuses?.[invoice.status] || invoice.status}
+                  {dict.statuses[invoice.status] || invoice.status}
                 </Badge>
               </SheetTitle>
             </div>
@@ -236,31 +222,17 @@ export function InvoiceDetailSheet({
             {/* Main Info */}
             <div className="space-y-4">
               <div className="flex items-baseline justify-between py-2 border-b border-border/30">
-                <span className="text-sm text-muted-foreground">
-                  {dict?.details?.total_amount || "Total Amount"}
-                </span>
+                <span className="text-sm text-muted-foreground">{dict.details.total_amount || "Total Amount"}</span>
                 <span className="text-3xl font-serif font-medium">
                   {formatAmount(invoice.amount, invoice.currency)}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 gap-1 pt-2">
-                <InfoRow
-                  label={dict?.columns?.contact || "Contact"}
-                  value={invoice.contact?.name ?? "-"}
-                />
-                <InfoRow
-                  label={dict?.columns?.issue_date || "Issue Date"}
-                  value={formatDate(invoice.issueDate)}
-                />
-                <InfoRow
-                  label={dict?.columns?.due_date || "Due Date"}
-                  value={formatDate(invoice.dueDate)}
-                />
-                <InfoRow
-                  label={dict?.details?.currency || "Currency"}
-                  value={invoice.currency}
-                />
+                <InfoRow label={dict.columns.contact || "Contact"} value={invoice.contact?.name ?? "-"} />
+                <InfoRow label={dict.columns.issue_date || "Issue Date"} value={formatDate(invoice.issueDate)} />
+                <InfoRow label={dict.columns.due_date || "Due Date"} value={formatDate(invoice.dueDate)} />
+                <InfoRow label={dict.details.currency || "Currency"} value={invoice.currency} />
               </div>
             </div>
 
@@ -269,7 +241,7 @@ export function InvoiceDetailSheet({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Globe className="h-4 w-4 text-emerald-500" />
-                  {dict?.details?.public_sharing || "Public Sharing"}
+                  {dict.details.public_sharing || "Public Sharing"}
                 </div>
                 <div className="flex items-center gap-3">
                   {invoice.isPublic && invoice.accessCode && (
@@ -278,14 +250,12 @@ export function InvoiceDetailSheet({
                       className="text-[10px] bg-amber-100 text-amber-700 hover:bg-amber-100 gap-1 border-amber-200"
                     >
                       <Lock className="h-3 w-3" />
-                      {dict?.details?.code_protected || "Code Protected"}
+                      {dict.details.code_protected || "Code Protected"}
                     </Badge>
                   )}
                   <Switch
                     checked={invoice.isPublic}
-                    onCheckedChange={(checked) =>
-                      onUpdate?.(invoice.id, { isPublic: checked })
-                    }
+                    onCheckedChange={(checked) => onUpdate?.(invoice.id, { isPublic: checked })}
                   />
                 </div>
               </div>
@@ -296,7 +266,7 @@ export function InvoiceDetailSheet({
                     <div className="flex-1 px-3 py-1.5 bg-background border border-border text-xs font-mono truncate opacity-60 flex items-center h-8">
                       {publicToken
                         ? `${window.location.host}/invoice/${publicToken.slice(0, 12)}...`
-                        : dict?.details?.generating_link || "Generating link..."}
+                        : dict.details.generating_link || "Generating link..."}
                     </div>
                     <div className="flex items-center gap-1">
                       <Button
@@ -307,25 +277,15 @@ export function InvoiceDetailSheet({
                         className="h-8 gap-2 px-3"
                       >
                         {isCopying ? (
-                          dict?.actions?.copied || "Copied"
+                          dict.actions.copied || "Copied"
                         ) : (
                           <>
-                            <Copy className="h-3 w-3" /> {dict?.actions?.copy || "Copy"}
+                            <Copy className="h-3 w-3" /> {dict.actions.copy || "Copy"}
                           </>
                         )}
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        asChild
-                        disabled={!publicToken}
-                        className="h-8 w-8 p-0"
-                      >
-                        <a
-                          href={`/invoice/${publicToken}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
+                      <Button size="sm" variant="outline" asChild disabled={!publicToken} className="h-8 w-8 p-0">
+                        <a href={`/invoice/${publicToken}`} target="_blank" rel="noreferrer">
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       </Button>
@@ -334,12 +294,12 @@ export function InvoiceDetailSheet({
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/50">
-                      {dict?.details?.protection_code || "Protection Code (Optional)"}
+                      {dict.details.protection_code || "Protection Code (Optional)"}
                     </label>
                     <div className="relative group">
                       <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
                       <Input
-                        placeholder={dict?.details?.set_access_code || "Set an access code..."}
+                        placeholder={dict.details.set_access_code || "Set an access code..."}
                         value={accessCode}
                         onChange={(e) => setAccessCode(e.target.value)}
                         className="h-8 pl-8 text-[11px] font-mono bg-background/50 border-border/50 focus:border-border"
@@ -349,30 +309,28 @@ export function InvoiceDetailSheet({
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  {dict?.details?.public_sharing_description || "Enable to share this invoice via a public link."}
+                  {dict.details.public_sharing_description || "Enable to share this invoice via a public link."}
                 </p>
               )}
             </div>
 
             {/* Internal Notes */}
             <Accordion type="single" collapsible className="w-full">
-              <AccordionItem
-                value="internal-note"
-                className="border-none bg-muted/20 px-4"
-              >
+              <AccordionItem value="internal-note" className="border-none bg-muted/20 px-4">
                 <AccordionTrigger className="py-3 hover:no-underline font-medium text-sm gap-2">
                   <div className="flex items-center gap-2 flex-1 text-left">
-                    <span>{dict?.details?.internal_note || "Internal Note"}</span>
+                    <span>{dict.details.internal_note}</span>
                     {!invoice.internalNote && (
                       <span className="text-[10px] bg-muted px-1.5 py-0.5 text-muted-foreground font-normal">
-                        {dictionary?.common?.empty || "Empty"}
+                        {(dictionary.common as any).empty}
                       </span>
                     )}
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-4 text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed italic">
                   {invoice.internalNote ||
-                    dict?.details?.no_internal_notes || "No internal notes have been added for this invoice."}
+                    dict.details.no_internal_notes ||
+                    "No internal notes have been added for this invoice."}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -381,7 +339,7 @@ export function InvoiceDetailSheet({
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-medium border-b border-border/50 pb-2">
                 <History className="h-4 w-4" />
-                {dict?.details?.activity || "Activity"}
+                {dict.details.activity || "Activity"}
               </div>
               <InvoiceActivity invoiceId={invoice.id} dictionary={dictionary} />
             </div>
@@ -390,29 +348,21 @@ export function InvoiceDetailSheet({
 
         {/* Footer Actions */}
         <div className="pt-6 border-t border-border/50 bg-background flex gap-3 shrink-0">
-          <Select
-            defaultValue={invoice.status}
-            onValueChange={handleStatusChange}
-            disabled={statusLoading}
-          >
+          <Select defaultValue={invoice.status} onValueChange={handleStatusChange} disabled={statusLoading}>
             <SelectTrigger className="flex-1 h-10 border-border/50">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {ALLOWED_STATUSES.map((s) => (
                 <SelectItem key={s} value={s}>
-                  {dict?.statuses?.[s] || s.charAt(0).toUpperCase() + s.slice(1)}
+                  {dict.statuses[s] || s.charAt(0).toUpperCase() + s.slice(1)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Button
-            variant="outline"
-            className="h-8 px-6 gap-2 border-border/50"
-            onClick={() => onEdit?.(invoice)}
-          >
-            {dict?.actions?.edit || "Edit"}
+          <Button variant="outline" className="h-8 px-6 gap-2 border-border/50" onClick={() => onEdit?.(invoice)}>
+            {dict.actions.edit || "Edit"}
           </Button>
         </div>
       </SheetContent>
@@ -422,7 +372,5 @@ export function InvoiceDetailSheet({
         <InvoiceA4 ref={invoiceRef} invoice={invoice} dictionary={dictionary} />
       </div>
     </Sheet>
-  );
-}
   );
 }

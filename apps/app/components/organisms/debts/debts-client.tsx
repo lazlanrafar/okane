@@ -1,45 +1,47 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+
 import { useRouter } from "next/navigation";
-import type { Wallet, Contact } from "@workspace/types";
-import { type DebtWithContact, deleteDebt, getContact, getDebts } from "@workspace/modules/client";
-import {
-  Button,
-  DataTable,
-  DataTableColumnsVisibility,
-  DataTableFilter,
-  DataTableEmptyState,
-} from "@workspace/ui";
-import { Plus } from "lucide-react";
-import { debtColumns } from "./debts-columns";
-import { DebtFormSheet } from "./debt-form-sheet";
-import { DebtDetailSheet } from "./debt-detail-sheet";
-import { DebtBulkEditBar } from "./debt-bulk-edit-bar";
-import { ContactDetailSheet } from "../contacts/contact-detail-sheet";
-import { useDebtsStore } from "@/stores/debts";
-import { useDataTableFilter } from "@/hooks/use-data-table-filter";
-import { useConfirm } from "@/components/providers/confirm-modal-provider";
-import { toast } from "sonner";
+
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { type DebtWithContact, deleteDebt, getContact, getDebts } from "@workspace/modules/client";
+import type { Contact, Wallet } from "@workspace/types";
+import { Button, DataTable, DataTableColumnsVisibility, DataTableEmptyState, DataTableFilter } from "@workspace/ui";
 import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
+
+import type { Dictionary } from "@workspace/dictionaries";
+import type { TransactionSettings } from "@workspace/types";
+
+import { useConfirm } from "@/components/providers/confirm-modal-provider";
+import { useDataTableFilter } from "@/hooks/use-data-table-filter";
+import { useDebtsStore } from "@/stores/debts";
+
+import { ContactDetailSheet } from "../contacts/contact-detail-sheet";
+import { DebtBulkEditBar } from "./debt-bulk-edit-bar";
+import { DebtDetailSheet } from "./debt-detail-sheet";
+import { DebtFormSheet } from "./debt-form-sheet";
+import { debtColumns } from "./debts-columns";
+
 interface Props {
   initialData: DebtWithContact[];
   wallets: Wallet[];
-  dictionary: any;
-  settings: any;
+  dictionary: Dictionary;
+  settings: TransactionSettings;
 }
 
 export function DebtsClient({ initialData, wallets, dictionary, settings }: Props) {
   const router = useRouter();
-  const [columns, setColumns] = useState<any[]>([]);
+  const [columns, setColumns] = useState<string[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isContactDetailOpen, setIsContactDetailOpen] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<DebtWithContact | undefined>();
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  
-  const formatCurrency = (amount: number, options?: any) =>
+
+  const formatCurrency = (amount: number, options?: Parameters<typeof formatCurrencyUtil>[2]) =>
     formatCurrencyUtil(amount, settings, options);
   const { rowSelection, setRowSelection } = useDebtsStore();
   const queryClient = useQueryClient();
@@ -81,7 +83,7 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
       setIsDetailOpen(false);
       setSelectedDebt(undefined);
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       toast.error(err.message || dictionary.debts.toasts.delete_failed);
     },
   });
@@ -105,10 +107,10 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
           });
           if (ok) deleteMutation.mutate(id);
         },
-        dictionary
+        dictionary,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dictionary]
+    [dictionary],
   );
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
@@ -126,9 +128,7 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
     getNextPageParam: (lastPage) => {
       const pagination = lastPage.meta?.pagination;
       if (!pagination) return undefined;
-      return pagination.page < pagination.total_pages
-        ? pagination.page + 1
-        : undefined;
+      return pagination.page < pagination.total_pages ? pagination.page + 1 : undefined;
     },
     initialData: {
       pages: [
@@ -155,7 +155,7 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
   });
 
   const allDebts = useMemo(() => {
-    return data?.pages.flatMap((p: any) => p.data ?? []) ?? [];
+    return data.pages?.flatMap((p) => p.data ?? []) ?? [];
   }, [data]);
 
   const statusOptions = [
@@ -172,7 +172,7 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
         <div className="flex items-center flex-1">
           <DataTableFilter
             filters={filters}
-            onFilterChange={handleFilterChange as any}
+            onFilterChange={handleFilterChange}
             placeholder={dictionary.debts.search_placeholder}
             showDateFilter={false}
             showAmountFilter={false}
@@ -200,7 +200,7 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
           sticky={{ columns: ["select", "contactName"] }}
           nonClickableColumns={nonClickableColumns}
           rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection as any}
+          onRowSelectionChange={setRowSelection}
           infiniteScroll={true}
           fetchNextPage={fetchNextPage}
           hasNextPage={hasNextPage}
@@ -233,6 +233,7 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
         }}
         debt={selectedDebt}
         dictionary={dictionary}
+        settings={settings}
       />
 
       <DebtDetailSheet
@@ -254,6 +255,7 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
           if (ok) deleteMutation.mutate(id);
         }}
         dictionary={dictionary}
+        settings={settings}
       />
 
       <ContactDetailSheet

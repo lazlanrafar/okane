@@ -1,47 +1,45 @@
 "use client";
 
 import * as React from "react";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Button,
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  Skeleton,
-  Progress,
-  Badge,
-  Alert,
-  AlertTitle,
-  AlertDescription,
-  cn,
-} from "@workspace/ui";
-import { Check, Zap, CreditCard, Shield, AlertCircle } from "lucide-react";
-import type { Pricing, Order } from "@workspace/types";
-import {
+  cancelAddonAction,
+  cancelSubscription,
   createCheckoutSession,
   createCustomerPortal,
-  cancelSubscription,
   getInvoiceUrl,
-  cancelAddonAction,
   sendMagicLinkAction,
 } from "@workspace/modules/mayar/mayar.action";
 import { getBillingHistory } from "@workspace/modules/orders/orders.action";
-import { toast } from "sonner";
-import { useAppStore } from "@/stores/app";
-import { Separator } from "@workspace/ui";
+import type { Order, Pricing } from "@workspace/types";
 import {
-  formatBytes,
-  displayPrice,
-  getPlanLimits,
-  getGatewayPrice,
-} from "@workspace/utils";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useLocalizedRoute } from "@/utils/localized-route";
+  Alert,
+  AlertDescription,
+  AlertTitle,
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  cn,
+  Progress,
+  Separator,
+  Skeleton,
+} from "@workspace/ui";
+import { displayPrice, formatBytes, getGatewayPrice, getPlanLimits } from "@workspace/utils";
+import { AlertCircle, Check, CreditCard, Shield, Zap } from "lucide-react";
+import { toast } from "sonner";
+
 import { useConfirm } from "@/components/providers/confirm-modal-provider";
+import { useAppStore } from "@/stores/app";
+import { useLocalizedRoute } from "@/utils/localized-route";
 
 function BillingSkeleton() {
   return (
@@ -72,26 +70,19 @@ function BillingSkeleton() {
   );
 }
 
-export function BillingView({ 
+export function BillingView({
   initialPlans,
   initialAddons = [],
   dictionary: dict,
-}: { 
+}: {
   initialPlans: Pricing[];
   initialAddons?: Pricing[];
-  dictionary?: any;
+  dictionary: any;
 }) {
   const [mounted, setMounted] = React.useState(false);
-  const {
-    workspace,
-    settings,
-    dictionary: storeDict,
-    isLoading: isDictLoading,
-  } = useAppStore() as any;
+  const { workspace, settings, dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
   const dictionary = dict || storeDict;
-  const [billingCycle, setBillingCycle] = React.useState<"monthly" | "annual">(
-    "monthly",
-  );
+  const [billingCycle, setBillingCycle] = React.useState<"monthly" | "annual">("monthly");
   const [history, setHistory] = React.useState<Order[]>([]);
   const [loadingHistory, setLoadingHistory] = React.useState(true);
 
@@ -103,11 +94,9 @@ export function BillingView({
     setMounted(true);
   }, []);
   const { getLocalizedUrl } = useLocalizedRoute();
-  const currency = settings?.mainCurrencyCode?.toLowerCase() || "usd";
+  const currency = settings?.mainCurrencyCode.toLowerCase() || "usd";
 
   const workspaceId = workspace?.id;
-  
-
 
   React.useEffect(() => {
     async function fetchHistory() {
@@ -203,8 +192,8 @@ export function BillingView({
     return <BillingSkeleton />;
   }
 
-  const billingDict = dictionary?.settings?.billing || dictionary?.billing;
-  
+  const billingDict = dictionary.settings.billing || dictionary.billing;
+
   if (!billingDict || !billingDict.history) {
     return <BillingSkeleton />;
   }
@@ -221,7 +210,7 @@ export function BillingView({
     prices: [],
   };
 
-  const currentPlan = (initialPlans?.find((p) => p.id === currentPlanId) || starterPlan) as Pricing;
+  const currentPlan = (initialPlans.find((p) => p.id === currentPlanId) || starterPlan) as Pricing;
 
   const { vaultLimitBytes, aiLimitTokens } = getPlanLimits(currentPlan, {
     extra_vault_size_mb: workspace?.extra_vault_size_mb,
@@ -230,20 +219,18 @@ export function BillingView({
   const vaultProgress = Math.min(100, (vaultUsed / vaultLimitBytes) * 100);
   const aiProgress = Math.min(100, (aiUsed / aiLimitTokens) * 100);
   const isOverStorageLimit = vaultUsed > vaultLimitBytes;
-  const storageViolationAt = workspace?.storage_violation_at ? new Date(workspace.storage_violation_at) : null;
+  const storageViolationAt = workspace?.storage_violation_at ? new Date(workspace?.storage_violation_at) : null;
 
   const sortedPlans = [...(initialPlans || [])].sort((a, b) => {
     const order = ["starter", "pro", "business"];
-    return (
-      order.indexOf(a.name.toLowerCase()) - order.indexOf(b.name.toLowerCase())
-    );
+    return order.indexOf(a.name.toLowerCase()) - order.indexOf(b.name.toLowerCase());
   });
 
   return (
     <div className="space-y-8 pb-10">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">{billingDict?.title}</h2>
-        <p className="text-xs text-muted-foreground">{billingDict?.description}</p>
+        <h2 className="text-lg font-medium tracking-tight">{billingDict.title}</h2>
+        <p className="text-xs text-muted-foreground">{billingDict.description}</p>
       </div>
 
       <Separator className="rounded-none" />
@@ -252,10 +239,11 @@ export function BillingView({
         <Alert variant="destructive" className="rounded-none border-destructive/50 bg-destructive/5">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle className="text-xs font-semibold uppercase tracking-widest">
-            {billingDict?.storage_limit_exceeded || "Storage Limit Exceeded"}
+            {billingDict.storage_limit_exceeded || "Storage Limit Exceeded"}
           </AlertTitle>
           <AlertDescription className="text-[11px] mt-1 opacity-90 leading-relaxed">
-            {billingDict?.storage_grace_period_desc || "Your workspace is currently over its storage limit. Files will be kept for 30 days before being inactivated and eventually deleted. Please upgrade your plan or free up space to avoid data loss."}
+            {billingDict.storage_grace_period_desc ||
+              "Your workspace is currently over its storage limit. Files will be kept for 30 days before being inactivated and eventually deleted. Please upgrade your plan or free up space to avoid data loss."}
           </AlertDescription>
         </Alert>
       )}
@@ -272,18 +260,16 @@ export function BillingView({
                 variant="outline"
                 className="rounded-none text-[10px] uppercase tracking-widest px-2 h-5 font-semibold bg-background border"
               >
-                {billingDict?.current_plan}
+                {billingDict.current_plan}
               </Badge>
               <div className="flex items-center gap-3">
-                <h3 className="text-2xl font-medium tracking-tight">
-                  {currentPlan.name}
-                </h3>
+                <h3 className="text-2xl font-medium tracking-tight">{currentPlan.name}</h3>
                 {workspace?.mayar_transaction_id && (
                   <Badge
                     variant="secondary"
                     className="rounded-none text-[9px] h-4 px-1.5 font-medium tracking-wide uppercase bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                   >
-                    {dictionary?.common?.active || "Active"}
+                    {dictionary.common.active || "Active"}
                   </Badge>
                 )}
               </div>
@@ -295,12 +281,12 @@ export function BillingView({
                 </span>
                 {currentPlan.name.toLowerCase() !== "starter" && (
                   <span className="text-xs text-muted-foreground uppercase">
-                    / {billingCycle === "monthly" ? billingDict?.mo : billingDict?.yr}
+                    / {billingCycle === "monthly" ? billingDict.mo : billingDict.yr}
                   </span>
                 )}
               </div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
-                {billingCycle === "annual" ? billingDict?.annual_toggle : billingDict?.monthly_toggle}
+                {billingCycle === "annual" ? billingDict.annual_toggle : billingDict.monthly_toggle}
               </p>
             </div>
           </div>
@@ -308,9 +294,7 @@ export function BillingView({
         <CardContent className="p-6 pt-2 pb-6 relative z-10">
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-4">
-              <p className="text-xs text-muted-foreground leading-relaxed max-w-sm">
-                {currentPlan.description}
-              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-sm">{currentPlan.description}</p>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                 {(currentPlan.features || []).slice(0, 8).map((feature: string, i: number) => (
                   <li key={i} className="flex items-center gap-2 text-[11px] text-muted-foreground">
@@ -331,26 +315,16 @@ export function BillingView({
                   >
                     <CreditCard className="mr-2 h-3.5 w-3.5" />
                     {portalMutation.isPending
-                      ? dictionary?.common?.opening || "Opening..."
-                      : billingDict?.manage_subscription}
+                      ? dictionary.common.opening || "Opening..."
+                      : billingDict.manage_subscription}
                   </Button>
-                  <Button
-                    asChild
-                    className="rounded-none text-xs h-9 px-6 font-medium shadow-sm"
-                  >
-                    <Link href={getLocalizedUrl("/upgrade")}>
-                        {billingDict?.upgrade || "Upgrade Plan"}
-                    </Link>
+                  <Button asChild className="rounded-none text-xs h-9 px-6 font-medium shadow-sm">
+                    <Link href={getLocalizedUrl("/upgrade")}>{billingDict.upgrade || "Upgrade Plan"}</Link>
                   </Button>
                 </>
               ) : (
-                <Button
-                  asChild
-                  className="rounded-none text-xs h-9 px-8 font-medium shadow-sm"
-                >
-                  <Link href={getLocalizedUrl("/upgrade")}>
-                    {billingDict?.upgrade || "View Plans"}
-                  </Link>
+                <Button asChild className="rounded-none text-xs h-9 px-8 font-medium shadow-sm">
+                  <Link href={getLocalizedUrl("/upgrade")}>{billingDict.upgrade || "View Plans"}</Link>
                 </Button>
               )}
             </div>
@@ -364,7 +338,7 @@ export function BillingView({
         <Card className="rounded-none shadow-none border bg-background">
           <CardHeader className="p-4 pb-2">
             <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center justify-between">
-              {billingDict?.vault_storage || "Vault Storage"}
+              {billingDict.vault_storage || "Vault Storage"}
               <Shield className="h-3.5 w-3.5 text-muted-foreground/50" />
             </CardTitle>
           </CardHeader>
@@ -381,15 +355,11 @@ export function BillingView({
               </span>
             </div>
             <div className="space-y-2">
-              <Progress
-                value={vaultProgress}
-                className="h-1 rounded-none bg-muted/40"
-              />
+              <Progress value={vaultProgress} className="h-1 rounded-none bg-muted/40" />
               <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
-                <span>{dictionary?.common?.used || "Used"}</span>
+                <span>{dictionary.common.used || "Used"}</span>
                 <span>
-                  {formatBytes(Math.max(0, vaultLimitBytes - vaultUsed))}{" "}
-                  {dictionary?.common?.remaining || "Remaining"}
+                  {formatBytes(Math.max(0, vaultLimitBytes - vaultUsed))} {dictionary.common.remaining || "Remaining"}
                 </span>
               </div>
             </div>
@@ -400,7 +370,7 @@ export function BillingView({
         <Card className="rounded-none shadow-none border bg-background">
           <CardHeader className="p-4 pb-2">
             <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center justify-between">
-              {billingDict?.ai_tokens || "AI Tokens"}
+              {billingDict.ai_tokens || "AI Tokens"}
               <Zap className="h-3.5 w-3.5 text-muted-foreground/50" />
             </CardTitle>
           </CardHeader>
@@ -417,15 +387,11 @@ export function BillingView({
               </span>
             </div>
             <div className="space-y-2">
-              <Progress
-                value={aiProgress}
-                className="h-1 rounded-none bg-muted/40"
-              />
+              <Progress value={aiProgress} className="h-1 rounded-none bg-muted/40" />
               <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
-                <span>{dictionary?.common?.used || "Used"}</span>
+                <span>{dictionary.common.used || "Used"}</span>
                 <span>
-                  {Math.max(0, aiLimitTokens - aiUsed).toLocaleString()}{" "}
-                  {dictionary?.common?.remaining || "Remaining"}
+                  {Math.max(0, aiLimitTokens - aiUsed).toLocaleString()} {dictionary.common.remaining || "Remaining"}
                 </span>
               </div>
             </div>
@@ -437,7 +403,7 @@ export function BillingView({
       <div className="space-y-4">
         <div className="border-b pb-2">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-            {billingDict?.addons || "Monthly Add-ons"}
+            {billingDict.addons || "Monthly Add-ons"}
           </p>
         </div>
         <div className="flex flex-col gap-3">
@@ -447,97 +413,112 @@ export function BillingView({
               compact: true,
             });
             const priceId = getGatewayPrice(addon, "addon", currency);
-            const isActive = workspace?.active_addons?.some((a: any) => a.id === addon.id);
-            const addonData = workspace?.active_addons?.find((a: any) => a.id === addon.id);
+            const isActive = workspace?.active_addons.some((a: any) => a.id === addon.id);
+            const addonData = workspace?.active_addons.find((a: any) => a.id === addon.id);
 
             return (
-              <Card key={addon.id} className={cn(
-                "rounded-none shadow-none border bg-background hover:bg-accent/5 transition-all p-4",
-                isActive && "opacity-80"
-              )}>
+              <Card
+                key={addon.id}
+                className={cn(
+                  "rounded-none shadow-none border bg-background hover:bg-accent/5 transition-all p-4",
+                  isActive && "opacity-80",
+                )}
+              >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className={cn(
+                    <div
+                      className={cn(
                         "size-10 flex items-center justify-center shrink-0 border",
-                        addon.addon_type === "ai" ? "bg-amber-500/5 text-amber-500 border-amber-500/20" : "bg-emerald-500/5 text-emerald-500 border-emerald-500/20"
-                    )}>
-                        {addon.addon_type === "ai" ? <Zap className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
+                        addon.addon_type === "ai"
+                          ? "bg-amber-500/5 text-amber-500 border-amber-500/20"
+                          : "bg-emerald-500/5 text-emerald-500 border-emerald-500/20",
+                      )}
+                    >
+                      {addon.addon_type === "ai" ? <Zap className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
                     </div>
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium tracking-tight">
-                            {addon.name}
-                        </span>
+                        <span className="text-sm font-medium tracking-tight">{addon.name}</span>
                         {isActive && (
-                            <Badge variant="secondary" className={cn(
-                            "rounded-none text-[8px] h-3.5 px-1 font-mono uppercase",
-                            addon.addon_type === "ai" ? "bg-amber-500/10 text-amber-600" : "bg-emerald-500/10 text-emerald-600"
-                            )}>
-                            {dictionary?.common?.active || "Active"}
-                            </Badge>
+                          <Badge
+                            variant="secondary"
+                            className={cn(
+                              "rounded-none text-[8px] h-3.5 px-1 font-mono uppercase",
+                              addon.addon_type === "ai"
+                                ? "bg-amber-500/10 text-amber-600"
+                                : "bg-emerald-500/10 text-emerald-600",
+                            )}
+                          >
+                            {dictionary.common.active || "Active"}
+                          </Badge>
                         )}
                       </div>
-                      <p className="text-[10px] text-muted-foreground line-clamp-1 max-w-md">
-                        {addon.description}
-                      </p>
+                      <p className="text-[10px] text-muted-foreground line-clamp-1 max-w-md">{addon.description}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-10">
                     <div className="text-right whitespace-nowrap">
-                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium mb-0.5">
-                            {addon.addon_type === "ai" ? "Quota" : "Storage"}
-                        </p>
-                        <p className="text-xs font-serif font-medium">
-                            {addon.addon_type === "ai" 
-                            ? `+${addon.max_ai_tokens?.toLocaleString()}`
-                            : `+${addon.max_vault_size_mb} MB`
-                            }
-                        </p>
+                      <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium mb-0.5">
+                        {addon.addon_type === "ai" ? "Quota" : "Storage"}
+                      </p>
+                      <p className="text-xs font-serif font-medium">
+                        {addon.addon_type === "ai"
+                          ? `+${addon.max_ai_tokens.toLocaleString()}`
+                          : `+${addon.max_vault_size_mb} MB`}
+                      </p>
                     </div>
 
-                    {isActive && workspace?.active_addons?.find((a: any) => a.id === addon.id)?.status === "cancelled" && (
+                    {isActive &&
+                      workspace?.active_addons.find((a: any) => a.id === addon.id).status === "cancelled" && (
                         <div className="text-right whitespace-nowrap">
-                            <p className="text-[9px] text-destructive uppercase tracking-widest font-medium mb-0.5">
-                                {billingDict.deactivating_at || "Deactivating at"}
-                            </p>
-                            <p className="text-xs font-medium text-destructive">
-                                {(() => {
-                                    if (!addonData) return null;
-                                    const date = new Date(addonData.created_at);
-                                    date.setMonth(date.getMonth() + 1);
-                                    return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-                                })()}
-                            </p>
+                          <p className="text-[9px] text-destructive uppercase tracking-widest font-medium mb-0.5">
+                            {billingDict.deactivating_at || "Deactivating at"}
+                          </p>
+                          <p className="text-xs font-medium text-destructive">
+                            {(() => {
+                              if (!addonData) return null;
+                              const date = new Date(addonData.created_at);
+                              date.setMonth(date.getMonth() + 1);
+                              return date.toLocaleDateString(undefined, {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              });
+                            })()}
+                          </p>
                         </div>
-                    )}
-                    
+                      )}
+
                     <div className="text-right whitespace-nowrap min-w-[80px]">
-                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium mb-0.5">
-                            {billingDict?.price || "Price"}
-                        </p>
-                        <p className="text-xs font-serif font-medium">
-                            {price.label} <span className="text-[9px] font-normal text-muted-foreground">/ {billingDict?.mo}</span>
-                        </p>
+                      <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium mb-0.5">
+                        {billingDict.price || "Price"}
+                      </p>
+                      <p className="text-xs font-serif font-medium">
+                        {price?.label}{" "}
+                        <span className="text-[9px] font-normal text-muted-foreground">/ {billingDict.mo}</span>
+                      </p>
                     </div>
 
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant={isActive ? "outline" : "default"}
                       className="rounded-none text-[10px] uppercase tracking-widest h-8 px-5"
                       disabled={checkoutMutation.isPending || cancelAddonMutation.isPending}
                       onClick={async () => {
                         if (isActive) {
-                          if (addonData?.status === "active") {
+                          if (addonData.status === "active") {
                             const ok = await confirm({
-                                title: dictionary?.settings?.billing?.deactivate_addon_title || "Deactivate Add-on",
-                                description: dictionary?.settings?.billing?.deactivate_addon_desc || "Are you sure you want to deactivate this add-on? It will remain active until the end of your current billing cycle.",
-                                confirmLabel: billingDict.deactivate || "Deactivate",
-                                destructive: true,
+                              title: dictionary.settings.billing.deactivate_addon_title || "Deactivate Add-on",
+                              description:
+                                dictionary.settings.billing.deactivate_addon_desc ||
+                                "Are you sure you want to deactivate this add-on? It will remain active until the end of your current billing cycle.",
+                              confirmLabel: billingDict.deactivate || "Deactivate",
+                              destructive: true,
                             });
-                            
+
                             if (ok) {
-                                cancelAddonMutation.mutate(addon.id);
+                              cancelAddonMutation.mutate(addon.id);
                             }
                           }
                         } else if (priceId) {
@@ -546,20 +527,20 @@ export function BillingView({
                             type: "payment",
                             addonId: addon.id,
                             addonType: addon.addon_type as "ai" | "vault",
-                            amount: addon.prices?.find((p) => p.currency === currency)?.monthly,
+                            amount: addon.prices.find((p) => p.currency === currency)?.monthly || 0,
                           });
                         }
                       }}
                     >
-                      {isActive 
-                        ? (addonData?.status === "cancelled" 
-                            ? (dictionary?.common?.cancelled || "Cancelled")
-                            : cancelAddonMutation.isPending && cancelAddonMutation.variables === addon.id
-                                ? "..."
-                                : (billingDict.deactivate || "Deactivate"))
-                        : checkoutMutation.isPending 
-                          ? (dictionary?.common?.processing || "Processing...") 
-                          : (billingDict.purchase || billingDict.get_started || "Purchase")}
+                      {isActive
+                        ? addonData.status === "cancelled"
+                          ? dictionary.common.cancelled || "Cancelled"
+                          : cancelAddonMutation.isPending && cancelAddonMutation.variables === addon.id
+                            ? "..."
+                            : billingDict.deactivate || "Deactivate"
+                        : checkoutMutation.isPending
+                          ? dictionary.common.processing || "Processing..."
+                          : billingDict.purchase || billingDict.get_started || "Purchase"}
                     </Button>
                   </div>
                 </div>
@@ -573,7 +554,7 @@ export function BillingView({
       <div className="space-y-6">
         <div className="border-b pb-2">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-            {billingDict?.history?.title}
+            {billingDict.history.title}
           </p>
         </div>
         <Card className="rounded-none shadow-none border overflow-hidden bg-background">
@@ -589,42 +570,24 @@ export function BillingView({
                 <table className="w-full text-left text-[11px]">
                   <thead>
                     <tr className="border-b bg-accent/5 uppercase tracking-widest font-semibold text-muted-foreground/80">
-                      <th className="p-4 font-semibold text-[10px]">
-                        {billingDict?.history?.date}
-                      </th>
-                      <th className="p-4 font-semibold text-[10px]">
-                        {billingDict?.history?.invoice}
-                      </th>
-                      <th className="p-4 font-semibold text-[10px]">
-                        {billingDict?.history?.amount}
-                      </th>
-                      <th className="p-4 font-semibold text-[10px]">
-                        {billingDict?.history?.status}
-                      </th>
-                      <th className="p-4 font-semibold text-[10px] text-right">
-                        {billingDict?.history?.action}
-                      </th>
+                      <th className="p-4 font-semibold text-[10px]">{billingDict.history.date}</th>
+                      <th className="p-4 font-semibold text-[10px]">{billingDict.history.invoice}</th>
+                      <th className="p-4 font-semibold text-[10px]">{billingDict.history.amount}</th>
+                      <th className="p-4 font-semibold text-[10px]">{billingDict.history.status}</th>
+                      <th className="p-4 font-semibold text-[10px] text-right">{billingDict.history.action}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-muted/40">
                     {history.map((order) => (
-                      <tr
-                        key={order.id}
-                        className="hover:bg-accent/5 transition-all group"
-                      >
+                      <tr key={order.id} className="hover:bg-accent/5 transition-all group">
                         <td className="p-4 text-muted-foreground font-medium">
-                          {new Date(order.created_at).toLocaleDateString(
-                            undefined,
-                            {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            },
-                          )}
+                          {new Date(order.created_at).toLocaleDateString(undefined, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
                         </td>
-                        <td className="p-4 font-medium tracking-tight">
-                          {order.code}
-                        </td>
+                        <td className="p-4 font-medium tracking-tight">{order.code}</td>
                         <td className="p-4 font-serif text-xs">
                           {(order.amount / 100).toLocaleString(undefined, {
                             style: "currency",
@@ -650,18 +613,12 @@ export function BillingView({
                               variant="outline"
                               size="sm"
                               className="h-7 px-3 text-[10px] uppercase tracking-widest rounded-none border font-medium hover:bg-foreground hover:text-background transition-all"
-                              onClick={() =>
-                                downloadMutation.mutate(
-                                  order.mayar_invoice_id!,
-                                )
-                              }
+                              onClick={() => downloadMutation.mutate(order.mayar_invoice_id!)}
                               disabled={downloadMutation.isPending}
                             >
-                              {downloadMutation.isPending &&
-                              downloadMutation.variables ===
-                                order.mayar_invoice_id
+                              {downloadMutation.isPending && downloadMutation.variables === order.mayar_invoice_id
                                 ? "..."
-                                : (dictionary?.common?.view_pdf || "View PDF")}
+                                : dictionary.common.view_pdf || "View PDF"}
                             </Button>
                           )}
                         </td>
@@ -676,10 +633,10 @@ export function BillingView({
                   <CreditCard className="h-6 w-6 text-muted-foreground" />
                 </div>
                 <p className="text-xs font-semibold uppercase tracking-widest mb-1">
-                   {billingDict?.history?.no_history}
+                  {billingDict.history.no_history}
                 </p>
                 <p className="text-[11px] text-muted-foreground max-w-[200px] mx-auto leading-relaxed">
-                   {billingDict?.history?.no_history_description}
+                  {billingDict.history.no_history_description}
                 </p>
               </div>
             )}

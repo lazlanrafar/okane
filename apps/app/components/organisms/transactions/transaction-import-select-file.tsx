@@ -1,13 +1,15 @@
 "use client";
 
-import Papa from "papaparse";
-import * as XLSX from "xlsx";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+import { cn } from "@workspace/ui";
+import { FileUp, Loader2 } from "lucide-react";
+import Papa from "papaparse";
 import Dropzone, { type FileRejection } from "react-dropzone";
 import { Controller } from "react-hook-form";
+import * as XLSX from "xlsx";
+
 import { useCsvContext } from "./transaction-import-context";
-import { FileUp, Loader2 } from "lucide-react";
-import { cn } from "@workspace/ui";
 
 export function SelectFile() {
   const { control, setFileColumns, setFirstRows } = useCsvContext();
@@ -21,8 +23,7 @@ export function SelectFile() {
 
       // Detect file type
       const isExcel =
-        file.type ===
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+        file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
         file.type === "application/vnd.ms-excel" ||
         file.name.endsWith(".xlsx") ||
         file.name.endsWith(".xls");
@@ -118,8 +119,7 @@ export function SelectFile() {
             accept={{
               "text/csv": [".csv"],
               "application/vnd.ms-excel": [".csv", ".xls"],
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-                [".xlsx"],
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
             }}
             maxSize={5000000}
           >
@@ -141,19 +141,11 @@ export function SelectFile() {
                 )}
                 <div className="text-center">
                   <p className="font-medium text-sm">
-                    {isLoading
-                      ? "Processing file..."
-                      : "Drop your CSV or Excel here, or click to browse"}
+                    {isLoading ? "Processing file..." : "Drop your CSV or Excel here, or click to browse"}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Max 5MB. CSV or Excel format (.xlsx, .xls).
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Max 5MB. CSV or Excel format (.xlsx, .xls).</p>
                 </div>
-                {error && (
-                  <p className="text-sm text-destructive font-medium">
-                    {error}
-                  </p>
-                )}
+                {error && <p className="text-sm text-destructive font-medium">{error}</p>}
               </div>
             )}
           </Dropzone>

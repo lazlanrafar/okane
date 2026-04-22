@@ -1,15 +1,18 @@
 import { Suspense } from "react";
+
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Debts",
 };
+
+import { type DebtWithContact, getDebts, getTransactionSettings, getWallets } from "@workspace/modules/server";
 import type { Wallet } from "@workspace/types";
-import { getWallets, getDebts, type DebtWithContact, getTransactionSettings } from "@workspace/modules/server";
-import { DebtsClient } from "@/components/organisms/debts/debts-client";
+
 import { DebtTableSkeleton } from "@/components/organisms/debts/debt-table-skeleton";
+import { DebtsClient } from "@/components/organisms/debts/debts-client";
 import { getDictionary } from "@/get-dictionary";
-import { Locale } from "@/i18n-config";
+import type { Locale } from "@/i18n-config";
 
 export const dynamic = "force-dynamic";
 
@@ -32,11 +35,7 @@ async function DebtsPageContent({ locale }: { locale: Locale }) {
   let settings: any = null;
 
   try {
-    const [debtsRes, walletsRes, settingsRes] = await Promise.all([
-      getDebts(),
-      getWallets(),
-      getTransactionSettings(),
-    ]);
+    const [debtsRes, walletsRes, settingsRes] = await Promise.all([getDebts(), getWallets(), getTransactionSettings()]);
 
     if (debtsRes?.success && debtsRes?.data) {
       initialDebts = debtsRes.data;
@@ -54,11 +53,6 @@ async function DebtsPageContent({ locale }: { locale: Locale }) {
   }
 
   return (
-    <DebtsClient
-      initialData={initialDebts}
-      wallets={initialWallets}
-      dictionary={dictionary}
-      settings={settings}
-    />
+    <DebtsClient initialData={initialDebts} wallets={initialWallets} dictionary={dictionary} settings={settings} />
   );
 }

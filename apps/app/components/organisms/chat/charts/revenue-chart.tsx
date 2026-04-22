@@ -1,18 +1,11 @@
 "use client";
 
-import { formatAmount } from "./format-amount";
 import { ReferenceLine, Tooltip } from "recharts";
-import {
-  BaseChart,
-  ChartLegend,
-  StyledArea,
-  StyledLine,
-  StyledTooltip,
-  StyledXAxis,
-  StyledYAxis,
-} from "./base-charts";
-import { createYAxisTickFormatter, useChartMargin } from "./chart-utils";
+
+import { BaseChart, ChartLegend, StyledArea, StyledLine, StyledTooltip, StyledXAxis, StyledYAxis } from "./base-charts";
 import type { BaseChartProps } from "./chart-utils";
+import { createYAxisTickFormatter, useChartMargin } from "./chart-utils";
+import { formatAmount } from "./format-amount";
 
 interface RevenueData {
   month: string;
@@ -29,12 +22,7 @@ interface RevenueChartProps extends BaseChartProps {
 }
 
 // Custom formatter for revenue tooltip
-const revenueTooltipFormatter = (
-  value: any,
-  name: string,
-  currency = "USD",
-  locale?: string,
-): [string, string] => {
+const revenueTooltipFormatter = (value: any, name: string, currency = "USD", locale?: string): [string, string] => {
   const formattedValue =
     formatAmount({
       amount: value,
@@ -69,28 +57,20 @@ export function RevenueChart({
           title="Revenue"
           items={[
             { label: "Revenue", type: "solid" },
-            ...(showTarget
-              ? [{ label: "Target", type: "dashed" as const }]
-              : []),
+            ...(showTarget ? [{ label: "Target", type: "dashed" as const }] : []),
           ]}
         />
       )}
 
       {/* Chart */}
-      <BaseChart
-        data={data}
-        height={height}
-        margin={{ top: 6, right: 6, left: -marginLeft, bottom: 6 }}
-      >
+      <BaseChart data={data} height={height} margin={{ top: 6, right: 6, left: -marginLeft, bottom: 6 }}>
         <StyledXAxis dataKey="month" />
         <StyledYAxis tickFormatter={tickFormatter} />
 
         <Tooltip
           content={
             <StyledTooltip
-              formatter={(value: any, name: string) =>
-                revenueTooltipFormatter(value, name, currency, locale)
-              }
+              formatter={(value: any, name: string) => revenueTooltipFormatter(value, name, currency, locale)}
             />
           }
           wrapperStyle={{ zIndex: 9999 }}
@@ -101,11 +81,7 @@ export function RevenueChart({
         {showTarget && <StyledLine dataKey="target" strokeDasharray="5 5" />}
 
         {/* Reference line at zero */}
-        <ReferenceLine
-          y={0}
-          stroke="hsl(var(--border))"
-          strokeDasharray="2 2"
-        />
+        <ReferenceLine y={0} stroke="hsl(var(--border))" strokeDasharray="2 2" />
       </BaseChart>
     </div>
   );

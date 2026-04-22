@@ -1,37 +1,38 @@
 "use client";
 
-import { useMemo, useCallback, useRef, useState, useEffect } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getDebts } from "@workspace/modules/server";
+import { getTransactions } from "@workspace/modules/transaction/transaction.action";
+import { Button, cn } from "@workspace/ui";
+ 
+import type { Dictionary } from "@workspace/dictionaries";
+import type { TransactionSettings } from "@workspace/types";
+import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
 import {
-  format,
-  addMonths,
-  subMonths,
-  addWeeks,
-  subWeeks,
-  startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
-  isSameMonth,
-  isSameDay,
   addDays,
+  addMonths,
+  addWeeks,
+  endOfMonth,
+  endOfWeek,
+  format,
   getHours,
   getMinutes,
+  isSameDay,
+  isSameMonth,
   parseISO,
+  startOfMonth,
+  startOfWeek,
+  subMonths,
+  subWeeks,
 } from "date-fns";
-import {
-  ChevronLeft,
-  ChevronRight,
-  CalendarDays,
-  LayoutGrid,
-} from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getTransactions } from "@workspace/modules/transaction/transaction.action";
-import { getDebts } from "@workspace/modules/server";
-import { cn, Button } from "@workspace/ui";
+import { CalendarDays, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
+import { parseAsString, useQueryState } from "nuqs";
+
 import { CalendarDaySheet } from "./calendar-day-sheet";
-import { useQueryState, parseAsString } from "nuqs";
-import { useAppStore } from "@/stores/app";
 
 type CalendarView = "month" | "week";
 
@@ -47,11 +48,14 @@ function parseDateParam(value: string | null): Date {
 }
 
 interface Props {
-  dictionary: any;
+  dictionary: Dictionary;
+  settings: TransactionSettings;
 }
 
-export function CalendarClient({ dictionary }: Props) {
-  const t = dictionary?.calendar;
+const HOURS = Array.from({ length: 24 }, (_, i) => i);
+
+export function CalendarClient({ dictionary, settings }: Props) {
+  const t = dictionary.calendar;
   const queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
@@ -64,8 +68,7 @@ export function CalendarClient({ dictionary }: Props) {
   const weekScrollRef = useRef<HTMLDivElement>(null);
 
   // Derive state from URL
-  const view: CalendarView =
-    searchParams.get("tab") === "week" ? "week" : "month";
+  const view: CalendarView = searchParams.get("tab") === "week" ? "week" : "month";
   const currentDate = parseDateParam(searchParams.get("date"));
 
   /** Push a new URL with updated params; no scroll jump */
@@ -78,11 +81,9 @@ export function CalendarClient({ dictionary }: Props) {
     [router, pathname, searchParams],
   );
 
-  const setView = (v: CalendarView) =>
-    setParam({ tab: v, date: format(currentDate, "yyyy-MM-dd") });
+  const setView = (v: CalendarView) => setParam({ tab: v, date: format(currentDate, "yyyy-MM-dd") });
 
-  const setCurrentDate = (d: Date) =>
-    setParam({ tab: view, date: format(d, "yyyy-MM-dd") });
+  const setCurrentDate = (d: Date) => setParam({ tab: view, date: format(d, "yyyy-MM-dd") });
 
   // Date range depending on view
   const rangeStart = useMemo(() => {
@@ -97,12 +98,7 @@ export function CalendarClient({ dictionary }: Props) {
 
   // Fetch data
   const { data: txResponse, isLoading: isLoadingTx } = useQuery({
-    queryKey: [
-      "transactions",
-      "calendar",
-      format(rangeStart, "yyyy-MM-dd"),
-      view,
-    ],
+    queryKey: ["transactions", "calendar", format(rangeStart, "yyyy-MM-dd"), view],
     queryFn: () =>
       getTransactions({
         startDate: format(rangeStart, "yyyy-MM-dd"),
@@ -120,8 +116,7 @@ export function CalendarClient({ dictionary }: Props) {
       }),
   });
 
-  const transactions =
-    (txResponse?.data as any)?.rows || txResponse?.data || [];
+  const transactions = (txResponse.data as any).rows || txResponse.data || [];
   const debts = debtsResponse?.data || [];
 
   // Navigation
@@ -133,8 +128,7 @@ export function CalendarClient({ dictionary }: Props) {
     if (view === "month") setCurrentDate(subMonths(currentDate, 1));
     else setCurrentDate(subWeeks(currentDate, 1));
   };
-  const goToday = () =>
-    setParam({ tab: view, date: format(new Date(), "yyyy-MM-dd") });
+  const goToday = () => setParam({ tab: view, date: format(new Date(), "yyyy-MM-dd") });
 
   // Month grid days
   const monthDays = useMemo(() => {
@@ -159,11 +153,9 @@ export function CalendarClient({ dictionary }: Props) {
 
   const dayDataForDate = (day: Date) => {
     const dayStr = format(day, "yyyy-MM-dd");
-    const dayTxs = transactions.filter((t: any) => t.date?.startsWith(dayStr));
+    const dayTxs = transactions.filter((t: any) => t.date.startsWith(dayStr));
     const dayDebts = debts.filter(
-      (d: any) =>
-        (d.dueDate && d.dueDate.startsWith(dayStr)) ||
-        (!d.dueDate && d.createdAt?.startsWith(dayStr)),
+      (d: any) => (d.dueDate && d.dueDate.startsWith(dayStr)) || (!d.dueDate && d.createdAt.startsWith(dayStr)),
     );
     let income = 0;
     let expense = 0;
@@ -179,8 +171,7 @@ export function CalendarClient({ dictionary }: Props) {
     if (view === "month") return format(currentDate, "MMMM yyyy");
     const start = startOfWeek(currentDate);
     const end = endOfWeek(currentDate);
-    if (format(start, "MMM") === format(end, "MMM"))
-      return `${format(start, "MMM d")} – ${format(end, "d, yyyy")}`;
+    if (format(start, "MMM") === format(end, "MMM")) return `${format(start, "MMM d")} – ${format(end, "d, yyyy")}`;
     return `${format(start, "MMM d")} – ${format(end, "MMM d, yyyy")}`;
   }, [view, currentDate]);
 
@@ -191,9 +182,7 @@ export function CalendarClient({ dictionary }: Props) {
     "group relative flex items-center gap-1.5 px-3 py-1.5 text-[14px] transition-all whitespace-nowrap border border-transparent h-9 min-h-9 cursor-pointer select-none",
     "text-[#707070] hover:text-black bg-[#f7f7f7] dark:text-[#666666] dark:hover:text-white dark:bg-[#131313] mb-0 relative z-[1]",
   );
-  const activeTabClass = cn(
-    "text-black bg-[#e6e6e6] dark:text-white dark:bg-[#1d1d1d] mb-[-1px] z-10",
-  );
+  const activeTabClass = cn("text-black bg-[#e6e6e6] dark:text-white dark:bg-[#1d1d1d] mb-[-1px] z-10");
 
   // Synchronization with URL
   useEffect(() => {
@@ -238,9 +227,9 @@ export function CalendarClient({ dictionary }: Props) {
         <div>
           <h1 className="text-2xl font-serif tracking-tight">{headerLabel}</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            {view === "month"
-              ? (t as any).description.month
-              : (t as any).description.week}
+            {view === "month" 
+              ? (t.description as any).month 
+              : (t.description as any).week}
           </p>
         </div>
 
@@ -263,17 +252,11 @@ export function CalendarClient({ dictionary }: Props) {
 
           {/* Week / Month tabs — same style as overview tabs */}
           <div className="ml-1 relative flex items-stretch bg-[#f7f7f7] dark:bg-[#131313]">
-            <button
-              onClick={() => setView("week")}
-              className={cn(tabClass, view === "week" && activeTabClass)}
-            >
+            <button onClick={() => setView("week")} className={cn(tabClass, view === "week" && activeTabClass)}>
               <CalendarDays className="w-4 h-4" />
               {t.tabs.week}
             </button>
-            <button
-              onClick={() => setView("month")}
-              className={cn(tabClass, view === "month" && activeTabClass)}
-            >
+            <button onClick={() => setView("month")} className={cn(tabClass, view === "month" && activeTabClass)}>
               <LayoutGrid className="w-4 h-4" />
               {t.tabs.month}
             </button>
@@ -289,6 +272,7 @@ export function CalendarClient({ dictionary }: Props) {
           dayDataForDate={dayDataForDate}
           isLoading={isLoading}
           setSelectedDate={(d) => setCalendarDate(format(d, "yyyy-MM-dd"))}
+          settings={settings}
           t={t}
         />
       ) : (
@@ -300,10 +284,11 @@ export function CalendarClient({ dictionary }: Props) {
           isLoading={isLoading}
           setSelectedDate={(d) => setCalendarDate(format(d, "yyyy-MM-dd"))}
           scrollRef={weekScrollRef}
+          settings={settings}
           t={t}
         />
       )}
-
+ 
       <CalendarDaySheet
         date={selectedDate}
         open={!!selectedDate}
@@ -311,19 +296,16 @@ export function CalendarClient({ dictionary }: Props) {
           if (!op) setCalendarDate("");
         }}
         transactions={transactions.filter(
-          (t: any) =>
-            selectedDate &&
-            t.date?.startsWith(format(selectedDate, "yyyy-MM-dd")),
+          (t: any) => selectedDate && t.date.startsWith(format(selectedDate, "yyyy-MM-dd")),
         )}
         debts={debts.filter(
           (d: any) =>
             selectedDate &&
-            ((d.dueDate &&
-              d.dueDate.startsWith(format(selectedDate, "yyyy-MM-dd"))) ||
-              (!d.dueDate &&
-                d.createdAt?.startsWith(format(selectedDate, "yyyy-MM-dd")))),
+            ((d.dueDate && d.dueDate.startsWith(format(selectedDate, "yyyy-MM-dd"))) ||
+              (!d.dueDate && d.createdAt.startsWith(format(selectedDate, "yyyy-MM-dd")))),
         )}
         dictionary={dictionary}
+        settings={settings}
       />
     </div>
   );
@@ -336,7 +318,9 @@ function MonthView({
   currentDate,
   monthDays,
   dayDataForDate,
+  isLoading,
   setSelectedDate,
+  settings,
   t,
 }: {
   currentDate: Date;
@@ -344,9 +328,11 @@ function MonthView({
   dayDataForDate: (d: Date) => any;
   isLoading: boolean;
   setSelectedDate: (d: Date) => void;
+  settings: TransactionSettings;
   t: any;
 }) {
-  const { formatCurrency } = useAppStore();
+  const formatCurrency = (amount: number, options?: Parameters<typeof formatCurrencyUtil>[2]) =>
+    formatCurrencyUtil(amount, settings, options);
   const DAY_LABELS = [
     t.days.short.sun,
     t.days.short.mon,
@@ -362,10 +348,7 @@ function MonthView({
       {/* Day-of-week header */}
       <div className="grid grid-cols-7 border-b bg-background shrink-0">
         {DAY_LABELS.map((d: string) => (
-          <div
-            key={d}
-            className="px-4 py-2.5 text-xs font-semibold text-muted-foreground tracking-wider"
-          >
+          <div key={d} className="px-4 py-2.5 text-xs font-semibold text-muted-foreground tracking-wider">
             {d}
           </div>
         ))}
@@ -385,9 +368,7 @@ function MonthView({
                 onClick={() => setSelectedDate(day)}
                 className={cn(
                   "border-b border-r p-2.5 flex flex-col gap-1 cursor-pointer group transition-colors",
-                  !isCurrentMonth
-                    ? "bg-muted/20 text-muted-foreground/40"
-                    : "bg-background hover:bg-muted/20",
+                  !isCurrentMonth ? "bg-muted/20 text-muted-foreground/40" : "bg-background hover:bg-muted/20",
                   i % 7 === 6 && "border-r-0",
                 )}
                 style={
@@ -402,9 +383,7 @@ function MonthView({
                 <span
                   className={cn(
                     "text-sm font-medium h-6 w-6 flex items-center justify-center rounded-full",
-                    isToday
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground group-hover:bg-muted",
+                    isToday ? "bg-primary text-primary-foreground" : "text-foreground group-hover:bg-muted",
                   )}
                 >
                   {format(day, "d")}
@@ -449,6 +428,7 @@ function WeekView({
   isLoading,
   setSelectedDate,
   scrollRef,
+  settings,
   t,
 }: {
   weekDays: Date[];
@@ -457,10 +437,12 @@ function WeekView({
   dayDataForDate: (d: Date) => any;
   isLoading: boolean;
   setSelectedDate: (d: Date) => void;
-  scrollRef: React.RefObject<HTMLDivElement | null>;
+  settings: TransactionSettings;
   t: any;
+  scrollRef: any;
 }) {
-  const { formatCurrency } = useAppStore();
+  const formatCurrency = (amount: number, options?: Parameters<typeof formatCurrencyUtil>[2]) =>
+    formatCurrencyUtil(amount, settings, options);
   const today = new Date();
   const nowHour = getHours(today);
   const nowMin = getMinutes(today);
@@ -497,37 +479,31 @@ function WeekView({
               onClick={() => setSelectedDate(day)}
             >
               <span className="text-[11px] font-semibold tracking-wider text-muted-foreground">
-                {[
-                  t.days.short.sun,
-                  t.days.short.mon,
-                  t.days.short.tue,
-                  t.days.short.wed,
-                  t.days.short.thu,
-                  t.days.short.fri,
-                  t.days.short.sat,
-                ][day.getDay()]}
+                {
+                  [
+                    t.days.short.sun,
+                    t.days.short.mon,
+                    t.days.short.tue,
+                    t.days.short.wed,
+                    t.days.short.thu,
+                    t.days.short.fri,
+                    t.days.short.sat,
+                  ][day.getDay()]
+                }
               </span>
               <span
                 className={cn(
                   "text-lg font-semibold h-8 w-8 flex items-center justify-center rounded-full leading-none",
-                  isToday
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground",
+                  isToday ? "bg-primary text-primary-foreground" : "text-foreground",
                 )}
               >
                 {format(day, "d")}
               </span>
               {hasActivity && (
                 <div className="flex gap-0.5 mt-0.5">
-                  {income > 0 && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  )}
-                  {expense > 0 && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                  )}
-                  {dayDebts.length > 0 && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                  )}
+                  {income > 0 && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
+                  {expense > 0 && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
+                  {dayDebts.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />}
                 </div>
               )}
             </div>
@@ -536,10 +512,7 @@ function WeekView({
       </div>
 
       {/* Scrollable time grid */}
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto no-scrollbar relative"
-      >
+      <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar relative">
         <div className="flex relative" style={{ minHeight: `${24 * 60}px` }}>
           {/* Time labels gutter */}
           <div className="w-14 shrink-0 relative">
@@ -550,9 +523,7 @@ function WeekView({
                 style={{ top: `${(h / 24) * 100}%`, height: `${100 / 24}%` }}
               >
                 {h > 0 && (
-                  <span className="text-[10px] text-muted-foreground -translate-y-2">
-                    {h < 10 ? `0${h}` : h}:00
-                  </span>
+                  <span className="text-[10px] text-muted-foreground -translate-y-2">{h < 10 ? `0${h}` : h}:00</span>
                 )}
               </div>
             ))}
@@ -566,10 +537,7 @@ function WeekView({
             return (
               <div
                 key={dayStr}
-                className={cn(
-                  "flex-1 border-l relative",
-                  isToday && "bg-primary/[0.03]",
-                )}
+                className={cn("flex-1 border-l relative", isToday && "bg-primary/[0.03]")}
                 onClick={() => setSelectedDate(day)}
               >
                 {/* Hour row lines */}
@@ -602,8 +570,7 @@ function WeekView({
                     let expense = 0;
                     txs.forEach((t) => {
                       if (t.type === "income") income += Number(t.amount);
-                      else if (t.type === "expense")
-                        expense += Number(t.amount);
+                      else if (t.type === "expense") expense += Number(t.amount);
                     });
                     return (
                       <div
@@ -612,18 +579,12 @@ function WeekView({
                         style={{
                           top: `calc(${(hour / 24) * 100}% + 2px)`,
                           minHeight: 20,
-                          background:
-                            income > 0
-                              ? "rgb(16 185 129 / 0.15)"
-                              : "rgb(239 68 68 / 0.15)",
-                          color:
-                            income > 0 ? "rgb(5 150 105)" : "rgb(220 38 38)",
+                          background: income > 0 ? "rgb(16 185 129 / 0.15)" : "rgb(239 68 68 / 0.15)",
+                          color: income > 0 ? "rgb(5 150 105)" : "rgb(220 38 38)",
                           borderLeft: `2px solid ${income > 0 ? "rgb(16 185 129)" : "rgb(239 68 68)"}`,
                         }}
                       >
-                        {income > 0
-                          ? `+${formatCurrency(income)}`
-                          : `-${formatCurrency(expense)}`}
+                        {income > 0 ? `+${formatCurrency(income)}` : `-${formatCurrency(expense)}`}
                       </div>
                     );
                   })}

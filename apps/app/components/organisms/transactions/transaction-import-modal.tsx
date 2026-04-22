@@ -1,49 +1,37 @@
 "use client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 
-import { useMemo, useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useRouter } from "next/navigation";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
+import { bulkCreateTransactions, createTransaction } from "@workspace/modules/transaction/transaction.action";
 import {
   Button,
   cn,
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   Icons,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Label,
 } from "@workspace/ui";
-import {
-  Upload,
-  X,
-  ArrowLeft,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, Upload, X } from "lucide-react";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
-import {
-  ImportCsvContext,
-  importSchema,
-  type ImportCsvFormData,
-} from "./transaction-import-context";
-import { SelectFile } from "./transaction-import-select-file";
-import { FieldMapping } from "./transaction-import-field-mapping";
-import { ValueMapping } from "./transaction-import-value-mapping";
-import {
-  bulkCreateTransactions,
-  createTransaction,
-} from "@workspace/modules/transaction/transaction.action";
 import { useAppStore } from "@/stores/app";
+
+import { ImportCsvContext, type ImportCsvFormData, importSchema } from "./transaction-import-context";
+import { FieldMapping } from "./transaction-import-field-mapping";
+import { SelectFile } from "./transaction-import-select-file";
+import { ValueMapping } from "./transaction-import-value-mapping";
 
 interface ImportModalProps {
   open: boolean;
@@ -52,26 +40,13 @@ interface ImportModalProps {
   wallets: any[];
 }
 
-export function ImportModal({
-  open,
-  onOpenChange,
-  wallets,
-  onSuccess,
-}: ImportModalProps) {
+export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportModalProps) {
   const { settings, subCurrencies } = useAppStore();
   const [step, setStep] = useState<
-    | "select"
-    | "mapping"
-    | "mapping-values"
-    | "summary"
-    | "uploading"
-    | "success"
-    | "error"
+    "select" | "mapping" | "mapping-values" | "summary" | "uploading" | "success" | "error"
   >("select");
   const [fileColumns, setFileColumns] = useState<string[] | null>(null);
-  const [firstRows, setFirstRows] = useState<Record<string, string>[] | null>(
-    null,
-  );
+  const [firstRows, setFirstRows] = useState<Record<string, string>[] | null>(null);
   const [valueMappings, setValueMappings] = useState<{
     categories: Record<string, string>;
     wallets: Record<string, string>;
@@ -83,9 +58,7 @@ export function ImportModal({
   });
   const [importedCount, setImportedCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
-  const [importFailures, setImportFailures] = useState<
-    { index: number; reason: string }[]
-  >([]);
+  const [importFailures, setImportFailures] = useState<{ index: number; reason: string }[]>([]);
 
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -141,7 +114,7 @@ export function ImportModal({
   // Set default currency from settings
   useEffect(() => {
     if (settings?.mainCurrencyCode && !watch("currency")) {
-      setValue("currency", settings.mainCurrencyCode);
+      setValue("currency", settings?.mainCurrencyCode);
     }
   }, [settings?.mainCurrencyCode, setValue, watch]);
 
@@ -182,13 +155,11 @@ export function ImportModal({
       return;
     }
     if (!data.amount || !data.date || !data.name) {
-      toast.error(
-        "Please map all required fields (Amount, Date, and Description)",
-      );
+      toast.error("Please map all required fields (Amount, Date, and Description)");
       return;
     }
 
-    if (!firstRows || firstRows.length === 0) {
+    if (!firstRows || firstRows?.length === 0) {
       toast.error("No data to import");
       return;
     }
@@ -220,22 +191,14 @@ export function ImportModal({
 
         // Resolve type from value mapping
         const typeValue = data.type ? row[data.type] : undefined;
-        const transactionType = typeValue
-          ? valueMappings.types[typeValue] || "expense"
-          : "expense";
+        const transactionType = typeValue ? valueMappings.types[typeValue] || "expense" : "expense";
 
         // Resolve category and wallet from value mappings
         const categoryValue = data.category ? row[data.category] : undefined;
-        const resolvedCategoryId = categoryValue
-          ? valueMappings.categories[categoryValue]
-          : undefined;
+        const resolvedCategoryId = categoryValue ? valueMappings.categories[categoryValue] : undefined;
 
-        const walletValue = (data as any).walletIdColumn
-          ? row[(data as any).walletIdColumn]
-          : undefined;
-        const resolvedWalletId = walletValue
-          ? valueMappings.wallets[walletValue]
-          : data.walletId;
+        const walletValue = (data as any).walletIdColumn ? row[(data as any).walletIdColumn] : undefined;
+        const resolvedWalletId = walletValue ? valueMappings.wallets[walletValue] : data.walletId;
 
         return {
           walletId: resolvedWalletId,
@@ -253,7 +216,7 @@ export function ImportModal({
       if (res.success && res.data) {
         setImportedCount(res.data.imported);
         setImportFailures(res.data.failures || []);
-        
+
         if (res.data.imported > 0) {
           setStep("success");
           await queryClient.invalidateQueries({ queryKey: ["transactions"] });
@@ -270,13 +233,13 @@ export function ImportModal({
       }
     } catch (error: any) {
       console.error("[Import Error]", error);
-      setErrorMessage(error?.message || "An unexpected error occurred during import");
+      setErrorMessage(error.message || "An unexpected error occurred during import");
       setStep("error");
     }
   };
 
   const dateRange = useMemo(() => {
-    if (!firstRows || firstRows.length === 0) return null;
+    if (!firstRows || firstRows?.length === 0) return null;
     const dateCol = form.getValues("date");
     if (!dateCol) return null;
 
@@ -316,13 +279,8 @@ export function ImportModal({
           <div className="p-6 pb-0">
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                {(step === "mapping" ||
-                  step === "mapping-values" ||
-                  step === "summary") && (
-                  <button
-                    onClick={onBack}
-                    className="p-1 hover:bg-muted rounded-md transition-colors"
-                  >
+                {(step === "mapping" || step === "mapping-values" || step === "summary") && (
+                  <button onClick={onBack} className="p-1 hover:bg-muted rounded-md transition-colors">
                     <ArrowLeft className="h-4 w-4" />
                   </button>
                 )}
@@ -337,14 +295,10 @@ export function ImportModal({
                 </DialogTitle>
               </div>
               <DialogDescription className="text-sm">
-                {step === "select" &&
-                  "Upload your transaction file to get started."}
-                {step === "mapping" &&
-                  "Map your file columns to the appropriate transaction fields."}
-                {step === "mapping-values" &&
-                  "Match values from your file to your accounts and categories."}
-                {step === "summary" &&
-                  "Review your import settings and confirm."}
+                {step === "select" && "Upload your transaction file to get started."}
+                {step === "mapping" && "Map your file columns to the appropriate transaction fields."}
+                {step === "mapping-values" && "Match values from your file to your accounts and categories."}
+                {step === "summary" && "Review your import settings and confirm."}
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -352,37 +306,26 @@ export function ImportModal({
           <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
             {step === "select" && <SelectFile />}
             {step === "mapping" && <FieldMapping />}
-            {step === "mapping-values" && (
-              <ValueMapping onNext={() => setStep("summary")} />
-            )}
+            {step === "mapping-values" && <ValueMapping onNext={() => setStep("summary")} />}
             {step === "summary" && (
               <div className="space-y-6 font-sans">
                 <div className="p-4 bg-primary/5 border space-y-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Import Summary
-                    </p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Import Summary</p>
                     <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-2xl font-bold tracking-tight">
-                        {firstRows?.length || 0}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground font-medium">
-                        Transactions found
-                      </p>
+                      <p className="text-2xl font-bold tracking-tight">{firstRows?.length || 0}</p>
+                      <p className="text-[11px] text-muted-foreground font-medium">Transactions found</p>
                     </div>
                     {dateRange && (
                       <div className="space-y-1">
                         <p className="text-sm font-semibold truncate">
-                          {dateRange.start!.toLocaleDateString()} -{" "}
-                          {dateRange.end!.toLocaleDateString()}
+                          {dateRange.start!.toLocaleDateString()} - {dateRange.end!.toLocaleDateString()}
                         </p>
-                        <p className="text-[11px] text-muted-foreground font-medium uppercase">
-                          Date Range
-                        </p>
+                        <p className="text-[11px] text-muted-foreground font-medium uppercase">Date Range</p>
                       </div>
                     )}
                   </div>
@@ -391,17 +334,12 @@ export function ImportModal({
                 <div className="space-y-4">
                   {!watch("walletIdColumn") && (
                     <div className="space-y-2">
-                      <Label className="text-xs font-semibold text-foreground/70 ml-1">
-                        Destination Account
-                      </Label>
+                      <Label className="text-xs font-semibold text-foreground/70 ml-1">Destination Account</Label>
                       <Controller
                         control={form.control}
                         name="walletId"
                         render={({ field }) => (
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
+                          <Select value={field.value} onValueChange={field.onChange}>
                             <SelectTrigger className="h-11 bg-background border-border/60 hover:border-primary/50 transition-colors  shadow-sm">
                               <SelectValue placeholder="Select an account" />
                             </SelectTrigger>
@@ -419,25 +357,18 @@ export function ImportModal({
                   )}
 
                   <div className="space-y-2">
-                    <Label className="text-xs font-semibold text-foreground/70 ml-1">
-                      Default Currency
-                    </Label>
+                    <Label className="text-xs font-semibold text-foreground/70 ml-1">Default Currency</Label>
                     <Controller
                       control={form.control}
                       name="currency"
                       render={({ field }) => (
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
+                        <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger className="h-11 bg-background border-border/60 hover:border-primary/50 transition-colors  shadow-sm">
                             <SelectValue placeholder="Select currency" />
                           </SelectTrigger>
                           <SelectContent>
                             {settings?.mainCurrencyCode && (
-                              <SelectItem value={settings.mainCurrencyCode}>
-                                {settings.mainCurrencyCode}
-                              </SelectItem>
+                              <SelectItem value={settings?.mainCurrencyCode}>{settings?.mainCurrencyCode}</SelectItem>
                             )}
                             {subCurrencies.map((sc) => (
                               <SelectItem key={sc.id} value={sc.currencyCode}>
@@ -456,9 +387,7 @@ export function ImportModal({
             {step === "uploading" && (
               <div className="flex flex-col items-center justify-center py-12 gap-4">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                <p className="text-sm font-medium">
-                  Processing your transactions...
-                </p>
+                <p className="text-sm font-medium">Processing your transactions...</p>
               </div>
             )}
 
@@ -469,9 +398,7 @@ export function ImportModal({
                 </div>
                 <div className="space-y-1">
                   <p className="text-lg font-semibold">Done!</p>
-                  <p className="text-sm text-muted-foreground">
-                    Successfully imported {importedCount} transactions.
-                  </p>
+                  <p className="text-sm text-muted-foreground">Successfully imported {importedCount} transactions.</p>
                   {importFailures.length > 0 && (
                     <div className="mt-4 p-3 bg-amber-500/5 border border-amber-500/10 rounded-lg text-left">
                       <p className="text-xs font-semibold text-amber-600 mb-2 flex items-center gap-1">
@@ -494,7 +421,7 @@ export function ImportModal({
                 </Button>
               </div>
             )}
- 
+
             {step === "error" && (
               <div className="flex flex-col items-center justify-center py-8 gap-4 text-center">
                 <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -502,14 +429,10 @@ export function ImportModal({
                 </div>
                 <div className="space-y-1">
                   <p className="text-lg font-semibold">Something went wrong</p>
-                  <p className="text-sm text-muted-foreground max-w-[300px]">
-                    {errorMessage}
-                  </p>
+                  <p className="text-sm text-muted-foreground max-w-[300px]">{errorMessage}</p>
                   {importFailures.length > 0 && (
                     <div className="mt-4 p-3 bg-destructive/5 border border-destructive/10 rounded-lg text-left max-w-[350px]">
-                      <p className="text-xs font-semibold text-destructive/80 mb-2">
-                        Common issues:
-                      </p>
+                      <p className="text-xs font-semibold text-destructive/80 mb-2">Common issues:</p>
                       <ul className="text-[11px] text-muted-foreground space-y-1 max-h-[150px] overflow-y-auto pr-2">
                         {importFailures.slice(0, 10).map((f, i) => (
                           <li key={i} className="flex gap-2">
@@ -526,26 +449,16 @@ export function ImportModal({
                     </div>
                   )}
                 </div>
-                <Button
-                  onClick={() => setStep("summary")}
-                  variant="outline"
-                  className="mt-4"
-                >
+                <Button onClick={() => setStep("summary")} variant="outline" className="mt-4">
                   Try Again
                 </Button>
               </div>
             )}
           </div>
 
-          {(step === "mapping" ||
-            step === "mapping-values" ||
-            step === "summary") && (
+          {(step === "mapping" || step === "mapping-values" || step === "summary") && (
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-muted/5 mt-auto shrink-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleClose(false)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => handleClose(false)}>
                 Cancel
               </Button>
 
@@ -562,11 +475,7 @@ export function ImportModal({
               )}
 
               {step === "summary" && (
-                <Button
-                  size="sm"
-                  disabled={!isValid}
-                  onClick={handleSubmit(onSubmit)}
-                >
+                <Button size="sm" disabled={!isValid} onClick={handleSubmit(onSubmit)}>
                   Confirm Import
                 </Button>
               )}

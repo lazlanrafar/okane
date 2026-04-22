@@ -87,23 +87,14 @@ export const createMonthsTickFormatter = () => {
  * properly handling both positive and negative values.
  * Use this for charts where values can go negative (profit, cash flow, growth rate).
  */
-export const getZeroInclusiveDomain = (): [
-  (dataMin: number) => number,
-  (dataMax: number) => number,
-] => [
+export const getZeroInclusiveDomain = (): [(dataMin: number) => number, (dataMax: number) => number] => [
   (dataMin: number) => Math.min(0, dataMin),
   (dataMax: number) => Math.max(0, dataMax),
 ];
 
 // Calculate Y-axis domain and ticks for forecast charts
-export const calculateYAxisDomain = <
-  T extends { actual?: number; forecasted?: number },
->(
-  data: T[],
-) => {
-  const allValues = data
-    .flatMap((d) => [d.actual ?? 0, d.forecasted ?? 0])
-    .filter((v) => v > 0);
+export const calculateYAxisDomain = <T extends { actual?: number; forecasted?: number }>(data: T[]) => {
+  const allValues = data.flatMap((d) => [d.actual ?? 0, d.forecasted ?? 0]).filter((v) => v > 0);
 
   if (allValues.length === 0) return { min: 0, max: 10000, ticks: [] };
 
@@ -145,11 +136,7 @@ export function getYAxisWidth(value: string | undefined | null) {
 }
 
 // Utility hook for calculating chart margins based on tick text length
-export const useChartMargin = (
-  data: any[],
-  dataKey: string,
-  tickFormatter: (value: number) => string,
-) => {
+export const useChartMargin = (data: any[], dataKey: string, tickFormatter: (value: number) => string) => {
   // Calculate both min and max values from the data
   const values = data.map((d) => d[dataKey]);
   const minValue = Math.min(...values);
@@ -168,9 +155,7 @@ export const useChartMargin = (
 
   // Format all ticks and find the longest one
   const formattedTicks = tickValues.map(tickFormatter);
-  const longestTick = formattedTicks.reduce((a, b) =>
-    a.length > b.length ? a : b,
-  );
+  const longestTick = formattedTicks.reduce((a, b) => (a.length > b.length ? a : b));
 
   // Calculate dynamic margin based on actual longest tick
   // Adjusted to match target values: 100k=28, 10k=35
@@ -191,11 +176,7 @@ export interface BaseChartProps {
 }
 
 // Get date from data index for chart selection
-export function getDateFromDataIndex(
-  data: any[],
-  index: number,
-  dateKey: string,
-): Date | null {
+export function getDateFromDataIndex(data: any[], index: number, dateKey: string): Date | null {
   if (index < 0 || index >= data.length) return null;
 
   const item = data[index];
@@ -216,11 +197,7 @@ export function getDateFromDataIndex(
 }
 
 // Format date range for display
-export function formatDateRange(
-  startDate: Date,
-  endDate: Date,
-  locale?: string,
-): string {
+export function formatDateRange(startDate: Date, endDate: Date, locale?: string): string {
   const startMonth = startDate.toLocaleString(locale || "en-US", {
     month: "long",
   });

@@ -1,29 +1,34 @@
 "use client";
 
+import { useCallback, useRef, useState } from "react";
+
 // import { useAudioPlayerStore } from "@/store/audio-player";
 import { useChatActions, useChatId } from "@ai-sdk-tools/store";
-import { cn } from "@workspace/ui";
-import { Icons } from "@workspace/ui";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  cn,
+  Icons,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useRef, useState } from "react";
+
+import type { Dictionary } from "@workspace/dictionaries";
 
 interface ChatMessageActionsProps {
   messageId: string;
   messageContent: string;
   /** Optional insight ID to enable audio playback */
   insightId?: string;
+  dictionary: Dictionary;
 }
 
 export function ChatMessageActions({
   messageId,
   messageContent,
   insightId,
+  dictionary,
 }: ChatMessageActionsProps) {
   const chatId = useChatId();
   const { regenerate } = useChatActions();
@@ -173,7 +178,11 @@ export function ChatMessageActions({
               </button>
             </TooltipTrigger>
             <TooltipContent className="px-2 py-1 text-xs">
-              <p>{copied ? "Copied!" : "Copy response"}</p>
+              <p>
+                {copied
+                  ? dictionary.common.copied
+                  : dictionary.chat.actions.copy}
+              </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -193,7 +202,7 @@ export function ChatMessageActions({
               </button>
             </TooltipTrigger>
             <TooltipContent className="px-2 py-1 text-xs">
-              <p>Retry response</p>
+              <p>{dictionary.chat.actions.retry || "Retry response"}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -231,8 +240,9 @@ export function ChatMessageActions({
             <TooltipContent className="px-2 py-1 text-xs">
               <p>
                 {feedbackGiven === "positive"
-                  ? "Remove positive feedback"
-                  : "Positive feedback"}
+                  ? dictionary.chat.actions.remove_positive ||
+                    "Remove positive feedback"
+                  : dictionary.chat.actions.positive || "Positive feedback"}
               </p>
             </TooltipContent>
           </Tooltip>
@@ -271,8 +281,9 @@ export function ChatMessageActions({
             <TooltipContent className="px-2 py-1 text-xs">
               <p>
                 {feedbackGiven === "negative"
-                  ? "Remove negative feedback"
-                  : "Negative feedback"}
+                  ? dictionary.chat.actions.remove_negative ||
+                    "Remove negative feedback"
+                  : dictionary.chat.actions.negative || "Negative feedback"}
               </p>
             </TooltipContent>
           </Tooltip>

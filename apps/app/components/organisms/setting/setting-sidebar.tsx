@@ -9,6 +9,7 @@ import {
   Banknote,
   Bell,
   Copy,
+  CreditCard,
   DatabaseBackup,
   FileText,
   Landmark,
@@ -23,7 +24,6 @@ import {
   User,
   Users,
   Wallet,
-  CreditCard,
 } from "lucide-react";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
@@ -53,14 +53,10 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   };
 }
 
-import { useLocalizedRoute } from "@/utils/localized-route";
 import { i18n } from "@/i18n-config";
+import { useLocalizedRoute } from "@/utils/localized-route";
 
-export function SettingSidebar({
-  className,
-  dictionary,
-  ...props
-}: SidebarNavProps) {
+export function SettingSidebar({ className, dictionary, ...props }: SidebarNavProps) {
   const pathname = usePathname();
   const { sidebar } = dictionary;
   const { getLocalizedUrl } = useLocalizedRoute();
@@ -176,23 +172,15 @@ export function SettingSidebar({
   const normalizedPath = `/${activePath.join("/")}`;
 
   return (
-    <nav
-      className={cn(
-        "flex flex-col overflow-y-auto max-h-[300px] lg:max-h-none space-y-1",
-        className,
-      )}
-      {...props}
-    >
+    <nav className={cn("flex flex-col overflow-y-auto max-h-[300px] lg:max-h-none space-y-1", className)} {...props}>
       {sidebarNavItems.map((item, index) => {
         if ("groupLabel" in item) {
           return (
             <div key={index} className="mt-4 first:mt-0">
-              <h4 className="mb-2 text-xs font-semibold tracking-tight text-muted-foreground">
-                {item.groupLabel}
-              </h4>
+              <h4 className="mb-2 text-xs font-semibold tracking-tight text-muted-foreground">{item.groupLabel}</h4>
               <div className="space-y-1">
                 {/* biome-ignore lint/suspicious/noExplicitAny: implicit any */}
-                {item.items?.map((subItem: any) => (
+                {(item as any).items.map((subItem: any) => (
                   <Link
                     key={subItem.href}
                     href={getLocalizedUrl(subItem.href)}
@@ -205,12 +193,8 @@ export function SettingSidebar({
                       subItem.comingSoon && "opacity-60 pointer-events-none",
                     )}
                   >
-                    {subItem.icon && (
-                      <subItem.icon className="mr-2 size-4 shrink-0" />
-                    )}
-                    <span className="flex-1 min-w-0 text-left truncate">
-                      {subItem.title}
-                    </span>
+                    {subItem.icon && <subItem.icon className="mr-2 size-4 shrink-0" />}
+                    <span className="flex-1 min-w-0 text-left truncate">{subItem.title}</span>
                     {subItem.comingSoon && (
                       <span className="ml-auto text-[10px] font-medium text-muted-foreground border px-1.5 py-0.5 rounded-md bg-muted/50">
                         {sidebar.soon}
@@ -233,19 +217,13 @@ export function SettingSidebar({
             href={getLocalizedUrl(flatItem.href)}
             className={cn(
               buttonVariants({ variant: "ghost" }),
-              normalizedPath === flatItem.href
-                ? "bg-muted hover:bg-muted"
-                : "hover:bg-transparent hover:underline",
+              normalizedPath === flatItem.href ? "bg-muted hover:bg-muted" : "hover:bg-transparent hover:underline",
               "justify-start w-full overflow-hidden",
               flatItem.comingSoon && "opacity-60 pointer-events-none",
             )}
           >
-            {flatItem.icon && (
-              <flatItem.icon className="mr-2 size-4 shrink-0" />
-            )}
-            <span className="flex-1 min-w-0 text-left truncate">
-              {flatItem.title}
-            </span>
+            {flatItem.icon && <flatItem.icon className="mr-2 size-4 shrink-0" />}
+            <span className="flex-1 min-w-0 text-left truncate">{flatItem.title}</span>
             {flatItem.comingSoon && (
               <span className="ml-auto text-[10px] font-medium text-muted-foreground border px-1.5 py-0.5 rounded-md bg-muted/50">
                 {sidebar.soon}

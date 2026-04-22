@@ -1,39 +1,40 @@
 "use client";
 
 import * as React from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { createCheckoutSession } from "@workspace/modules/mayar/mayar.action";
+import { getPricing } from "@workspace/modules/pricing/pricing.action";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Badge,
   Button,
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
+  cn,
   Skeleton,
   Tabs,
   TabsList,
   TabsTrigger,
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-  cn,
-  Badge,
 } from "@workspace/ui";
-import { Check, Info, Sparkles, Rocket, Zap, ShieldCheck } from "lucide-react";
-import { getPricing } from "@workspace/modules/pricing/pricing.action";
-import { createCheckoutSession } from "@workspace/modules/mayar/mayar.action";
-import { toast } from "sonner";
-import {
-  displayPrice,
-  getGatewayPrice,
-  annualSavingsPct,
-} from "@workspace/utils";
-import { useAppStore } from "@/stores/app";
+import { annualSavingsPct, displayPrice, getGatewayPrice } from "@workspace/utils";
 import { motion } from "framer-motion";
+import { Check, Info, Rocket, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { toast } from "sonner";
+
+import type { Dictionary } from "@workspace/dictionaries";
+import type { TransactionSettings, Workspace } from "@workspace/types";
 
 interface UpgradeClientProps {
-  dictionary: any;
+  dictionary: Dictionary;
+  settings: TransactionSettings;
+  workspace: Workspace | null;
 }
 
 const planIcons: Record<string, React.ReactNode> = {
@@ -42,18 +43,13 @@ const planIcons: Record<string, React.ReactNode> = {
   business: <ShieldCheck className="h-6 w-6 text-purple-500" />,
 };
 
-export function UpgradeClient({ dictionary }: UpgradeClientProps) {
-  const { workspace, settings } = useAppStore();
-  const [billingCycle, setBillingCycle] = React.useState<"monthly" | "annual">(
-    "annual",
-  );
-  const [currency, setCurrency] = React.useState(
-    settings?.mainCurrencyCode?.toLowerCase() || "usd",
-  );
+export function UpgradeClient({ dictionary, settings, workspace }: UpgradeClientProps) {
+  const [billingCycle, setBillingCycle] = React.useState<"monthly" | "annual">("annual");
+  const [currency, setCurrency] = React.useState(settings?.mainCurrencyCode.toLowerCase() || "usd");
 
   React.useEffect(() => {
     if (settings?.mainCurrencyCode) {
-      setCurrency(settings.mainCurrencyCode.toLowerCase());
+      setCurrency(settings?.mainCurrencyCode.toLowerCase());
     }
   }, [settings?.mainCurrencyCode]);
 
@@ -68,12 +64,7 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
 
   const checkoutMutation = useMutation({
     mutationFn: async (priceId?: string | null) => {
-      const result = await createCheckoutSession(
-        priceId,
-        workspace?.id,
-        "/settings/billing",
-        "subscription",
-      );
+      const result = await createCheckoutSession(priceId, workspace?.id, "/settings/billing", "subscription");
       if (!result.success) throw new Error(result.error);
       return result.data;
     },
@@ -120,14 +111,13 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
       >
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 text-primary text-xs font-bold tracking-wider uppercase mb-2">
           <Sparkles className="h-3.5 w-3.5" />
-          Special Launch Pricing
+          {dictionary.settings.billing.special_launch_pricing || "Special Launch Pricing"}
         </div>
         <h1 className="text-4xl md:text-6xl font-black tracking-tight text-foreground">
-          Scale your finances with Oewang
+          {dictionary.settings.billing.upgrade_title || "Scale your finances with Oewang"}
         </h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Choose the plan that fits your current needs. Start small and grow as
-          your business scales.
+          {dictionary.settings.billing.upgrade_description || "Choose the plan that fits your current needs. Start small and grow as your business scales."}
         </p>
       </motion.div>
 
@@ -135,23 +125,19 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
       <div className="flex flex-col items-center space-y-8">
         <div className="flex flex-col sm:flex-row items-center gap-6">
           <div className="bg-muted/50 p-1 rounded-xl inline-flex shadow-inner">
-            <Tabs
-              value={billingCycle}
-              onValueChange={(v) => setBillingCycle(v as any)}
-              className="w-auto"
-            >
+            <Tabs value={billingCycle} onValueChange={(v) => setBillingCycle(v as any)} className="w-auto">
               <TabsList className="bg-transparent h-10 gap-1">
                 <TabsTrigger
                   value="monthly"
                   className="data-[state=active]:bg-background data-[state=active]:shadow-sm px-6 py-2 text-sm font-medium rounded-lg transition-all"
                 >
-                  Monthly
+                  {dictionary.settings.billing.monthly_toggle || "Monthly"}
                 </TabsTrigger>
                 <TabsTrigger
                   value="annual"
                   className="data-[state=active]:bg-background data-[state=active]:shadow-sm px-6 py-2 text-sm font-medium rounded-lg transition-all relative"
                 >
-                  Yearly
+                  {dictionary.settings.billing.annual_toggle || "Yearly"}
                   <Badge className="absolute -top-2 -right-4 bg-green-500/10 text-green-600 border-none text-[10px] h-4 px-1">
                     -20%
                   </Badge>
@@ -199,37 +185,29 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
                   isPro
                     ? "border-primary/20 bg-primary/5 shadow-xl shadow-primary/5 scale-105 z-10"
                     : "border-border bg-card shadow-sm hover:shadow-md",
-                  isCurrent &&
-                    "ring-2 ring-primary ring-offset-4 ring-offset-background",
+                  isCurrent && "ring-2 ring-primary ring-offset-4 ring-offset-background",
                 )}
               >
                 {isPro && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest shadow-lg">
-                    Highest Value
+                    {dictionary.settings.billing.highest_value || "Highest Value"}
                   </div>
                 )}
 
                 <div className="space-y-6 flex-1">
                   <div className="flex items-center justify-between">
                     <div className="p-3 rounded-2xl bg-background border shadow-sm">
-                      {planIcons[plan.name.toLowerCase()] || (
-                        <Rocket className="h-6 w-6 text-primary" />
-                      )}
+                      {planIcons[plan.name.toLowerCase()] || <Rocket className="h-6 w-6 text-primary" />}
                     </div>
                     {isCurrent && (
-                      <Badge
-                        variant="secondary"
-                        className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider"
-                      >
-                        Current Plan
+                      <Badge variant="secondary" className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider">
+                        {dictionary.settings.billing.current_plan || "Current Plan"}
                       </Badge>
                     )}
                   </div>
 
                   <div>
-                    <h3 className="text-2xl font-black text-foreground">
-                      {plan.name}
-                    </h3>
+                    <h3 className="text-2xl font-black text-foreground">{plan.name}</h3>
                     <p className="text-muted-foreground text-sm mt-1 leading-relaxed">
                       {plan.description || "The essentials to get you started."}
                     </p>
@@ -237,45 +215,35 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
 
                   <div className="pt-4 pb-2 border-y border-border/50">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-4xl md:text-5xl font-black tracking-tighter">
-                        {price.label}
-                      </span>
+                      <span className="text-4xl md:text-5xl font-black tracking-tighter">{price?.label}</span>
                       {plan.name.toLowerCase() !== "starter" && (
                         <span className="text-muted-foreground font-semibold text-lg">
-                          {price.note?.includes("billed annually")
-                            ? "/mo"
-                            : "/mo"}
+                          {price.note?.includes("billed annually") ? "/mo" : "/mo"}
                         </span>
                       )}
                     </div>
-                    {billingCycle === "annual" &&
-                      plan.prices.find((p) => p.currency === currency)
-                        ?.yearly! > 0 && (
-                        <p className="text-xs text-muted-foreground/80 mt-1.5 font-medium italic">
-                          Billed as{" "}
-                          {
-                            displayPrice(plan, "annual", {
-                              compact: false,
-                              currency,
-                            }).label
-                          }
-                          /year
-                        </p>
-                      )}
+                    {billingCycle === "annual" && plan.prices.find((p) => p.currency === currency)?.yearly! > 0 && (
+                      <p className="text-xs text-muted-foreground/80 mt-1.5 font-medium italic">
+                        Billed as{" "}
+                        {
+                          displayPrice(plan, "annual", {
+                            compact: false,
+                            currency,
+                          }).label
+                        }
+                        /year
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-4 pt-4">
-                    <p className="text-xs font-black uppercase tracking-widest text-foreground/70">
-                      What's included:
-                    </p>
+                    <p className="text-xs font-black uppercase tracking_widest text-foreground/70">{dictionary.settings.billing.whats_included || "What's included:"}</p>
                     {plan.features.map((feature, i) => (
                       <div key={i} className="flex items-start gap-3">
                         <div className="mt-1 h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                           <Check className="h-2.5 w-2.5 text-primary stroke-[4px]" />
                         </div>
-                        <span className="text-sm text-muted-foreground/90 font-medium">
-                          {feature}
-                        </span>
+                        <span className="text-sm text-muted-foreground/90 font-medium">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -289,26 +257,23 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
                       isPro
                         ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20"
                         : "bg-foreground text-background hover:bg-foreground/90 shadow-lg shadow-black/10",
-                      isCurrent &&
-                        "bg-muted text-muted-foreground border-transparent cursor-default scale-100",
+                      isCurrent && "bg-muted text-muted-foreground border-transparent cursor-default scale-100",
                     )}
                     onClick={() => {
                       if (isCurrent || !priceId) return;
                       checkoutMutation.mutate(priceId);
                     }}
                     disabled={
-                      checkoutMutation.isPending ||
-                      isCurrent ||
-                      (!priceId && plan.name.toLowerCase() !== "starter")
+                      checkoutMutation.isPending || isCurrent || (!priceId && plan.name.toLowerCase() !== "starter")
                     }
                   >
                     {isCurrent
-                      ? "Your Active Plan"
+                      ? dictionary.settings.billing.current_plan || "Your Active Plan"
                       : checkoutMutation.isPending
-                        ? "Connecting..."
+                        ? dictionary.common.connecting || "Connecting..."
                         : plan.name.toLowerCase() === "starter"
-                          ? "Selected Plan"
-                          : (dictionary?.settings?.common?.coming_soon || "Coming Soon")}
+                          ? dictionary.settings.billing.selected_plan || "Selected Plan"
+                          : dictionary.common.coming_soon || "Coming Soon"}
                   </Button>
                 </div>
               </motion.div>
@@ -323,9 +288,7 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
           <div className="space-y-2">
             <ShieldCheck className="h-8 w-8 mx-auto text-primary" />
             <h4 className="font-bold">Secure Checkout</h4>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Encrypted payments processed via Mayar.
-            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">Encrypted payments processed via Mayar.</p>
           </div>
           <div className="space-y-2">
             <Sparkles className="h-8 w-8 mx-auto text-primary" />
@@ -337,20 +300,14 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
           <div className="space-y-2">
             <Info className="h-8 w-8 mx-auto text-primary" />
             <h4 className="font-bold">Flexible Billing</h4>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Cancel or switch plans anytime in settings.
-            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">Cancel or switch plans anytime in settings?.</p>
           </div>
         </div>
 
         <div className="space-y-12">
           <div className="text-center space-y-4">
-            <h2 className="text-3xl font-black tracking-tight">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-muted-foreground">
-              Everything you need to know about our plans.
-            </p>
+            <h2 className="text-3xl font-black tracking-tight">{dictionary.settings.faq.title || "Frequently Asked Questions"}</h2>
+            <p className="text-muted-foreground">{dictionary.settings.faq.description || "Everything you need to know about our plans."}</p>
           </div>
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1" className="border-b px-0">
@@ -358,9 +315,8 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
                 Can I switch between monthly and yearly?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground pb-6 text-base leading-relaxed">
-                Yes, you can switch your billing cycle at any time from your
-                workspace settings. Switching to annual billing mid-period will
-                convert your remaining time into credit.
+                Yes, you can switch your billing cycle at any time from your workspace settings?. Switching to annual
+                billing mid-period will convert your remaining time into credit.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-2" className="border-b px-0">
@@ -368,9 +324,8 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
                 What happens if I cancel my subscription?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground pb-6 text-base leading-relaxed">
-                If you cancel, you'll still have full access to your paid
-                features until the end of your already paid billing period.
-                After that, your workspace will revert to the Starter plan.
+                If you cancel, you'll still have full access to your paid features until the end of your already paid
+                billing period. After that, your workspace will revert to the Starter plan.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-3" className="border-b px-0">
@@ -378,9 +333,8 @@ export function UpgradeClient({ dictionary }: UpgradeClientProps) {
                 Is my data safe and exportable?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground pb-6 text-base leading-relaxed">
-                Absolutely. We take data security very seriously. All your
-                financial records are encrypted and you can export all your data
-                in CSV or PDF format at any time.
+                Absolutely. We take data security very seriously. All your financial records are encrypted and you can
+                export all your data in CSV or PDF format at any time.
               </AccordionContent>
             </AccordionItem>
           </Accordion>

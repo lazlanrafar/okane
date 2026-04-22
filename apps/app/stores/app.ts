@@ -1,13 +1,8 @@
-import { create } from "zustand";
-import type {
-  User,
-  Workspace,
-  TransactionSettings,
-  SubCurrency,
-} from "@workspace/types";
 import { INCOME_EXPENSES_COLOR_OPTIONS } from "@workspace/constants";
+import { type AiQuota, getAiQuota } from "@workspace/modules/ai/ai.action";
+import type { SubCurrency, TransactionSettings, User, Workspace } from "@workspace/types";
 import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
-import { getAiQuota, type AiQuota } from "@workspace/modules/ai/ai.action";
+import { create } from "zustand";
 
 export interface AppState {
   user: User | null;
@@ -16,12 +11,14 @@ export interface AppState {
   subCurrencies: SubCurrency[];
   isLoading: boolean;
   aiQuota: AiQuota | null;
+  dictionary: any | null;
   setUser: (user: User | null) => void;
   setWorkspace: (workspace: Workspace | null) => void;
   setSettings: (settings: TransactionSettings | null) => void;
   setSubCurrencies: (subCurrencies: SubCurrency[]) => void;
   setIsLoading: (isLoading: boolean) => void;
   setAiQuota: (aiQuota: AiQuota | null) => void;
+  setDictionary: (dictionary: any | null) => void;
   fetchAiQuota: () => Promise<void>;
   getTransactionColor: (type: string) => string;
   formatCurrency: (amount: number, options?: any) => string;
@@ -44,12 +41,14 @@ export const useAppStore = create<AppState>()((set, get) => ({
   subCurrencies: [],
   isLoading: true,
   aiQuota: null,
+  dictionary: null,
   setUser: (user) => set({ user }),
   setWorkspace: (workspace) => set({ workspace }),
   setSettings: (settings) => set({ settings }),
   setSubCurrencies: (subCurrencies) => set({ subCurrencies }),
   setIsLoading: (isLoading) => set({ isLoading }),
   setAiQuota: (aiQuota) => set({ aiQuota }),
+  setDictionary: (dictionary) => set({ dictionary }),
   fetchAiQuota: async () => {
     try {
       const result = await getAiQuota();
@@ -62,9 +61,9 @@ export const useAppStore = create<AppState>()((set, get) => ({
   },
   getTransactionColor: (type) => {
     const { settings } = get();
-    const option = INCOME_EXPENSES_COLOR_OPTIONS.find(
-      (o) => o.value === settings?.incomeExpensesColor,
-    ) || INCOME_EXPENSES_COLOR_OPTIONS[0];
+    const option =
+      INCOME_EXPENSES_COLOR_OPTIONS.find((o) => o.value === settings?.incomeExpensesColor) ||
+      INCOME_EXPENSES_COLOR_OPTIONS[0];
 
     const normalizedType = type?.toLowerCase();
 
@@ -112,6 +111,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
       usage: actualUsage,
       remaining,
       percent,
+      total_usage: actualUsage,
     };
   },
 }));

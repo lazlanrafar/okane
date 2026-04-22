@@ -1,21 +1,19 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getBudgetStatus, deleteBudget } from "@workspace/modules/client";
+import { useMemo, useState } from "react";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { deleteBudget, getBudgetStatus } from "@workspace/modules/client";
+import { ApiResponse, type BudgetStatus } from "@workspace/types";
+import { Button, DataTableEmptyState, Input, Progress } from "@workspace/ui";
+import { formatCurrency } from "@workspace/utils";
+import { PiggyBank, Plus, Search } from "lucide-react";
+import { toast } from "sonner";
+
+import { useAppStore } from "@/stores/app";
+
 import { BudgetCard } from "./budget-card";
 import { BudgetFormSheet } from "./budget-form-sheet";
-import { BudgetStatus, ApiResponse } from "@workspace/types";
-import { 
-  Button, 
-  Input, 
-  Progress,
-  DataTableEmptyState
-} from "@workspace/ui";
-import { Plus, PiggyBank, Search } from "lucide-react";
-import { toast } from "sonner";
-import { useAppStore } from "@/stores/app";
-import { formatCurrency } from "@workspace/utils";
 
 interface Props {
   initialData: BudgetStatus[];
@@ -68,7 +66,7 @@ export function BudgetClient({ initialData, dictionary, locale }: Props) {
 
   const filteredBudgets = useMemo(() => {
     return (budgets as BudgetStatus[]).filter((b: BudgetStatus) =>
-      b.categoryName.toLowerCase().includes(searchQuery.toLowerCase())
+      b.categoryName.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [budgets, searchQuery]);
 
@@ -102,10 +100,8 @@ export function BudgetClient({ initialData, dictionary, locale }: Props) {
             Overall Usage
           </span>
           <div className="flex items-center gap-4 mt-1">
-             <span className="text-3xl font-serif font-medium tracking-tight">
-                {Math.round(usagePercent)}%
-             </span>
-             <Progress value={usagePercent} className="h-1 flex-1 bg-muted" />
+            <span className="text-3xl font-serif font-medium tracking-tight">{Math.round(usagePercent)}%</span>
+            <Progress value={usagePercent} className="h-1 flex-1 bg-muted" />
           </div>
         </div>
       </div>
@@ -148,7 +144,9 @@ export function BudgetClient({ initialData, dictionary, locale }: Props) {
         ) : (
           <DataTableEmptyState
             title={searchQuery ? "No results found" : "No budgets set"}
-            description={searchQuery ? "Try adjusting your search filters." : "Start tracking your spending by creating a budget."}
+            description={
+              searchQuery ? "Try adjusting your search filters." : "Start tracking your spending by creating a budget."
+            }
             action={{
               label: "Create Budget",
               onClick: handleAdd,
@@ -157,11 +155,7 @@ export function BudgetClient({ initialData, dictionary, locale }: Props) {
         )}
       </div>
 
-      <BudgetFormSheet
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        budget={selectedBudget}
-      />
+      <BudgetFormSheet open={isFormOpen} onOpenChange={setIsFormOpen} budget={selectedBudget} />
     </div>
   );
 }

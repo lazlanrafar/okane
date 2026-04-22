@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
 import type { PaginationState } from "@tanstack/react-table";
 
 interface UseDataTableFilterOptions<T extends Record<string, any>> {
@@ -32,7 +34,7 @@ export function useDataTableFilter<T extends Record<string, any>>({
     for (const key in initialFilters) {
       const paramKey = key === "q" ? "search" : key;
       const isArrayDefault = Array.isArray(initialFilters[key]);
-      
+
       if (isArrayDefault) {
         const values = searchParams.getAll(paramKey);
         currentFilters[key as keyof T] = (values.length > 0 ? values : initialFilters[key]) as any;
@@ -49,8 +51,7 @@ export function useDataTableFilter<T extends Record<string, any>>({
   };
 
   const handlePaginationChange = (updater: any) => {
-    const nextValue =
-      typeof updater === "function" ? updater(pagination) : updater;
+    const nextValue = typeof updater === "function" ? updater(pagination) : updater;
 
     setPagination(nextValue);
 

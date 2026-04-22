@@ -1,8 +1,9 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
+
 import type { InsightData } from "@workspace/constants";
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useState } from "react";
 
 interface InsightMessageProps {
   insight: InsightData;
@@ -68,35 +69,21 @@ function StreamingText({
   );
 }
 
-function formatAmount({
-  amount,
-  currency,
-}: {
-  amount: number;
-  currency: string;
-}) {
+function formatAmount({ amount, currency }: { amount: number; currency: string }) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
   }).format(amount);
 }
 
-function formatMetricValue(
-  value: number,
-  type: string,
-  currency: string,
-): string {
+function formatMetricValue(value: number, type: string, currency: string): string {
   if (type.includes("margin") || type.includes("rate")) {
     return `${value.toFixed(1)}%`;
   }
   if (type === "runway_months") {
     return `${value.toFixed(1)} months`;
   }
-  if (
-    type.includes("hours") ||
-    type === "hours_tracked" ||
-    type === "unbilled_hours"
-  ) {
+  if (type.includes("hours") || type === "hours_tracked" || type === "unbilled_hours") {
     return `${value.toFixed(1)}h`;
   }
   if (
@@ -122,11 +109,7 @@ function formatChange(
   }
 
   // Current value is zero (went to zero from something)
-  if (
-    currentValue === 0 &&
-    previousValue !== undefined &&
-    previousValue !== 0
-  ) {
+  if (currentValue === 0 && previousValue !== undefined && previousValue !== 0) {
     return "no activity";
   }
 
@@ -139,8 +122,7 @@ function formatChange(
   const signChanged =
     previousValue !== undefined &&
     currentValue !== undefined &&
-    ((previousValue > 0 && currentValue < 0) ||
-      (previousValue < 0 && currentValue > 0));
+    ((previousValue > 0 && currentValue < 0) || (previousValue < 0 && currentValue > 0));
 
   if (signChanged && Math.abs(change) > 200) {
     return change > 0 ? "turned positive" : "turned negative";
@@ -179,8 +161,7 @@ const sectionVariants = {
 };
 
 export function ChatInsightMessage({ insight }: InsightMessageProps) {
-  const { content, selectedMetrics, expenseAnomalies, predictions, currency } =
-    insight;
+  const { content, selectedMetrics, expenseAnomalies, predictions, currency } = insight;
 
   // Sheet hooks for opening details, here after
 
@@ -208,18 +189,13 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
 
   // Memoize callbacks
   const handleTitleComplete = useCallback(() => setTitleComplete(true), []);
-  const handleDescriptionComplete = useCallback(
-    () => setDescriptionComplete(true),
-    [],
-  );
+  const handleDescriptionComplete = useCallback(() => setDescriptionComplete(true), []);
   const handleStoryComplete = useCallback(() => setStoryComplete(true), []);
 
   // Show metrics after description completes (or title if no description)
-  const hasDescription = content?.summary || insight.title;
+  const hasDescription = content.summary || insight.title;
   useEffect(() => {
-    const shouldShowMetrics = hasDescription
-      ? descriptionComplete
-      : titleComplete;
+    const shouldShowMetrics = hasDescription ? descriptionComplete : titleComplete;
     if (shouldShowMetrics && !showMetrics) {
       const timer = setTimeout(() => setShowMetrics(true), 150);
       return () => clearTimeout(timer);
@@ -229,43 +205,34 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
   // Show story after metrics animation completes
   useEffect(() => {
     if (showMetrics && !showStory) {
-      const metricsCount = Math.min(selectedMetrics?.length ?? 0, 4);
+      const metricsCount = Math.min(selectedMetrics.length ?? 0, 4);
       const delay = metricsCount * 100 + 300;
       const timer = setTimeout(() => setShowStory(true), delay);
       return () => clearTimeout(timer);
     }
-  }, [showMetrics, showStory, selectedMetrics?.length]);
+  }, [showMetrics, showStory, selectedMetrics.length]);
 
   // Show actions after story completes (or metrics if no story)
   useEffect(() => {
-    const shouldShowActions = content?.story ? storyComplete : showStory;
+    const shouldShowActions = content.story ? storyComplete : showStory;
     if (shouldShowActions && !showActions) {
       const timer = setTimeout(() => setShowActions(true), 150);
       return () => clearTimeout(timer);
     }
-  }, [showStory, storyComplete, content?.story, showActions]);
+  }, [showStory, storyComplete, content.story, showActions]);
 
   return (
     <div className="space-y-4 py-2">
       {/* Header */}
       <div>
         <p className="text-[16px] font-medium text-primary mb-4 block">
-          <StreamingText
-            text={insight.periodLabel}
-            baseDelay={0}
-            speed={4}
-            onComplete={handleTitleComplete}
-          />
+          <StreamingText text={insight.periodLabel} baseDelay={0} speed={4} onComplete={handleTitleComplete} />
         </p>
         <AnimatePresence>
-          {(content?.summary || insight.title) && titleComplete && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-sm text-muted-foreground mt-1"
-            >
+          {(content.summary || insight.title) && titleComplete && (
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-muted-foreground mt-1">
               <StreamingText
-                text={content?.summary || insight.title || ""}
+                text={content.summary || insight.title || ""}
                 baseDelay={50}
                 speed={3}
                 onComplete={handleDescriptionComplete}
@@ -278,11 +245,7 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
       {/* Key Metrics Grid (Highlights) */}
       <AnimatePresence>
         {showMetrics && selectedMetrics && selectedMetrics.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="space-y-2"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
             <p className="text-sm text-primary">Key Metrics</p>
             <div className="grid grid-cols-2 gap-3 pb-3">
               {selectedMetrics.slice(0, 4).map((metric, index) => {
@@ -303,19 +266,11 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
                     animate="visible"
                     className="border border-border bg-background p-3"
                   >
-                    <p className="text-xs text-muted-foreground mb-1">
-                      {metric.label}
-                    </p>
+                    <p className="text-xs text-muted-foreground mb-1">{metric.label}</p>
                     <p className="text-lg font-mono tabular-nums text-primary">
-                      {formatMetricValue(
-                        metric.value,
-                        metric.type,
-                        metric.currency || currency,
-                      )}
+                      {formatMetricValue(metric.value, metric.type, metric.currency || currency)}
                     </p>
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      {changeText}
-                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-1">{changeText}</p>
                   </motion.div>
                 );
               })}
@@ -326,31 +281,21 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
 
       {/* Story (Depth) */}
       <AnimatePresence>
-        {showStory && content?.story && (
+        {showStory && content.story && (
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-sm text-muted-foreground leading-relaxed"
           >
-            <StreamingText
-              text={content.story}
-              baseDelay={50}
-              speed={3}
-              onComplete={handleStoryComplete}
-            />
+            <StreamingText text={content.story} baseDelay={50} speed={3} onComplete={handleStoryComplete} />
           </motion.p>
         )}
       </AnimatePresence>
 
       {/* Actions */}
       <AnimatePresence>
-        {showActions && content?.actions && content.actions.length > 0 && (
-          <motion.div
-            variants={sectionVariants}
-            initial="hidden"
-            animate="visible"
-            className="space-y-2"
-          >
+        {showActions && content.actions && content.actions.length > 0 && (
+          <motion.div variants={sectionVariants} initial="hidden" animate="visible" className="space-y-2">
             <p className="text-sm text-primary">Recommended actions</p>
             <ul className="space-y-1">
               {content.actions.map((action, i) => {
@@ -405,57 +350,38 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
 
       {/* Overdue Alert */}
       <AnimatePresence>
-        {showActions &&
-          insight.activity?.invoicesOverdue != null &&
-          insight.activity.invoicesOverdue > 0 && (
-            <motion.div
-              variants={sectionVariants}
-              initial="hidden"
-              animate="visible"
-              className="text-sm"
-            >
-              <span className="font-medium">Needs attention:</span>{" "}
-              <span className="text-muted-foreground">
-                {insight.activity.invoicesOverdue} overdue invoice
-                {insight.activity.invoicesOverdue > 1 ? "s" : ""}
-                {insight.activity.overdueAmount != null &&
-                  insight.activity.overdueAmount > 0 && (
-                    <span>
-                      {" "}
-                      (
-                      {formatAmount({
-                        amount: insight.activity.overdueAmount,
-                        currency,
-                      })}
-                      )
-                    </span>
-                  )}
-              </span>
-            </motion.div>
-          )}
+        {showActions && insight.activity.invoicesOverdue != null && insight.activity.invoicesOverdue > 0 && (
+          <motion.div variants={sectionVariants} initial="hidden" animate="visible" className="text-sm">
+            <span className="font-medium">Needs attention:</span>{" "}
+            <span className="text-muted-foreground">
+              {insight.activity.invoicesOverdue} overdue invoice
+              {insight.activity.invoicesOverdue > 1 ? "s" : ""}
+              {insight.activity.overdueAmount != null && insight.activity.overdueAmount > 0 && (
+                <span>
+                  {" "}
+                  (
+                  {formatAmount({
+                    amount: insight.activity.overdueAmount,
+                    currency,
+                  })}
+                  )
+                </span>
+              )}
+            </span>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Expense Alerts (only spikes) */}
       <AnimatePresence>
         {showActions &&
           expenseAnomalies &&
-          expenseAnomalies.filter(
-            (ea) => ea.type === "category_spike" || ea.type === "new_category",
-          ).length > 0 && (
-            <motion.div
-              variants={sectionVariants}
-              initial="hidden"
-              animate="visible"
-              className="space-y-2"
-            >
+          expenseAnomalies.filter((ea) => ea.type === "category_spike" || ea.type === "new_category").length > 0 && (
+            <motion.div variants={sectionVariants} initial="hidden" animate="visible" className="space-y-2">
               <p className="text-sm text-primary">Expense alerts</p>
               <ul className="space-y-1">
                 {expenseAnomalies
-                  .filter(
-                    (ea) =>
-                      ea.type === "category_spike" ||
-                      ea.type === "new_category",
-                  )
+                  .filter((ea) => ea.type === "category_spike" || ea.type === "new_category")
                   .slice(0, 3)
                   .map((ea, i) => (
                     <motion.li
@@ -495,27 +421,20 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
 
       {/* Next Week Predictions */}
       <AnimatePresence>
-        {showActions &&
-          predictions?.invoicesDue &&
-          predictions.invoicesDue.count > 0 && (
-            <motion.div
-              variants={sectionVariants}
-              initial="hidden"
-              animate="visible"
-              className="space-y-2"
-            >
-              <p className="text-sm text-primary">Next week</p>
-              <p className="text-sm text-muted-foreground">
-                {predictions.invoicesDue.count} invoice
-                {predictions.invoicesDue.count > 1 ? "s" : ""} due (
-                {formatAmount({
-                  amount: predictions.invoicesDue.totalAmount,
-                  currency: predictions.invoicesDue.currency,
-                })}
-                )
-              </p>
-            </motion.div>
-          )}
+        {showActions && predictions.invoicesDue && predictions.invoicesDue.count > 0 && (
+          <motion.div variants={sectionVariants} initial="hidden" animate="visible" className="space-y-2">
+            <p className="text-sm text-primary">Next week</p>
+            <p className="text-sm text-muted-foreground">
+              {predictions.invoicesDue.count} invoice
+              {predictions.invoicesDue.count > 1 ? "s" : ""} due (
+              {formatAmount({
+                amount: predictions.invoicesDue.totalAmount,
+                currency: predictions.invoicesDue.currency,
+              })}
+              )
+            </p>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

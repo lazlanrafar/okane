@@ -1,22 +1,26 @@
 "use client";
 
+import { useCallback, useEffect, useMemo } from "react";
+
 import { useArtifacts } from "@ai-sdk-tools/artifacts/client";
-import { parseAsString, useQueryState } from "nuqs";
-import { useCallback, useMemo, useEffect } from "react";
 import { useChatMessages } from "@ai-sdk-tools/store";
-import { CanvasErrorBoundary } from "./chat-canvas-error-boundary";
-import { CanvasErrorFallback } from "./chat-canvas-error-fallback";
-import { Icons, Button, cn, Loader } from "@workspace/ui";
 import {
+  Button,
+  cn,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  Icons,
+  Loader,
 } from "@workspace/ui";
+import { parseAsString, useQueryState } from "nuqs";
 
+import { BurnRateCanvas } from "./chat-canvas-burn-rate";
+import { CanvasErrorBoundary } from "./chat-canvas-error-boundary";
+import { CanvasErrorFallback } from "./chat-canvas-error-fallback";
 import { RevenueCanvas } from "./chat-canvas-revenue";
 import { SpendingCanvas } from "./chat-canvas-spending";
-import { BurnRateCanvas } from "./chat-canvas-burn-rate";
 
 const ARTIFACT_TYPE_LABELS: Record<string, string> = {
   "revenue-canvas": "Revenue",
@@ -31,22 +35,14 @@ export function useStaticArtifactData(type: string) {
     // Search from newest to oldest
     for (let i = messages.length - 1; i >= 0; i--) {
       const msg = messages[i];
-      if (!msg?.parts) continue;
+      if (!msg.parts) continue;
 
       for (const part of msg.parts) {
-        if (
-          part.type === `data-artifact-${type}` ||
-          (part.type as string) === "artifact"
-        ) {
+        if (part.type === `data-artifact-${type}` || (part.type as string) === "artifact") {
           const artifactPart = part as any;
-          const actualType =
-            artifactPart.artifactType || artifactPart.data?.type;
+          const actualType = artifactPart.artifactType || artifactPart.data.type;
           if (actualType === type) {
-            return (
-              artifactPart.artifact?.payload ||
-              artifactPart.data?.payload ||
-              null
-            );
+            return artifactPart.artifact.payload || artifactPart.data.payload || null;
           }
         }
       }
@@ -56,10 +52,7 @@ export function useStaticArtifactData(type: string) {
 }
 
 export function ArtifactTabs() {
-  const [selectedType, setSelectedType] = useQueryState(
-    "artifact-type",
-    parseAsString,
-  );
+  const [selectedType, setSelectedType] = useQueryState("artifact-type", parseAsString);
 
   const [data, actions] = useArtifacts({
     value: selectedType ?? undefined,
@@ -71,11 +64,7 @@ export function ArtifactTabs() {
 
   // Sync selectedType from URL to store activation
   useEffect(() => {
-    if (
-      selectedType &&
-      available?.includes(selectedType) &&
-      activeType !== selectedType
-    ) {
+    if (selectedType && available.includes(selectedType) && activeType !== selectedType) {
       actions.setValue(selectedType);
     }
   }, [selectedType, available, activeType, actions]);
@@ -128,11 +117,7 @@ export function ArtifactTabs() {
                 : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
-            <button
-              type="button"
-              onClick={() => handleTabClick(type)}
-              className="text-left h-full flex items-center"
-            >
+            <button type="button" onClick={() => handleTabClick(type)} className="text-left h-full flex items-center">
               {label}
             </button>
             <button
@@ -150,10 +135,7 @@ export function ArtifactTabs() {
 }
 
 export function Canvas() {
-  const [selectedType, setSelectedType] = useQueryState(
-    "artifact-type",
-    parseAsString,
-  );
+  const [selectedType, setSelectedType] = useQueryState("artifact-type", parseAsString);
 
   const [selection, actions] = useArtifacts({
     value: selectedType,
@@ -161,16 +143,12 @@ export function Canvas() {
     exclude: ["chat-title", "suggestions"],
   });
 
-  const activeType = selection?.activeType;
-  const available = selection?.available;
+  const activeType = selection.activeType;
+  const available = selection.available;
 
   // Sync selectedType from URL to store activation
   useEffect(() => {
-    if (
-      selectedType &&
-      available?.includes(selectedType) &&
-      activeType !== selectedType
-    ) {
+    if (selectedType && available.includes(selectedType) && activeType !== selectedType) {
       console.log("[Canvas] Activating from URL:", selectedType);
       actions.setValue(selectedType);
     }
@@ -180,12 +158,12 @@ export function Canvas() {
   console.log("[Canvas] Sync:", {
     selectedType,
     activeType,
-    availableCount: available?.length,
+    availableCount: available.length,
     available,
   });
 
   const renderCanvas = useCallback(() => {
-    if (!activeType && selectedType && available?.includes(selectedType)) {
+    if (!activeType && selectedType && available.includes(selectedType)) {
       // If we have a type from URL but store hasn't marked it active yet
       // but it IS available, we can try to render it or wait.
       // Usually useArtifacts(value) handles this, but maybe it needs help.
@@ -204,9 +182,7 @@ export function Canvas() {
           return (
             <div className="flex flex-col items-center justify-center h-full space-y-4">
               <Loader className="size-8 text-primary animate-spin" />
-              <p className="text-sm text-muted-foreground">
-                Generating analysis...
-              </p>
+              <p className="text-sm text-muted-foreground">Generating analysis...</p>
             </div>
           );
         }

@@ -1,8 +1,10 @@
 import React from "react";
-import { AppearanceForm } from "@/components/organisms/setting/appearance/appearance-form";
+
 import type { Metadata } from "next";
+
+import { AppearanceForm } from "@/components/organisms/setting/appearance/appearance-form";
 import { getDictionary } from "@/get-dictionary";
-import { Locale } from "@/i18n-config";
+import type { Locale } from "@/i18n-config";
 
 export const metadata: Metadata = {
   title: "Appearance | Settings",

@@ -1,27 +1,26 @@
 import type { ReactNode } from "react";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+import { getMe } from "@workspace/modules/server";
 import {
   cn,
   Separator,
+  SIDEBAR_COLLAPSIBLE_VALUES,
+  SIDEBAR_VARIANT_VALUES,
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@workspace/ui";
-import { redirect } from "next/navigation";
 
-import { getMe } from "@workspace/modules/server";
-import { getDictionary } from "@/get-dictionary";
 import { AccountSwitcher } from "@/components/organisms/layout/account-switcher";
 import { AppSidebar } from "@/components/organisms/layout/app-sidebar";
-import {
-  SIDEBAR_COLLAPSIBLE_VALUES,
-  SIDEBAR_VARIANT_VALUES,
-} from "@workspace/ui";
-import { getPreference } from "@/server/server-actions";
-import { SearchDialog } from "@/components/organisms/search/search-dialog";
 import { NotificationBell } from "@/components/organisms/layout/notification-bell";
-import { Locale } from "@/i18n-config";
+import { SearchDialog } from "@/components/organisms/search/search-dialog";
+import { getDictionary } from "@/get-dictionary";
+import type { Locale } from "@/i18n-config";
+import { getPreference } from "@/server/server-actions";
 
 async function getUserAndWorkspaces() {
   const result = await getMe();
@@ -81,10 +80,7 @@ export default async function Layout({
           <div className="flex w-full items-center justify-between px-4 lg:px-6 gap-3">
             <div className="flex items-center gap-1 lg:gap-2 flex-1">
               <SidebarTrigger className="-ml-1" />
-              <Separator
-                orientation="vertical"
-                className="mx-2 data-[orientation=vertical]:h-4"
-              />
+              <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
               <SearchDialog dictionary={dictionary} />
             </div>
             {current_user && (
@@ -103,9 +99,7 @@ export default async function Layout({
             )}
           </div>
         </header>
-        <div className="flex flex-col flex-1 min-h-0 p-4 md:p-6 relative overflow-y-auto">
-          {children}
-        </div>
+        <div className="flex flex-col flex-1 min-h-0 p-4 md:p-6 relative overflow-y-auto">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

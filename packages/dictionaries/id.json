@@ -102,35 +102,6 @@
     }
   },
   "settings": {
-    "common": {
-      "select_currency": "Pilih mata uang...",
-      "search_currency": "Cari mata uang...",
-      "no_currency_found": "Mata uang tidak ditemukan.",
-      "change": "Ubah",
-      "active": "Aktif",
-      "processing": "Memproses...",
-      "connecting": "Menghubungkan...",
-      "current": "Saat Ini",
-      "na": "N/A",
-      "actions": "Aksi",
-      "remove": "Hapus",
-      "cancel": "Batal",
-      "save": "Simpan",
-      "delete": "Hapus",
-      "opening": "Membuka...",
-      "view_pdf": "Lihat PDF",
-      "coming_soon": "Segera Hadir",
-      "used": "terpakai",
-      "remaining": "tersisa",
-      "open_menu": "Buka menu",
-      "error": "Masalah",
-      "form": {
-        "balance": {
-          "label": "Saldo Saat Ini",
-          "placeholder": "0.00"
-        }
-      }
-    },
     "language": {
       "title": "Bahasa",
       "description": "Pilih bahasa pilihan Anda",
@@ -234,6 +205,13 @@
       "yr": "thn",
       "downgrade_confirm": "Apakah Anda yakin ingin menurunkan paket?",
       "upgrade": "Tingkatkan",
+      "upgrade_title": "Skalakan keuangan Anda dengan Oewang",
+      "upgrade_description": "Pilih paket yang sesuai dengan kebutuhan Anda saat ini. Mulai dari yang kecil dan berkembang seiring bisnis Anda.",
+      "special_launch_pricing": "Harga Peluncuran Khusus",
+      "highest_value": "Nilai Terbaik",
+      "whats_included": "Yang termasuk:",
+      "selected_plan": "Paket Terpilih",
+      "cancel_subscription": "Batalkan Langganan",
       "get_started": "Mulai",
       "history": {
         "title": "Riwayat Penagihan",
@@ -361,6 +339,10 @@
         "success": "Undangan terkirim!",
         "description": "{email} akan segera menerima undangan."
       }
+    },
+    "faq": {
+      "title": "Pertanyaan yang Sering Diajukan",
+      "description": "Semua yang perlu Anda ketahui tentang paket kami."
     },
     "transaction": {
       "title": "Pengaturan Transaksi",
@@ -544,7 +526,7 @@
         }
       }
     },
-    "sub_currencies": {
+      "sub_currencies": {
       "title": "Mata Uang Pendukung",
       "description": "Kelola mata uang sekunder untuk workspace Anda.",
       "add_button": "Tambah Mata Uang",
@@ -553,6 +535,31 @@
       "workspace_label": "Mata Uang Workspace",
       "rate_now": "KURS SEKARANG",
       "empty": "Belum ada mata uang pendukung yang ditambahkan."
+    },
+    "notifications": {
+      "title": "Notifikasi",
+      "description": "Kelola cara Anda menerima peringatan dan pembaruan di berbagai saluran.",
+      "inbox": "Kotak Masuk",
+      "settings": "Pengaturan",
+      "recent_activity": "Aktivitas Terbaru",
+      "mark_all_read": "Tandai semua telah dibaca",
+      "all_marked_read": "Semua notifikasi telah ditandai dibaca",
+      "no_notifications": "Tidak ada notifikasi",
+      "no_notifications_description": "Saat Anda menerima peringatan, notifikasi akan muncul di sini.",
+      "mark_read": "Tandai dibaca",
+      "delete": "Hapus",
+      "load_more": "Muat Lebih Banyak",
+      "preference_updated": "Preferensi notifikasi diperbarui",
+      "push_notifications": "Notifikasi Push",
+      "push_description": "Terima peringatan real-time di browser Anda.",
+      "email_notifications": "Notifikasi Email",
+      "email_description": "Dapatkan pembaruan dan laporan terperinci melalui email.",
+      "whatsapp_notifications": "Notifikasi WhatsApp",
+      "whatsapp_description": "Terima peringatan cepat di WhatsApp Anda.",
+      "marketing_comms": "Komunikasi Pemasaran",
+      "marketing_description": "Terima berita tentang fitur baru dan promosi.",
+      "pro_tip": "Tips Pro",
+      "pro_tip_description": "Anda juga dapat mengkonfigurasi peringatan khusus untuk anggaran dan transaksi besar di pengaturan Kategori."
     },
     "wallets": {
       "title": "Dompet & Bank",
@@ -846,6 +853,13 @@
     "drag_drop": "atau seret dan lepas file di sini",
     "upload_hint": "Gambar, PDF, dan spreadsheet dari komputer atau Vault Anda",
     "loading_debts": "Memuat hutang...",
+    "type_label": "Tipe",
+    "filter": {
+      "has_attachments": "Ada lampiran",
+      "no_attachments": "Tidak ada lampiran",
+      "manual": "Manual",
+      "bank_connection": "Koneksi bank"
+    },
     "types": {
       "income": "Pemasukan",
       "expense": "Pengeluaran",
@@ -874,19 +888,14 @@
       "notes": "Tambahkan detail tambahan atau konteks tentang transaksi ini"
     },
     "errors": {
-      "amount_positive": "Jumlah harus positif",
-      "invalid_date": "Tanggal tidak valid",
-      "wallet_required": "Akun wajib diisi",
-      "load_failed": "Gagal memuat data formulir",
-      "save_failed": "Gagal menyimpan transaksi",
-      "file_size_limit": "Ukuran file melebihi batas 3MB",
-      "file_type_limit": "Hanya gambar dan PDF yang diperbolehkan",
-      "upload_failed": "Unggah gagal",
-      "parse_failed": "Gagal memproses AI",
-      "process_failed": "Gagal memproses struk",
-      "invalid_file_type": "Tipe file tidak valid untuk {name}. Hanya dokumen dan gambar yang diperbolehkan.",
-      "some_uploads_failed": "Beberapa file gagal diunggah",
-      "preview_failed": "Gagal memuat pratinjau file"
+      "process_failed": "Gagal memproses transaksi",
+      "delete_failed": "Gagal menghapus transaksi",
+      "update_failed": "Gagal memperbarui transaksi",
+      "create_failed": "Gagal membuat transaksi",
+      "save_failed": "Gagal menyimpan perubahan",
+      "amount_positive": "Jumlah harus bernilai positif",
+      "invalid_date": "Silakan masukkan tanggal yang valid",
+      "at_least_one_attachment": "Silakan unggah setidaknya satu lampiran"
     },
     "group_by": {
       "placeholder": "Kelompokkan berdasarkan",
@@ -896,22 +905,19 @@
       "monthly": "Bulanan"
     },
     "toasts": {
-      "deleted": "Transaksi dihapus",
-      "delete_failed": "Gagal menghapus transaksi",
-      "updated": "Transaksi diperbarui",
-      "created": "Transaksi dibuat",
-      "category_updated": "Kategori diperbarui",
-      "account_updated": "Akun diperbarui",
-      "assignee_updated": "Penerima tugas diperbarui",
+      "deleted": "Transaksi berhasil dihapus",
+      "updated": "Transaksi berhasil diperbarui",
+      "created": "Transaksi berhasil dibuat",
+      "category_updated": "Kategori berhasil diperbarui",
+      "account_updated": "Akun berhasil diperbarui",
+      "date_updated": "Tanggal berhasil diperbarui",
+      "amount_updated": "Jumlah berhasil diperbarui",
       "link_copied": "Tautan disalin ke papan klip",
-      "marked_pending": "Ditandai sebagai tertunda",
-      "marked_ready": "Ditandai sebagai siap",
-      "marked_exported": "Ditandai sebagai diekspor",
-      "unmarked_exported": "Batal ditandai sebagai diekspor",
-      "parsing_receipt": "Mengunggah dan memproses struk...",
-      "parse_success": "Struk berhasil diproses",
-      "uploading_files": "Mengunggah {count} file...",
-      "all_uploads_success": "Semua file berhasil diunggah"
+      "marked_ready": "Transaksi ditandai sebagai siap",
+      "marked_pending": "Transaksi ditandai sebagai tertunda",
+      "marked_exported": "Transaksi ditandai sebagai diekspor",
+      "unmarked_exported": "Tanda ekspor transaksi dihapus",
+      "assignee_updated": "Penerima tugas berhasil diperbarui"
     },
     "items": {
       "section_title": "Item",
@@ -1015,7 +1021,42 @@
     }
   },
   "common": {
-    "loading_more": "Memuat lebih banyak..."
+    "loading_more": "Memuat lebih banyak...",
+    "select_currency": "Pilih mata uang...",
+    "search_currency": "Cari mata uang...",
+    "no_currency_found": "Mata uang tidak ditemukan.",
+    "change": "Ubah",
+    "active": "Aktif",
+    "processing": "Memproses...",
+    "connecting": "Menghubungkan...",
+    "loading": "Memuat...",
+    "copied": "Tersalin",
+    "copy_link": "Salin Tautan",
+    "close": "Tutup",
+    "current": "Saat Ini",
+    "na": "N/A",
+    "actions": "Aksi",
+    "remove": "Hapus",
+    "cancel": "Batal",
+    "save": "Simpan",
+    "saving": "Menyimpan...",
+    "create": "Buat",
+    "delete": "Hapus",
+    "opening": "Membuka...",
+    "view_pdf": "Lihat PDF",
+    "coming_soon": "Segera Hadir",
+    "used": "terpakai",
+    "remaining": "tersisa",
+    "open_menu": "Buka menu",
+    "error": "Masalah",
+    "empty": "Kosong",
+    "email": "Email",
+    "form": {
+      "balance": {
+        "label": "Saldo Saat Ini",
+        "placeholder": "0.00"
+      }
+    }
   },
   "vault": {
     "title": "Brankas",
@@ -1077,7 +1118,10 @@
   },
   "calendar": {
     "title": "Kalender",
-    "description": "Visualisasikan peristiwa keuangan Anda dari waktu ke waktu.",
+    "description": {
+      "month": "Visualisasikan acara keuangan Anda bulan demi bulan.",
+      "week": "Tampilan detail jadwal keuangan mingguan Anda."
+    },
     "view": {
       "month": "Bulan",
       "week": "Minggu",
@@ -1127,6 +1171,29 @@
     }
   },
   "sidebar": {
+    "dashboard_label": "Dasbor",
+    "finance_label": "Keuangan",
+    "people_label": "Orang",
+    "workspace_label": "Ruang Kerja",
+    "system_label": "Sistem",
+    "overview_label": "Ringkasan",
+    "transactions_label": "Transaksi",
+    "calendar_label": "Kalender",
+    "planning_label": "Perencanaan",
+    "accounts_label": "Akun",
+    "budget_label": "Anggaran",
+    "debts_label": "Hutang",
+    "contacts_label": "Kontak",
+    "vault_label": "Brankas",
+    "apps_label": "Aplikasi",
+    "settings_label": "Pengaturan",
+    "invoices_label": "Tagihan",
+    "customers_label": "Pelanggan",
+    "coming_soon_label": "Segera Hadir",
+    "account_label": "Akun",
+    "billing_label": "Penagihan",
+    "notifications_label": "Notifikasi",
+    "logout_label": "Keluar",
     "dashboard": "Dasbor",
     "finance": "Keuangan",
     "people": "Orang",
@@ -1175,6 +1242,29 @@
       "no_apps_title": "Tidak ada aplikasi yang tersedia",
       "no_results_desc": "Tidak ada aplikasi yang cocok dengan pencarian \"{search}\".",
       "no_apps_desc": "Periksa kembali nanti untuk integrasi baru."
+    },
+    "connect": {
+      "telegram": {
+        "title": "Hubungkan Telegram",
+        "description": "Pindai kode QR atau buka Telegram untuk menghubungkan akun Anda ke Oewang.",
+        "open_bot": "Buka Bot",
+        "footer": "Setelah memindai atau membuka tautan, cukup ketuk Mulai di Telegram untuk menghubungkan akun Anda secara otomatis."
+      },
+      "whatsapp": {
+        "title": "Hubungkan WhatsApp",
+        "description": "Otomatiskan pembaruan dan pelaporan keuangan Anda melalui WhatsApp Business.",
+        "premium_title": "Fitur Premium",
+        "premium_description": "Integrasi WhatsApp adalah fitur premium yang tersedia di paket Enterprise. Hubungi tim penjualan kami untuk mengaktifkan ini di workspace Anda.",
+        "coming_soon_title": "Segera Hadir",
+        "features": {
+          "notifications": "Notifikasi transaksi real-time",
+          "reminders": "Pengingat pembayaran otomatis",
+          "reports": "Ringkasan keuangan mingguan"
+        },
+        "button": "Hubungi Penjualan",
+        "footer_info": "Integrasi Resmi WhatsApp Business"
+      },
+      "secure_connection": "Koneksi End-to-End Aman"
     }
   },
   "ai": {
@@ -1210,11 +1300,105 @@
       "updated": "Faktur diperbarui",
       "update_failed": "Gagal memperbarui faktur"
     },
-    "chat": {
-      "new_chat": "Chat baru",
-      "placeholder": "Tanya apa saja...",
-      "search_placeholder": "Cari di web...",
-      "esc": "Esc"
+    "details": {
+      "title": "Detail Faktur",
+      "total_amount": "Total Jumlah",
+      "currency": "Mata Uang",
+      "public_sharing": "Berbagi Publik",
+      "public_sharing_description": "Aktifkan untuk berbagi faktur ini melalui tautan publik.",
+      "code_protected": "Dilindungi Kode",
+      "generating_link": "Membuat tautan...",
+      "protection_code": "Kode Perlindungan (Opsional)",
+      "set_access_code": "Atur kode akses...",
+      "access_code_description": "Pengunjung harus memasukkan kode ini untuk melihat faktur.",
+      "internal_note": "Catatan Internal",
+      "no_internal_notes": "Belum ada catatan internal untuk faktur ini.",
+      "activity": "Aktivitas",
+      "total": "Total",
+      "vat": "PPN",
+      "discount": "Diskon",
+      "payment_details": "Detail Pembayaran",
+      "note": "Catatan",
+      "template_label": "Template",
+      "number": "No. Faktur",
+      "issued": "Tanggal Terbit",
+      "due": "Tanggal Jatuh Tempo",
+      "from": "Dari",
+      "bill_to": "Kepada",
+      "subtotal": "Subtotal"
+    },
+    "statuses": {
+      "draft": "Draft",
+      "unpaid": "Belum Dibayar",
+      "paid": "Dibayar",
+      "overdue": "Terlambat",
+      "canceled": "Dibatalkan"
+    },
+    "actions": {
+      "copy": "Salin",
+      "copied": "Tersalin",
+      "edit": "Edit",
+      "add_item": "Tambah Item",
+      "rename_template": "Ubah nama template",
+      "duplicate_template": "Duplikat template",
+      "delete_template": "Hapus template"
+    },
+    "columns": {
+      "contact": "Kontak",
+      "issue_date": "Tanggal Terbit",
+      "due_date": "Tanggal Jatuh Tempo",
+      "description": "Deskripsi",
+      "qty": "Jumlah",
+      "rate": "Harga",
+      "tax": "Pajak",
+      "amount": "Total"
+    },
+    "settings": {
+      "invoice": "Faktur",
+      "size": "Ukuran faktur",
+      "currency": "Mata Uang",
+      "date_format": "Format tanggal",
+      "payment_terms": "Syarat pembayaran",
+      "tax_pricing": "Pajak & Harga",
+      "sales_tax": "Pajak penjualan",
+      "vat": "PPN",
+      "line_item_tax": "Pajak item baris",
+      "discount": "Diskon",
+      "decimals": "Desimal",
+      "units": "Satuan",
+      "qr_code": "Kode QR",
+      "payments": "Pembayaran",
+      "sharing": "Berbagi",
+      "terms": {
+        "due_on_receipt": "Jatuh Tempo saat Diterima",
+        "net_7": "Net 7",
+        "net_10": "Net 10",
+        "net_15": "Net 15",
+        "net_30": "Net 30",
+        "net_45": "Net 45",
+        "net_60": "Net 60",
+        "net_90": "Net 90"
+      }
+    },
+    "placeholders": {
+      "from_details": "Detail Perusahaan Anda...",
+      "select_contact": "Pilih kontak",
+      "payment_details": "Rekening bank, PayPal, dll...",
+      "note": "Terima kasih atas bisnis Anda!"
+    }
+  },
+  "chat": {
+    "new_chat": "Chat Baru",
+    "placeholder": "Tanya apa saja...",
+    "search_placeholder": "Cari di web...",
+    "esc": "Esc",
+    "actions": {
+      "copy": "Salin",
+      "retry": "Coba lagi",
+      "positive": "Umpan Balik Positif",
+      "negative": "Umpan Balik Negatif",
+      "remove_positive": "Hapus Umpan Balik Positif",
+      "remove_negative": "Hapus Umpan Balik Negatif"
     }
   }
 }

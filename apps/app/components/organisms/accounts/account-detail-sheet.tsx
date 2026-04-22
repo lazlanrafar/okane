@@ -1,32 +1,18 @@
 "use client";
 
-import {
-  Sheet,
-  SheetContent,
-  Button,
-  Separator,
-  Label,
-  Switch,
-  CurrencyInput,
-  Input,
-} from "@workspace/ui";
-import type { Wallet } from "@workspace/types";
-import {
-  Landmark,
-  CheckCircle2,
-  Pencil,
-  XCircle,
-  Layers,
-  X,
-} from "lucide-react";
-import { useAppStore } from "@/stores/app";
-import { useState, useEffect } from "react";
-import { useDebounce } from "@/hooks/use-debounce";
-import { updateWallet } from "@workspace/modules/client";
+import { useEffect, useState } from "react";
+
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { SelectAccountGroup } from "@/components/molecules/select-account-group";
+import { updateWallet } from "@workspace/modules/client";
+import type { Wallet } from "@workspace/types";
+import { Button, CurrencyInput, Input, Label, Separator, Sheet, SheetContent, Switch } from "@workspace/ui";
 import { format } from "date-fns";
+import { CheckCircle2, Landmark, Layers, Pencil, X, XCircle } from "lucide-react";
+import { toast } from "sonner";
+
+import { SelectAccountGroup } from "@/components/molecules/select-account-group";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useAppStore } from "@/stores/app";
 
 interface AccountDetailSheetProps {
   open: boolean;
@@ -35,7 +21,7 @@ interface AccountDetailSheetProps {
   groups?: any[];
   onEdit: (wallet: Wallet) => void;
   onDelete: (wallet: Wallet) => void;
-  dictionary?: any;
+  dictionary: any;
   locale?: string;
 }
 
@@ -93,11 +79,9 @@ export function AccountDetailSheet({
       if (!old) return old;
       return {
         ...old,
-        pages: old.pages.map((page: any) => ({
+        pages: old.pages?.map((page: any) => ({
           ...page,
-          data: page.data.map((w: any) =>
-            w.id === wallet.id ? { ...w, ...updatedData } : w,
-          ),
+          data: page.data.map((w: any) => (w.id === wallet.id ? { ...w, ...updatedData } : w)),
         })),
       };
     });
@@ -211,9 +195,7 @@ export function AccountDetailSheet({
                 {dictionary.transactions.type_label}
               </Label>
               <div className="flex items-center justify-between border px-3 h-10 bg-background/50">
-                <span className="text-[11px] font-medium">
-                  {dictionary.accounts.include_in_totals_label}
-                </span>
+                <span className="text-[11px] font-medium">{dictionary.accounts.include_in_totals_label}</span>
                 <Switch
                   checked={isIncludedInTotals}
                   onCheckedChange={async (checked) => {
@@ -224,9 +206,7 @@ export function AccountDetailSheet({
                     if (res.success && res.data) {
                       updateWalletInCache(res.data);
                       toast.success(
-                        checked
-                          ? dictionary.accounts.included_in_totals
-                          : dictionary.accounts.excluded_from_totals,
+                        checked ? dictionary.accounts.included_in_totals : dictionary.accounts.excluded_from_totals,
                       );
                     }
                   }}
@@ -261,24 +241,17 @@ export function AccountDetailSheet({
                   {dictionary.accounts.created_date_description}
                 </p>
               </div>
-              <span className="text-[11px] font-medium">
-                {format(new Date(wallet.createdAt), "MMMM d, yyyy")}
-              </span>
+              <span className="text-[11px] font-medium">{format(new Date(wallet.createdAt), "MMMM d, yyyy")}</span>
             </div>
           </div>
         </div>
 
         {/* Footer Toolbar */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] bg-background/70 backdrop-blur-xl border px-4 py-1 flex items-center justify-between z-50 shadow-2xl shadow-black/20">
-          <div className="flex items-center gap-4">
-            {/* Future account actions could go here */}
-          </div>
+          <div className="flex items-center gap-4">{/* Future account actions could go here */}</div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => onOpenChange(false)}
-              className="px-3 py-2 hover:bg-muted/40 transition-colors group"
-            >
+            <button onClick={() => onOpenChange(false)} className="px-3 py-2 hover:bg-muted/40 transition-colors group">
               <span className="text-[10px] font-bold text-muted-foreground group-hover:text-foreground uppercase tracking-widest">
                 {dictionary.transactions.esc}
               </span>

@@ -1,28 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
 
-import { createBrowserClient } from "@workspace/supabase/client";
-import {
-  Button,
-  Input,
-  Label,
-  Badge,
-  cn,
-  SelectCountry,
-  SelectCurrency,
-} from "@workspace/ui";
-import type { Pricing } from "@workspace/types";
+import { useParams, useRouter } from "next/navigation";
+
 import { onboardingCreateWorkspaceAction } from "@workspace/modules/auth/auth.action";
 import { createCheckoutSession } from "@workspace/modules/mayar/mayar.action";
-import { Check, ArrowLeft, Loader2 } from "lucide-react";
-import {
-  isFree,
-  annualSavingsPct,
-  getGatewayPrice,
-  displayPrice,
-} from "@workspace/utils";
+import { createBrowserClient } from "@workspace/supabase/client";
+import type { Pricing } from "@workspace/types";
+import { Badge, Button, cn, Input, Label, SelectCountry, SelectCurrency } from "@workspace/ui";
+import { annualSavingsPct, displayPrice, getGatewayPrice, isFree } from "@workspace/utils";
+import { ArrowLeft, Check, Loader2 } from "lucide-react";
+
 import { BusinessDetailsForm } from "./business-details-form";
 
 // ---------------------------------------------------------------------------
@@ -69,10 +58,8 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
   // Step 2 fields
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [billingCurrency, setBillingCurrency] = useState<"usd" | "eur" | "idr">("idr");
-  const defaultPlanId = (plans.find(isFree) ?? plans[0])?.id ?? null;
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(
-    defaultPlanId,
-  );
+  const defaultPlanId = (plans.find(isFree) ?? plans[0]).id ?? null;
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(defaultPlanId);
 
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("Creating workspace…");
@@ -84,15 +71,13 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
   // Handle country change to auto-update currency
   const handleCountryChange = (countryName: string) => {
     setCountry(countryName);
-    const countryData = (require("@workspace/constants").COUNTRIES as any[]).find(
-      (c) => c.name === countryName,
-    );
-    if (countryData?.currency) {
+    const countryData = (require("@workspace/constants").COUNTRIES as any[]).find((c) => c.name === countryName);
+    if (countryData.currency) {
       setCurrency({
         code: countryData.currency.code,
         symbol: countryData.currency.symbol,
       });
-      
+
       // Also update billing currency if it's one of the supported ones
       const code = countryData.currency.code.toLowerCase();
       if (["usd", "eur", "idr"].includes(code)) {
@@ -164,11 +149,8 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
       "subscription",
     );
 
-    if (!checkoutResult.success || !checkoutResult.data?.url) {
-      setError(
-        checkoutResult.error ??
-          "Failed to start checkout. You can upgrade later from Settings.",
-      );
+    if (!checkoutResult.success || !checkoutResult.data.url) {
+      setError(checkoutResult.error ?? "Failed to start checkout. You can upgrade later from Settings.");
       setLoading(false);
       return;
     }
@@ -178,9 +160,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
   };
 
   const selected = plans.find((p) => p.id === selectedPlanId);
-  const hasAnnual = plans.some(
-    (p) => p.prices?.some((pr) => pr.yearly > 0) && !isFree(p),
-  );
+  const hasAnnual = plans.some((p) => p.prices.some((pr) => pr.yearly > 0) && !isFree(p));
   const hasPaid = plans.some((p) => !isFree(p));
   const bestSavings = Math.max(...plans.map((p) => annualSavingsPct(p) ?? 0));
 
@@ -193,12 +173,10 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
         <>
           <div className="space-y-3">
             <Steps step={1} />
-            <h1 className="font-sans text-2xl tracking-tight">
-              Business details
-            </h1>
+            <h1 className="font-sans text-2xl tracking-tight">Business details</h1>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Add company details so amounts, currency, tax, and reporting
-              periods line up correctly across insights, invoices and exports.
+              Add company details so amounts, currency, tax, and reporting periods line up correctly across insights,
+              invoices and exports.
             </p>
           </div>
 
@@ -301,19 +279,10 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                 const free = isFree(plan);
                 const price = displayPrice(plan, billing, {
                   currency: billingCurrency,
-                  currencySymbol:
-                    billingCurrency === "usd"
-                      ? "$"
-                      : billingCurrency === "eur"
-                        ? "€"
-                        : "Rp",
+                  currencySymbol: billingCurrency === "usd" ? "$" : billingCurrency === "eur" ? "€" : "Rp",
                 });
                 const savings = annualSavingsPct(plan, billingCurrency);
-                const hasPriceId = !!getGatewayPrice(
-                  plan,
-                  billing,
-                  billingCurrency,
-                );
+                const hasPriceId = !!getGatewayPrice(plan, billing, billingCurrency);
 
                 return (
                   <button
@@ -330,14 +299,9 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-medium">
-                            {plan.name}
-                          </span>
+                          <span className="text-sm font-medium">{plan.name}</span>
                           {free && (
-                            <Badge
-                              variant="secondary"
-                              className="px-1.5 py-0 text-[10px]"
-                            >
+                            <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
                               Free forever
                             </Badge>
                           )}
@@ -350,26 +314,16 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                             </Badge>
                           )}
                           {!free && !hasPriceId && (
-                            <Badge
-                              variant="secondary"
-                              className="px-1.5 py-0 text-[10px]"
-                            >
+                            <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
                               Coming soon
                             </Badge>
                           )}
                         </div>
-                        {plan.description && (
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {plan.description}
-                          </p>
-                        )}
+                        {plan.description && <p className="mt-0.5 text-xs text-muted-foreground">{plan.description}</p>}
                         {isSelected && plan.features.length > 0 && (
                           <ul className="mt-3 space-y-1.5">
                             {plan.features.map((f) => (
-                              <li
-                                key={f}
-                                className="flex items-center gap-2 text-xs text-muted-foreground"
-                              >
+                              <li key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <Check className="size-3 shrink-0 text-foreground" />
                                 {f}
                               </li>
@@ -380,9 +334,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
 
                       <div className="flex shrink-0 items-center gap-3">
                         <div className="text-right">
-                          <span className="text-sm font-semibold">
-                            {price.label}
-                          </span>
+                          <span className="text-sm font-semibold">{price?.label}</span>
                           {price.note && (
                             <span className="block text-[10px] whitespace-nowrap text-muted-foreground">
                               {price.note}
@@ -392,14 +344,10 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                         <div
                           className={cn(
                             "flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors",
-                            isSelected
-                              ? "border-foreground bg-foreground text-background"
-                              : "border-border/60",
+                            isSelected ? "border-foreground bg-foreground text-background" : "border-border/60",
                           )}
                         >
-                          {isSelected && (
-                            <Check className="size-2.5 stroke-3" />
-                          )}
+                          {isSelected && <Check className="size-2.5 stroke-3" />}
                         </div>
                       </div>
                     </div>
@@ -414,12 +362,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
               </div>
             )}
 
-            <Button
-              type="button"
-              className="w-full"
-              onClick={handleSubmit}
-              disabled={loading}
-            >
+            <Button type="button" className="w-full" onClick={handleSubmit} disabled={loading}>
               {loading ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="size-3.5 animate-spin" />
@@ -438,23 +381,13 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                 {
                   displayPrice(selected, billing, {
                     currency: billingCurrency,
-                    currencySymbol:
-                      billingCurrency === "usd"
-                        ? "$"
-                        : billingCurrency === "eur"
-                          ? "€"
-                          : "Rp",
+                    currencySymbol: billingCurrency === "usd" ? "$" : billingCurrency === "eur" ? "€" : "Rp",
                   }).label
                 }{" "}
                 {
                   displayPrice(selected, billing, {
                     currency: billingCurrency,
-                    currencySymbol:
-                      billingCurrency === "usd"
-                        ? "$"
-                        : billingCurrency === "eur"
-                          ? "€"
-                          : "Rp",
+                    currencySymbol: billingCurrency === "usd" ? "$" : billingCurrency === "eur" ? "€" : "Rp",
                   }).note
                 }
                 . Cancel anytime.

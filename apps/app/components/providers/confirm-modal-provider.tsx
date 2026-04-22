@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useRef,
-  useState,
-  useEffect,
-  type ReactNode,
-} from "react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
+
 import { Button } from "@workspace/ui";
 
 export interface ConfirmOptions {
@@ -68,12 +61,8 @@ export function ConfirmModalProvider({ children }: { children: ReactNode }) {
             onMouseDown={(e) => e.stopPropagation()}
           >
             <div className="space-y-1.5">
-              <h2 className="font-serif text-xl font-normal">
-                {opts.title ?? "Are you absolutely sure?"}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {opts.description ?? "This action cannot be undone."}
-              </p>
+              <h2 className="font-serif text-xl font-normal">{opts.title ?? "Are you absolutely sure?"}</h2>
+              <p className="text-sm text-muted-foreground">{opts.description ?? "This action cannot be undone."}</p>
             </div>
 
             <div className="flex gap-2 justify-end pt-2">

@@ -1,9 +1,10 @@
+import type { Metadata } from "next";
+
 import { VaultClient } from "@/components/organisms/vault/vault-client";
 import { VaultSkeletonLoading } from "@/components/organisms/vault/vault-skeleton-loading";
 import { Hydrated } from "@/components/shared/hydrated";
-import type { Metadata } from "next";
 import { getDictionary } from "@/get-dictionary";
-import { Locale } from "@/i18n-config";
+import type { Locale } from "@/i18n-config";
 
 export const metadata: Metadata = {
   title: "Vault",

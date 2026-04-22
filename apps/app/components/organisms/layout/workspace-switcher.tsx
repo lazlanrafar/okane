@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { switchWorkspaceAction } from "@workspace/modules/user/user.action";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,9 +19,9 @@ import {
 import { Cat, ChevronsUpDown, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-import { switchWorkspaceAction } from "@workspace/modules/user/user.action";
 import { useAppStore } from "@/stores/app";
 import { useLocalizedRoute } from "@/utils/localized-route";
+
 import { CreateWorkspaceDialog } from "./create-workspace-dialog";
 
 type WorkspaceData = {
@@ -57,7 +58,7 @@ export function WorkspaceSwitcher({
     const keys = key.split(".");
     let result: any = dictionary;
     for (const k of keys) {
-      if (!result?.[k]) return key;
+      if (!result || !result[k]) return key;
       result = result[k];
     }
     if (typeof result !== "string") return key;
@@ -82,15 +83,15 @@ export function WorkspaceSwitcher({
   }, [activeWorkspaceId, workspaces]);
 
   const handleSwitch = async (workspace: WorkspaceData) => {
-    if (workspace.id === activeWorkspace?.id) return;
+    if (workspace?.id === activeWorkspace?.id) return;
 
     setIsSwitching(true);
     try {
-      const result = await switchWorkspaceAction(workspace.id);
+      const result = await switchWorkspaceAction(workspace?.id);
       if (result.success) {
         setActiveWorkspace(workspace);
         toast.success(
-          t("workspace.switcher.switch_success", { name: workspace.name }),
+          t("workspace.switcher.switch_success", { name: workspace?.name }),
         );
         // Refresh to ensure all data is refetched with new workspace context
         window.location.reload();
@@ -142,19 +143,19 @@ export function WorkspaceSwitcher({
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-muted-foreground text-xs">
-              {t("workspace.switcher.title")}
+              {t("workspace?.switcher.title")}
             </DropdownMenuLabel>
             {workspaces.map((workspace, index) => (
               <DropdownMenuItem
-                key={workspace.id}
+                key={workspace?.id}
                 onClick={() => handleSwitch(workspace)}
                 className="gap-2 p-2"
                 disabled={isSwitching}
               >
                 <div className="flex size-6 items-center justify-center border font-semibold text-xs">
-                  {workspace.name.charAt(0).toUpperCase()}
+                  {workspace?.name.charAt(0).toUpperCase()}
                 </div>
-                {workspace.name}
+                {workspace?.name}
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
@@ -171,7 +172,7 @@ export function WorkspaceSwitcher({
 
                 if (ownedWorkspaces.length >= maxAllowed) {
                   toast.error(
-                    t("workspace.switcher.limit_reached", {
+                    t("workspace?.switcher.limit_reached", {
                       maxLimit: maxAllowed,
                     }),
                   );
@@ -185,7 +186,7 @@ export function WorkspaceSwitcher({
                 <Plus className="size-4" />
               </div>
               <div className="font-medium text-muted-foreground">
-                {t("workspace.switcher.add_workspace")}
+                {t("workspace?.switcher.add_workspace")}
               </div>
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -1,13 +1,14 @@
 "use client";
 
-import { useAppStore } from "@/stores/app";
-import { useAiQuota } from "@/hooks/use-ai-quota";
-import { useLocalizedRoute } from "@/utils/localized-route";
-import { Button } from "@workspace/ui";
-import { Zap, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@workspace/ui";
+
+import { Button, cn } from "@workspace/ui";
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertCircle, Zap } from "lucide-react";
+
+import { useAiQuota } from "@/hooks/use-ai-quota";
+import { useAppStore } from "@/stores/app";
+import { useLocalizedRoute } from "@/utils/localized-route";
 
 export function QuotaLimitCard() {
   const { dictionary } = useAppStore() as any;
@@ -16,10 +17,9 @@ export function QuotaLimitCard() {
 
   if (loading || !isExceeded || !quota) return null;
 
-  const dict = dictionary?.ai || {
+  const dict = dictionary.ai || {
     quota_limit_title: "AI Limit Reached",
-    quota_limit_description:
-      "Your workspace has reached its monthly AI token limit.",
+    quota_limit_description: "Your workspace has reached its monthly AI token limit.",
     quota_reset_message: "Your tokens will reset on {date}.",
     upgrade_button: "Upgrade Plan",
   };
@@ -30,9 +30,7 @@ export function QuotaLimitCard() {
         day: "numeric",
         year: "numeric",
       })
-    : new Date(
-        new Date(quota.created_at).setMonth(new Date().getMonth() + 1),
-      ).toLocaleDateString(undefined, {
+    : new Date(new Date(quota.created_at).setMonth(new Date().getMonth() + 1)).toLocaleDateString(undefined, {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -61,9 +59,7 @@ export function QuotaLimitCard() {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
             <div className="space-y-2">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
-                  {dict.quota_limit_description}
-                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-md">{dict.quota_limit_description}</p>
                 <div className="flex items-center gap-1.5 text-[11px] font-mono transition-colors uppercase tracking-widest">
                   <Zap className="h-3 w-3 animate-pulse" />
                   {resetMessage}

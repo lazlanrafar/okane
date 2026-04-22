@@ -1,21 +1,23 @@
 "use client";
 
 import { useState, useTransition } from "react";
+
+import { updateTransactionSettings } from "@workspace/modules/setting/setting.action";
+import type { TransactionSettings } from "@workspace/types";
 import {
   Button,
   Label,
   Select,
   SelectContent,
+  SelectCurrency,
   SelectItem,
   SelectTrigger,
   SelectValue,
   Separator,
   Skeleton,
-  SelectCurrency,
 } from "@workspace/ui";
 import { toast } from "sonner";
-import { updateTransactionSettings } from "@workspace/modules/setting/setting.action";
-import type { TransactionSettings } from "@workspace/types";
+
 import { useAppStore } from "@/stores/app";
 
 interface MainCurrencyFormProps {
@@ -51,10 +53,7 @@ function MainCurrencySkeleton() {
   );
 }
 
-export function MainCurrencyForm({
-  settings,
-  dictionary,
-}: MainCurrencyFormProps) {
+export function MainCurrencyForm({ settings, dictionary }: MainCurrencyFormProps) {
   const [data, setData] = useState(settings);
   const [isPending, startTransition] = useTransition();
   const { isLoading: isStoreLoading } = useAppStore();
@@ -113,12 +112,8 @@ export function MainCurrencyForm({
               });
             }}
             trigger={
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-none h-8 text-xs"
-              >
-                {dictionary?.settings?.common?.change || "Change"}
+              <Button variant="outline" size="sm" className="rounded-none h-8 text-xs">
+                {dictionary.settings.common.change || "Change"}
               </Button>
             }
           />
@@ -132,16 +127,14 @@ export function MainCurrencyForm({
           <Label className="text-sm">{dict.unit_position}</Label>
           <Select
             value={data.mainCurrencySymbolPosition}
-            onValueChange={(v: "Front" | "Back") =>
-              handleUpdate({ mainCurrencySymbolPosition: v })
-            }
+            onValueChange={(v: "Front" | "Back") => handleUpdate({ mainCurrencySymbolPosition: v })}
           >
             <SelectTrigger className="w-[120px] rounded-none h-8 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="rounded-none">
-              <SelectItem value="Front">{dict.positions?.Front || "Front"}</SelectItem>
-              <SelectItem value="Back">{dict.positions?.Back || "Back"}</SelectItem>
+              <SelectItem value="Front">{dict.positions.Front || "Front"}</SelectItem>
+              <SelectItem value="Back">{dict.positions.Back || "Back"}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -150,9 +143,7 @@ export function MainCurrencyForm({
           <Label className="text-sm">{dict.decimal_point}</Label>
           <Select
             value={data.mainCurrencyDecimalPlaces.toString()}
-            onValueChange={(v) =>
-              handleUpdate({ mainCurrencyDecimalPlaces: parseInt(v) })
-            }
+            onValueChange={(v) => handleUpdate({ mainCurrencyDecimalPlaces: parseInt(v) })}
           >
             <SelectTrigger className="w-[120px] rounded-none h-8 text-xs">
               <SelectValue />

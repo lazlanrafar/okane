@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Skeleton, Separator } from "@workspace/ui";
+
+import { Separator, Skeleton } from "@workspace/ui";
 
 export function VaultHeaderSkeleton() {
   return (
@@ -19,11 +20,7 @@ export function VaultHeaderSkeleton() {
   );
 }
 
-export function VaultContentSkeleton({
-  view = "list",
-}: {
-  view?: "grid" | "list";
-}) {
+export function VaultContentSkeleton({ view = "list" }: { view?: "grid" | "list" }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden h-full uppercase">
       {view === "grid" ? (

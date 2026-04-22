@@ -1,13 +1,13 @@
 "use client";
 
-import { useChatInterface } from "@workspace/ui/hooks";
-import { useChatStore } from "@/stores/chat";
-import { useChatActions, useChatId } from "@ai-sdk-tools/store";
-import { AnimatedSizeContainer } from "@workspace/ui";
-import { cn } from "@workspace/ui";
-import { Icons } from "@workspace/ui";
 import { type RefObject, useEffect, useRef } from "react";
+
+import { useChatActions, useChatId } from "@ai-sdk-tools/store";
+import { AnimatedSizeContainer, cn, Icons } from "@workspace/ui";
+import { useChatInterface } from "@workspace/ui/hooks";
 import { useOnClickOutside } from "usehooks-ts";
+
+import { useChatStore } from "@/stores/chat";
 
 export function ChatCommandMenu() {
   const commandListRef = useRef<HTMLDivElement>(null);
@@ -35,9 +35,7 @@ export function ChatCommandMenu() {
       const clickedButton = target.closest("button");
       const isToolbarButton =
         clickedButton !== null &&
-        (clickedButton.closest("form") !== null ||
-          clickedButton.type === "button" ||
-          clickedButton.type === "submit");
+        (clickedButton.closest("form") !== null || clickedButton.type === "button" || clickedButton.type === "submit");
 
       // Only close if it's not the toggle button or toolbar buttons
       if (!isToggleButton && !isToolbarButton) {
@@ -65,9 +63,7 @@ export function ChatCommandMenu() {
   // Scroll selected command into view
   useEffect(() => {
     if (commandListRef.current && showCommands) {
-      const selectedElement = commandListRef.current.querySelector(
-        `[data-index="${selectedCommandIndex}"]`,
-      );
+      const selectedElement = commandListRef.current.querySelector(`[data-index="${selectedCommandIndex}"]`);
       if (selectedElement) {
         selectedElement.scrollIntoView({ block: "nearest" });
       }
@@ -77,11 +73,7 @@ export function ChatCommandMenu() {
   if (!showCommands || filteredCommands.length === 0) return null;
 
   return (
-    <div
-      ref={commandListRef}
-      data-command-menu
-      className="absolute bottom-full left-0 right-0 mb-2 w-full z-30"
-    >
+    <div ref={commandListRef} data-command-menu className="absolute bottom-full left-0 right-0 mb-2 w-full z-30">
       <AnimatedSizeContainer
         height
         className="bg-[#f7f7f7]/85 dark:bg-[#171717]/85 backdrop-blur-lg max-h-80 overflow-y-auto"
@@ -103,9 +95,7 @@ export function ChatCommandMenu() {
                 key={`${command.command}-${index}`}
                 className={cn(
                   "px-2 py-2 text-sm cursor-pointer transition-colors flex items-center justify-between group",
-                  isActive
-                    ? "bg-black/5 dark:bg-white/5"
-                    : "hover:bg-black/5 dark:hover:bg-white/5",
+                  isActive ? "bg-black/5 dark:bg-white/5" : "hover:bg-black/5 dark:hover:bg-white/5",
                 )}
                 onMouseDown={(e) => {
                   // Prevent input from losing focus when clicking on command

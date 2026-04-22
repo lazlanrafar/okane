@@ -1,23 +1,18 @@
 "use client";
 
-import { useTransactionsStore } from "@/stores/transactions";
-import {
-  Button,
-  Icons,
-  cn,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@workspace/ui";
-import { AnimatePresence, motion } from "framer-motion";
-import { Trash2, X, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { useRouter } from "next/navigation";
+
 import { useQueryClient } from "@tanstack/react-query";
 import { bulkDeleteTransactions } from "@workspace/modules/transaction/transaction.action";
+import { Button, cn, Icons, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui";
+import { AnimatePresence, motion } from "framer-motion";
+import { Loader2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+
 import { useConfirm } from "@/components/providers/confirm-modal-provider";
+import { useTransactionsStore } from "@/stores/transactions";
 
 export function TransactionBulkEditBar() {
   const { rowSelection, resetSelection } = useTransactionsStore();
@@ -47,9 +42,7 @@ export function TransactionBulkEditBar() {
         >
           <div className="pointer-events-auto flex items-center gap-4 bg-background/80 backdrop-blur-xl border border-border/50 px-6 py-2 shadow-2xl min-w-[320px] justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-sans font-medium text-foreground">
-                {selectedCount} selected
-              </span>
+              <span className="text-sm font-sans font-medium text-foreground">{selectedCount} selected</span>
               <div className="h-4 w-px bg-border mx-1" />
               <button
                 onClick={resetSelection}
@@ -81,9 +74,7 @@ export function TransactionBulkEditBar() {
                         setIsDeleting(true);
                         const result = await bulkDeleteTransactions(ids);
                         if (result.success) {
-                          toast.success(
-                            `Successfully deleted ${ids.length} transactions`,
-                          );
+                          toast.success(`Successfully deleted ${ids.length} transactions`);
                           await queryClient.invalidateQueries({
                             queryKey: ["transactions"],
                           });
@@ -103,9 +94,7 @@ export function TransactionBulkEditBar() {
                       Delete
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="text-xs">
-                    Delete selected transactions
-                  </TooltipContent>
+                  <TooltipContent className="text-xs">Delete selected transactions</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
@@ -114,16 +103,11 @@ export function TransactionBulkEditBar() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button
-                      onClick={resetSelection}
-                      className="p-1 hover:bg-muted rounded-md transition-colors"
-                    >
+                    <button onClick={resetSelection} className="p-1 hover:bg-muted rounded-md transition-colors">
                       <X className="h-4 w-4 text-muted-foreground" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent className="text-xs">
-                    Close bulk edit bar
-                  </TooltipContent>
+                  <TooltipContent className="text-xs">Close bulk edit bar</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>

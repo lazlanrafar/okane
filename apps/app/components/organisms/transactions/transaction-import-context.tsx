@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
+
 import type { Control, UseFormSetValue, UseFormWatch } from "react-hook-form";
-import { z, type ZodType } from "zod";
+import { type ZodType, z } from "zod";
 
 export const mappableFields = {
   date: {
@@ -66,9 +67,6 @@ export const ImportCsvContext = createContext<{
 
 export function useCsvContext() {
   const context = useContext(ImportCsvContext);
-  if (!context)
-    throw new Error(
-      "useCsvContext must be used within an ImportCsvContext.Provider",
-    );
+  if (!context) throw new Error("useCsvContext must be used within an ImportCsvContext.Provider");
   return context;
 }

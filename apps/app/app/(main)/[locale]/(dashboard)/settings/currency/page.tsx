@@ -1,14 +1,12 @@
+import { getSubCurrencies, getTransactionSettings } from "@workspace/modules/server";
 import { Separator } from "@workspace/ui";
-import {
-  getSubCurrencies,
-  getTransactionSettings,
-} from "@workspace/modules/server";
+import type { Metadata } from "next";
+
 import { MainCurrencyForm } from "@/components/organisms/setting/main-currency/main-currency-form";
 import { SubCurrencyList } from "@/components/organisms/setting/sub-currency/sub-currency-list";
+import { Hydrated } from "@/components/shared/hydrated";
 import { getDictionary } from "@/get-dictionary";
 import type { Locale } from "@/i18n-config";
-import type { Metadata } from "next";
-import { Hydrated } from "@/components/shared/hydrated";
 
 export const metadata: Metadata = {
   title: "Currency | Settings",
@@ -27,9 +25,7 @@ export default async function CurrencyPage({ params }: CurrencyPageProps) {
   const subCurrenciesResult = await getSubCurrencies();
 
   const settings = settingsResult.success ? settingsResult.data : null;
-  const subCurrencies = subCurrenciesResult.success
-    ? subCurrenciesResult.data
-    : [];
+  const subCurrencies = subCurrenciesResult.success ? subCurrenciesResult.data : [];
 
   if (!settings) {
     // Should handle this better, but for now just return empty or error
@@ -43,11 +39,7 @@ export default async function CurrencyPage({ params }: CurrencyPageProps) {
 
         <Separator />
 
-        <SubCurrencyList
-          initialSubCurrencies={subCurrencies}
-          settings={settings}
-          dictionary={dictionary}
-        />
+        <SubCurrencyList initialSubCurrencies={subCurrencies} settings={settings} dictionary={dictionary} />
       </div>
     </Hydrated>
   );

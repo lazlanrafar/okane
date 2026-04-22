@@ -1,9 +1,10 @@
 "use client";
-import { Combobox, Spinner, cn } from "@workspace/ui";
-import { Landmark } from "lucide-react";
-import { getWallets, createWallet } from "@workspace/modules/client";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createWallet, getWallets } from "@workspace/modules/client";
+import { Combobox, cn, Spinner } from "@workspace/ui";
+import { Landmark } from "lucide-react";
 import { toast } from "sonner";
 
 export interface SelectAccountProps {
@@ -92,11 +93,7 @@ export function SelectAccount({
       onSelect={(item) => {
         onChange(item.id);
       }}
-      triggerClassName={cn(
-        "rounded-none",
-        inDataTable && "max-w-[280px]",
-        className,
-      )}
+      triggerClassName={cn("rounded-none", inDataTable && "max-w-[280px]", className)}
       showChevron={!inDataTable}
       className="rounded-none"
       onCreate={(value) => {

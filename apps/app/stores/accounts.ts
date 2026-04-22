@@ -15,8 +15,7 @@ export const useAccountsStore = create<AccountsState>()((set) => ({
   setColumns: (columns) => set({ columns: columns || [] }),
   setRowSelection: (updater: Updater<RowSelectionState>) =>
     set((state) => {
-      const newSelection =
-        typeof updater === "function" ? updater(state.rowSelection) : updater;
+      const newSelection = typeof updater === "function" ? updater(state.rowSelection) : updater;
       return { rowSelection: newSelection };
     }),
   clearRowSelection: () => set({ rowSelection: {} }),

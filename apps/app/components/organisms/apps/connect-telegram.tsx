@@ -1,22 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  Button,
-  Icons,
-} from "@workspace/ui";
+import { useEffect, useState } from "react";
+
+import { useQuery } from "@tanstack/react-query";
+import { Env } from "@workspace/constants";
+import { getMe } from "@workspace/modules/user/user.action";
+import { Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Icons } from "@workspace/ui";
 import { Check, Copy, QrCode } from "lucide-react";
 import * as QRCode from "qrcode";
-import { useQuery } from "@tanstack/react-query";
-import { getMe } from "@workspace/modules/user/user.action";
-import { Env } from "@workspace/constants";
 
-export function ConnectTelegram({ dictionary }: { dictionary: any }) {
+import type { Dictionary } from "@workspace/dictionaries";
+
+export function ConnectTelegram({ dictionary }: { dictionary: Dictionary }) {
   const [open, setOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [copied, setCopied] = useState(false);
@@ -29,12 +24,13 @@ export function ConnectTelegram({ dictionary }: { dictionary: any }) {
     },
   });
 
-  const workspaceId = me?.user.workspace_id;
-  const userId = me?.user.id;
+  const workspaceId = me.user.workspace_id;
+  const userId = me.user.id;
   const botUsername = Env.NEXT_PUBLIC_TELEGRAM_BOT_USER || "OewangBot";
-  const telegramUrl = workspaceId && userId
-    ? `https://t.me/${botUsername}?start=${workspaceId}___${userId}`
-    : `https://t.me/${botUsername}`;
+  const telegramUrl =
+    workspaceId && userId
+      ? `https://t.me/${botUsername}?start=${workspaceId}___${userId}`
+      : `https://t.me/${botUsername}`;
 
   useEffect(() => {
     if (open && workspaceId && botUsername) {
@@ -81,11 +77,10 @@ export function ConnectTelegram({ dictionary }: { dictionary: any }) {
         <div className="p-8">
           <DialogHeader>
             <DialogTitle className="text-xl tracking-tight">
-              Connect Telegram
+              {dictionary.apps.connect.telegram.title}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground pt-2">
-              Scan the QR code or open Telegram to connect your account to
-              Oewang.
+              {dictionary.apps.connect.telegram.description}
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -94,11 +89,7 @@ export function ConnectTelegram({ dictionary }: { dictionary: any }) {
           <div className="relative group">
             <div className="relative bg-white p-3 border">
               {!isLoading && workspaceId && qrCodeUrl ? (
-                <img
-                  src={qrCodeUrl}
-                  alt="Telegram QR Code"
-                  className="w-[200px] h-[200px]"
-                />
+                <img src={qrCodeUrl} alt="Telegram QR Code" className="w-[200px] h-[200px]" />
               ) : (
                 <div className="flex items-center justify-center w-[200px] h-[200px] bg-secondary/30 rounded-md">
                   <QrCode className="h-12 w-12 text-muted-foreground animate-pulse" />
@@ -116,7 +107,11 @@ export function ConnectTelegram({ dictionary }: { dictionary: any }) {
                 className="flex items-center justify-center"
               >
                 <Icons.Telegram className="mr-2 h-5 w-5 fill-current" />
-                <span>{isLoading ? "Loading..." : "Open Bot"}</span>
+                <span>
+                  {isLoading
+                    ? dictionary.common.loading
+                    : dictionary.apps.connect.telegram.open_bot}
+                </span>
               </a>
             </Button>
             <Button
@@ -128,27 +123,26 @@ export function ConnectTelegram({ dictionary }: { dictionary: any }) {
               {copied ? (
                 <div className="flex items-center text-green-600">
                   <Check className="mr-2 h-4 w-4" />
-                  <span>Copied</span>
+                  <span>{dictionary.common.copied}</span>
                 </div>
               ) : (
                 <div className="flex items-center">
                   <Copy className="mr-2 h-4 w-4" />
-                  <span>Copy Link</span>
+                  <span>{dictionary.common.copy_link}</span>
                 </div>
               )}
             </Button>
           </div>
 
           <p className="text-xs text-muted-foreground/80 text-center leading-relaxed max-w-[280px]">
-            Once you scan or open the link, just tap <b>Start</b> in Telegram to
-            automatically connect your account.
+            {dictionary.apps.connect.telegram.footer}
           </p>
         </div>
 
         <div className="bg-secondary/30 p-4 border-t border-border/50">
           <div className="flex items-center justify-center space-x-2 text-[10px] text-muted-foreground/60 uppercase tracking-widest font-semibold">
             <div className="h-1 w-1 rounded-full bg-blue-500" />
-            <span>Secure End-to-End Connection</span>
+            <span>{dictionary.apps.connect.secure_connection}</span>
           </div>
         </div>
       </DialogContent>

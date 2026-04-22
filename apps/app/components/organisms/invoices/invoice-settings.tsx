@@ -1,46 +1,48 @@
 "use client";
 
 import * as React from "react";
+
 import {
-  Settings,
-  FileText,
-  Percent,
-  Mail,
-  CreditCard,
-  Maximize2,
-  DollarSign,
-  Calendar,
-  Clock,
-  Type,
-  Hash,
-  QrCode,
-  ChevronRight,
-  Calculator,
-  RotateCcw,
-  Copy,
-  Trash2,
-  Pencil,
-  Globe,
-  Lock,
-} from "lucide-react";
-import {
+  Button,
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  Button,
+  SelectCurrency,
 } from "@workspace/ui";
-import { SelectCurrency } from "@workspace/ui";
+import type { Dictionary } from "@workspace/dictionaries";
+import {
+  Calculator,
+  Calendar,
+  ChevronRight,
+  Clock,
+  Copy,
+  CreditCard,
+  DollarSign,
+  FileText,
+  Globe,
+  Hash,
+  Lock,
+  Mail,
+  Maximize2,
+  Pencil,
+  Percent,
+  QrCode,
+  RotateCcw,
+  Settings,
+  Trash2,
+  Type,
+} from "lucide-react";
 
 export interface InvoiceSettingsProps {
   settings: {
@@ -63,7 +65,7 @@ export interface InvoiceSettingsProps {
   onRename?: () => void;
   onDuplicate?: () => void;
   onDelete?: () => void;
-  dictionary: any;
+  dictionary: Dictionary;
 }
 
 export function InvoiceSettings({
@@ -74,7 +76,7 @@ export function InvoiceSettings({
   onDelete,
   dictionary,
 }: InvoiceSettingsProps) {
-  const dict = dictionary?.invoices;
+  const dict = dictionary.invoices;
   const updateNestedSetting = (key: string, value: boolean) => {
     onUpdate("invoiceSettings", {
       ...settings.invoiceSettings,
@@ -95,7 +97,7 @@ export function InvoiceSettings({
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
               <FileText className="mr-2 h-4 w-4" />
-              <span>{dict?.settings?.invoice || "Invoice"}</span>
+              <span>{dict.settings.invoice || "Invoice"}</span>
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent className="w-48">
@@ -103,20 +105,16 @@ export function InvoiceSettings({
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
                     <Maximize2 className="mr-2 h-4 w-4" />
-                    <span>{dict?.settings?.size || "Invoice size"}</span>
+                    <span>{dict.settings.size || "Invoice size"}</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
                       <DropdownMenuRadioGroup
-                        value={settings.invoiceSize}
+                        value={settings?.invoiceSize}
                         onValueChange={(v) => onUpdate("invoiceSize", v)}
                       >
-                        <DropdownMenuRadioItem value="A4">
-                          A4
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="Letter">
-                          Letter
-                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="A4">A4</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="Letter">Letter</DropdownMenuRadioItem>
                       </DropdownMenuRadioGroup>
                     </DropdownMenuSubContent>
                   </DropdownMenuPortal>
@@ -126,12 +124,12 @@ export function InvoiceSettings({
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
                     <DollarSign className="mr-2 h-4 w-4" />
-                    <span>{dict?.settings?.currency || "Currency"}</span>
+                    <span>{dict.settings.currency || "Currency"}</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent className="p-0 border-none shadow-none">
                       <SelectCurrency
-                        value={settings.currency}
+                        value={settings?.currency}
                         onSelect={(c) => onUpdate("currency", c.code)}
                         className="border-none shadow-none"
                       />
@@ -143,26 +141,18 @@ export function InvoiceSettings({
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
                     <Calendar className="mr-2 h-4 w-4" />
-                    <span>{dict?.settings?.date_format || "Date format"}</span>
+                    <span>{dict.settings.date_format || "Date format"}</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
                       <DropdownMenuRadioGroup
-                        value={settings.dateFormat}
+                        value={settings?.dateFormat}
                         onValueChange={(v) => onUpdate("dateFormat", v)}
                       >
-                        <DropdownMenuRadioItem value="DD/MM/YYYY">
-                          DD/MM/YYYY
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="MM/DD/YYYY">
-                          MM/DD/YYYY
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="YYYY-MM-DD">
-                          YYYY-MM-DD
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="dd.MM.yyyy">
-                          dd.MM.yyyy
-                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="DD/MM/YYYY">DD/MM/YYYY</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="MM/DD/YYYY">MM/DD/YYYY</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="YYYY-MM-DD">YYYY-MM-DD</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="dd.MM.yyyy">dd.MM.yyyy</DropdownMenuRadioItem>
                       </DropdownMenuRadioGroup>
                     </DropdownMenuSubContent>
                   </DropdownMenuPortal>
@@ -172,28 +162,21 @@ export function InvoiceSettings({
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
                     <Clock className="mr-2 h-4 w-4" />
-                    <span>{dict?.settings?.payment_terms || "Payment terms"}</span>
+                    <span>{dict.settings.payment_terms || "Payment terms"}</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent className="max-h-[300px] overflow-y-auto">
                       <DropdownMenuRadioGroup
-                        value={settings.paymentTerms}
+                        value={settings?.paymentTerms}
                         onValueChange={(v) => onUpdate("paymentTerms", v)}
                       >
-                        {[
-                          "Due on Receipt",
-                          "Net 7",
-                          "Net 10",
-                          "Net 15",
-                          "Net 30",
-                          "Net 45",
-                          "Net 60",
-                          "Net 90",
-                        ].map((term) => (
-                          <DropdownMenuRadioItem key={term} value={term}>
-                            {dict?.settings?.terms?.[term.toLowerCase().replace(/ /g, "_")] || term}
-                          </DropdownMenuRadioItem>
-                        ))}
+                        {["Due on Receipt", "Net 7", "Net 10", "Net 15", "Net 30", "Net 45", "Net 60", "Net 90"].map(
+                          (term) => (
+                            <DropdownMenuRadioItem key={term} value={term}>
+                              {dict.settings.terms[term.toLowerCase().replace(/ /g, "_")] || term}
+                            </DropdownMenuRadioItem>
+                          ),
+                        )}
                       </DropdownMenuRadioGroup>
                     </DropdownMenuSubContent>
                   </DropdownMenuPortal>
@@ -206,58 +189,58 @@ export function InvoiceSettings({
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
               <Calculator className="mr-2 h-4 w-4" />
-              <span>{dict?.settings?.tax_pricing || "Tax & Pricing"}</span>
+              <span>{dict.settings.tax_pricing || "Tax & Pricing"}</span>
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent className="w-56">
                 <DropdownMenuCheckboxItem
-                  checked={settings.invoiceSettings.salesTax}
+                  checked={settings?.invoiceSettings.salesTax}
                   onCheckedChange={(v) => updateNestedSetting("salesTax", v)}
                 >
                   <Calculator className="mr-2 h-4 w-4" />
-                  <span>{dict?.settings?.sales_tax || "Sales tax"}</span>
+                  <span>{dict.settings.sales_tax || "Sales tax"}</span>
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
-                  checked={settings.invoiceSettings.vat}
+                  checked={settings?.invoiceSettings.vat}
                   onCheckedChange={(v) => updateNestedSetting("vat", v)}
                 >
                   <Percent className="mr-2 h-4 w-4" />
-                  <span>{dict?.settings?.vat || "VAT"}</span>
+                  <span>{dict.settings.vat || "VAT"}</span>
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
-                  checked={settings.invoiceSettings.lineItemTax}
+                  checked={settings?.invoiceSettings.lineItemTax}
                   onCheckedChange={(v) => updateNestedSetting("lineItemTax", v)}
                 >
                   <Hash className="mr-2 h-4 w-4" />
-                  <span>{dict?.settings?.line_item_tax || "Line item tax"}</span>
+                  <span>{dict.settings.line_item_tax || "Line item tax"}</span>
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
-                  checked={settings.invoiceSettings.discount}
+                  checked={settings?.invoiceSettings.discount}
                   onCheckedChange={(v) => updateNestedSetting("discount", v)}
                 >
                   <Percent className="mr-2 h-4 w-4" />
-                  <span>{dict?.settings?.discount || "Discount"}</span>
+                  <span>{dict.settings.discount || "Discount"}</span>
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
-                  checked={settings.invoiceSettings.decimals}
+                  checked={settings?.invoiceSettings.decimals}
                   onCheckedChange={(v) => updateNestedSetting("decimals", v)}
                 >
                   <Type className="mr-2 h-4 w-4" />
-                  <span>{dict?.settings?.decimals || "Decimals"}</span>
+                  <span>{dict.settings.decimals || "Decimals"}</span>
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
-                  checked={settings.invoiceSettings.units}
+                  checked={settings?.invoiceSettings.units}
                   onCheckedChange={(v) => updateNestedSetting("units", v)}
                 >
                   <Type className="mr-2 h-4 w-4" />
-                  <span>{dict?.settings?.units || "Units"}</span>
+                  <span>{dict.settings.units || "Units"}</span>
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
-                  checked={settings.invoiceSettings.qrCode}
+                  checked={settings?.invoiceSettings.qrCode}
                   onCheckedChange={(v) => updateNestedSetting("qrCode", v)}
                 >
                   <QrCode className="mr-2 h-4 w-4" />
-                  <span>{dict?.settings?.qr_code || "QR code"}</span>
+                  <span>{dict.settings.qr_code || "QR code"}</span>
                 </DropdownMenuCheckboxItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
@@ -265,13 +248,13 @@ export function InvoiceSettings({
 
           <DropdownMenuItem disabled>
             <Mail className="mr-2 h-4 w-4" />
-            <span>{dictionary?.common?.email || "Email"}</span>
+            <span>{dictionary.common.email || "Email"}</span>
             <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground/50" />
           </DropdownMenuItem>
 
-          <DropdownMenuItem disabled={settings.invoiceSettings.qrCode}>
+          <DropdownMenuItem disabled={settings?.invoiceSettings.qrCode}>
             <CreditCard className="mr-2 h-4 w-4" />
-            <span>{dict?.settings?.payments || "Payments"}</span>
+            <span>{dict.settings.payments || "Payments"}</span>
             <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground/50" />
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -280,36 +263,38 @@ export function InvoiceSettings({
 
         <DropdownMenuGroup>
           <DropdownMenuLabel className="text-[10px] font-normal text-muted-foreground px-2 py-1.5 uppercase tracking-wider">
-            {dict?.settings?.sharing || "Sharing"}
+            {dict.settings.sharing || "Sharing"}
           </DropdownMenuLabel>
           <DropdownMenuCheckboxItem
-            checked={(settings as any).isPublic}
-            onCheckedChange={(v) => onUpdate("isPublic", v)}
+            checked={(settings as InvoiceSettingsProps["settings"]).invoiceSettings.qrCode}
+            onCheckedChange={(v) => updateNestedSetting("qrCode", v)}
           >
             <Globe className="mr-2 h-4 w-4" />
-            <span>{dict?.details?.public_sharing || "Public view"}</span>
+            <span>{dict.details.public_sharing || "Public view"}</span>
           </DropdownMenuCheckboxItem>
 
           {(settings as any).isPublic && (
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <Lock className="mr-2 h-4 w-4" />
-                <span>{dict?.details?.public_sharing || "Access code"}</span>
+                <span>{dict.details.public_sharing || "Access code"}</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
                 <DropdownMenuSubContent className="p-2 w-48">
                   <div className="flex flex-col gap-2">
-                    <span className="text-[10px] text-muted-foreground uppercase">{dict?.details?.set_access_code || "Set access code"}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase">
+                      {dict.details.set_access_code || "Set access code"}
+                    </span>
                     <input
                       type="text"
-                      placeholder={dict?.details?.set_access_code || "Enter code..."}
+                      placeholder={dict.details.set_access_code || "Enter code..."}
                       className="w-full bg-muted border-none rounded-md p-1.5 text-xs focus:ring-1 focus:ring-primary outline-none"
                       value={(settings as any).accessCode || ""}
                       onChange={(e) => onUpdate("accessCode", e.target.value)}
                       onClick={(e) => e.stopPropagation()}
                     />
                     <p className="text-[9px] text-muted-foreground">
-                      {dict?.details?.access_code_description || "Visitors must enter this code to view the invoice."}
+                      {dict.details.access_code_description || "Visitors must enter this code to view the invoice."}
                     </p>
                   </div>
                 </DropdownMenuSubContent>
@@ -323,19 +308,15 @@ export function InvoiceSettings({
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={onRename}>
             <Pencil className="mr-2 h-4 w-4" />
-            <span>{dict?.actions?.rename_template || "Rename template"}</span>
+            <span>{dict.actions.rename_template || "Rename template"}</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={onDuplicate}>
             <Copy className="mr-2 h-4 w-4" />
-            <span>{dict?.actions?.duplicate_template || "Duplicate template"}</span>
+            <span>{dict.actions.duplicate_template || "Duplicate template"}</span>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={onDelete}
-            className="text-red-500"
-          >
+          <DropdownMenuItem variant="destructive" onClick={onDelete} className="text-red-500">
             <Trash2 className="mr-2 h-4 w-4" />
-            <span>{dict?.actions?.delete_template || "Delete template"}</span>
+            <span>{dict.actions.delete_template || "Delete template"}</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

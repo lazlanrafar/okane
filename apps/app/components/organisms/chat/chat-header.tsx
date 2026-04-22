@@ -1,21 +1,26 @@
 "use client";
 
-import { useChatStore } from "@/stores/chat";
-import { useChatInterface } from "@workspace/ui/hooks";
 import { useRouter } from "next/navigation";
+
 import { useChatActions, useDataPart } from "@ai-sdk-tools/store";
-import { Button, Icons } from "@workspace/ui";
-import { ArrowLeft } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { getChatSessions } from "@workspace/modules/ai/ai.action";
+import { Button, Icons } from "@workspace/ui";
+import { useChatInterface } from "@workspace/ui/hooks";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
+
+import { useChatStore } from "@/stores/chat";
+ 
+import type { Dictionary } from "@workspace/dictionaries";
+import type { ChatSession } from "@workspace/types";
 
 interface ChatTitleData {
   chatId: string;
   title: string;
 }
 
-export function ChatHeader({ dictionary }: { dictionary: any }) {
+export function ChatHeader({ dictionary }: { dictionary: Dictionary }) {
   const { chatId } = useChatInterface();
   const { isHome } = useChatStore();
 
@@ -36,10 +41,10 @@ export function ChatHeader({ dictionary }: { dictionary: any }) {
     enabled: !!chatId && !isHome,
   });
 
-  const sessions = (sessionsResponse?.data as any[]) || [];
-  const sessionTitle = sessions.find((s) => s.id === chatId)?.title;
+  const sessions = (sessionsResponse.data as ChatSession[]) || [];
+  const sessionTitle = sessions.find((s) => s.id === chatId).title;
 
-  const displayTitle = dataPartTitle?.title || sessionTitle;
+  const displayTitle = dataPartTitle.title || sessionTitle;
 
   const handleBack = () => {
     reset();
@@ -59,12 +64,7 @@ export function ChatHeader({ dictionary }: { dictionary: any }) {
   return (
     <div className="flex items-center justify-center relative h-10">
       <div className="absolute left-0">
-        <Button
-          type="button"
-          onClick={handleBack}
-          variant="outline"
-          size="icon"
-        >
+        <Button type="button" onClick={handleBack} variant="outline" size="icon">
           <ArrowLeft className="w-4 h-4" />
         </Button>
       </div>
@@ -78,9 +78,7 @@ export function ChatHeader({ dictionary }: { dictionary: any }) {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="overflow-hidden"
           >
-            <div className="text-xs font-medium text-foreground whitespace-nowrap">
-              {displayTitle}
-            </div>
+            <div className="text-xs font-medium text-foreground whitespace-nowrap">{displayTitle}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -91,7 +89,7 @@ export function ChatHeader({ dictionary }: { dictionary: any }) {
             onClick={handleNewChat}
             variant="outline"
             size="icon"
-            title={dictionary.chat?.new_chat || "New chat"}
+            title={dictionary.chat.new_chat || "New chat"}
           >
             <Icons.Add size={16} />
           </Button>

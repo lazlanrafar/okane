@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { useEffect, useState } from "react";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type DebtWithContact, deleteContact, getDebts, updateContact } from "@workspace/modules/client";
+import type { Contact } from "@workspace/types";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
+  Badge,
   Button,
+  cn,
   Form,
   FormControl,
   FormField,
@@ -18,41 +17,32 @@ import {
   FormLabel,
   FormMessage,
   Input,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
   Textarea,
-  Badge,
-  cn,
 } from "@workspace/ui";
-import {
-  deleteContact,
-  updateContact,
-  getDebts,
-  type DebtWithContact,
-} from "@workspace/modules/client";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import type { Contact } from "@workspace/types";
-import {
-  History,
-  ArrowDownLeft,
-  ArrowUpRight,
-  Calendar,
-  Trash,
-} from "lucide-react";
-import { format } from "date-fns";
 import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
+import { format } from "date-fns";
+import { ArrowDownLeft, ArrowUpRight, Calendar, History, Trash } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
+import type { Dictionary } from "@workspace/dictionaries";
+import type { TransactionSettings } from "@workspace/types";
+
 import { useConfirm } from "@/components/providers/confirm-modal-provider";
+
 import { BulkPaySheet } from "../debts/bulk-pay-sheet";
 
-const getContactSchema = (dictionary: any) =>
+const getContactSchema = (dictionary: Dictionary) =>
   z.object({
-    name: z
-      .string()
-      .min(
-        1,
-        dictionary?.contacts?.errors?.name_required || "Name is required",
-      ),
+    name: z.string().min(1, dictionary.contacts.errors.name_required || "Name is required"),
     email: z
       .string()
-      .email(dictionary?.contacts?.errors?.invalid_email || "Invalid email")
+      .email(dictionary.contacts.errors.invalid_email || "Invalid email")
       .optional()
       .or(z.literal("")),
     phone: z.string().optional().or(z.literal("")),
@@ -64,20 +54,13 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onDebtClick?: (debt: DebtWithContact) => void;
-  dictionary: any;
-  settings: any;
+  dictionary: Dictionary;
+  settings: TransactionSettings;
 }
 
-export function ContactDetailSheet({
-  contact,
-  open,
-  onClose,
-  onDebtClick,
-  dictionary,
-  settings,
-}: Props) {
+export function ContactDetailSheet({ contact, open, onClose, onDebtClick, dictionary, settings }: Props) {
   const queryClient = useQueryClient();
-  const formatCurrency = (amount: number, options?: any) =>
+  const formatCurrency = (amount: number, options?: Parameters<typeof formatCurrencyUtil>[2]) =>
     formatCurrencyUtil(amount, settings, options);
   const [isEditing, setIsEditing] = useState(false);
   const [isBulkPayOpen, setIsBulkPayOpen] = useState(false);
@@ -96,17 +79,17 @@ export function ContactDetailSheet({
   };
 
   const { data: debts, isLoading: debtsLoading } = useQuery({
-    queryKey: ["debts", "contact", contact?.id],
+    queryKey: ["debts", "contact", contact.id],
     queryFn: async () => {
-      if (!contact?.id) return [];
+      if (!contact.id) return [];
       const result = await getDebts({ contactId: contact.id });
       return result.success ? result.data : [];
     },
-    enabled: !!contact?.id && open,
+    enabled: !!contact.id && open,
   });
 
   const form = useForm<z.infer<ReturnType<typeof getContactSchema>>>({
-    resolver: zodResolver(getContactSchema(dictionary) as any),
+    resolver: zodResolver(getContactSchema(dictionary)),
     defaultValues: {
       name: "",
       email: "",
@@ -164,38 +147,23 @@ export function ContactDetailSheet({
 
   if (!contact) return null;
 
-  const address = [
-    contact.addressLine1,
-    contact.city,
-    contact.state,
-    contact.country,
-  ]
-    .filter(Boolean)
-    .join(", ");
+  const address = [contact.addressLine1, contact.city, contact.state, contact.country].filter(Boolean).join(", ");
 
   const totalReceivable =
     debts
-      ?.filter((d) => d.type === "receivable")
-      .reduce(
-        (acc, d) => acc + (Number.parseFloat((d.remainingAmount ?? 0) as string) || 0),
-        0,
-      ) || 0;
+      .filter((d) => d.type === "receivable")
+      .reduce((acc, d) => acc + (Number.parseFloat((d.remainingAmount ?? 0) as string) || 0), 0) || 0;
   const totalPayable =
     debts
-      ?.filter((d) => d.type === "payable")
-      .reduce(
-        (acc, d) => acc + (Number.parseFloat((d.remainingAmount ?? 0) as string) || 0),
-        0,
-      ) || 0;
+      .filter((d) => d.type === "payable")
+      .reduce((acc, d) => acc + (Number.parseFloat((d.remainingAmount ?? 0) as string) || 0), 0) || 0;
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent className="sm:max-w-[540px] flex flex-col h-full p-0 rounded-none shadow-none border-l">
         <SheetHeader className="p-6 pb-6 border-b shrink-0 bg-muted/5 flex flex-row items-center justify-between space-y-0 text-left">
           <div className="space-y-1">
-            <SheetTitle className="text-xl font-serif font-normal">
-              {contact.name}
-            </SheetTitle>
+            <SheetTitle className="text-xl font-serif font-normal">{contact.name}</SheetTitle>
             <p className="text-xs text-muted-foreground uppercase tracking-widest">
               {contact.email || dictionary.contacts.details.no_email}
             </p>
@@ -207,9 +175,7 @@ export function ContactDetailSheet({
               className="rounded-none h-8 text-[10px] uppercase tracking-widest font-medium"
               onClick={() => setIsEditing(!isEditing)}
             >
-              {isEditing
-                ? dictionary.contacts.details.view_details
-                : dictionary.contacts.details.quick_edit}
+              {isEditing ? dictionary.contacts.details.view_details : dictionary.contacts.details.quick_edit}
             </Button>
             <Button
               variant="ghost"
@@ -235,10 +201,7 @@ export function ContactDetailSheet({
           {isEditing ? (
             <div className="p-6">
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit((v) => updateMutation.mutate(v))}
-                  className="space-y-6"
-                >
+                <form onSubmit={form.handleSubmit((v) => updateMutation.mutate(v))} className="space-y-6">
                   <FormField
                     control={form.control}
                     name="name"
@@ -248,10 +211,7 @@ export function ContactDetailSheet({
                           {dictionary.contacts.form.name_label}
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            className="rounded-none h-10 bg-transparent"
-                          />
+                          <Input {...field} className="rounded-none h-10 bg-transparent" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -266,11 +226,7 @@ export function ContactDetailSheet({
                           {dictionary.contacts.form.email_label}
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            type="email"
-                            className="rounded-none h-10 bg-transparent"
-                          />
+                          <Input {...field} type="email" className="rounded-none h-10 bg-transparent" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -286,10 +242,7 @@ export function ContactDetailSheet({
                             {dictionary.contacts.form.phone_label}
                           </FormLabel>
                           <FormControl>
-                            <Input
-                              {...field}
-                              className="rounded-none h-10 bg-transparent"
-                            />
+                            <Input {...field} className="rounded-none h-10 bg-transparent" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -304,10 +257,7 @@ export function ContactDetailSheet({
                             {dictionary.contacts.form.address_label}
                           </FormLabel>
                           <FormControl>
-                            <Input
-                              {...field}
-                              className="rounded-none h-10 bg-transparent"
-                            />
+                            <Input {...field} className="rounded-none h-10 bg-transparent" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -323,10 +273,7 @@ export function ContactDetailSheet({
                           {dictionary.contacts.form.notes_label}
                         </FormLabel>
                         <FormControl>
-                          <Textarea
-                            {...field}
-                            className="min-h-[100px] rounded-none bg-transparent resize-none"
-                          />
+                          <Textarea {...field} className="min-h-[100px] rounded-none bg-transparent resize-none" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -337,9 +284,7 @@ export function ContactDetailSheet({
                     className="w-full rounded-none h-12 uppercase tracking-widest font-medium text-xs"
                     disabled={updateMutation.isPending}
                   >
-                    {updateMutation.isPending
-                      ? dictionary.contacts.form.saving
-                      : dictionary.contacts.form.save}
+                    {updateMutation.isPending ? dictionary.contacts.form.saving : dictionary.contacts.form.save}
                   </Button>
                 </form>
               </Form>
@@ -376,9 +321,7 @@ export function ContactDetailSheet({
                   <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
                     {dictionary.debts.summary.payable}
                   </p>
-                  <p className="text-2xl font-serif text-rose-600 dark:text-rose-400">
-                    {formatCurrency(totalPayable)}
-                  </p>
+                  <p className="text-2xl font-serif text-rose-600 dark:text-rose-400">{formatCurrency(totalPayable)}</p>
                 </div>
               </div>
 
@@ -404,19 +347,14 @@ export function ContactDetailSheet({
                 {debtsLoading ? (
                   <div className="space-y-6 pl-4">
                     {[1, 2, 3].map((i) => (
-                      <div
-                        key={i}
-                        className="h-16 bg-muted/10 animate-pulse rounded-none border border-border/50"
-                      />
+                      <div key={i} className="h-16 bg-muted/10 animate-pulse rounded-none border border-border/50" />
                     ))}
                   </div>
                 ) : debts && debts.length > 0 ? (
                   <div className="relative">
                     {debts.map((debt, index) => {
                       const amount = Number.parseFloat((debt.amount ?? 0) as string) || 0;
-                      const remaining = Number.parseFloat(
-                        (debt.remainingAmount ?? 0) as string,
-                      ) || 0;
+                      const remaining = Number.parseFloat((debt.remainingAmount ?? 0) as string) || 0;
                       const isReceivable = debt.type === "receivable";
                       const isLast = index === debts.length - 1;
 
@@ -428,25 +366,17 @@ export function ContactDetailSheet({
                             <div
                               className={cn(
                                 "mt-1 h-2.5 w-2.5 rounded-full border-2 shrink-0 z-10",
-                                isReceivable
-                                  ? "bg-emerald-500 border-emerald-500"
-                                  : "bg-rose-500 border-rose-500",
+                                isReceivable ? "bg-emerald-500 border-emerald-500" : "bg-rose-500 border-rose-500",
                                 debt.status === "paid" && "opacity-40",
                               )}
                             />
                             {/* Vertical line (hidden for last item) */}
-                            {!isLast && (
-                              <div className="flex-1 w-px bg-border/60 mt-1" />
-                            )}
+                            {!isLast && <div className="flex-1 w-px bg-border/60 mt-1" />}
                           </div>
 
                           {/* Content */}
                           <div
-                            className={cn(
-                              "flex-1 min-w-0 pb-6",
-                              isLast && "pb-0",
-                              onDebtClick && "cursor-pointer",
-                            )}
+                            className={cn("flex-1 min-w-0 pb-6", isLast && "pb-0", onDebtClick && "cursor-pointer")}
                             onClick={() => onDebtClick?.(debt)}
                           >
                             {/* Header row: label + badge + date */}
@@ -465,11 +395,7 @@ export function ContactDetailSheet({
                                     : dictionary.debts.summary.payable}
                                 </span>
                                 <Badge
-                                  variant={
-                                    debt.status === "paid"
-                                      ? "default"
-                                      : "outline"
-                                  }
+                                  variant={debt.status === "paid" ? "default" : "outline"}
                                   className="h-4 px-1.5 text-[9px] uppercase font-medium tracking-widest rounded-none shadow-none"
                                 >
                                   {debt.status}
@@ -484,8 +410,7 @@ export function ContactDetailSheet({
                             <p
                               className={cn(
                                 "text-lg font-serif tracking-tight font-normal leading-none",
-                                debt.status === "paid" &&
-                                  "text-muted-foreground line-through opacity-60",
+                                debt.status === "paid" && "text-muted-foreground line-through opacity-60",
                               )}
                             >
                               {formatCurrency(amount)}
@@ -514,8 +439,7 @@ export function ContactDetailSheet({
                                     {dictionary.contacts.details.progress}
                                   </p>
                                   <p className="text-[9px] font-medium text-primary">
-                                    {formatCurrency(amount - remaining)}{" "}
-                                    {dictionary.contacts.details.settled}
+                                    {formatCurrency(amount - remaining)} {dictionary.contacts.details.settled}
                                   </p>
                                 </div>
                               </div>
