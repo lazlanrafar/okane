@@ -44,8 +44,8 @@ import { SelectUser } from "@/components/molecules/select-user";
 export const transactionColumns = (
   onEdit: (transaction: Transaction) => void,
   dictionary: Dictionary,
-  formatCurrency: (amount: number, options?: any) => string,
-  getTransactionColor: (type: string) => string,
+  _formatCurrency: (amount: number, options?: any) => string,
+  _getTransactionColor: (type: string) => string,
 ): ColumnDef<Transaction>[] => [
   {
     id: "select",
@@ -99,12 +99,12 @@ export const transactionColumns = (
     cell: ({ row }) => {
       const date = row.getValue("date") as string;
 
-      if (!date || isNaN(new Date(date).getTime())) {
-        return <p className="text-xs font-sans text-muted-foreground whitespace-nowrap">-</p>;
+      if (!date || Number.isNaN(new Date(date).getTime())) {
+        return <p className="whitespace-nowrap font-sans text-muted-foreground text-xs">-</p>;
       }
 
       return (
-        <p className="text-xs font-sans text-muted-foreground whitespace-nowrap">
+        <p className="whitespace-nowrap font-sans text-muted-foreground text-xs">
           {format(new Date(date), "dd/MM/yyyy")}
         </p>
       );
@@ -126,9 +126,9 @@ export const transactionColumns = (
     cell: ({ row, table }) => {
       const transaction = row.original;
       const { getTransactionColor } = (table.options.meta as any) || {};
-      const isIncome = transaction?.type === "income";
+      const _isIncome = transaction?.type === "income";
       const isTransfer = transaction?.type === "transfer";
-      const isExpense = transaction?.type === "expense";
+      const _isExpense = transaction?.type === "expense";
 
       const label =
         transaction?.name ||
@@ -145,12 +145,12 @@ export const transactionColumns = (
         <TooltipProvider delayDuration={400}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center gap-2 min-w-0 font-sans cursor-default">
+              <div className="flex min-w-0 cursor-default items-center gap-2 font-sans">
                 <Icon className={cn("h-3 w-3 shrink-0", getTransactionColor(transaction?.type))} />
-                <p className={cn("text-xs font-medium truncate", getTransactionColor(transaction?.type))}>{label}</p>
+                <p className={cn("truncate font-medium text-xs", getTransactionColor(transaction?.type))}>{label}</p>
               </div>
             </TooltipTrigger>
-            <TooltipContent side="bottom" align="start" className="text-[11px] px-2 py-1 max-w-[300px] wrap-break-word">
+            <TooltipContent side="bottom" align="start" className="wrap-break-word max-w-[300px] px-2 py-1 text-[11px]">
               {label}
             </TooltipContent>
           </Tooltip>
@@ -175,13 +175,13 @@ export const transactionColumns = (
     cell: ({ row, table }) => {
       const amount = Number(row.getValue("amount"));
       const transaction = row.original;
-      const isExpense = transaction?.type === "expense";
-      const isIncome = transaction?.type === "income";
+      const _isExpense = transaction?.type === "expense";
+      const _isIncome = transaction?.type === "income";
 
       const { getTransactionColor, formatCurrency } = (table.options.meta as any) || {};
 
       return (
-        <div className={cn("text-xs font-medium text-right", getTransactionColor?.(transaction?.type))}>
+        <div className={cn("text-right font-medium text-xs", getTransactionColor?.(transaction?.type))}>
           {formatCurrency ? formatCurrency(amount) : amount}
         </div>
       );
@@ -273,7 +273,7 @@ function CategoryCell({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
-  const meta = table.options.meta as any;
+  const _meta = table.options.meta as any;
 
   const handleCategoryChange = async (categoryId: string) => {
     if (categoryId === transaction?.categoryId) return;
@@ -296,7 +296,7 @@ function CategoryCell({
   const canHaveCategory = transaction?.type === "income" || transaction?.type === "expense";
 
   return (
-    <div className="relative group w-full h-full flex items-center">
+    <div className="group relative flex h-full w-full items-center">
       {canHaveCategory ? (
         <>
           <SelectCategory
@@ -305,16 +305,16 @@ function CategoryCell({
             onChange={handleCategoryChange}
             disabled={updating}
             variant="ghost"
-            className="w-full justify-start px-3 h-full rounded-none border-none hover:bg-transparent focus-visible:ring-0"
+            className="h-full w-full justify-start rounded-none border-none px-3 hover:bg-transparent focus-visible:ring-0"
           />
           {updating && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-20">
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/50">
               <Loader2 className="h-3 w-3 animate-spin text-primary" />
             </div>
           )}
         </>
       ) : (
-        <span className="text-xs text-muted-foreground ml-3">-</span>
+        <span className="ml-3 text-muted-foreground text-xs">-</span>
       )}
     </div>
   );
@@ -332,7 +332,7 @@ function AccountCell({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
-  const meta = table.options.meta as any;
+  const _meta = table.options.meta as any;
 
   const handleAccountChange = async (walletId: string) => {
     if (walletId === transaction?.walletId) return;
@@ -353,16 +353,16 @@ function AccountCell({
   };
 
   return (
-    <div className="relative group w-full h-full flex items-center">
+    <div className="group relative flex h-full w-full items-center">
       <SelectAccount
         value={transaction?.walletId}
         onChange={handleAccountChange}
         disabled={updating}
         variant="ghost"
-        className="w-full justify-start px-3 h-full rounded-none border-none hover:bg-transparent focus-visible:ring-0"
+        className="h-full w-full justify-start rounded-none border-none px-3 hover:bg-transparent focus-visible:ring-0"
       />
       {updating && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-20">
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/50">
           <Loader2 className="h-3 w-3 animate-spin text-primary" />
         </div>
       )}
@@ -393,11 +393,11 @@ function ActionCell({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48 font-sans">
-        <DropdownMenuItem onClick={() => meta.onRowClick?.(transaction)} className="gap-2 cursor-pointer">
+        <DropdownMenuItem onClick={() => meta.onRowClick?.(transaction)} className="cursor-pointer gap-2">
           <ExternalLink className="h-4 w-4" />
           {dictionary.transactions.view_details}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onEdit(transaction)} className="gap-2 cursor-pointer">
+        <DropdownMenuItem onClick={() => onEdit(transaction)} className="cursor-pointer gap-2">
           <Edit className="h-4 w-4" />
           {dictionary.transactions.edit}
         </DropdownMenuItem>
@@ -407,13 +407,13 @@ function ActionCell({
             navigator.clipboard.writeText(url);
             toast.success(dictionary.transactions.toasts.link_copied);
           }}
-          className="gap-2 cursor-pointer"
+          className="cursor-pointer gap-2"
         >
           <Copy className="h-4 w-4" />
           {dictionary.transactions.copy_link}
         </DropdownMenuItem>
 
-        <div className="h-px bg-muted my-1" />
+        <div className="my-1 h-px bg-muted" />
 
         <DropdownMenuItem
           onClick={async () => {
@@ -429,7 +429,7 @@ function ActionCell({
               queryClient.invalidateQueries({ queryKey: ["transactions"] });
             }
           }}
-          className="gap-2 cursor-pointer"
+          className="cursor-pointer gap-2"
         >
           <Check className="h-4 w-4" />
           {transaction.isReady ? dictionary.transactions.reset_status : dictionary.transactions.mark_ready}
@@ -448,17 +448,17 @@ function ActionCell({
               queryClient.invalidateQueries({ queryKey: ["transactions"] });
             }
           }}
-          className="gap-2 cursor-pointer"
+          className="cursor-pointer gap-2"
         >
           <FileCheck className="h-4 w-4" />
           {transaction.isExported ? dictionary.transactions.reset_export : dictionary.transactions.mark_exported}
         </DropdownMenuItem>
 
-        <div className="h-px bg-muted my-1" />
+        <div className="my-1 h-px bg-muted" />
 
         <DropdownMenuItem
           onClick={() => meta.onDelete?.(transaction?.id)}
-          className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+          className="cursor-pointer gap-2 text-destructive focus:text-destructive"
         >
           <Trash className="h-4 w-4" />
           {dictionary.common.delete}
@@ -492,16 +492,16 @@ function UserCell({ transaction, dictionary }: { transaction: Transaction; table
   };
 
   return (
-    <div className="relative group w-full h-full flex items-center">
+    <div className="group relative flex h-full w-full items-center">
       <SelectUser
         value={transaction?.assignedUserId ?? undefined}
         onChange={handleUserChange}
         disabled={updating}
         variant="ghost"
-        className="w-full justify-start px-3 h-full rounded-none border-none hover:bg-transparent focus-visible:ring-0"
+        className="h-full w-full justify-start rounded-none border-none px-3 hover:bg-transparent focus-visible:ring-0"
       />
       {updating && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-20">
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/50">
           <Loader2 className="h-3 w-3 animate-spin text-primary" />
         </div>
       )}

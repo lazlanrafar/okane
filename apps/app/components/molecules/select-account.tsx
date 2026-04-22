@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createWallet, getWallets } from "@workspace/modules/client";
@@ -75,7 +74,7 @@ export function SelectAccount({
 
   if (!selectedValue && isLoading && !hideLoading) {
     return (
-      <div className="w-full h-full flex items-center justify-center min-h-[40px]">
+      <div className="flex h-full min-h-[40px] w-full items-center justify-center">
         <Spinner />
       </div>
     );
@@ -101,22 +100,22 @@ export function SelectAccount({
       }}
       renderSelectedItem={(item) => (
         <div className="flex items-center space-x-2">
-          <Landmark className="h-3 w-3 text-muted-foreground shrink-0" />
-          <span className="text-left truncate max-w-[90%] text-sm font-medium">
+          <Landmark className="h-3 w-3 shrink-0 text-muted-foreground" />
+          <span className="max-w-[90%] truncate text-left font-medium text-sm">
             {!Array.isArray(item) ? item.label : ""}
           </span>
         </div>
       )}
       renderOnCreate={(value) => (
         <div className="flex items-center space-x-2">
-          <Landmark className="h-3 w-3 text-muted-foreground shrink-0" />
+          <Landmark className="h-3 w-3 shrink-0 text-muted-foreground" />
           <span className="text-sm">{`Create "${value}"`}</span>
         </div>
       )}
       renderListItem={({ item }) => (
         <div className="flex items-center space-x-2 py-1">
-          <Landmark className="h-3 w-3 text-muted-foreground shrink-0" />
-          <span className="line-clamp-1 text-sm font-medium">{item.label}</span>
+          <Landmark className="h-3 w-3 shrink-0 text-muted-foreground" />
+          <span className="line-clamp-1 font-medium text-sm">{item.label}</span>
         </div>
       )}
     />

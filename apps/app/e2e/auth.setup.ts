@@ -1,6 +1,5 @@
-import path from "path";
-
 import { expect, setup } from "./fixtures";
+import path from "node:path";
 
 const authFile = path.join(__dirname, "../.auth/user.json");
 

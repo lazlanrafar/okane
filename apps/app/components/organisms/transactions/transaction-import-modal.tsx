@@ -5,16 +5,14 @@ import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { bulkCreateTransactions, createTransaction } from "@workspace/modules/transaction/transaction.action";
+import { bulkCreateTransactions } from "@workspace/modules/transaction/transaction.action";
 import {
   Button,
-  cn,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  Icons,
   Label,
   Select,
   SelectContent,
@@ -22,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui";
-import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, Upload, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -180,7 +178,7 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
             return new Date(`${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}T12:00:00Z`).toISOString();
           }
           return new Date(str).toISOString();
-        } catch (e) {
+        } catch (_e) {
           return new Date().toISOString();
         }
       };
@@ -248,7 +246,7 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
         const val = row[dateCol];
         if (!val) return null;
         const d = new Date(val);
-        return isNaN(d.getTime()) ? null : d;
+        return Number.isNaN(d.getTime()) ? null : d;
       })
       .filter((d): d is Date => d !== null)
       .sort((a, b) => a.getTime() - b.getTime());
@@ -258,11 +256,11 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
       start: dates[0],
       end: dates[dates.length - 1],
     };
-  }, [firstRows, form.watch("date")]);
+  }, [firstRows, form.getValues]);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[700px] font-sans max-h-[90vh] h-fit flex flex-col p-0 overflow-hidden text-foreground">
+      <DialogContent className="flex h-fit max-h-[90vh] flex-col overflow-hidden p-0 font-sans text-foreground sm:max-w-[700px]">
         <ImportCsvContext.Provider
           value={{
             fileColumns,
@@ -278,9 +276,9 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
         >
           <div className="p-6 pb-0">
             <DialogHeader>
-              <div className="flex items-center gap-3 mb-2">
+              <div className="mb-2 flex items-center gap-3">
                 {(step === "mapping" || step === "mapping-values" || step === "summary") && (
-                  <button onClick={onBack} className="p-1 hover:bg-muted rounded-md transition-colors">
+                  <button onClick={onBack} className="rounded-md p-1 transition-colors hover:bg-muted">
                     <ArrowLeft className="h-4 w-4" />
                   </button>
                 )}
@@ -303,29 +301,29 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
             </DialogHeader>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
             {step === "select" && <SelectFile />}
             {step === "mapping" && <FieldMapping />}
             {step === "mapping-values" && <ValueMapping onNext={() => setStep("summary")} />}
             {step === "summary" && (
               <div className="space-y-6 font-sans">
-                <div className="p-4 bg-primary/5 border space-y-4">
+                <div className="space-y-4 border bg-primary/5 p-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Import Summary</p>
-                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                    <p className="font-medium text-muted-foreground text-xs uppercase tracking-wider">Import Summary</p>
+                    <div className="h-2 w-2 animate-pulse rounded-full bg-primary" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-2xl font-bold tracking-tight">{firstRows?.length || 0}</p>
-                      <p className="text-[11px] text-muted-foreground font-medium">Transactions found</p>
+                      <p className="font-bold text-2xl tracking-tight">{firstRows?.length || 0}</p>
+                      <p className="font-medium text-[11px] text-muted-foreground">Transactions found</p>
                     </div>
                     {dateRange && (
                       <div className="space-y-1">
-                        <p className="text-sm font-semibold truncate">
-                          {dateRange.start!.toLocaleDateString()} - {dateRange.end!.toLocaleDateString()}
+                        <p className="truncate font-semibold text-sm">
+                          {dateRange.start?.toLocaleDateString()} - {dateRange.end?.toLocaleDateString()}
                         </p>
-                        <p className="text-[11px] text-muted-foreground font-medium uppercase">Date Range</p>
+                        <p className="font-medium text-[11px] text-muted-foreground uppercase">Date Range</p>
                       </div>
                     )}
                   </div>
@@ -334,13 +332,13 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
                 <div className="space-y-4">
                   {!watch("walletIdColumn") && (
                     <div className="space-y-2">
-                      <Label className="text-xs font-semibold text-foreground/70 ml-1">Destination Account</Label>
+                      <Label className="ml-1 font-semibold text-foreground/70 text-xs">Destination Account</Label>
                       <Controller
                         control={form.control}
                         name="walletId"
                         render={({ field }) => (
                           <Select value={field.value} onValueChange={field.onChange}>
-                            <SelectTrigger className="h-11 bg-background border-border/60 hover:border-primary/50 transition-colors  shadow-sm">
+                            <SelectTrigger className="h-11 border-border/60 bg-background shadow-sm transition-colors hover:border-primary/50">
                               <SelectValue placeholder="Select an account" />
                             </SelectTrigger>
                             <SelectContent>
@@ -357,13 +355,13 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
                   )}
 
                   <div className="space-y-2">
-                    <Label className="text-xs font-semibold text-foreground/70 ml-1">Default Currency</Label>
+                    <Label className="ml-1 font-semibold text-foreground/70 text-xs">Default Currency</Label>
                     <Controller
                       control={form.control}
                       name="currency"
                       render={({ field }) => (
                         <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger className="h-11 bg-background border-border/60 hover:border-primary/50 transition-colors  shadow-sm">
+                          <SelectTrigger className="h-11 border-border/60 bg-background shadow-sm transition-colors hover:border-primary/50">
                             <SelectValue placeholder="Select currency" />
                           </SelectTrigger>
                           <SelectContent>
@@ -385,30 +383,30 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
             )}
 
             {step === "uploading" && (
-              <div className="flex flex-col items-center justify-center py-12 gap-4">
+              <div className="flex flex-col items-center justify-center gap-4 py-12">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                <p className="text-sm font-medium">Processing your transactions...</p>
+                <p className="font-medium text-sm">Processing your transactions...</p>
               </div>
             )}
 
             {step === "success" && (
-              <div className="flex flex-col items-center justify-center py-8 gap-4 text-center">
-                <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
+              <div className="flex flex-col items-center justify-center gap-4 py-8 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
                   <CheckCircle2 className="h-8 w-8 text-emerald-500" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-lg font-semibold">Done!</p>
-                  <p className="text-sm text-muted-foreground">Successfully imported {importedCount} transactions.</p>
+                  <p className="font-semibold text-lg">Done!</p>
+                  <p className="text-muted-foreground text-sm">Successfully imported {importedCount} transactions.</p>
                   {importFailures.length > 0 && (
-                    <div className="mt-4 p-3 bg-amber-500/5 border border-amber-500/10 rounded-lg text-left">
-                      <p className="text-xs font-semibold text-amber-600 mb-2 flex items-center gap-1">
+                    <div className="mt-4 rounded-lg border border-amber-500/10 bg-amber-500/5 p-3 text-left">
+                      <p className="mb-2 flex items-center gap-1 font-semibold text-amber-600 text-xs">
                         <AlertCircle className="h-3 w-3" />
                         {importFailures.length} rows skipped due to errors:
                       </p>
-                      <ul className="text-[11px] text-muted-foreground space-y-1 max-h-[150px] overflow-y-auto pr-2">
+                      <ul className="max-h-[150px] space-y-1 overflow-y-auto pr-2 text-[11px] text-muted-foreground">
                         {importFailures.map((f, i) => (
                           <li key={i} className="flex gap-2">
-                            <span className="font-medium text-foreground/70 w-12 shrink-0">Row {f.index + 1}:</span>
+                            <span className="w-12 shrink-0 font-medium text-foreground/70">Row {f.index + 1}:</span>
                             <span>{f.reason}</span>
                           </li>
                         ))}
@@ -423,25 +421,25 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
             )}
 
             {step === "error" && (
-              <div className="flex flex-col items-center justify-center py-8 gap-4 text-center">
-                <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center">
+              <div className="flex flex-col items-center justify-center gap-4 py-8 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
                   <AlertCircle className="h-8 w-8 text-destructive" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-lg font-semibold">Something went wrong</p>
-                  <p className="text-sm text-muted-foreground max-w-[300px]">{errorMessage}</p>
+                  <p className="font-semibold text-lg">Something went wrong</p>
+                  <p className="max-w-[300px] text-muted-foreground text-sm">{errorMessage}</p>
                   {importFailures.length > 0 && (
-                    <div className="mt-4 p-3 bg-destructive/5 border border-destructive/10 rounded-lg text-left max-w-[350px]">
-                      <p className="text-xs font-semibold text-destructive/80 mb-2">Common issues:</p>
-                      <ul className="text-[11px] text-muted-foreground space-y-1 max-h-[150px] overflow-y-auto pr-2">
+                    <div className="mt-4 max-w-[350px] rounded-lg border border-destructive/10 bg-destructive/5 p-3 text-left">
+                      <p className="mb-2 font-semibold text-destructive/80 text-xs">Common issues:</p>
+                      <ul className="max-h-[150px] space-y-1 overflow-y-auto pr-2 text-[11px] text-muted-foreground">
                         {importFailures.slice(0, 10).map((f, i) => (
                           <li key={i} className="flex gap-2">
-                            <span className="font-medium text-foreground/70 w-12 shrink-0">Row {f.index + 1}:</span>
+                            <span className="w-12 shrink-0 font-medium text-foreground/70">Row {f.index + 1}:</span>
                             <span>{f.reason}</span>
                           </li>
                         ))}
                         {importFailures.length > 10 && (
-                          <li className="text-center pt-1 font-medium italic">
+                          <li className="pt-1 text-center font-medium italic">
                             ...and {importFailures.length - 10} more rows
                           </li>
                         )}
@@ -457,7 +455,7 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
           </div>
 
           {(step === "mapping" || step === "mapping-values" || step === "summary") && (
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-muted/5 mt-auto shrink-0">
+            <div className="mt-auto flex shrink-0 items-center justify-end gap-3 border-border border-t bg-muted/5 px-6 py-4">
               <Button variant="ghost" size="sm" onClick={() => handleClose(false)}>
                 Cancel
               </Button>

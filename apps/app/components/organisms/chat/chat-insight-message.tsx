@@ -60,7 +60,7 @@ function StreamingText({
       {displayedText}
       {!isComplete && started && (
         <motion.span
-          className="inline-block w-[2px] h-[0.9em] bg-primary/60 ml-0.5 align-middle"
+          className="ml-0.5 inline-block h-[0.9em] w-[2px] bg-primary/60 align-middle"
           animate={{ opacity: [1, 0] }}
           transition={{ duration: 0.5, repeat: Number.POSITIVE_INFINITY }}
         />
@@ -225,12 +225,12 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
     <div className="space-y-4 py-2">
       {/* Header */}
       <div>
-        <p className="text-[16px] font-medium text-primary mb-4 block">
+        <p className="mb-4 block font-medium text-[16px] text-primary">
           <StreamingText text={insight.periodLabel} baseDelay={0} speed={4} onComplete={handleTitleComplete} />
         </p>
         <AnimatePresence>
           {(content.summary || insight.title) && titleComplete && (
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-muted-foreground mt-1">
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-1 text-muted-foreground text-sm">
               <StreamingText
                 text={content.summary || insight.title || ""}
                 baseDelay={50}
@@ -246,7 +246,7 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
       <AnimatePresence>
         {showMetrics && selectedMetrics && selectedMetrics.length > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
-            <p className="text-sm text-primary">Key Metrics</p>
+            <p className="text-primary text-sm">Key Metrics</p>
             <div className="grid grid-cols-2 gap-3 pb-3">
               {selectedMetrics.slice(0, 4).map((metric, index) => {
                 const isRunway = metric.type === "runway_months";
@@ -266,11 +266,11 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
                     animate="visible"
                     className="border border-border bg-background p-3"
                   >
-                    <p className="text-xs text-muted-foreground mb-1">{metric.label}</p>
-                    <p className="text-lg font-mono tabular-nums text-primary">
+                    <p className="mb-1 text-muted-foreground text-xs">{metric.label}</p>
+                    <p className="font-mono text-lg text-primary tabular-nums">
                       {formatMetricValue(metric.value, metric.type, metric.currency || currency)}
                     </p>
-                    <p className="text-[10px] text-muted-foreground mt-1">{changeText}</p>
+                    <p className="mt-1 text-[10px] text-muted-foreground">{changeText}</p>
                   </motion.div>
                 );
               })}
@@ -285,7 +285,7 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-sm text-muted-foreground leading-relaxed"
+            className="text-muted-foreground text-sm leading-relaxed"
           >
             <StreamingText text={content.story} baseDelay={50} speed={3} onComplete={handleStoryComplete} />
           </motion.p>
@@ -296,7 +296,7 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
       <AnimatePresence>
         {showActions && content.actions && content.actions.length > 0 && (
           <motion.div variants={sectionVariants} initial="hidden" animate="visible" className="space-y-2">
-            <p className="text-sm text-primary">Recommended actions</p>
+            <p className="text-primary text-sm">Recommended actions</p>
             <ul className="space-y-1">
               {content.actions.map((action, i) => {
                 const hasLink = action.entityId && action.entityType;
@@ -326,14 +326,14 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
                     initial={{ opacity: 0, x: -4 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05, duration: 0.2 }}
-                    className="text-sm text-muted-foreground flex items-start gap-2"
+                    className="flex items-start gap-2 text-muted-foreground text-sm"
                   >
                     <span>•</span>
                     {hasLink ? (
                       <button
                         type="button"
                         onClick={handleClick}
-                        className="text-left hover:text-primary underline-offset-2 hover:underline transition-colors"
+                        className="text-left underline-offset-2 transition-colors hover:text-primary hover:underline"
                       >
                         {action.text}
                       </button>
@@ -378,7 +378,7 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
           expenseAnomalies &&
           expenseAnomalies.filter((ea) => ea.type === "category_spike" || ea.type === "new_category").length > 0 && (
             <motion.div variants={sectionVariants} initial="hidden" animate="visible" className="space-y-2">
-              <p className="text-sm text-primary">Expense alerts</p>
+              <p className="text-primary text-sm">Expense alerts</p>
               <ul className="space-y-1">
                 {expenseAnomalies
                   .filter((ea) => ea.type === "category_spike" || ea.type === "new_category")
@@ -389,7 +389,7 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
                       initial={{ opacity: 0, x: -4 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05, duration: 0.2 }}
-                      className="text-sm text-muted-foreground flex items-start gap-2"
+                      className="flex items-start gap-2 text-muted-foreground text-sm"
                     >
                       <span>•</span>
                       <span>
@@ -423,8 +423,8 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
       <AnimatePresence>
         {showActions && predictions.invoicesDue && predictions.invoicesDue.count > 0 && (
           <motion.div variants={sectionVariants} initial="hidden" animate="visible" className="space-y-2">
-            <p className="text-sm text-primary">Next week</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-primary text-sm">Next week</p>
+            <p className="text-muted-foreground text-sm">
               {predictions.invoicesDue.count} invoice
               {predictions.invoicesDue.count > 1 ? "s" : ""} due (
               {formatAmount({

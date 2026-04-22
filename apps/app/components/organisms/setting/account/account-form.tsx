@@ -1,7 +1,5 @@
 "use client";
 
-import * as React from "react";
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { disconnectProviderAction, getProvidersAction } from "@workspace/modules/user/user.action";
 import { Button, Separator, Skeleton } from "@workspace/ui";
@@ -82,29 +80,29 @@ export function AccountForm({ dictionary: dict }: AccountFormProps) {
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">{account.title}</h2>
-        <p className="text-xs text-muted-foreground">{account.description}</p>
+        <h2 className="font-medium text-lg tracking-tight">{account.title}</h2>
+        <p className="text-muted-foreground text-xs">{account.description}</p>
       </div>
       <Separator className="rounded-none" />
 
       <div className="space-y-6">
         <div>
-          <h3 className="text-sm font-medium">{providers_t.title}</h3>
-          <p className="text-xs text-muted-foreground">{providers_t.description}</p>
+          <h3 className="font-medium text-sm">{providers_t.title}</h3>
+          <p className="text-muted-foreground text-xs">{providers_t.description}</p>
         </div>
 
         <div className="space-y-0">
           {providers.length === 0 && (
-            <p className="text-sm text-muted-foreground font-medium">{account.no_providers}</p>
+            <p className="font-medium text-muted-foreground text-sm">{account.no_providers}</p>
           )}
           {providers.map((provider) => (
-            <div key={provider} className="flex items-center justify-between border-b last:border-b-0 py-6 border">
+            <div key={provider} className="flex items-center justify-between border border-b py-6 last:border-b-0">
               <div className="flex items-center gap-4">
-                <div className="flex size-10 items-center justify-center rounded-none bg-muted capitalize font-bold text-xs">
+                <div className="flex size-10 items-center justify-center rounded-none bg-muted font-bold text-xs capitalize">
                   {provider.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-sm font-medium capitalize tracking-tight">{provider}</p>
+                  <p className="font-medium text-sm capitalize tracking-tight">{provider}</p>
                   <p className="text-[11px] text-muted-foreground tracking-tight">
                     {account.form.logged_in_via} {provider}
                   </p>
@@ -114,14 +112,14 @@ export function AccountForm({ dictionary: dict }: AccountFormProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="rounded-none h-8 text-xs font-normal"
+                  className="h-8 rounded-none font-normal text-xs"
                   disabled={providers.length <= 1 || disconnectMutation.isPending}
                   onClick={() => disconnectMutation.mutate(provider)}
                 >
                   {disconnectMutation.isPending ? (
-                    <Loader2 className="size-4 animate-spin mr-2" />
+                    <Loader2 className="mr-2 size-4 animate-spin" />
                   ) : (
-                    <Unlink className="size-4 mr-2" />
+                    <Unlink className="mr-2 size-4" />
                   )}
                   {providers_t.disconnect}
                 </Button>

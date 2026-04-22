@@ -4,10 +4,10 @@ import { useMemo, useState } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteBudget, getBudgetStatus } from "@workspace/modules/client";
-import { ApiResponse, type BudgetStatus } from "@workspace/types";
+import type { BudgetStatus } from "@workspace/types";
 import { Button, DataTableEmptyState, Input, Progress } from "@workspace/ui";
 import { formatCurrency } from "@workspace/utils";
-import { PiggyBank, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAppStore } from "@/stores/app";
@@ -76,60 +76,60 @@ export function BudgetClient({ initialData, dictionary, locale }: Props) {
   const usagePercent = totalBudgeted > 0 ? (totalSpent / totalBudgeted) * 100 : 0;
 
   return (
-    <div className="flex w-full flex-col h-full space-y-4 animate-in fade-in duration-500">
+    <div className="fade-in flex h-full w-full animate-in flex-col space-y-4 duration-500">
       {/* Summary Cards - Matching Accounts Page Style */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-6 flex flex-col gap-1 border border-border">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="flex flex-col gap-1 border border-border p-6">
+          <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
             Total Monthly Budget
           </span>
-          <span className="text-3xl font-serif font-medium tracking-tight">
+          <span className="font-medium font-serif text-3xl tracking-tight">
             {formatCurrency(totalBudgeted, settings, { locale })}
           </span>
         </div>
-        <div className="p-6 flex flex-col gap-1 border border-border">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+        <div className="flex flex-col gap-1 border border-border p-6">
+          <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
             Total Spent (Current Month)
           </span>
-          <span className="text-3xl font-serif font-medium tracking-tight">
+          <span className="font-medium font-serif text-3xl tracking-tight">
             {formatCurrency(totalSpent, settings, { locale })}
           </span>
         </div>
-        <div className="p-6 flex flex-col gap-1 border border-border">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+        <div className="flex flex-col gap-1 border border-border p-6">
+          <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
             Overall Usage
           </span>
-          <div className="flex items-center gap-4 mt-1">
-            <span className="text-3xl font-serif font-medium tracking-tight">{Math.round(usagePercent)}%</span>
+          <div className="mt-1 flex items-center gap-4">
+            <span className="font-medium font-serif text-3xl tracking-tight">{Math.round(usagePercent)}%</span>
             <Progress value={usagePercent} className="h-1 flex-1 bg-muted" />
           </div>
         </div>
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4 shrink-0 px-1">
-        <div className="flex items-center flex-1 max-w-sm relative group">
-          <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-foreground transition-colors" />
+      <div className="flex shrink-0 items-center justify-between gap-4 px-1">
+        <div className="group relative flex max-w-sm flex-1 items-center">
+          <Search className="-translate-y-1/2 absolute top-1/2 left-0 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-foreground" />
           <Input
             placeholder="Search categories..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-7 bg-transparent border-none focus-visible:ring-0 shadow-none h-9"
+            className="h-9 border-none bg-transparent pl-7 shadow-none focus-visible:ring-0"
           />
         </div>
 
         <div className="flex items-center gap-2">
           <Button onClick={handleAdd} variant="outline" size="sm">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             New Budget
           </Button>
         </div>
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 min-h-0 relative no-scrollbar overflow-y-auto">
+      <div className="no-scrollbar relative min-h-0 flex-1 overflow-y-auto">
         {filteredBudgets.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-10">
+          <div className="grid grid-cols-1 gap-6 pb-10 md:grid-cols-2 lg:grid-cols-3">
             {filteredBudgets.map((budget: BudgetStatus) => (
               <BudgetCard
                 key={budget.id}

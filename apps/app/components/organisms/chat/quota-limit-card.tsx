@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { Button, cn } from "@workspace/ui";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertCircle, Zap } from "lucide-react";
+import { Zap } from "lucide-react";
 
 import { useAiQuota } from "@/hooks/use-ai-quota";
 import { useAppStore } from "@/stores/app";
@@ -44,23 +44,23 @@ export function QuotaLimitCard() {
         initial={{ opacity: 0, y: 10, filter: "blur(10px)" }}
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         exit={{ opacity: 0, y: 10, filter: "blur(10px)" }}
-        className="mb-6 w-full mx-auto px-4"
+        className="mx-auto mb-6 w-full px-4"
       >
         <div
           className={cn(
-            "relative overflow-hidden group transition-all duration-500",
+            "group relative overflow-hidden transition-all duration-500",
             "bg-background",
-            "backdrop-blur-xl border border-border/50 p-6 shadow-2xl",
+            "border border-border/50 p-6 shadow-2xl backdrop-blur-xl",
           )}
         >
           {/* Subtle Accent Glow */}
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-foreground/10 dark:bg-foreground/5 rounded-full blur-3xl pointer-events-none group-hover:bg-red-500/20 transition-all duration-700" />
+          <div className="-top-24 -right-24 pointer-events-none absolute h-48 w-48 rounded-full bg-foreground/10 blur-3xl transition-all duration-700 group-hover:bg-red-500/20 dark:bg-foreground/5" />
 
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
+          <div className="relative z-10 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
             <div className="space-y-2">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-md">{dict.quota_limit_description}</p>
-                <div className="flex items-center gap-1.5 text-[11px] font-mono transition-colors uppercase tracking-widest">
+                <p className="max-w-md text-muted-foreground text-sm leading-relaxed">{dict.quota_limit_description}</p>
+                <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest transition-colors">
                   <Zap className="h-3 w-3 animate-pulse" />
                   {resetMessage}
                 </div>

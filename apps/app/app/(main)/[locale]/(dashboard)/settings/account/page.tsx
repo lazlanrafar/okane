@@ -23,7 +23,7 @@ export default async function SettingsAccountPage({ params }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium">{account.title}</h3>
+        <h3 className="font-medium text-lg">{account.title}</h3>
         <p className="text-muted-foreground text-sm">{account.description}</p>
       </div>
       <Separator />

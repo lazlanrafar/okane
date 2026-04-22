@@ -5,15 +5,13 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { type DebtWithContact, deleteDebt, getContact, getDebts } from "@workspace/modules/client";
-import type { Contact, Wallet } from "@workspace/types";
+import type { Contact, TransactionSettings, Wallet } from "@workspace/types";
 import { Button, DataTable, DataTableColumnsVisibility, DataTableEmptyState, DataTableFilter } from "@workspace/ui";
 import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-
-import type { Dictionary } from "@workspace/dictionaries";
-import type { TransactionSettings } from "@workspace/types";
 
 import { useConfirm } from "@/components/providers/confirm-modal-provider";
 import { useDataTableFilter } from "@/hooks/use-data-table-filter";
@@ -69,7 +67,7 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
       } else {
         toast.error(dictionary.debts.toasts.fetch_contact_error);
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error(dictionary.debts.toasts.fetch_contact_error_desc);
     }
   };
@@ -110,7 +108,7 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
         dictionary,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dictionary],
+    [dictionary, confirm, deleteMutation.mutate, handleContactClick, handleRowClick],
   );
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
@@ -167,9 +165,9 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
   const nonClickableColumns = useMemo(() => new Set(["select", "actions"]), []);
 
   return (
-    <div className="flex w-full flex-col h-full gap-4">
-      <div className="flex items-center justify-between gap-4 shrink-0">
-        <div className="flex items-center flex-1">
+    <div className="flex h-full w-full flex-col gap-4">
+      <div className="flex shrink-0 items-center justify-between gap-4">
+        <div className="flex flex-1 items-center">
           <DataTableFilter
             filters={filters}
             onFilterChange={handleFilterChange}
@@ -179,19 +177,19 @@ export function DebtsClient({ initialData, wallets, dictionary, settings }: Prop
             statusOptions={statusOptions}
             statusKey="status"
             statusLabel={dictionary.debts.status_label}
-            className="w-full bg-transparent border-none p-0 focus-visible:ring-0"
+            className="w-full border-none bg-transparent p-0 focus-visible:ring-0"
           />
         </div>
         <div className="flex items-center gap-2">
           <DataTableColumnsVisibility columns={columns} />
           <Button onClick={() => setIsFormOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             <span className="text-sm">{dictionary.debts.add_button}</span>
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 relative">
+      <div className="relative min-h-0 flex-1">
         <DataTable
           data={allDebts}
           columns={columnsWithActions}

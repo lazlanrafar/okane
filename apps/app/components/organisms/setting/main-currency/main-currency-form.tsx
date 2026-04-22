@@ -27,19 +27,19 @@ interface MainCurrencyFormProps {
 
 function MainCurrencySkeleton() {
   return (
-    <div className="space-y-8 animate-pulse">
+    <div className="animate-pulse space-y-8">
       <div className="space-y-2">
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-4 w-72" />
       </div>
       <Separator className="my-6" />
-      <div className="flex flex-col items-center justify-center py-8 space-y-4">
+      <div className="flex flex-col items-center justify-center space-y-4 py-8">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="h-10 w-48" />
         <Skeleton className="h-8 w-24 rounded-none" />
       </div>
       <Separator />
-      <div className="space-y-4 max-w-sm mx-auto">
+      <div className="mx-auto max-w-sm space-y-4">
         <div className="flex items-center justify-between">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-8 w-32 rounded-none" />
@@ -55,7 +55,7 @@ function MainCurrencySkeleton() {
 
 export function MainCurrencyForm({ settings, dictionary }: MainCurrencyFormProps) {
   const [data, setData] = useState(settings);
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
   const { isLoading: isStoreLoading } = useAppStore();
 
   if (!dictionary && isStoreLoading) return <MainCurrencySkeleton />;
@@ -93,16 +93,16 @@ export function MainCurrencyForm({ settings, dictionary }: MainCurrencyFormProps
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-medium">{dict.title}</h3>
-        <p className="text-sm text-muted-foreground">{dict.description}</p>
+        <h3 className="font-medium text-lg">{dict.title}</h3>
+        <p className="text-muted-foreground text-sm">{dict.description}</p>
       </div>
       <Separator className="my-6" />
 
-      <div className="flex flex-col items-center justify-center py-8 space-y-2">
-        <p className="text-sm text-muted-foreground uppercase tracking-widest">
+      <div className="flex flex-col items-center justify-center space-y-2 py-8">
+        <p className="text-muted-foreground text-sm uppercase tracking-widest">
           {data.mainCurrencyCode} - {dict.label} ({data.mainCurrencySymbol})
         </p>
-        <p className="text-4xl font-semibold">{formatPreview()}</p>
+        <p className="font-semibold text-4xl">{formatPreview()}</p>
         <div className="pt-4">
           <SelectCurrency
             onSelect={(c) => {
@@ -112,7 +112,7 @@ export function MainCurrencyForm({ settings, dictionary }: MainCurrencyFormProps
               });
             }}
             trigger={
-              <Button variant="outline" size="sm" className="rounded-none h-8 text-xs">
+              <Button variant="outline" size="sm" className="h-8 rounded-none text-xs">
                 {dictionary.settings.common.change || "Change"}
               </Button>
             }
@@ -122,14 +122,14 @@ export function MainCurrencyForm({ settings, dictionary }: MainCurrencyFormProps
 
       <Separator />
 
-      <div className="space-y-4 max-w-sm mx-auto">
+      <div className="mx-auto max-w-sm space-y-4">
         <div className="flex items-center justify-between">
           <Label className="text-sm">{dict.unit_position}</Label>
           <Select
             value={data.mainCurrencySymbolPosition}
             onValueChange={(v: "Front" | "Back") => handleUpdate({ mainCurrencySymbolPosition: v })}
           >
-            <SelectTrigger className="w-[120px] rounded-none h-8 text-xs">
+            <SelectTrigger className="h-8 w-[120px] rounded-none text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="rounded-none">
@@ -143,9 +143,9 @@ export function MainCurrencyForm({ settings, dictionary }: MainCurrencyFormProps
           <Label className="text-sm">{dict.decimal_point}</Label>
           <Select
             value={data.mainCurrencyDecimalPlaces.toString()}
-            onValueChange={(v) => handleUpdate({ mainCurrencyDecimalPlaces: parseInt(v) })}
+            onValueChange={(v) => handleUpdate({ mainCurrencyDecimalPlaces: parseInt(v, 10) })}
           >
-            <SelectTrigger className="w-[120px] rounded-none h-8 text-xs">
+            <SelectTrigger className="h-8 w-[120px] rounded-none text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="rounded-none">

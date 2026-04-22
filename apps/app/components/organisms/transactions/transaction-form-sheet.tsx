@@ -3,18 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createTransaction, updateTransaction } from "@workspace/modules/transaction/transaction.action";
 import { uploadVaultFile } from "@workspace/modules/vault/vault.action";
 import type { Transaction } from "@workspace/types";
 import {
   Button,
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
   CurrencyInput,
   cn,
   Editor,
@@ -27,19 +21,12 @@ import {
   FormMessage,
   Input,
   InputDate,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Select,
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-  Tabs,
-  TabsList,
-  TabsTrigger,
 } from "@workspace/ui";
-import { Check, ChevronsUpDown, File, FileText, Film, Image, Paperclip, X } from "lucide-react";
+import { ChevronsUpDown, File, FileText, Film, Image, Paperclip, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -82,10 +69,10 @@ function formatBytes(bytes: number) {
 }
 
 function FileIcon({ type }: { type: string }) {
-  if (type.startsWith("image/")) return <Image className="w-4 h-4" />;
-  if (type.startsWith("video/")) return <Film className="w-4 h-4" />;
-  if (type === "application/pdf") return <FileText className="w-4 h-4" />;
-  return <File className="w-4 h-4" />;
+  if (type.startsWith("image/")) return <Image className="h-4 w-4" />;
+  if (type.startsWith("video/")) return <Film className="h-4 w-4" />;
+  if (type === "application/pdf") return <FileText className="h-4 w-4" />;
+  return <File className="h-4 w-4" />;
 }
 
 interface Props {
@@ -278,7 +265,7 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
       toast.success(dictionary.transactions.toasts.all_uploads_success, {
         id: toastId,
       });
-    } catch (error) {
+    } catch (_error) {
       toast.error(dictionary.transactions.errors.some_uploads_failed, {
         id: toastId,
       });
@@ -289,23 +276,23 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex flex-col h-full p-0">
-        <SheetHeader className="px-6 py-6 border-b shrink-0">
+      <SheetContent className="flex h-full flex-col p-0">
+        <SheetHeader className="shrink-0 border-b px-6 py-6">
           <SheetTitle>
             {transaction ? dictionary.transactions.edit_transaction : dictionary.transactions.new_transaction}
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6 no-scrollbar">
+        <div className="no-scrollbar flex-1 overflow-y-auto px-6 py-6">
           <Form {...form}>
             <form id="transaction-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="flex w-full border border-border bg-muted/30 overflow-hidden">
+              <div className="flex w-full overflow-hidden border border-border bg-muted/30">
                 <Button
                   type="button"
                   variant="ghost"
                   disabled={!!transaction}
                   className={cn(
-                    "flex-1 rounded-none text-xs border-r border-border last:border-r-0 h-full",
+                    "h-full flex-1 rounded-none border-border border-r text-xs last:border-r-0",
                     activeTab === "expense"
                       ? "bg-muted font-medium shadow-sm"
                       : "bg-transparent text-muted-foreground hover:bg-muted/50",
@@ -319,7 +306,7 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   variant="ghost"
                   disabled={!!transaction}
                   className={cn(
-                    "flex-1 rounded-none text-xs border-r border-border last:border-r-0 h-full",
+                    "h-full flex-1 rounded-none border-border border-r text-xs last:border-r-0",
                     activeTab === "income"
                       ? "bg-muted font-medium shadow-sm"
                       : "bg-transparent text-muted-foreground hover:bg-muted/50",
@@ -333,7 +320,7 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   variant="ghost"
                   disabled={!!transaction}
                   className={cn(
-                    "flex-1 rounded-none text-xs h-full",
+                    "h-full flex-1 rounded-none text-xs",
                     activeTab === "transfer"
                       ? "bg-muted font-medium shadow-sm"
                       : "bg-transparent text-muted-foreground hover:bg-muted/50",
@@ -343,20 +330,20 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   {dictionary.transactions.types.transfer}
                 </Button>
               </div>
-              <p className="text-[11px] text-muted-foreground mt-[-24px] mb-4">{dictionary.transactions.hints.type}</p>
+              <p className="mt-[-24px] mb-4 text-[11px] text-muted-foreground">{dictionary.transactions.hints.type}</p>
 
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium">{dictionary.transactions.description_label}</FormLabel>
+                    <FormLabel className="font-medium text-sm">{dictionary.transactions.description_label}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder={dictionary.transactions.placeholders.description}
                         {...field}
                         value={field.value ?? ""}
-                        className="bg-transparent h-10 transition-colors focus:border-foreground"
+                        className="h-10 bg-transparent transition-colors focus:border-foreground"
                       />
                     </FormControl>
                     <FormDescription className="text-[11px]">
@@ -373,10 +360,10 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium">{dictionary.transactions.amount_label}</FormLabel>
+                      <FormLabel className="font-medium text-sm">{dictionary.transactions.amount_label}</FormLabel>
                       <FormControl>
-                        <div className="relative group">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/50 transition-colors group-focus-within:text-foreground">
+                        <div className="group relative">
+                          <span className="-translate-y-1/2 absolute top-1/2 left-3 text-muted-foreground/50 text-sm transition-colors group-focus-within:text-foreground">
                             {settings?.mainCurrencySymbol ?? "$"}
                           </span>
                           <CurrencyInput
@@ -385,7 +372,7 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                             currencySymbol={settings?.mainCurrencySymbol}
                             decimalPlaces={settings?.mainCurrencyDecimalPlaces}
                             className={cn(
-                              "pl-8 text-sm bg-transparent h-10 transition-colors focus:border-foreground font-medium",
+                              "h-10 bg-transparent pl-8 font-medium text-sm transition-colors focus:border-foreground",
                               activeTab === "expense"
                                 ? "text-red-500"
                                 : activeTab === "income"
@@ -402,18 +389,18 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                 />
 
                 <div className="flex flex-col">
-                  <FormLabel className="text-sm font-medium mb-1 pr-4 pt-1">
+                  <FormLabel className="mb-1 pt-1 pr-4 font-medium text-sm">
                     {dictionary.transactions.currency_label}
                   </FormLabel>
                   <Button
                     variant="outline"
-                    className="w-full justify-between pl-3 text-left font-normal bg-transparent h-10 hover:bg-muted/10 text-muted-foreground"
+                    className="h-10 w-full justify-between bg-transparent pl-3 text-left font-normal text-muted-foreground hover:bg-muted/10"
                     disabled
                   >
                     {settings?.mainCurrencyCode || "USD"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
-                  <FormDescription className="text-[11px] mt-2">
+                  <FormDescription className="mt-2 text-[11px]">
                     {dictionary.transactions.hints.currency}
                   </FormDescription>
                 </div>
@@ -425,12 +412,12 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   name="walletId"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="text-sm font-medium">{dictionary.transactions.account}</FormLabel>
+                      <FormLabel className="font-medium text-sm">{dictionary.transactions.account}</FormLabel>
                       <FormControl>
                         <SelectAccount
                           value={field.value ?? undefined}
                           onChange={(id) => form.setValue("walletId", id)}
-                          className="w-full justify-start px-3 text-left font-normal bg-transparent h-10 transition-colors hover:bg-muted/10 hover:bg-transparent"
+                          className="h-10 w-full justify-start bg-transparent px-3 text-left font-normal transition-colors hover:bg-muted/10 hover:bg-transparent"
                         />
                       </FormControl>
                       <FormDescription className="text-[11px]">{dictionary.transactions.hints.account}</FormDescription>
@@ -444,12 +431,12 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   name="date"
                   render={({ field }) => (
                     <FormItem className="">
-                      <FormLabel className="text-sm font-medium">{dictionary.transactions.date_label}</FormLabel>
+                      <FormLabel className="font-medium text-sm">{dictionary.transactions.date_label}</FormLabel>
                       <FormControl>
                         <InputDate
                           value={field.value}
                           onChange={field.onChange}
-                          className="bg-transparent h-10 transition-colors focus:border-foreground"
+                          className="h-10 bg-transparent transition-colors focus:border-foreground"
                         />
                       </FormControl>
                       <FormDescription className="text-[11px]">{dictionary.transactions.hints.date}</FormDescription>
@@ -466,7 +453,7 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                     name="categoryId"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel className="text-sm font-medium">{dictionary.transactions.category}</FormLabel>
+                        <FormLabel className="font-medium text-sm">{dictionary.transactions.category}</FormLabel>
                         <FormControl>
                           <SelectCategory
                             value={field.value ?? undefined}
@@ -487,7 +474,7 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                     name="toWalletId"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel className="text-sm font-medium">{dictionary.transactions.to_account}</FormLabel>
+                        <FormLabel className="font-medium text-sm">{dictionary.transactions.to_account}</FormLabel>
                         <FormControl>
                           <SelectAccount
                             value={field.value ?? undefined}
@@ -509,7 +496,7 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   name="assignedUserId"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="text-sm font-medium">{dictionary.transactions.assign}</FormLabel>
+                      <FormLabel className="font-medium text-sm">{dictionary.transactions.assign}</FormLabel>
                       <FormControl>
                         <SelectUser
                           value={field.value ?? undefined}
@@ -529,9 +516,9 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                 name="description"
                 render={({ field }) => (
                   <FormItem className="space-y-2">
-                    <FormLabel className="text-sm font-medium">{dictionary.transactions.notes_label}</FormLabel>
+                    <FormLabel className="font-medium text-sm">{dictionary.transactions.notes_label}</FormLabel>
                     <FormControl>
-                      <div className="min-h-[120px] border bg-transparent px-3 py-2 text-sm transition-colors focus-within:border-foreground focus-within:ring-0 mb-4">
+                      <div className="mb-4 min-h-[120px] border bg-transparent px-3 py-2 text-sm transition-colors focus-within:border-foreground focus-within:ring-0">
                         <Editor
                           initialContent={field.value || ""}
                           placeholder={dictionary.transactions.placeholders.notes}
@@ -546,9 +533,9 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                 )}
               />
 
-              <div className="space-y-3 mb-10">
+              <div className="mb-10 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
                     {dictionary.transactions.attachments}
                   </span>
                 </div>
@@ -558,22 +545,22 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                     {attachments.map((file) => (
                       <div
                         key={file.id}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-md border border-muted/20 bg-muted/5 text-sm group transition-colors hover:bg-muted/10"
+                        className="group flex items-center gap-3 rounded-md border border-muted/20 bg-muted/5 px-3 py-2.5 text-sm transition-colors hover:bg-muted/10"
                       >
                         <FileIcon type={file.type} />
                         <span className="flex-1 truncate">{file.name}</span>
                         {file.size > 0 && (
-                          <span className="text-xs text-muted-foreground shrink-0 hidden sm:inline-block">
+                          <span className="hidden shrink-0 text-muted-foreground text-xs sm:inline-block">
                             {formatBytes(file.size)}
                           </span>
                         )}
                         <button
                           type="button"
                           onClick={() => removeAttachment(file.id)}
-                          className="shrink-0 text-muted-foreground hover:text-destructive transition-colors p-1"
+                          className="shrink-0 p-1 text-muted-foreground transition-colors hover:text-destructive"
                           aria-label={`Remove ${file.name}`}
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     ))}
@@ -581,7 +568,7 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                 )}
 
                 <div
-                  className="mt-2 aspect-3/1 sm:aspect-[4/1] border-2 border-dashed flex flex-col items-center justify-center gap-3 bg-muted/5 group hover:bg-muted/10 hover:border-border/60 transition-all cursor-pointer relative overflow-hidden"
+                  className="group relative mt-2 flex aspect-3/1 cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden border-2 border-dashed bg-muted/5 transition-all hover:border-border/60 hover:bg-muted/10 sm:aspect-[4/1]"
                   onDragOver={(e) => {
                     e.preventDefault();
                     e.currentTarget.classList.add("bg-muted/20", "border-primary/50");
@@ -597,19 +584,19 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   }}
                   onClick={() => setVaultPickerOpen(true)}
                 >
-                  <div className="bg-background p-2 rounded-full shadow-sm border border-border/20 group-hover:scale-110 transition-transform">
-                    <Paperclip className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <div className="rounded-full border border-border/20 bg-background p-2 shadow-sm transition-transform group-hover:scale-110">
+                    <Paperclip className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
                   </div>
-                  <p className="text-[11px] text-muted-foreground text-center px-4 sm:px-8 leading-relaxed">
+                  <p className="px-4 text-center text-[11px] text-muted-foreground leading-relaxed sm:px-8">
                     <span className="font-medium text-foreground">{dictionary.transactions.click_to_browse}</span>{" "}
                     {dictionary.transactions.drag_drop}
                     <br />
-                    <span className="opacity-60 text-[10px]">{dictionary.transactions.upload_hint}</span>
+                    <span className="text-[10px] opacity-60">{dictionary.transactions.upload_hint}</span>
                   </p>
 
                   {uploadMutation.isPending && (
-                    <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center">
-                      <span className="text-xs font-medium animate-pulse">{dictionary.transactions.saving}</span>
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+                      <span className="animate-pulse font-medium text-xs">{dictionary.transactions.saving}</span>
                     </div>
                   )}
                 </div>
@@ -625,7 +612,7 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
           </Form>
         </div>
 
-        <div className="p-6 border-t bg-background shrink-0 mt-auto">
+        <div className="mt-auto shrink-0 border-t bg-background p-6">
           <Button form="transaction-form" type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? dictionary.transactions.saving : dictionary.transactions.save_transaction}
           </Button>

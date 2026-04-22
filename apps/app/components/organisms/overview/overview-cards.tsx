@@ -15,7 +15,7 @@ function ValueSkeleton() {
 
 /** Skeleton block for a sub-line (trend) */
 function TrendSkeleton() {
-  return <Skeleton className="h-3 w-24 mt-1" />;
+  return <Skeleton className="mt-1 h-3 w-24" />;
 }
 
 export function OverviewCards({ dictionary }: { dictionary: any }) {
@@ -26,27 +26,27 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
 
   const SUGGESTION_CHIPS = [
     {
-      icon: <Wallet className="w-3.5 h-3.5" />,
+      icon: <Wallet className="h-3.5 w-3.5" />,
       label: dictionary.overview.chips.wallet_balances,
       message: dictionary.overview.chips.wallet_balances_msg,
     },
     {
-      icon: <LineChart className="w-3.5 h-3.5" />,
+      icon: <LineChart className="h-3.5 w-3.5" />,
       label: dictionary.overview.chips.spending_analysis,
       message: dictionary.overview.chips.spending_analysis_msg,
     },
     {
-      icon: <Receipt className="w-3.5 h-3.5" />,
+      icon: <Receipt className="h-3.5 w-3.5" />,
       label: dictionary.overview.chips.latest_transactions,
       message: dictionary.overview.chips.latest_transactions_msg,
     },
     {
-      icon: <TrendingUp className="w-3.5 h-3.5" />,
+      icon: <TrendingUp className="h-3.5 w-3.5" />,
       label: dictionary.overview.chips.monthly_summary,
       message: dictionary.overview.chips.monthly_summary_msg,
     },
     {
-      icon: <PieChart className="w-3.5 h-3.5" />,
+      icon: <PieChart className="h-3.5 w-3.5" />,
       label: dictionary.overview.chips.top_expenses,
       message: dictionary.overview.chips.top_expenses_msg,
     },
@@ -107,7 +107,7 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
     if (isLoading) return <TrendSkeleton />;
     if (!previous && !current) return null;
     if (!previous)
-      return <span className="text-xs text-muted-foreground ml-2">{dictionary.overview.metrics.no_prior_data}</span>;
+      return <span className="ml-2 text-muted-foreground text-xs">{dictionary.overview.metrics.no_prior_data}</span>;
 
     const percentage = ((current - previous) / previous) * 100;
     const isPositive = percentage > 0;
@@ -119,13 +119,13 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
     }
 
     return (
-      <span className={cn("text-xs flex items-center ml-2 font-medium tracking-tight", colorClass)}>
+      <span className={cn("ml-2 flex items-center font-medium text-xs tracking-tight", colorClass)}>
         {isPositive ? (
-          <ArrowUpRight className="h-3 w-3 mr-0.5" />
+          <ArrowUpRight className="mr-0.5 h-3 w-3" />
         ) : isNeutral ? (
-          <Minus className="h-3 w-3 mr-0.5" />
+          <Minus className="mr-0.5 h-3 w-3" />
         ) : (
-          <ArrowDownRight className="h-3 w-3 mr-0.5" />
+          <ArrowDownRight className="mr-0.5 h-3 w-3" />
         )}
         {Math.abs(percentage).toFixed(1)}% {dictionary.overview.metrics.vs_last_month}
       </span>
@@ -134,14 +134,14 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
         {/* Total Income */}
         <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
+          className="cursor-pointer rounded-none shadow-none transition-colors hover:border-primary/50"
           onClick={() => handleCardClick(dictionary.overview.chips.monthly_summary_msg)}
         >
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between font-medium text-muted-foreground text-xs uppercase tracking-widest">
               {dictionary.overview.metrics.total_income}
               <TrendingUp className="h-4 w-4 text-emerald-500" />
             </CardTitle>
@@ -151,10 +151,10 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
             {isLoading ? (
               <ValueSkeleton />
             ) : (
-              <div className="text-2xl font-serif tracking-tight font-medium">{fmt(currentRevenue)}</div>
+              <div className="font-medium font-serif text-2xl tracking-tight">{fmt(currentRevenue)}</div>
             )}
-            <div className="flex items-center mt-1">
-              <span className="text-xs text-muted-foreground">{dictionary.overview.metrics.this_month}</span>
+            <div className="mt-1 flex items-center">
+              <span className="text-muted-foreground text-xs">{dictionary.overview.metrics.this_month}</span>
               {renderTrend(currentRevenue, previousRevenue)}
             </div>
           </CardContent>
@@ -162,11 +162,11 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
 
         {/* Total Expenses */}
         <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
+          className="cursor-pointer rounded-none shadow-none transition-colors hover:border-primary/50"
           onClick={() => handleCardClick(dictionary.overview.chips.spending_analysis_msg)}
         >
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between font-medium text-muted-foreground text-xs uppercase tracking-widest">
               {dictionary.overview.metrics.total_expenses}
               <Receipt className="h-4 w-4 text-red-500" />
             </CardTitle>
@@ -176,10 +176,10 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
             {isLoading ? (
               <ValueSkeleton />
             ) : (
-              <div className="text-2xl font-serif tracking-tight font-medium">{fmt(currentExpense)}</div>
+              <div className="font-medium font-serif text-2xl tracking-tight">{fmt(currentExpense)}</div>
             )}
-            <div className="flex items-center mt-1">
-              <span className="text-xs text-muted-foreground">{dictionary.overview.metrics.this_month}</span>
+            <div className="mt-1 flex items-center">
+              <span className="text-muted-foreground text-xs">{dictionary.overview.metrics.this_month}</span>
               {renderTrend(currentExpense, previousExpense, true)}
             </div>
           </CardContent>
@@ -187,11 +187,11 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
 
         {/* Net Income */}
         <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none"
+          className="cursor-pointer rounded-none shadow-none transition-colors hover:border-primary/50"
           onClick={() => handleCardClick(dictionary.overview.chips.monthly_summary_msg)}
         >
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between font-medium text-muted-foreground text-xs uppercase tracking-widest">
               {dictionary.overview.metrics.net_income}
               <Wallet className="h-4 w-4 text-blue-500" />
             </CardTitle>
@@ -201,10 +201,10 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
             {isLoading ? (
               <ValueSkeleton />
             ) : (
-              <div className="text-2xl font-serif tracking-tight font-medium">{fmt(currentNetIncome)}</div>
+              <div className="font-medium font-serif text-2xl tracking-tight">{fmt(currentNetIncome)}</div>
             )}
-            <div className="flex items-center mt-1">
-              <span className="text-xs text-muted-foreground">{dictionary.overview.metrics.this_month}</span>
+            <div className="mt-1 flex items-center">
+              <span className="text-muted-foreground text-xs">{dictionary.overview.metrics.this_month}</span>
               {renderTrend(currentNetIncome, previousNetIncome)}
             </div>
           </CardContent>
@@ -212,11 +212,11 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
 
         {/* Top Expense Category */}
         <Card
-          className="cursor-pointer hover:border-primary/50 transition-colors rounded-none shadow-none flex flex-col justify-between"
+          className="flex cursor-pointer flex-col justify-between rounded-none shadow-none transition-colors hover:border-primary/50"
           onClick={() => handleCardClick(dictionary.overview.chips.top_expenses_msg)}
         >
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between font-medium text-muted-foreground text-xs uppercase tracking-widest">
               {dictionary.overview.metrics.top_expense}
               <PieChart className="h-4 w-4 text-amber-500" />
             </CardTitle>
@@ -230,19 +230,19 @@ export function OverviewCards({ dictionary }: { dictionary: any }) {
               </>
             ) : topCategory ? (
               <>
-                <div className="text-lg font-medium truncate">{topCategory.name}</div>
-                <div className="text-xs text-muted-foreground mt-1">
+                <div className="truncate font-medium text-lg">{topCategory.name}</div>
+                <div className="mt-1 text-muted-foreground text-xs">
                   {fmt(topCategory.value)} {dictionary.overview.metrics.this_month}
                 </div>
               </>
             ) : (
-              <div className="text-sm text-muted-foreground mt-2">{dictionary.overview.metrics.no_expenses}</div>
+              <div className="mt-2 text-muted-foreground text-sm">{dictionary.overview.metrics.no_expenses}</div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <div className="w-full flex flex-wrap justify-center gap-2 mt-6">
+      <div className="mt-6 flex w-full flex-wrap justify-center gap-2">
         {SUGGESTION_CHIPS.map((chip) => (
           <button
             key={chip.label}

@@ -5,12 +5,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTransactionDebts, updateTransaction } from "@workspace/modules/transaction/transaction.action";
 import { deleteTransactionItem, getTransactionItems } from "@workspace/modules/transaction/transaction-items.action";
-import {
-  getVaultDownloadUrl,
-  getVaultFiles,
-  uploadVaultFile,
-  type VaultFile,
-} from "@workspace/modules/vault/vault.action";
+import { getVaultDownloadUrl } from "@workspace/modules/vault/vault.action";
 import type { ActionResponse, Transaction, TransactionItem } from "@workspace/types";
 import {
   Accordion,
@@ -21,7 +16,6 @@ import {
   Button,
   cn,
   Label,
-  Separator,
   Sheet,
   SheetContent,
 } from "@workspace/ui";
@@ -33,7 +27,6 @@ import {
   FileText,
   Film,
   Image as ImageIcon,
-  Landmark,
   Plus,
   ShoppingBag,
   Trash2,
@@ -62,10 +55,10 @@ function formatBytes(bytes: number) {
 }
 
 function FileIcon({ type }: { type: string }) {
-  if (type.startsWith("image/")) return <ImageIcon className="w-4 h-4" />;
-  if (type.startsWith("video/")) return <Film className="w-4 h-4" />;
-  if (type === "application/pdf") return <FileText className="w-4 h-4" />;
-  return <File className="w-4 h-4" />;
+  if (type.startsWith("image/")) return <ImageIcon className="h-4 w-4" />;
+  if (type.startsWith("video/")) return <Film className="h-4 w-4" />;
+  if (type === "application/pdf") return <FileText className="h-4 w-4" />;
+  return <File className="h-4 w-4" />;
 }
 
 interface Props {
@@ -87,7 +80,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
   if (!dictionary) return null;
 
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<Transaction>) => updateTransaction(transaction!.id, data),
+    mutationFn: (data: Partial<Transaction>) => updateTransaction(transaction?.id, data),
     onSuccess: (res) => {
       if (res.success) {
         toast.success(dictionary.transactions.toasts.updated);
@@ -107,20 +100,20 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
 
   const { data: debtsResponse, isLoading: isDebtsLoading } = useQuery({
     queryKey: ["transaction-debts", transaction?.id],
-    queryFn: () => getTransactionDebts(transaction!.id),
+    queryFn: () => getTransactionDebts(transaction?.id),
     enabled: !!transaction?.id && open,
   });
   const relatedDebts = debtsResponse?.data || [];
 
   const { data: itemsResponse, isLoading: isItemsLoading } = useQuery({
     queryKey: ["transaction-items", transaction?.id],
-    queryFn: () => getTransactionItems(transaction!.id),
+    queryFn: () => getTransactionItems(transaction?.id),
     enabled: !!transaction?.id && open,
   });
   const transactionItems: TransactionItem[] = itemsResponse?.data || [];
 
   const deleteItemMutation = useMutation({
-    mutationFn: (itemId: string) => deleteTransactionItem(transaction!.id, itemId),
+    mutationFn: (itemId: string) => deleteTransactionItem(transaction?.id, itemId),
     onSuccess: (res: ActionResponse<void>) => {
       if (res.success) {
         toast.success(dictionary.transactions.items.item_deleted);
@@ -158,11 +151,11 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex flex-col h-full p-0">
-        <div className="flex-1 overflow-y-auto no-scrollbar p-6 flex flex-col pb-32">
+      <SheetContent className="flex h-full flex-col p-0">
+        <div className="no-scrollbar flex flex-1 flex-col overflow-y-auto p-6 pb-32">
           <div className="mb-8">
             <div className="flex items-center justify-between">
-              <span className="text-[#606060] text-xs select-text">
+              <span className="select-text text-[#606060] text-xs">
                 {transaction?.date
                   ? isValid(new Date(transaction?.date))
                     ? format(new Date(transaction?.date), "MMM d, yyyy")
@@ -174,9 +167,9 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
             <h2 className="mt-6 mb-3">{transaction?.name || dictionary.transactions.no_description}</h2>
 
             {/* Type & Title & Amount */}
-            <div className="flex justify-between items-center">
-              <div className="flex flex-col w-full space-y-1">
-                <h1 className={cn("text-4xl select-text font-serif", getTransactionColor(transaction?.type))}>
+            <div className="flex items-center justify-between">
+              <div className="flex w-full flex-col space-y-1">
+                <h1 className={cn("select-text font-serif text-4xl", getTransactionColor(transaction?.type))}>
                   {formatCurrency(Number(transaction?.amount))}
                 </h1>
               </div>
@@ -187,51 +180,51 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
           <div className={cn("grid gap-4 pt-2", transaction?.type === "transfer" ? "grid-cols-1" : "grid-cols-2")}>
             {transaction?.type !== "transfer" && (
               <div className="flex flex-col gap-2">
-                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+                <Label className="font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
                   {dictionary.transactions.category}
                 </Label>
                 <SelectCategory
                   value={transaction?.categoryId || undefined}
                   type={transaction?.type === "income" || transaction?.type === "transfer-in" ? "income" : "expense"}
                   onChange={(id) => handleUpdate({ categoryId: id })}
-                  className="w-full text-sm font-medium"
+                  className="w-full font-medium text-sm"
                 />
               </div>
             )}
             <div className="flex flex-col gap-2">
-              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+              <Label className="font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
                 {dictionary.transactions.assign}
               </Label>
               <SelectUser
                 value={transaction?.assignedUserId || undefined}
                 onChange={(id: string) => handleUpdate({ assignedUserId: id })}
-                className="w-full text-sm font-medium"
+                className="w-full font-medium text-sm"
               />
             </div>
           </div>
 
           {/* Account Selection */}
-          <div className={cn("grid gap-4 mt-6", transaction?.type === "transfer" ? "grid-cols-2" : "grid-cols-1")}>
+          <div className={cn("mt-6 grid gap-4", transaction?.type === "transfer" ? "grid-cols-2" : "grid-cols-1")}>
             <div className="flex flex-col gap-2">
-              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+              <Label className="font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
                 {dictionary.transactions.account}
               </Label>
               <SelectAccount
                 value={transaction?.walletId}
                 onChange={(id) => handleUpdate({ walletId: id })}
-                className="w-full text-sm font-medium"
+                className="w-full font-medium text-sm"
               />
             </div>
 
             {transaction?.type === "transfer" && (
               <div className="flex flex-col gap-2">
-                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+                <Label className="font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
                   {dictionary.transactions.to_account}
                 </Label>
                 <SelectAccount
                   value={transaction?.toWalletId || undefined}
                   onChange={(id) => handleUpdate({ toWalletId: id })}
-                  className="w-full text-sm font-medium"
+                  className="w-full font-medium text-sm"
                   placeholder={dictionary.transactions.select_destination}
                 />
               </div>
@@ -239,7 +232,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
           </div>
 
           {/* Accordion Sections */}
-          <Accordion type="multiple" defaultValue={["attachments", "general"]} className="w-full mt-6">
+          <Accordion type="multiple" defaultValue={["attachments", "general"]} className="mt-6 w-full">
             <AccordionItem value="attachments" className="border-none">
               <AccordionTrigger className="">{dictionary.transactions.attachments}</AccordionTrigger>
               <AccordionContent className="flex flex-col gap-4 pt-1">
@@ -255,18 +248,18 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
                 />
 
                 {transaction?.attachments && transaction?.attachments?.length > 0 && (
-                  <div className="grid grid-cols-1 gap-2 mb-4">
+                  <div className="mb-4 grid grid-cols-1 gap-2">
                     {transaction?.attachments?.map((file) => (
                       <div
                         key={file.id}
-                        className="flex items-center gap-3 px-3 py-2.5 border bg-muted/5 text-sm group transition-colors hover:bg-muted/10 cursor-pointer"
+                        className="group flex cursor-pointer items-center gap-3 border bg-muted/5 px-3 py-2.5 text-sm transition-colors hover:bg-muted/10"
                         onClick={() => handlePreview(file)}
                       >
                         <FileIcon type={file.type} />
                         <span className="flex-1 truncate font-medium">{file.name}</span>
                         <div className="flex items-center gap-2">
                           {file.size > 0 && (
-                            <span className="text-xs text-muted-foreground shrink-0 font-sans">
+                            <span className="shrink-0 font-sans text-muted-foreground text-xs">
                               {formatBytes(file.size)}
                             </span>
                           )}
@@ -276,7 +269,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
                               e.stopPropagation();
                               removeAttachment(file.id);
                             }}
-                            className="p-1 opacity-0 group-hover:opacity-100 hover:text-destructive transition-all"
+                            className="p-1 opacity-0 transition-all hover:text-destructive group-hover:opacity-100"
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -286,11 +279,11 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
                   </div>
                 )}
 
-                <div className="flex items-center justify-between gap-4 mb-4">
+                <div className="mb-4 flex items-center justify-between gap-4">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 h-9 text-[10px] font-medium uppercase tracking-widest gap-2 bg-muted/5 border-muted/20"
+                    className="h-9 flex-1 gap-2 border-muted/20 bg-muted/5 font-medium text-[10px] uppercase tracking-widest"
                     onClick={() => setVaultPickerOpen(true)}
                   >
                     <Plus className="h-3.5 w-3.5" />
@@ -302,23 +295,23 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
 
             {relatedDebts.length > 0 && (
               <AccordionItem value="debts" className="border-none">
-                <AccordionTrigger className="hover:no-underline py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.2em]">
+                <AccordionTrigger className="py-4 font-semibold text-[11px] text-muted-foreground uppercase tracking-[0.2em] hover:no-underline">
                   {dictionary.transactions.related_debts}
                 </AccordionTrigger>
                 <AccordionContent className="space-y-3 pt-1">
                   {isDebtsLoading ? (
-                    <div className="text-xs text-muted-foreground animate-pulse">
+                    <div className="animate-pulse text-muted-foreground text-xs">
                       {dictionary.transactions.loading_debts}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 gap-2 mb-2">
+                    <div className="mb-2 grid grid-cols-1 gap-2">
                       {relatedDebts.map((item: any) => (
                         <div
                           key={item.payment.id}
-                          className="flex flex-col gap-1 px-3 py-2.5 rounded-md border border-muted/20 bg-muted/5 text-sm"
+                          className="flex flex-col gap-1 rounded-md border border-muted/20 bg-muted/5 px-3 py-2.5 text-sm"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-medium truncate max-w-[200px]">
+                            <span className="max-w-[200px] truncate font-medium">
                               {item.contact.name || dictionary.transactions.unknown}
                             </span>
                             <span
@@ -331,7 +324,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
                             </span>
                           </div>
                           {item.debt.description && (
-                            <span className="text-[11px] text-muted-foreground line-clamp-1">
+                            <span className="line-clamp-1 text-[11px] text-muted-foreground">
                               {item.debt.description}
                             </span>
                           )}
@@ -345,48 +338,48 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
 
             {transactionItems.length > 0 && (
               <AccordionItem value="items" className="border-none">
-                <AccordionTrigger className="hover:no-underline py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.2em]">
+                <AccordionTrigger className="py-4 font-semibold text-[11px] text-muted-foreground uppercase tracking-[0.2em] hover:no-underline">
                   <span className="flex items-center gap-2">
                     <ShoppingBag className="h-3.5 w-3.5" />
                     {dictionary.transactions.items.section_title}
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-mono">
+                    <Badge variant="secondary" className="h-4 px-1.5 py-0 font-mono text-[10px]">
                       {transactionItems.length}
                     </Badge>
                   </span>
                 </AccordionTrigger>
                 <AccordionContent className="pt-1 pb-2">
                   {isItemsLoading ? (
-                    <div className="text-xs text-muted-foreground animate-pulse py-2">
+                    <div className="animate-pulse py-2 text-muted-foreground text-xs">
                       {dictionary.transactions.items.loading}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 gap-2 mb-2">
+                    <div className="mb-2 grid grid-cols-1 gap-2">
                       {transactionItems.map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-start justify-between gap-3 px-3 py-2.5 rounded-md border border-muted/20 bg-muted/5 group"
+                          className="group flex items-start justify-between gap-3 rounded-md border border-muted/20 bg-muted/5 px-3 py-2.5"
                         >
-                          <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-sm font-medium truncate">{item.name}</span>
+                              <span className="truncate font-medium text-sm">{item.name}</span>
                               {item.brand && (
-                                <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 shrink-0 font-normal">
+                                <Badge variant="outline" className="h-4 shrink-0 px-1 py-0 font-normal text-[9px]">
                                   {item.brand}
                                 </Badge>
                               )}
                             </div>
                             <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                              {item.category && <span className="truncate max-w-[100px]">{item.category.name}</span>}
+                              {item.category && <span className="max-w-[100px] truncate">{item.category.name}</span>}
                               {item.quantity && (
-                                <span className="tabular-nums shrink-0">
+                                <span className="shrink-0 tabular-nums">
                                   {item.quantity}
                                   {item.unit ? ` ${item.unit}` : ""}
                                 </span>
                               )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-sm font-serif tabular-nums">
+                          <div className="flex shrink-0 items-center gap-2">
+                            <span className="font-serif text-sm tabular-nums">
                               {formatCurrency(Number(item.amount))}
                             </span>
                             <button
@@ -394,7 +387,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
                               title={dictionary.transactions.items.delete_item}
                               onClick={() => deleteItemMutation.mutate(item.id)}
                               disabled={deleteItemMutation.isPending}
-                              className="opacity-0 group-hover:opacity-100 p-1 hover:text-destructive transition-all"
+                              className="p-1 opacity-0 transition-all hover:text-destructive group-hover:opacity-100"
                             >
                               <Trash2 className="h-3 w-3" />
                             </button>
@@ -409,36 +402,36 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
 
             <AccordionItem value="general" className="border-none">
               <AccordionTrigger>{dictionary.transactions.details}</AccordionTrigger>
-              <AccordionContent className="flex flex-col pt-2 border-t pt-4 space-y-5">
+              <AccordionContent className="flex flex-col space-y-5 border-t pt-2 pt-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{dictionary.transactions.type_label}</span>
-                  <span className={cn("text-xs font-medium capitalize", getTransactionColor(transaction?.type))}>
+                  <span className="text-muted-foreground text-xs">{dictionary.transactions.type_label}</span>
+                  <span className={cn("font-medium text-xs capitalize", getTransactionColor(transaction?.type))}>
                     {transaction?.type}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{dictionary.transactions.account}</span>
-                  <span className="text-xs font-medium truncate max-w-[150px]">
+                  <span className="text-muted-foreground text-xs">{dictionary.transactions.account}</span>
+                  <span className="max-w-[150px] truncate font-medium text-xs">
                     {transaction?.wallet?.name || dictionary.transactions.no_account}
                   </span>
                 </div>
                 {transaction?.type === "transfer" && transaction.toWallet?.name && (
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{dictionary.transactions.to_account}</span>
-                    <span className="text-xs font-medium truncate max-w-[150px]">{transaction.toWallet?.name}</span>
+                    <span className="text-muted-foreground text-xs">{dictionary.transactions.to_account}</span>
+                    <span className="max-w-[150px] truncate font-medium text-xs">{transaction.toWallet?.name}</span>
                   </div>
                 )}
                 {transaction?.type !== "transfer" && (
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{dictionary.transactions.category}</span>
-                    <span className="text-xs font-medium truncate max-w-[150px]">
+                    <span className="text-muted-foreground text-xs">{dictionary.transactions.category}</span>
+                    <span className="max-w-[150px] truncate font-medium text-xs">
                       {transaction?.category?.name || dictionary.transactions.uncategorized}
                     </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{dictionary.transactions.assign}</span>
-                  <span className="text-xs font-medium truncate max-w-[150px]">
+                  <span className="text-muted-foreground text-xs">{dictionary.transactions.assign}</span>
+                  <span className="max-w-[150px] truncate font-medium text-xs">
                     {transaction?.user?.name || dictionary.transactions.unassigned}
                   </span>
                 </div>
@@ -447,11 +440,11 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
 
             {transaction?.description && (
               <AccordionItem value="note" className="border-none">
-                <AccordionTrigger className="hover:no-underline py-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.2em]">
+                <AccordionTrigger className="py-4 font-semibold text-[11px] text-muted-foreground uppercase tracking-[0.2em] hover:no-underline">
                   {dictionary.transactions.notes_label}
                 </AccordionTrigger>
                 <AccordionContent className="pt-1">
-                  <div className="text-sm leading-relaxed max-w-[90%] wrap-break-word">{transaction?.description}</div>
+                  <div className="wrap-break-word max-w-[90%] text-sm leading-relaxed">{transaction?.description}</div>
                 </AccordionContent>
               </AccordionItem>
             )}
@@ -459,7 +452,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
         </div>
 
         {/* Footer Toolbar */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] bg-background/70 backdrop-blur-xl py-2 flex items-center justify-between z-50 shadow-2xl shadow-black/20 border-t">
+        <div className="-translate-x-1/2 absolute bottom-0 left-1/2 z-50 flex w-[calc(100%-3rem)] items-center justify-between border-t bg-background/70 py-2 shadow-2xl shadow-black/20 backdrop-blur-xl">
           <div className="flex items-center gap-4">
             <p className="text-[10px] text-muted-foreground/60">
               {dictionary.transactions.created_at}{" "}
@@ -477,7 +470,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <Button
-                className="border p-0 w-7 h-7"
+                className="h-7 w-7 border p-0"
                 variant="ghost"
                 size="icon"
                 onClick={onPrevious}
@@ -485,15 +478,15 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
               >
                 <ArrowUp className="h-3 w-3 text-foreground/50" />
               </Button>
-              <Button className="border p-0 w-7 h-7" variant="ghost" size="icon" onClick={onNext} disabled={!onNext}>
+              <Button className="h-7 w-7 border p-0" variant="ghost" size="icon" onClick={onNext} disabled={!onNext}>
                 <ArrowDown className="h-3 w-3 text-foreground/50" />
               </Button>
             </div>
             <button
               onClick={() => onOpenChange(false)}
-              className="px-3 hover:bg-muted/40 transition-colors group border grid place-items-center h-7"
+              className="group grid h-7 place-items-center border px-3 transition-colors hover:bg-muted/40"
             >
-              <span className="text-[10px] font-bold text-muted-foreground group-hover:text-foreground uppercase tracking-widest">
+              <span className="font-bold text-[10px] text-muted-foreground uppercase tracking-widest group-hover:text-foreground">
                 {dictionary.transactions.esc}
               </span>
             </button>

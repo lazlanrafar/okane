@@ -4,12 +4,11 @@ import { useEffect, useState } from "react";
 
 import { useQuery } from "@tanstack/react-query";
 import { Env } from "@workspace/constants";
+import type { Dictionary } from "@workspace/dictionaries";
 import { getMe } from "@workspace/modules/user/user.action";
 import { Button, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Icons } from "@workspace/ui";
 import { Check, Copy, QrCode } from "lucide-react";
 import * as QRCode from "qrcode";
-
-import type { Dictionary } from "@workspace/dictionaries";
 
 export function ConnectTelegram({ dictionary }: { dictionary: Dictionary }) {
   const [open, setOpen] = useState(false);
@@ -36,7 +35,7 @@ export function ConnectTelegram({ dictionary }: { dictionary: Dictionary }) {
     if (open && workspaceId && botUsername) {
       generateQRCode();
     }
-  }, [open, workspaceId, botUsername]);
+  }, [open, workspaceId, botUsername, generateQRCode]);
 
   useEffect(() => {
     const handleOpen = () => setOpen(true);
@@ -73,32 +72,30 @@ export function ConnectTelegram({ dictionary }: { dictionary: Dictionary }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-none bg-background">
+      <DialogContent className="overflow-hidden border-none bg-background p-0 sm:max-w-[500px]">
         <div className="p-8">
           <DialogHeader>
-            <DialogTitle className="text-xl tracking-tight">
-              {dictionary.apps.connect.telegram.title}
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground pt-2">
+            <DialogTitle className="text-xl tracking-tight">{dictionary.apps.connect.telegram.title}</DialogTitle>
+            <DialogDescription className="pt-2 text-muted-foreground">
               {dictionary.apps.connect.telegram.description}
             </DialogDescription>
           </DialogHeader>
         </div>
 
         <div className="flex flex-col items-center space-y-6 px-8">
-          <div className="relative group">
-            <div className="relative bg-white p-3 border">
+          <div className="group relative">
+            <div className="relative border bg-white p-3">
               {!isLoading && workspaceId && qrCodeUrl ? (
-                <img src={qrCodeUrl} alt="Telegram QR Code" className="w-[200px] h-[200px]" />
+                <img src={qrCodeUrl} alt="Telegram QR Code" className="h-[200px] w-[200px]" />
               ) : (
-                <div className="flex items-center justify-center w-[200px] h-[200px] bg-secondary/30 rounded-md">
-                  <QrCode className="h-12 w-12 text-muted-foreground animate-pulse" />
+                <div className="flex h-[200px] w-[200px] items-center justify-center rounded-md bg-secondary/30">
+                  <QrCode className="h-12 w-12 animate-pulse text-muted-foreground" />
                 </div>
               )}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 w-full">
+          <div className="grid w-full grid-cols-2 gap-4">
             <Button asChild variant="default" disabled={isLoading || !workspaceId}>
               <a
                 href={workspaceId ? telegramUrl : "#"}
@@ -107,18 +104,14 @@ export function ConnectTelegram({ dictionary }: { dictionary: Dictionary }) {
                 className="flex items-center justify-center"
               >
                 <Icons.Telegram className="mr-2 h-5 w-5 fill-current" />
-                <span>
-                  {isLoading
-                    ? dictionary.common.loading
-                    : dictionary.apps.connect.telegram.open_bot}
-                </span>
+                <span>{isLoading ? dictionary.common.loading : dictionary.apps.connect.telegram.open_bot}</span>
               </a>
             </Button>
             <Button
               onClick={copyToClipboard}
               variant="outline"
               disabled={isLoading || !workspaceId}
-              className="w-full border-border/50 hover:bg-secondary/50 transition-all hover:scale-[1.02]"
+              className="w-full border-border/50 transition-all hover:scale-[1.02] hover:bg-secondary/50"
             >
               {copied ? (
                 <div className="flex items-center text-green-600">
@@ -134,13 +127,13 @@ export function ConnectTelegram({ dictionary }: { dictionary: Dictionary }) {
             </Button>
           </div>
 
-          <p className="text-xs text-muted-foreground/80 text-center leading-relaxed max-w-[280px]">
+          <p className="max-w-[280px] text-center text-muted-foreground/80 text-xs leading-relaxed">
             {dictionary.apps.connect.telegram.footer}
           </p>
         </div>
 
-        <div className="bg-secondary/30 p-4 border-t border-border/50">
-          <div className="flex items-center justify-center space-x-2 text-[10px] text-muted-foreground/60 uppercase tracking-widest font-semibold">
+        <div className="border-border/50 border-t bg-secondary/30 p-4">
+          <div className="flex items-center justify-center space-x-2 font-semibold text-[10px] text-muted-foreground/60 uppercase tracking-widest">
             <div className="h-1 w-1 rounded-full bg-blue-500" />
             <span>{dictionary.apps.connect.secure_connection}</span>
           </div>

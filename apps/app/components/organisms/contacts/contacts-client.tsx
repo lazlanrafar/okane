@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { getContacts } from "@workspace/modules/client";
-import type { Contact } from "@workspace/types";
+import type { Contact, TransactionSettings } from "@workspace/types";
 import { Button, DataTable, DataTableColumnsVisibility, DataTableEmptyState, DataTableFilter } from "@workspace/ui";
 import { Plus } from "lucide-react";
 
@@ -14,10 +15,6 @@ import { useContactsStore } from "@/stores/contacts";
 import { getContactColumns } from "./contact-columns";
 import { ContactDetailSheet } from "./contact-detail-sheet";
 import { ContactFormSheet } from "./contact-form-sheet";
-import { ContactTableSkeleton } from "./contact-table-skeleton";
- 
-import type { Dictionary } from "@workspace/dictionaries";
-import type { TransactionSettings } from "@workspace/types";
 
 interface Props {
   initialData: Contact[];
@@ -26,7 +23,7 @@ interface Props {
 }
 
 export function ContactsClient({ initialData, dictionary, settings }: Props) {
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
 
   const { columns, setColumns } = useContactsStore();
 
@@ -101,40 +98,40 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
   const tableColumns = getContactColumns(handleEdit, dictionary);
 
   return (
-    <div className="flex w-full flex-col h-full space-y-4">
+    <div className="flex h-full w-full flex-col space-y-4">
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-6 flex flex-col gap-1 border border-border bg-muted/5">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="flex flex-col gap-1 border border-border bg-muted/5 p-6">
+          <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
             {dictionary.contacts.summary.total}
           </span>
-          <span className="text-3xl font-serif font-medium tracking-tight">{allContacts.length}</span>
+          <span className="font-medium font-serif text-3xl tracking-tight">{allContacts.length}</span>
         </div>
 
-        <div className="p-6 flex flex-col gap-1 border border-border">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+        <div className="flex flex-col gap-1 border border-border p-6">
+          <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
             {dictionary.contacts.summary.added_this_month}
           </span>
-          <span className="text-3xl font-serif font-medium tracking-tight text-emerald-600 dark:text-emerald-400">
+          <span className="font-medium font-serif text-3xl text-emerald-600 tracking-tight dark:text-emerald-400">
             {addedThisMonth}
           </span>
         </div>
 
-        <div className="p-6 flex flex-col gap-1 border border-border bg-muted/5">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+        <div className="flex flex-col gap-1 border border-border bg-muted/5 p-6">
+          <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
             {dictionary.contacts.summary.most_active}
           </span>
-          <span className="text-lg font-serif font-medium tracking-tight truncate">
+          <span className="truncate font-medium font-serif text-lg tracking-tight">
             {allContacts.length > 0 ? (allContacts[0].name ?? "–") : "–"}
           </span>
           <span className="text-[10px] text-muted-foreground">{dictionary.contacts.summary.no_activity}</span>
         </div>
 
-        <div className="p-6 flex flex-col gap-1 border border-border bg-muted/5">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+        <div className="flex flex-col gap-1 border border-border bg-muted/5 p-6">
+          <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
             {dictionary.contacts.summary.top_revenue}
           </span>
-          <span className="text-lg font-serif font-medium tracking-tight truncate">
+          <span className="truncate font-medium font-serif text-lg tracking-tight">
             {allContacts.length > 0 ? (allContacts[0].name ?? "–") : "–"}
           </span>
           <span className="text-[10px] text-muted-foreground">{dictionary.contacts.summary.no_revenue}</span>
@@ -142,15 +139,15 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4 shrink-0 px-1">
-        <div className="flex items-center flex-1 max-w-sm">
+      <div className="flex shrink-0 items-center justify-between gap-4 px-1">
+        <div className="flex max-w-sm flex-1 items-center">
           <DataTableFilter
             filters={filters}
             onFilterChange={handleFilterChange as any}
             placeholder={dictionary.contacts.search_placeholder}
             showDateFilter={false}
             showAmountFilter={false}
-            className="w-full bg-transparent border-none p-0 focus-visible:ring-0"
+            className="w-full border-none bg-transparent p-0 focus-visible:ring-0"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -163,14 +160,14 @@ export function ContactsClient({ initialData, dictionary, settings }: Props) {
               setIsFormSheetOpen(true);
             }}
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             {dictionary.contacts.add_button}
           </Button>
         </div>
       </div>
 
       {/* Table */}
-      <div className="flex-1 min-h-0 relative">
+      <div className="relative min-h-0 flex-1">
         <DataTable
           data={allContacts}
           columns={tableColumns}

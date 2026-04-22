@@ -60,13 +60,13 @@ export function ChatHistoryButton() {
       data-chat-history-button
       onClick={() => setIsOpen(!isOpen)}
       className={cn(
-        "flex items-center h-6 cursor-pointer transition-colors duration-200",
+        "flex h-6 cursor-pointer items-center transition-colors duration-200",
         isOpen
-          ? "bg-[rgba(0,0,0,0.05)] hover:bg-[rgba(0,0,0,0.08)] dark:bg-[rgba(255,255,255,0.05)] dark:hover:bg-[rgba(255,255,255,0.08)] rounded-full"
+          ? "rounded-full bg-[rgba(0,0,0,0.05)] hover:bg-[rgba(0,0,0,0.08)] dark:bg-[rgba(255,255,255,0.05)] dark:hover:bg-[rgba(255,255,255,0.08)]"
           : "hover:bg-[rgba(0,0,0,0.05)] dark:hover:bg-[rgba(255,255,255,0.05)]",
       )}
     >
-      <span className="w-6 h-6 flex items-center justify-center">
+      <span className="flex h-6 w-6 items-center justify-center">
         <Icons.History
           size={16}
           className={cn(
@@ -82,7 +82,7 @@ export function ChatHistoryButton() {
 }
 
 export function ChatHistoryDropdown() {
-  const router = useRouter();
+  const _router = useRouter();
   const queryClient = useQueryClient();
   const historyListRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -139,8 +139,8 @@ export function ChatHistoryDropdown() {
     enabled: isOpen,
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => {
+  const _deleteMutation = useMutation({
+    mutationFn: (_id: string) => {
       // return deleteChatSession(id); // Placeholder for delete action
       return Promise.resolve();
     },
@@ -154,10 +154,10 @@ export function ChatHistoryDropdown() {
   const chats = (sessionsResponse.data as any[]) || [];
 
   return (
-    <div ref={historyListRef} data-chat-history-menu className="absolute bottom-full left-0 right-0 mb-2 w-full z-100">
+    <div ref={historyListRef} data-chat-history-menu className="absolute right-0 bottom-full left-0 z-100 mb-2 w-full">
       <AnimatedSizeContainer
         height
-        className="bg-[#f7f7f7]/85 dark:bg-[#171717]/85 backdrop-blur-lg max-h-80 flex flex-col overflow-hidden"
+        className="flex max-h-80 flex-col overflow-hidden bg-[#f7f7f7]/85 backdrop-blur-lg dark:bg-[#171717]/85"
         transition={{
           type: "spring",
           duration: 0.2,
@@ -168,16 +168,16 @@ export function ChatHistoryDropdown() {
           transformOrigin: "bottom center",
         }}
       >
-        <div className="p-2 pb-2 shrink-0 sticky top-0 bg-[#f7f7f7]/85 dark:bg-[#171717]/85 backdrop-blur-lg z-10">
+        <div className="sticky top-0 z-10 shrink-0 bg-[#f7f7f7]/85 p-2 pb-2 backdrop-blur-lg dark:bg-[#171717]/85">
           <div className="relative">
             <Icons.Search
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+              className="-translate-y-1/2 absolute top-1/2 left-2 transform text-muted-foreground"
               size={14}
             />
             <Input
               ref={searchInputRef}
               placeholder="Search history"
-              className="pl-8 bg-black/5 dark:bg-white/5 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-8 text-sm"
+              className="h-8 border-0 bg-black/5 pl-8 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 dark:bg-white/5"
               onChange={(e) => {
                 debouncedSearch(e.target.value);
                 setSelectedIndex(-1);
@@ -187,13 +187,13 @@ export function ChatHistoryDropdown() {
           </div>
         </div>
 
-        <div className="overflow-y-auto flex-1 min-h-0 max-h-[calc(20rem-3.5rem)] overscroll-contain scrollbar-hide">
+        <div className="scrollbar-hide max-h-[calc(20rem-3.5rem)] min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <div className="p-2 pt-0">
             {isLoading ? (
               <ChatHistorySkeleton />
             ) : chats.length === 0 ? (
               <div className="flex items-center justify-center py-8">
-                <div className="text-sm text-muted-foreground">
+                <div className="text-muted-foreground text-sm">
                   {searchQuery ? "No chats found" : "No chat history"}
                 </div>
               </div>
@@ -208,26 +208,26 @@ export function ChatHistoryDropdown() {
                       href={`/chat/${chat.id}`}
                       data-chat-index={index}
                       className={cn(
-                        "group relative flex items-center justify-between px-2 py-2 text-sm cursor-pointer transition-colors h-[32px] no-underline",
+                        "group relative flex h-[32px] cursor-pointer items-center justify-between px-2 py-2 text-sm no-underline transition-colors",
                         isSelected ? "bg-black/5 dark:bg-white/5" : "hover:bg-black/5 dark:hover:bg-white/5",
                       )}
                       onMouseEnter={() => setSelectedIndex(index)}
                       onClick={() => setIsOpen(false)}
                     >
-                      <div className="flex-1 min-w-0">
-                        <span className="text-[#666] dark:text-[#999] line-clamp-1 ml-2">
+                      <div className="min-w-0 flex-1">
+                        <span className="ml-2 line-clamp-1 text-[#666] dark:text-[#999]">
                           {chat.title || "New chat"}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 ml-2 shrink-0 min-w-0">
-                        <span className="text-xs text-[#666] dark:text-[#999] whitespace-nowrap transition-all duration-200 group-hover:mr-1">
+                      <div className="ml-2 flex min-w-0 shrink-0 items-center gap-2">
+                        <span className="whitespace-nowrap text-[#666] text-xs transition-all duration-200 group-hover:mr-1 dark:text-[#999]">
                           {formatDistanceToNow(new Date(chat.updatedAt), {
                             addSuffix: true,
                           })}
                         </span>
                         <button
                           type="button"
-                          className="overflow-hidden w-0 opacity-0 group-hover:w-6 group-hover:opacity-100 transition-all duration-200 p-1 hover:bg-destructive/10 rounded-sm pointer-events-none group-hover:pointer-events-auto shrink-0"
+                          className="pointer-events-none w-0 shrink-0 overflow-hidden rounded-sm p-1 opacity-0 transition-all duration-200 hover:bg-destructive/10 group-hover:pointer-events-auto group-hover:w-6 group-hover:opacity-100"
                           title="Delete chat"
                           onClick={(e) => {
                             e.preventDefault();

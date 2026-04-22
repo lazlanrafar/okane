@@ -4,16 +4,15 @@ import { useRouter } from "next/navigation";
 
 import { useChatActions, useDataPart } from "@ai-sdk-tools/store";
 import { useQuery } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { getChatSessions } from "@workspace/modules/ai/ai.action";
+import type { ChatSession } from "@workspace/types";
 import { Button, Icons } from "@workspace/ui";
 import { useChatInterface } from "@workspace/ui/hooks";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 
 import { useChatStore } from "@/stores/chat";
- 
-import type { Dictionary } from "@workspace/dictionaries";
-import type { ChatSession } from "@workspace/types";
 
 interface ChatTitleData {
   chatId: string;
@@ -62,10 +61,10 @@ export function ChatHeader({ dictionary }: { dictionary: Dictionary }) {
   if (isHome) return null;
 
   return (
-    <div className="flex items-center justify-center relative h-10">
+    <div className="relative flex h-10 items-center justify-center">
       <div className="absolute left-0">
         <Button type="button" onClick={handleBack} variant="outline" size="icon">
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="h-4 w-4" />
         </Button>
       </div>
       <AnimatePresence mode="wait">
@@ -78,7 +77,7 @@ export function ChatHeader({ dictionary }: { dictionary: Dictionary }) {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="overflow-hidden"
           >
-            <div className="text-xs font-medium text-foreground whitespace-nowrap">{displayTitle}</div>
+            <div className="whitespace-nowrap font-medium text-foreground text-xs">{displayTitle}</div>
           </motion.div>
         )}
       </AnimatePresence>

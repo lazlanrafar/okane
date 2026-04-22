@@ -18,7 +18,7 @@ import {
   persistPreference,
   usePreferencesStore,
 } from "@workspace/ui";
-import { BadgeCheck, Bell, Check, CreditCard, LogOut, Monitor, Moon, Sun } from "lucide-react";
+import { Check, LogOut, Monitor, Moon, Sun } from "lucide-react";
 
 export function AccountSwitcher({
   user,

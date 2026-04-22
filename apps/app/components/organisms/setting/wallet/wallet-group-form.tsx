@@ -134,11 +134,11 @@ export function WalletGroupForm({ open, group, onClose, dictionary }: WalletGrou
                 variant="outline"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="rounded-none h-8 text-xs"
+                className="h-8 rounded-none text-xs"
               >
                 {common?.cancel || "Cancel"}
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="rounded-none h-8 text-xs">
+              <Button type="submit" disabled={isSubmitting} className="h-8 rounded-none text-xs">
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {common?.save || "Save"}
               </Button>

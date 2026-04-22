@@ -26,7 +26,7 @@ function SkeletonLine({ width = "100%" }: { width?: string }) {
 
 function SkeletonCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="border p-3 bg-white dark:bg-[#0c0c0c] border-[#e6e6e6] dark:border-[#1d1d1d] space-y-2">
+    <div className="space-y-2 border border-[#e6e6e6] bg-white p-3 dark:border-[#1d1d1d] dark:bg-[#0c0c0c]">
       {children}
     </div>
   );
@@ -68,7 +68,7 @@ export function SpendingCanvas() {
           {/* Category donut chart - shown when we have data */}
           {showTransactions && categoryDonutData.length > 0 && (
             <div className="mb-2">
-              <h4 className="text-[18px] font-normal font-serif text-black dark:text-white mb-4">
+              <h4 className="mb-4 font-normal font-serif text-[18px] text-black dark:text-white">
                 Spending by category
               </h4>
               <CategoryExpenseDonutChart data={categoryDonutData} currency={currency} locale={locale} height={260} />
@@ -100,7 +100,7 @@ export function SpendingCanvas() {
                       <span className="text-black dark:text-white">
                         {formatAmount({ amount: item.amount, currency, locale, maximumFractionDigits: 0 })}
                       </span>
-                      <span className="text-[#707070] dark:text-[#666666] w-10 text-right">
+                      <span className="w-10 text-right text-[#707070] dark:text-[#666666]">
                         {item.percentage.toFixed(1)}%
                       </span>
                     </div>
@@ -113,25 +113,25 @@ export function SpendingCanvas() {
           {/* Largest transactions section */}
           {showTransactions ? (
             <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-[18px] font-normal font-serif text-black dark:text-white">Largest transactions</h4>
+              <div className="mb-4 flex items-center justify-between">
+                <h4 className="font-normal font-serif text-[18px] text-black dark:text-white">Largest transactions</h4>
               </div>
 
               {transactions.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow className="border-b-0">
-                      <TableHead className="text-[12px] text-[#707070] dark:text-[#666666] font-normal">Date</TableHead>
-                      <TableHead className="text-[12px] text-[#707070] dark:text-[#666666] font-normal">
+                      <TableHead className="font-normal text-[#707070] text-[12px] dark:text-[#666666]">Date</TableHead>
+                      <TableHead className="font-normal text-[#707070] text-[12px] dark:text-[#666666]">
                         Vendor
                       </TableHead>
-                      <TableHead className="text-[12px] text-[#707070] dark:text-[#666666] font-normal">
+                      <TableHead className="font-normal text-[#707070] text-[12px] dark:text-[#666666]">
                         Category
                       </TableHead>
-                      <TableHead className="text-right text-[12px] text-[#707070] dark:text-[#666666] font-normal">
+                      <TableHead className="text-right font-normal text-[#707070] text-[12px] dark:text-[#666666]">
                         Amount
                       </TableHead>
-                      <TableHead className="text-right text-[12px] text-[#707070] dark:text-[#666666] font-normal">
+                      <TableHead className="text-right font-normal text-[#707070] text-[12px] dark:text-[#666666]">
                         Share
                       </TableHead>
                     </TableRow>
@@ -141,7 +141,7 @@ export function SpendingCanvas() {
                       <TableRow
                         key={transaction?.id || index}
                         className={cn(
-                          "cursor-pointer hover:bg-[#F2F1EF] dark:hover:bg-[#0f0f0f] transition-colors",
+                          "cursor-pointer transition-colors hover:bg-[#F2F1EF] dark:hover:bg-[#0f0f0f]",
                           index === transactions.slice(0, 10).length - 1 && "border-b-0",
                         )}
                       >
@@ -149,11 +149,13 @@ export function SpendingCanvas() {
                         <TableCell className="text-[12px] text-black dark:text-white">
                           {transaction.vendor || transaction?.name}
                         </TableCell>
-                        <TableCell className="text-[12px] text-black dark:text-white">{transaction?.category}</TableCell>
-                        <TableCell className="text-right text-[12px] text-black dark:text-white font-sans">
+                        <TableCell className="text-[12px] text-black dark:text-white">
+                          {transaction?.category}
+                        </TableCell>
+                        <TableCell className="text-right font-sans text-[12px] text-black dark:text-white">
                           {formatAmount({ amount: transaction?.amount, currency, locale, maximumFractionDigits: 0 })}
                         </TableCell>
-                        <TableCell className="text-right text-[12px] text-[#707070] dark:text-[#666666]">
+                        <TableCell className="text-right text-[#707070] text-[12px] dark:text-[#666666]">
                           {(transaction.share ?? 0).toFixed(1)}%
                         </TableCell>
                       </TableRow>
@@ -161,19 +163,19 @@ export function SpendingCanvas() {
                   </TableBody>
                 </Table>
               ) : (
-                <div className="text-[12px] text-[#707070] dark:text-[#666666] py-8 text-center">
+                <div className="py-8 text-center text-[#707070] text-[12px] dark:text-[#666666]">
                   No transactions found
                 </div>
               )}
             </div>
           ) : (
             <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4 flex items-center justify-between">
                 <SkeletonLine width="8rem" />
                 <SkeletonLine width="6rem" />
               </div>
               <div className="border border-[#e6e6e6] dark:border-[#1d1d1d]">
-                <div className="p-3 space-y-3">
+                <div className="space-y-3 p-3">
                   {Array.from({ length: 5 }, (_, i) => `skeleton-row-${i}`).map((key) => (
                     <SkeletonLine key={key} width="100%" />
                   ))}
@@ -184,10 +186,10 @@ export function SpendingCanvas() {
 
           {/* Two summary cards */}
           {showCards ? (
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="border p-3 bg-white dark:bg-[#0c0c0c] border-[#e6e6e6] dark:border-[#1d1d1d]">
-                <div className="text-[12px] text-[#707070] dark:text-[#666666] mb-1">Spending this month</div>
-                <div className="text-[18px] font-normal font-sans text-black dark:text-white mb-1">
+            <div className="mb-6 grid grid-cols-2 gap-3">
+              <div className="border border-[#e6e6e6] bg-white p-3 dark:border-[#1d1d1d] dark:bg-[#0c0c0c]">
+                <div className="mb-1 text-[#707070] text-[12px] dark:text-[#666666]">Spending this month</div>
+                <div className="mb-1 font-normal font-sans text-[18px] text-black dark:text-white">
                   {formatAmount({
                     amount: metrics.currentMonthSpending || metrics.totalSpending || 0,
                     currency,
@@ -195,28 +197,28 @@ export function SpendingCanvas() {
                     maximumFractionDigits: 0,
                   })}
                 </div>
-                <div className="text-[10px] text-[#707070] dark:text-[#666666]">
+                <div className="text-[#707070] text-[10px] dark:text-[#666666]">
                   Across {transactions.length} high-value transaction
                   {transactions.length !== 1 ? "s" : ""}
                 </div>
               </div>
 
-              <div className="border p-3 bg-white dark:bg-[#0c0c0c] border-[#e6e6e6] dark:border-[#1d1d1d]">
-                <div className="text-[12px] text-[#707070] dark:text-[#666666] mb-1">Top category</div>
-                <div className="text-[18px] font-normal font-sans text-black dark:text-white mb-1">
+              <div className="border border-[#e6e6e6] bg-white p-3 dark:border-[#1d1d1d] dark:bg-[#0c0c0c]">
+                <div className="mb-1 text-[#707070] text-[12px] dark:text-[#666666]">Top category</div>
+                <div className="mb-1 font-normal font-sans text-[18px] text-black dark:text-white">
                   {metrics.topCategory
                     ? `${metrics.topCategory.name} — ${formatAmount({ amount: metrics.topCategory.amount, currency, locale, maximumFractionDigits: 0 })}`
                     : "—"}
                 </div>
-                <div className="text-[10px] text-[#707070] dark:text-[#666666]">Largest share of monthly spend</div>
+                <div className="text-[#707070] text-[10px] dark:text-[#666666]">Largest share of monthly spend</div>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="mb-6 grid grid-cols-2 gap-3">
               {Array.from({ length: 2 }, (_, i) => `skeleton-card-${i}`).map((key) => (
                 <SkeletonCard key={key}>
                   <SkeletonLine width="5rem" />
-                  <Skeleton className="h-[18px] w-32 rounded-none mb-1" />
+                  <Skeleton className="mb-1 h-[18px] w-32 rounded-none" />
                   <SkeletonLine width="6rem" />
                 </SkeletonCard>
               ))}

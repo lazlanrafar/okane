@@ -39,7 +39,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
   Button,
   Dialog,
   DialogContent,
@@ -126,15 +125,15 @@ function CategorySkeleton() {
       <div className="flex justify-end pt-4">
         <Skeleton className="h-8 w-32 rounded-none" />
       </div>
-      <div className="border  rounded-none bg-background">
+      <div className="rounded-none border bg-background">
         <Table>
           <TableHeader>
-            <TableRow className="hover:bg-transparent ">
+            <TableRow className="hover:bg-transparent">
               <TableHead>
                 <Skeleton className="h-4 w-24 rounded-none" />
               </TableHead>
-              <TableHead className="text-right w-[100px]">
-                <Skeleton className="h-4 w-16 float-right rounded-none" />
+              <TableHead className="w-[100px] text-right">
+                <Skeleton className="float-right h-4 w-16 rounded-none" />
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -144,7 +143,7 @@ function CategorySkeleton() {
                 <TableCell className="py-4">
                   <Skeleton className="h-4 w-40 rounded-none text-xs" />
                 </TableCell>
-                <TableCell className="text-right py-4">
+                <TableCell className="py-4 text-right">
                   <div className="flex justify-end gap-2">
                     <Skeleton className="size-8 rounded-none" />
                     <Skeleton className="size-8 rounded-none" />
@@ -162,8 +161,7 @@ function CategorySkeleton() {
 export function CategoryForm({ type, dictionary: dict }: { type: "income" | "expense"; dictionary: any }) {
   const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
   const dictionary = dict || storeDict;
-  const dictionary_t =
-    type === "income" ? dictionary.category.income : dictionary.category.expense;
+  const dictionary_t = type === "income" ? dictionary.category.income : dictionary.category.expense;
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [activeCategory, setActiveCategory] = React.useState<Category | null>(null);
@@ -373,8 +371,8 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">{dictionary_t.title}</h2>
-        <p className="text-xs text-muted-foreground">{dictionary_t.description}</p>
+        <h2 className="font-medium text-lg tracking-tight">{dictionary_t.title}</h2>
+        <p className="text-muted-foreground text-xs">{dictionary_t.description}</p>
       </div>
       <Separator className="rounded-none" />
 
@@ -382,14 +380,14 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
         <div className="flex justify-end">
           <Dialog open={isOpen} onOpenChange={handleDialogChange}>
             <DialogTrigger asChild>
-              <Button size="sm" className="rounded-none h-8 text-xs font-normal">
+              <Button size="sm" className="h-8 rounded-none font-normal text-xs">
                 <Plus className="mr-2 h-3.5 w-3.5" />
                 {dictionary_t.add_button}
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-none max-w-sm">
+            <DialogContent className="max-w-sm rounded-none">
               <DialogHeader>
-                <DialogTitle className="text-base font-medium tracking-tight">
+                <DialogTitle className="font-medium text-base tracking-tight">
                   {activeCategory ? dictionary_t.form.submit : dictionary_t.add_button}
                 </DialogTitle>
                 <DialogDescription className="text-xs">{dictionary_t.description}</DialogDescription>
@@ -401,12 +399,12 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs font-medium">{dictionary_t.form.name.label}</FormLabel>
+                        <FormLabel className="font-medium text-xs">{dictionary_t.form.name.label}</FormLabel>
                         <FormControl>
                           <Input
                             placeholder={dictionary_t.form.name.placeholder}
                             {...field}
-                            className="rounded-none h-9 text-sm"
+                            className="h-9 rounded-none text-sm"
                           />
                         </FormControl>
                         <FormMessage className="text-[11px]" />
@@ -417,7 +415,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="rounded-none h-8 text-xs font-normal w-full sm:w-auto"
+                      className="h-8 w-full rounded-none font-normal text-xs sm:w-auto"
                     >
                       {isSubmitting && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
                       {dictionary_t.form.submit}
@@ -433,9 +431,9 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent ">
-                  <TableHead className="text-xs font-medium">{dictionary_t.table.name}</TableHead>
-                  <TableHead className="w-[100px] text-right text-xs font-medium">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="font-medium text-xs">{dictionary_t.table.name}</TableHead>
+                  <TableHead className="w-[100px] text-right font-medium text-xs">
                     {dictionary_t.table.actions}
                   </TableHead>
                 </TableRow>
@@ -453,7 +451,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
                     ))
                   ) : (
                     <TableRow className="hover:bg-transparent">
-                      <TableCell colSpan={2} className="h-32 text-center text-xs text-muted-foreground">
+                      <TableCell colSpan={2} className="h-32 text-center text-muted-foreground text-xs">
                         {dictionary_t.empty}
                       </TableCell>
                     </TableRow>
@@ -466,15 +464,15 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
       </div>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-none max-w-sm">
+        <AlertDialogContent className="max-w-sm rounded-none">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base font-medium tracking-tight">
+            <AlertDialogTitle className="font-medium text-base tracking-tight">
               {dictionary_t.form.delete}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs">{dictionary_t.form.delete_confirm}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="pt-2">
-            <AlertDialogCancel disabled={deleteMutation.isPending} className="rounded-none h-8 text-xs font-normal">
+            <AlertDialogCancel disabled={deleteMutation.isPending} className="h-8 rounded-none font-normal text-xs">
               {dictionary_t.form.cancel}
             </AlertDialogCancel>
             <AlertDialogAction
@@ -485,7 +483,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
                 }
               }}
               disabled={deleteMutation.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-none h-8 text-xs font-normal"
+              className="h-8 rounded-none bg-destructive font-normal text-destructive-foreground text-xs hover:bg-destructive/90"
             >
               {deleteMutation.isPending && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
               {dictionary_t.form.delete}

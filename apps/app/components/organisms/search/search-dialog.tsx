@@ -149,27 +149,27 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
     <>
       <Button
         variant="ghost"
-        className="relative h-9 w-full justify-start text-sm font-normal text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-64 hover:bg-transparent px-0"
+        className="relative h-9 w-full justify-start px-0 font-normal text-muted-foreground text-sm shadow-none hover:bg-transparent sm:pr-12 md:w-40 lg:w-64"
         onClick={() => setOpen(true)}
       >
         <span className="inline-flex items-center">
           <Icons.Search className="mr-2 h-4 w-4" />
           {t("search.placeholder")}
         </span>
-        <Kbd className="pointer-events-none absolute right-[0.3rem] top-[0.3rem] hidden h-6 select-none items-center gap-1 px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+        <Kbd className="pointer-events-none absolute top-[0.3rem] right-[0.3rem] hidden h-6 select-none items-center gap-1 px-1.5 font-medium font-mono text-[10px] opacity-100 sm:flex">
           <span>⌘</span>K
         </Kbd>
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setOpen}>
         <DialogContent
-          className="overflow-hidden p-0 max-w-full w-full md:max-w-[740px] h-[535px] m-0 select-text border-none shadow-2xl flex flex-col bg-background/80 backdrop-blur-xl"
+          className="m-0 flex h-[535px] w-full max-w-full select-text flex-col overflow-hidden border-none bg-background/80 p-0 shadow-2xl backdrop-blur-xl md:max-w-[740px]"
           showCloseButton={false}
         >
           <DialogTitle className="sr-only">{t("search.shortcuts")}</DialogTitle>
           <DialogDescription className="sr-only">{t("search.input_placeholder")}</DialogDescription>
-          <Command shouldFilter={false} className="rounded-t-xl border-none flex-1 bg-transparent">
-            <div className="border-b border-border relative">
+          <Command shouldFilter={false} className="flex-1 rounded-t-xl border-none bg-transparent">
+            <div className="relative border-border border-b">
               <CommandInput
                 placeholder={t("search.input_placeholder")}
                 onValueChange={(value: string) => {
@@ -182,27 +182,27 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
                     setDebounceDelay(200);
                   }
                 }}
-                className="h-14 px-5 border-none"
+                className="h-14 border-none px-5"
               />
               {isFetching && (
-                <div className="absolute bottom-0 h-0.5 w-full overflow-hidden z-50">
-                  <div className="absolute inset-0 h-full w-40 animate-slide-effect bg-linear-to-r dark:from-transparent dark:via-white dark:to-transparent from-transparent via-black to-transparent opacity-50" />
+                <div className="absolute bottom-0 z-50 h-0.5 w-full overflow-hidden">
+                  <div className="absolute inset-0 h-full w-40 animate-slide-effect bg-linear-to-r from-transparent via-black to-transparent opacity-50 dark:from-transparent dark:via-white dark:to-transparent" />
                 </div>
               )}
             </div>
-            <CommandList className="max-h-full h-full pb-2 scrollbar-thin scrollbar-thumb-muted-foreground/20">
+            <CommandList className="scrollbar-thin scrollbar-thumb-muted-foreground/20 h-full max-h-full pb-2">
               {!hasResults && !isFetching && <CommandEmpty>{t("search.no_results")}</CommandEmpty>}
 
               {filteredShortcuts.length > 0 && (
                 <CommandGroup
                   heading={t("search.shortcuts")}
-                  className="px-2 **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider **:[[cmdk-group-heading]]:text-muted-foreground"
+                  className="px-2 **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:text-muted-foreground **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider"
                 >
                   {filteredShortcuts.map((shortcut) => (
                     <CommandItem
                       key={shortcut.href}
                       onSelect={() => onSelect(shortcut.href)}
-                      className="px-3 py-2.5  cursor-pointer"
+                      className="cursor-pointer px-3 py-2.5"
                     >
                       <shortcut.icon size={16} className="mr-3 text-muted-foreground" />
                       <span className="text-sm">{shortcut.label}</span>
@@ -214,7 +214,7 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
               {transactions.length > 0 && (
                 <CommandGroup
                   heading={t("search.transactions")}
-                  className="px-2 **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider **:[[cmdk-group-heading]]:text-muted-foreground"
+                  className="px-2 **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:text-muted-foreground **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider"
                 >
                   {transactions.map((transaction) => {
                     const isIncome = transaction?.type === "income";
@@ -225,12 +225,12 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
                       <CommandItem
                         key={transaction?.id}
                         onSelect={() => onSelect(getLocalizedUrl("/transactions"))}
-                        className="px-3 py-2.5 rounded-md cursor-pointer flex items-center justify-between"
+                        className="flex cursor-pointer items-center justify-between rounded-md px-3 py-2.5"
                       >
                         <div className="flex items-center">
                           <Icons.Transactions size={16} className="mr-3 text-muted-foreground" />
                           <div className="flex flex-col">
-                            <span className="text-sm truncate max-w-[150px] md:max-w-[350px]">
+                            <span className="max-w-[150px] truncate text-sm md:max-w-[350px]">
                               {transaction?.name ||
                                 transaction?.description ||
                                 transaction?.category?.name ||
@@ -245,7 +245,7 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
                         </div>
                         <span
                           className={cn(
-                            "text-sm font-medium font-serif",
+                            "font-medium font-serif text-sm",
                             isIncome ? "text-emerald-500" : isExpense ? "text-red-500" : "text-blue-500",
                           )}
                         >
@@ -256,7 +256,7 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
                   })}
                   <CommandItem
                     onSelect={() => onSelect(getLocalizedUrl("/transactions"))}
-                    className="px-3 py-2.5 rounded-md cursor-pointer text-muted-foreground"
+                    className="cursor-pointer rounded-md px-3 py-2.5 text-muted-foreground"
                   >
                     <Icons.Settings size={14} className="mr-3 ml-0.5" />
                     <span className="text-xs">{t("search.view_transactions")}</span>
@@ -267,24 +267,24 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
               {vaultFiles.length > 0 && (
                 <CommandGroup
                   heading={t("search.vault")}
-                  className="px-2 **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider **:[[cmdk-group-heading]]:text-muted-foreground"
+                  className="px-2 **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:text-muted-foreground **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider"
                 >
                   {vaultFiles.map((file) => (
                     <CommandItem
                       key={file.id}
                       onSelect={() => onSelect(getLocalizedUrl("/vault"))}
-                      className="px-3 py-2.5 rounded-md cursor-pointer flex items-center justify-between"
+                      className="flex cursor-pointer items-center justify-between rounded-md px-3 py-2.5"
                     >
                       <div className="flex items-center">
                         <Icons.Vault size={16} className="mr-3 text-muted-foreground" />
-                        <span className="text-sm truncate max-w-[200px] md:max-w-[400px]">{file.name}</span>
+                        <span className="max-w-[200px] truncate text-sm md:max-w-[400px]">{file.name}</span>
                       </div>
                       <span className="text-[10px] text-muted-foreground uppercase">{formatBytes(file.size)}</span>
                     </CommandItem>
                   ))}
                   <CommandItem
                     onSelect={() => onSelect(getLocalizedUrl("/vault"))}
-                    className="px-3 py-2.5 rounded-md cursor-pointer text-muted-foreground"
+                    className="cursor-pointer rounded-md px-3 py-2.5 text-muted-foreground"
                   >
                     <Icons.Settings size={14} className="mr-3 ml-0.5" />
                     <span className="text-xs">{t("search.view_vault")}</span>
@@ -295,13 +295,13 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
               {filteredSettings.length > 0 && (
                 <CommandGroup
                   heading={t("search.settings")}
-                  className="px-2 **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider **:[[cmdk-group-heading]]:text-muted-foreground"
+                  className="px-2 **:[[cmdk-group-heading]]:px-3 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:text-muted-foreground **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider"
                 >
                   {filteredSettings.map((item) => (
                     <CommandItem
                       key={item.href}
                       onSelect={() => onSelect(item.href)}
-                      className="px-3 py-2.5  cursor-pointer"
+                      className="cursor-pointer px-3 py-2.5"
                     >
                       <item.icon size={16} className="mr-3 text-muted-foreground" />
                       <span className="text-sm">{item.label}</span>
@@ -312,29 +312,29 @@ export function SearchDialog({ dictionary }: { dictionary: any }) {
             </CommandList>
           </Command>
 
-          <footer className="search-footer flex px-4 h-11 w-full border-t border-border/50 items-center bg-muted/30 backdrop-blur-xl">
+          <footer className="search-footer flex h-11 w-full items-center border-border/50 border-t bg-muted/30 px-4 backdrop-blur-xl">
             <div />
 
             <div className="ml-auto flex items-center space-x-2">
               <div className="flex items-center gap-1.5">
-                <div className="size-5 select-none items-center border border-border/50 bg-background flex justify-center rounded-[4px] shadow-sm">
+                <div className="flex size-5 select-none items-center justify-center rounded-[4px] border border-border/50 bg-background shadow-sm">
                   <Icons.ChevronUp size={10} className="text-muted-foreground" />
                 </div>
-                <div className="size-5 select-none items-center border border-border/50 bg-background flex justify-center rounded-[4px] shadow-sm">
+                <div className="flex size-5 select-none items-center justify-center rounded-[4px] border border-border/50 bg-background shadow-sm">
                   <Icons.ChevronDown size={10} className="text-muted-foreground" />
                 </div>
-                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">
+                <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-tight">
                   {t("search.navigate")}
                 </span>
               </div>
 
-              <div className="h-4 w-px bg-border/50 mx-1" />
+              <div className="mx-1 h-4 w-px bg-border/50" />
 
               <div className="flex items-center gap-1.5">
-                <div className="size-5 select-none items-center border border-border/50 bg-background flex justify-center rounded-[4px] shadow-sm">
+                <div className="flex size-5 select-none items-center justify-center rounded-[4px] border border-border/50 bg-background shadow-sm">
                   <Icons.SubdirectoryArrowLeft size={10} className="text-muted-foreground" />
                 </div>
-                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">
+                <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-tight">
                   {t("search.open")}
                 </span>
               </div>

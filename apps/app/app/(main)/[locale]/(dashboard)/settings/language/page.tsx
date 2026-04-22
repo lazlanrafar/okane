@@ -1,5 +1,3 @@
-import React from "react";
-
 import type { Metadata } from "next";
 
 import { LanguageSettingsForm } from "@/components/organisms/setting/language/language-settings-form";

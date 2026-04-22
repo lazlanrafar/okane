@@ -29,8 +29,8 @@ export default async function TransactionPage(props: {
   const limit = Number(searchParams.limit) || PAGE_LIMIT;
 
   return (
-    <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col bg-background no-scrollbar">
-      <div className="flex-1 min-h-0 no-scrollbar">
+    <div className="no-scrollbar flex h-[calc(100dvh-5rem)] flex-col bg-background md:h-[calc(100dvh-6rem)]">
+      <div className="no-scrollbar min-h-0 flex-1">
         <Suspense fallback={<TransactionTableSkeleton />}>
           <TransactionPageContent locale={locale} searchParams={searchParams} page={page} limit={limit} />
         </Suspense>

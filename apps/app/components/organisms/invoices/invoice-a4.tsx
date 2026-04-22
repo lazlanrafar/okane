@@ -2,8 +2,7 @@
 
 import { forwardRef } from "react";
 
-import type { Invoice } from "@workspace/types";
-import { Badge, Separator } from "@workspace/ui";
+import { Separator } from "@workspace/ui";
 import { format } from "date-fns";
 
 interface InvoiceA4Props {
@@ -21,10 +20,10 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(({ invoice, 
   const dict = dictionary.invoices;
 
   return (
-    <div ref={ref} className="flex flex-col min-h-[800px] bg-background p-8 md:p-12 lg:p-16 text-foreground">
-      <div className="flex justify-between items-start mb-12">
+    <div ref={ref} className="flex min-h-[800px] flex-col bg-background p-8 text-foreground md:p-12 lg:p-16">
+      <div className="mb-12 flex items-start justify-between">
         <div className="space-y-6">
-          <h1 className="text-4xl md:text-5xl font-serif font-medium tracking-tighter text-foreground/90">Invoice</h1>
+          <h1 className="font-medium font-serif text-4xl text-foreground/90 tracking-tighter md:text-5xl">Invoice</h1>
         </div>
 
         {workspace && (
@@ -33,14 +32,14 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(({ invoice, 
               <img
                 src={workspace?.logoUrl}
                 alt={workspace?.name}
-                className="h-12 w-auto object-contain dark:invert transition-all"
+                className="h-12 w-auto object-contain transition-all dark:invert"
               />
             ) : (
-              <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-serif text-xl font-bold shadow-inner">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary font-bold font-serif text-primary-foreground text-xl shadow-inner">
                 {workspace?.name.charAt(0)}
               </div>
             )}
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+            <span className="font-bold text-[10px] text-muted-foreground/60 uppercase tracking-widest">
               {workspace?.name}
             </span>
           </div>
@@ -50,22 +49,22 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(({ invoice, 
       <Separator className="mb-12 bg-border/50" />
 
       {/* Addresses Section */}
-      <div className="grid grid-cols-2 gap-20 mb-20">
+      <div className="mb-20 grid grid-cols-2 gap-20">
         <div className="space-y-6">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground/40 mb-3">
+            <p className="mb-3 font-bold text-[10px] text-muted-foreground/40 uppercase tracking-[0.3em]">
               {dict.details.bill_to || "Bill To"}
             </p>
             <div className="space-y-1">
-              <p className="font-serif text-lg font-medium text-foreground/90">{invoice.contact.name}</p>
-              <p className="text-xs text-muted-foreground/80 leading-relaxed max-w-[200px]">{invoice.contact.email}</p>
+              <p className="font-medium font-serif text-foreground/90 text-lg">{invoice.contact.name}</p>
+              <p className="max-w-[200px] text-muted-foreground/80 text-xs leading-relaxed">{invoice.contact.email}</p>
             </div>
           </div>
         </div>
 
         <div className="space-y-6 text-right">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground/40 mb-3">
+            <p className="mb-3 font-bold text-[10px] text-muted-foreground/40 uppercase tracking-[0.3em]">
               {dict.details.details_label || "Details"}
             </p>
             <div className="space-y-3 font-mono text-[11px]">
@@ -73,21 +72,19 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(({ invoice, 
                 <span className="text-muted-foreground/50 uppercase tracking-widest">
                   {dict.details.number || "Number"}
                 </span>
-                <span className="text-foreground/80 font-bold">{invoice.invoiceNumber}</span>
+                <span className="font-bold text-foreground/80">{invoice.invoiceNumber}</span>
               </div>
               <div className="flex justify-end gap-4">
                 <span className="text-muted-foreground/50 uppercase tracking-widest">
                   {dict.details.issued || "Issued"}
                 </span>
-                <span className="text-foreground/80 font-bold">
+                <span className="font-bold text-foreground/80">
                   {invoice.issueDate ? format(new Date(invoice.issueDate), "MMM d, yyyy") : "-"}
                 </span>
               </div>
               <div className="flex justify-end gap-4">
-                <span className="text-muted-foreground/50 uppercase tracking-widest">
-                  {dict.details.due || "Due"}
-                </span>
-                <span className="text-foreground/80 font-bold">
+                <span className="text-muted-foreground/50 uppercase tracking-widest">{dict.details.due || "Due"}</span>
+                <span className="font-bold text-foreground/80">
                   {invoice.dueDate ? format(new Date(invoice.dueDate), "MMM d, yyyy") : "-"}
                 </span>
               </div>
@@ -98,17 +95,17 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(({ invoice, 
 
       {/* Line Items Table */}
       <div className="flex-1">
-        <div className="grid grid-cols-[1fr_80px_100px_120px] gap-4 pb-4 border-b border-border/50 px-2">
-          <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/40">
+        <div className="grid grid-cols-[1fr_80px_100px_120px] gap-4 border-border/50 border-b px-2 pb-4">
+          <span className="font-bold text-[10px] text-muted-foreground/40 uppercase tracking-[0.2em]">
             {dict.columns.description || "Description"}
           </span>
-          <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/40 text-center">
+          <span className="text-center font-bold text-[10px] text-muted-foreground/40 uppercase tracking-[0.2em]">
             {dict.columns.qty || "Qty"}
           </span>
-          <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/40 text-right">
+          <span className="text-right font-bold text-[10px] text-muted-foreground/40 uppercase tracking-[0.2em]">
             {dict.columns.rate || "Rate"}
           </span>
-          <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/40 text-right">
+          <span className="text-right font-bold text-[10px] text-muted-foreground/40 uppercase tracking-[0.2em]">
             {dict.columns.amount || "Amount"}
           </span>
         </div>
@@ -117,17 +114,17 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(({ invoice, 
           {invoice.lineItems.map((item: any, idx: number) => (
             <div
               key={idx}
-              className="grid grid-cols-[1fr_80px_100px_120px] gap-4 py-6 px-2 group hover:bg-muted/30 transition-colors rounded-lg"
+              className="group grid grid-cols-[1fr_80px_100px_120px] gap-4 rounded-lg px-2 py-6 transition-colors hover:bg-muted/30"
             >
-              <div className="text-sm font-medium text-foreground/90">{item.name}</div>
-              <div className="text-sm font-mono text-muted-foreground text-center">{item.quantity}</div>
-              <div className="text-sm font-mono text-muted-foreground text-right">
+              <div className="font-medium text-foreground/90 text-sm">{item.name}</div>
+              <div className="text-center font-mono text-muted-foreground text-sm">{item.quantity}</div>
+              <div className="text-right font-mono text-muted-foreground text-sm">
                 {new Intl.NumberFormat("en", {
                   style: "currency",
                   currency: invoice.currency,
                 }).format(item.price)}
               </div>
-              <div className="text-sm font-mono font-bold text-foreground text-right">
+              <div className="text-right font-bold font-mono text-foreground text-sm">
                 {new Intl.NumberFormat("en", {
                   style: "currency",
                   currency: invoice.currency,
@@ -139,9 +136,9 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(({ invoice, 
       </div>
 
       {/* Summary Area */}
-      <div className="mt-12 pt-8 border-t border-border flex justify-end">
-        <div className="w-full md:w-64 space-y-3 font-mono text-[11px]">
-          <div className="flex justify-between items-center text-muted-foreground">
+      <div className="mt-12 flex justify-end border-border border-t pt-8">
+        <div className="w-full space-y-3 font-mono text-[11px] md:w-64">
+          <div className="flex items-center justify-between text-muted-foreground">
             <span className="uppercase tracking-widest">{dict.details.subtotal || "Subtotal"}</span>
             <span className="text-foreground/80">
               {new Intl.NumberFormat("en", {
@@ -150,7 +147,7 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(({ invoice, 
               }).format(Number(invoice.amount) - (Number(invoice.vat_amount) || 0))}
             </span>
           </div>
-          <div className="flex justify-between items-center text-muted-foreground">
+          <div className="flex items-center justify-between text-muted-foreground">
             <span className="uppercase tracking-widest">
               {dict.details.vat || "VAT"} ({invoice.vat || 0}%)
             </span>
@@ -162,11 +159,11 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(({ invoice, 
             </span>
           </div>
 
-          <div className="pt-4 flex justify-between items-center border-t border-border">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+          <div className="flex items-center justify-between border-border border-t pt-4">
+            <span className="font-bold text-[10px] text-muted-foreground/60 uppercase tracking-widest">
               {dict.details.total || "Total"}
             </span>
-            <span className="text-lg font-bold text-foreground">
+            <span className="font-bold text-foreground text-lg">
               {new Intl.NumberFormat("en", {
                 style: "currency",
                 currency: invoice.currency,
@@ -179,10 +176,10 @@ export const InvoiceA4 = forwardRef<HTMLDivElement, InvoiceA4Props>(({ invoice, 
       {/* Notes */}
       {invoice.noteDetails && (
         <div className="mt-20 space-y-2">
-          <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/60">
+          <span className="font-bold text-[10px] text-muted-foreground/60 uppercase tracking-widest">
             {dict.details.note || "Note"}
           </span>
-          <p className="text-xs text-muted-foreground leading-relaxed font-serif italic max-w-md">
+          <p className="max-w-md font-serif text-muted-foreground text-xs italic leading-relaxed">
             {invoice.noteDetails}
           </p>
         </div>

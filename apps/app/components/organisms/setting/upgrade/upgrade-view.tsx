@@ -15,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
   cn,
-  Separator,
 } from "@workspace/ui";
 import { displayPrice, getGatewayPrice } from "@workspace/utils";
 import { Check } from "lucide-react";
@@ -74,9 +73,9 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
   });
 
   return (
-    <div className="space-y-8 max-w-3xl mx-auto mt-10">
+    <div className="mx-auto mt-10 max-w-3xl space-y-8">
       <div className="space-y-1 text-center">
-        <h2 className="text-2xl font-medium tracking-tight">{dict.available_plans}</h2>
+        <h2 className="font-medium text-2xl tracking-tight">{dict.available_plans}</h2>
         <p className="text-base text-muted-foreground">
           {dict.choose_plan_description || "Choose the plan that best fits your needs."}
         </p>
@@ -90,7 +89,7 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
               type="button"
               onClick={() => setBillingCycle("monthly")}
               className={cn(
-                "px-4 py-1.5 text-[10px] uppercase tracking-wider transition-all font-medium",
+                "px-4 py-1.5 font-medium text-[10px] uppercase tracking-wider transition-all",
                 billingCycle === "monthly"
                   ? "bg-foreground text-background"
                   : "text-muted-foreground hover:bg-accent/5",
@@ -102,7 +101,7 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
               type="button"
               onClick={() => setBillingCycle("annual")}
               className={cn(
-                "px-4 py-1.5 text-[10px] uppercase tracking-wider transition-all border-l font-medium",
+                "border-l px-4 py-1.5 font-medium text-[10px] uppercase tracking-wider transition-all",
                 billingCycle === "annual" ? "bg-foreground text-background" : "text-muted-foreground hover:bg-accent/5",
               )}
             >
@@ -112,11 +111,11 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
         </div>
 
         {sortedPlans.length === 0 ? (
-          <p className="text-xs text-muted-foreground py-8 text-center border -dashed rounded-none bg-accent/5">
+          <p className="-dashed rounded-none border bg-accent/5 py-8 text-center text-muted-foreground text-xs">
             {dict.no_plans}
           </p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {sortedPlans.map((plan, i) => {
               const isStarter = plan.name.toLowerCase() === "starter";
               const isCurrent = currentPlanId === plan.id || (currentPlanId === null && isStarter);
@@ -132,35 +131,35 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
                 <Card
                   key={plan.id}
                   className={cn(
-                    "rounded-none shadow-none flex flex-col transition-all border group relative",
+                    "group relative flex flex-col rounded-none border shadow-none transition-all",
                     isCurrent && "border-foreground ring-1 ring-foreground/10",
                     !isCurrent && "hover:border-foreground/40 hover:bg-accent/5",
-                    i == 1 && "md:scale-105",
+                    i === 1 && "md:scale-105",
                   )}
                 >
                   <CardHeader className="p-5 pb-3">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <CardTitle className="text-sm font-medium tracking-tight uppercase group-hover:text-primary transition-colors">
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <CardTitle className="font-medium text-sm uppercase tracking-tight transition-colors group-hover:text-primary">
                         {plan.name}
                       </CardTitle>
                       {isCurrent && (
                         <Badge
                           variant="outline"
-                          className="rounded-none text-[9px] uppercase tracking-widest px-1.5 py-0 border-foreground bg-foreground text-background font-semibold"
+                          className="rounded-none border-foreground bg-foreground px-1.5 py-0 font-semibold text-[9px] text-background uppercase tracking-widest"
                         >
                           {dictionary.settings.common.current || "Current"}
                         </Badge>
                       )}
                     </div>
-                    <CardDescription className="text-xs line-clamp-2 leading-relaxed h-10">
+                    <CardDescription className="line-clamp-2 h-10 text-xs leading-relaxed">
                       {plan.description}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="p-5 pt-0 flex-1 space-y-6">
-                    <div className="flex items-baseline gap-1 pt-4 border-t">
-                      <span className="text-2xl font-serif tracking-tight font-medium">{price?.label}</span>
+                  <CardContent className="flex-1 space-y-6 p-5 pt-0">
+                    <div className="flex items-baseline gap-1 border-t pt-4">
+                      <span className="font-medium font-serif text-2xl tracking-tight">{price?.label}</span>
                       {plan.name.toLowerCase() !== "starter" && (
-                        <span className="text-xs text-muted-foreground font-medium">
+                        <span className="font-medium text-muted-foreground text-xs">
                           / {billingCycle === "monthly" ? dict.mo : dict.yr}
                         </span>
                       )}
@@ -168,7 +167,7 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
                     <ul className="space-y-2.5">
                       {(plan.features || []).slice(0, 10).map((feature: string, i: number) => (
                         <li key={i} className="flex items-start gap-2.5 text-[11px] text-muted-foreground leading-snug">
-                          <Check className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
+                          <Check className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" />
                           <span>{feature}</span>
                         </li>
                       ))}
@@ -177,8 +176,8 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
                   <CardFooter className="p-5 pt-0">
                     <Button
                       className={cn(
-                        "w-full h-9 text-[10px] uppercase tracking-widest rounded-none font-semibold transition-all",
-                        isCurrent && !canDowngrade ? "bg-muted text-muted-foreground border-transparent" : "shadow-sm",
+                        "h-9 w-full rounded-none font-semibold text-[10px] uppercase tracking-widest transition-all",
+                        isCurrent && !canDowngrade ? "border-transparent bg-muted text-muted-foreground" : "shadow-sm",
                       )}
                       variant={isCurrent && !canDowngrade ? "secondary" : "default"}
                       disabled={

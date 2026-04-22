@@ -28,7 +28,7 @@ export function ChatSuggestionButton() {
     <button
       type="button"
       onClick={handleClick}
-      className="flex items-center h-6 cursor-pointer transition-colors duration-200"
+      className="flex h-6 cursor-pointer items-center transition-colors duration-200"
       // Add data attribute to help identify this button for exclusion from outside clicks
       data-suggested-actions-toggle
     >

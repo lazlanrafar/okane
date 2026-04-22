@@ -1,20 +1,12 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 // import { useAudioPlayerStore } from "@/store/audio-player";
 import { useChatActions, useChatId } from "@ai-sdk-tools/store";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  cn,
-  Icons,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@workspace/ui";
-
+import { useQueryClient } from "@tanstack/react-query";
 import type { Dictionary } from "@workspace/dictionaries";
+import { cn, Icons, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui";
 
 interface ChatMessageActionsProps {
   messageId: string;
@@ -24,22 +16,15 @@ interface ChatMessageActionsProps {
   dictionary: Dictionary;
 }
 
-export function ChatMessageActions({
-  messageId,
-  messageContent,
-  insightId,
-  dictionary,
-}: ChatMessageActionsProps) {
+export function ChatMessageActions({ messageId, messageContent, insightId, dictionary }: ChatMessageActionsProps) {
   const chatId = useChatId();
   const { regenerate } = useChatActions();
-  const [feedbackGiven, setFeedbackGiven] = useState<
-    "positive" | "negative" | null
-  >(null);
+  const [feedbackGiven, setFeedbackGiven] = useState<"positive" | "negative" | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
   //   const playAudio = useAudioPlayerStore((state) => state.play);
-  const audioFetchingRef = useRef(false);
+  const _audioFetchingRef = useRef(false);
 
   //   const createFeedbackMutation = useMutation(
   //     trpc.chatFeedback.create.mutationOptions(),
@@ -168,21 +153,17 @@ export function ChatMessageActions({
               <button
                 type="button"
                 onClick={copyToClipboard}
-                className="flex items-center justify-center w-6 h-6 transition-colors duration-200 hover:bg-muted"
+                className="flex h-6 w-6 items-center justify-center transition-colors duration-200 hover:bg-muted"
               >
                 {copied ? (
-                  <Icons.Check className="size-3.5 animate-in zoom-in-50 duration-200" />
+                  <Icons.Check className="zoom-in-50 size-3.5 animate-in duration-200" />
                 ) : (
                   <Icons.Copy className="size-3 text-muted-foreground hover:text-foreground" />
                 )}
               </button>
             </TooltipTrigger>
             <TooltipContent className="px-2 py-1 text-xs">
-              <p>
-                {copied
-                  ? dictionary.common.copied
-                  : dictionary.chat.actions.copy}
-              </p>
+              <p>{copied ? dictionary.common.copied : dictionary.chat.actions.copy}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -196,7 +177,7 @@ export function ChatMessageActions({
               <button
                 type="button"
                 onClick={handleRegenerate}
-                className="flex items-center justify-center w-6 h-6 transition-colors duration-200 hover:bg-muted"
+                className="flex h-6 w-6 items-center justify-center transition-colors duration-200 hover:bg-muted"
               >
                 <Icons.Refresh className="size-3.5 text-muted-foreground hover:text-foreground" />
               </button>
@@ -216,20 +197,16 @@ export function ChatMessageActions({
               <button
                 type="button"
                 onClick={handlePositive}
-                disabled={
-                  createFeedbackMutation.isPending ||
-                  deleteFeedbackMutation.isPending
-                }
+                disabled={createFeedbackMutation.isPending || deleteFeedbackMutation.isPending}
                 className={cn(
-                  "flex items-center justify-center w-6 h-6 transition-colors duration-200 hover:bg-muted",
-                  (createFeedbackMutation.isPending ||
-                    deleteFeedbackMutation.isPending) &&
-                    "opacity-50 cursor-not-allowed",
+                  "flex h-6 w-6 items-center justify-center transition-colors duration-200 hover:bg-muted",
+                  (createFeedbackMutation.isPending || deleteFeedbackMutation.isPending) &&
+                    "cursor-not-allowed opacity-50",
                 )}
               >
                 <Icons.ThumbUp
                   className={cn(
-                    "w-3 h-3",
+                    "h-3 w-3",
                     feedbackGiven === "positive"
                       ? "fill-foreground text-foreground"
                       : "text-muted-foreground hover:text-foreground",
@@ -240,8 +217,7 @@ export function ChatMessageActions({
             <TooltipContent className="px-2 py-1 text-xs">
               <p>
                 {feedbackGiven === "positive"
-                  ? dictionary.chat.actions.remove_positive ||
-                    "Remove positive feedback"
+                  ? dictionary.chat.actions.remove_positive || "Remove positive feedback"
                   : dictionary.chat.actions.positive || "Positive feedback"}
               </p>
             </TooltipContent>
@@ -257,20 +233,16 @@ export function ChatMessageActions({
               <button
                 type="button"
                 onClick={handleNegative}
-                disabled={
-                  createFeedbackMutation.isPending ||
-                  deleteFeedbackMutation.isPending
-                }
+                disabled={createFeedbackMutation.isPending || deleteFeedbackMutation.isPending}
                 className={cn(
-                  "flex items-center justify-center w-6 h-6 transition-colors duration-200 hover:bg-muted",
-                  (createFeedbackMutation.isPending ||
-                    deleteFeedbackMutation.isPending) &&
-                    "opacity-50 cursor-not-allowed",
+                  "flex h-6 w-6 items-center justify-center transition-colors duration-200 hover:bg-muted",
+                  (createFeedbackMutation.isPending || deleteFeedbackMutation.isPending) &&
+                    "cursor-not-allowed opacity-50",
                 )}
               >
                 <Icons.ThumbDown
                   className={cn(
-                    "w-3 h-3",
+                    "h-3 w-3",
                     feedbackGiven === "negative"
                       ? "fill-foreground text-foreground"
                       : "text-muted-foreground hover:text-foreground",
@@ -281,8 +253,7 @@ export function ChatMessageActions({
             <TooltipContent className="px-2 py-1 text-xs">
               <p>
                 {feedbackGiven === "negative"
-                  ? dictionary.chat.actions.remove_negative ||
-                    "Remove negative feedback"
+                  ? dictionary.chat.actions.remove_negative || "Remove negative feedback"
                   : dictionary.chat.actions.negative || "Negative feedback"}
               </p>
             </TooltipContent>

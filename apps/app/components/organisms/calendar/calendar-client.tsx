@@ -5,12 +5,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { getDebts } from "@workspace/modules/server";
 import { getTransactions } from "@workspace/modules/transaction/transaction.action";
-import { Button, cn } from "@workspace/ui";
- 
-import type { Dictionary } from "@workspace/dictionaries";
 import type { TransactionSettings } from "@workspace/types";
+import { cn } from "@workspace/ui";
 import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
 import {
   addDays,
@@ -41,7 +40,7 @@ function parseDateParam(value: string | null): Date {
   if (!value) return new Date();
   try {
     const d = parseISO(value);
-    return isNaN(d.getTime()) ? new Date() : d;
+    return Number.isNaN(d.getTime()) ? new Date() : d;
   } catch {
     return new Date();
   }
@@ -56,7 +55,7 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 export function CalendarClient({ dictionary, settings }: Props) {
   const t = dictionary.calendar;
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -128,7 +127,7 @@ export function CalendarClient({ dictionary, settings }: Props) {
     if (view === "month") setCurrentDate(subMonths(currentDate, 1));
     else setCurrentDate(subWeeks(currentDate, 1));
   };
-  const goToday = () => setParam({ tab: view, date: format(new Date(), "yyyy-MM-dd") });
+  const _goToday = () => setParam({ tab: view, date: format(new Date(), "yyyy-MM-dd") });
 
   // Month grid days
   const monthDays = useMemo(() => {
@@ -155,7 +154,7 @@ export function CalendarClient({ dictionary, settings }: Props) {
     const dayStr = format(day, "yyyy-MM-dd");
     const dayTxs = transactions.filter((t: any) => t.date.startsWith(dayStr));
     const dayDebts = debts.filter(
-      (d: any) => (d.dueDate && d.dueDate.startsWith(dayStr)) || (!d.dueDate && d.createdAt.startsWith(dayStr)),
+      (d: any) => d.dueDate?.startsWith(dayStr) || (!d.dueDate && d.createdAt.startsWith(dayStr)),
     );
     let income = 0;
     let expense = 0;
@@ -188,7 +187,7 @@ export function CalendarClient({ dictionary, settings }: Props) {
   useEffect(() => {
     if (calendarDate) {
       const d = parseISO(calendarDate);
-      if (!isNaN(d.getTime())) {
+      if (!Number.isNaN(d.getTime())) {
         if (!selectedDate || !isSameDay(selectedDate, d)) {
           setSelectedDate(d);
         }
@@ -196,7 +195,7 @@ export function CalendarClient({ dictionary, settings }: Props) {
     } else if (selectedDate) {
       setSelectedDate(null);
     }
-  }, [calendarDate]);
+  }, [calendarDate, selectedDate]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -221,29 +220,27 @@ export function CalendarClient({ dictionary, settings }: Props) {
   if (!dictionary || !t) return null;
 
   return (
-    <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col bg-background overflow-hidden">
+    <div className="flex h-[calc(100dvh-5rem)] flex-col overflow-hidden bg-background md:h-[calc(100dvh-6rem)]">
       {/* ─── Header ─── */}
-      <div className="flex items-end justify-between pb-4 border-b">
+      <div className="flex items-end justify-between border-b pb-4">
         <div>
-          <h1 className="text-2xl font-serif tracking-tight">{headerLabel}</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {view === "month" 
-              ? (t.description as any).month 
-              : (t.description as any).week}
+          <h1 className="font-serif text-2xl tracking-tight">{headerLabel}</h1>
+          <p className="mt-0.5 text-muted-foreground text-sm">
+            {view === "month" ? (t.description as any).month : (t.description as any).week}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Prev / Next */}
-          <div className="flex items-center border overflow-hidden h-9">
+          <div className="flex h-9 items-center overflow-hidden border">
             <button
-              className="cursor-pointer h-full px-2.5 flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
+              className="flex h-full cursor-pointer items-center justify-center px-2.5 text-muted-foreground transition-colors hover:bg-muted"
               onClick={goPrev}
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
-              className="cursor-pointer h-full px-2.5 flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors border-l"
+              className="flex h-full cursor-pointer items-center justify-center border-l px-2.5 text-muted-foreground transition-colors hover:bg-muted"
               onClick={goNext}
             >
               <ChevronRight className="h-4 w-4" />
@@ -251,13 +248,13 @@ export function CalendarClient({ dictionary, settings }: Props) {
           </div>
 
           {/* Week / Month tabs — same style as overview tabs */}
-          <div className="ml-1 relative flex items-stretch bg-[#f7f7f7] dark:bg-[#131313]">
+          <div className="relative ml-1 flex items-stretch bg-[#f7f7f7] dark:bg-[#131313]">
             <button onClick={() => setView("week")} className={cn(tabClass, view === "week" && activeTabClass)}>
-              <CalendarDays className="w-4 h-4" />
+              <CalendarDays className="h-4 w-4" />
               {t.tabs.week}
             </button>
             <button onClick={() => setView("month")} className={cn(tabClass, view === "month" && activeTabClass)}>
-              <LayoutGrid className="w-4 h-4" />
+              <LayoutGrid className="h-4 w-4" />
               {t.tabs.month}
             </button>
           </div>
@@ -288,7 +285,7 @@ export function CalendarClient({ dictionary, settings }: Props) {
           t={t}
         />
       )}
- 
+
       <CalendarDaySheet
         date={selectedDate}
         open={!!selectedDate}
@@ -301,7 +298,7 @@ export function CalendarClient({ dictionary, settings }: Props) {
         debts={debts.filter(
           (d: any) =>
             selectedDate &&
-            ((d.dueDate && d.dueDate.startsWith(format(selectedDate, "yyyy-MM-dd"))) ||
+            (d.dueDate?.startsWith(format(selectedDate, "yyyy-MM-dd")) ||
               (!d.dueDate && d.createdAt.startsWith(format(selectedDate, "yyyy-MM-dd")))),
         )}
         dictionary={dictionary}
@@ -344,19 +341,19 @@ function MonthView({
   ];
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex flex-1 flex-col overflow-hidden">
       {/* Day-of-week header */}
-      <div className="grid grid-cols-7 border-b bg-background shrink-0">
+      <div className="grid shrink-0 grid-cols-7 border-b bg-background">
         {DAY_LABELS.map((d: string) => (
-          <div key={d} className="px-4 py-2.5 text-xs font-semibold text-muted-foreground tracking-wider">
+          <div key={d} className="px-4 py-2.5 font-semibold text-muted-foreground text-xs tracking-wider">
             {d}
           </div>
         ))}
       </div>
 
       {/* Scrollable month grid */}
-      <div className="flex-1 overflow-y-auto no-scrollbar">
-        <div className="grid grid-cols-7 auto-rows-[minmax(110px,1fr)]">
+      <div className="no-scrollbar flex-1 overflow-y-auto">
+        <div className="grid auto-rows-[minmax(110px,1fr)] grid-cols-7">
           {monthDays.map((day, i) => {
             const isCurrentMonth = isSameMonth(day, currentDate);
             const isToday = isSameDay(day, new Date());
@@ -367,7 +364,7 @@ function MonthView({
                 key={dayStr}
                 onClick={() => setSelectedDate(day)}
                 className={cn(
-                  "border-b border-r p-2.5 flex flex-col gap-1 cursor-pointer group transition-colors",
+                  "group flex cursor-pointer flex-col gap-1 border-r border-b p-2.5 transition-colors",
                   !isCurrentMonth ? "bg-muted/20 text-muted-foreground/40" : "bg-background hover:bg-muted/20",
                   i % 7 === 6 && "border-r-0",
                 )}
@@ -382,26 +379,26 @@ function MonthView({
               >
                 <span
                   className={cn(
-                    "text-sm font-medium h-6 w-6 flex items-center justify-center rounded-full",
+                    "flex h-6 w-6 items-center justify-center rounded-full font-medium text-sm",
                     isToday ? "bg-primary text-primary-foreground" : "text-foreground group-hover:bg-muted",
                   )}
                 >
                   {format(day, "d")}
                 </span>
 
-                <div className="flex flex-col gap-0.5 mt-0.5 overflow-hidden">
+                <div className="mt-0.5 flex flex-col gap-0.5 overflow-hidden">
                   {income > 0 && (
-                    <div className="text-[10px] sm:text-[11px] font-medium px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 truncate">
+                    <div className="truncate rounded bg-emerald-500/10 px-1.5 py-0.5 font-medium text-[10px] text-emerald-600 sm:text-[11px] dark:text-emerald-400">
                       +{formatCurrency(income)}
                     </div>
                   )}
                   {expense > 0 && (
-                    <div className="text-[10px] sm:text-[11px] font-medium px-1.5 py-0.5 rounded bg-red-500/10 text-red-600 dark:text-red-400 truncate">
+                    <div className="truncate rounded bg-red-500/10 px-1.5 py-0.5 font-medium text-[10px] text-red-600 sm:text-[11px] dark:text-red-400">
                       -{formatCurrency(expense)}
                     </div>
                   )}
                   {dayDebts.length > 0 && (
-                    <div className="text-[10px] sm:text-[11px] font-medium px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 truncate">
+                    <div className="truncate rounded bg-amber-500/10 px-1.5 py-0.5 font-medium text-[10px] text-amber-600 sm:text-[11px] dark:text-amber-400">
                       {dayDebts.length === 1
                         ? t.activity.debt.replace("{count}", "1")
                         : t.activity.debts.replace("{count}", dayDebts.length.toString())}
@@ -459,7 +456,7 @@ function WeekView({
   });
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex flex-1 flex-col overflow-hidden">
       {/* Sticky day header */}
       <div className="flex shrink-0 border-b bg-background">
         {/* Time gutter */}
@@ -473,12 +470,12 @@ function WeekView({
             <div
               key={format(day, "yyyy-MM-dd")}
               className={cn(
-                "flex-1 border-l py-2.5 px-2 flex flex-col items-center gap-0.5 cursor-pointer hover:bg-muted/30 transition-colors",
+                "flex flex-1 cursor-pointer flex-col items-center gap-0.5 border-l px-2 py-2.5 transition-colors hover:bg-muted/30",
                 isToday && "bg-primary/5",
               )}
               onClick={() => setSelectedDate(day)}
             >
-              <span className="text-[11px] font-semibold tracking-wider text-muted-foreground">
+              <span className="font-semibold text-[11px] text-muted-foreground tracking-wider">
                 {
                   [
                     t.days.short.sun,
@@ -493,14 +490,14 @@ function WeekView({
               </span>
               <span
                 className={cn(
-                  "text-lg font-semibold h-8 w-8 flex items-center justify-center rounded-full leading-none",
+                  "flex h-8 w-8 items-center justify-center rounded-full font-semibold text-lg leading-none",
                   isToday ? "bg-primary text-primary-foreground" : "text-foreground",
                 )}
               >
                 {format(day, "d")}
               </span>
               {hasActivity && (
-                <div className="flex gap-0.5 mt-0.5">
+                <div className="mt-0.5 flex gap-0.5">
                   {income > 0 && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
                   {expense > 0 && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
                   {dayDebts.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />}
@@ -512,18 +509,18 @@ function WeekView({
       </div>
 
       {/* Scrollable time grid */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar relative">
-        <div className="flex relative" style={{ minHeight: `${24 * 60}px` }}>
+      <div ref={scrollRef} className="no-scrollbar relative flex-1 overflow-y-auto">
+        <div className="relative flex" style={{ minHeight: `${24 * 60}px` }}>
           {/* Time labels gutter */}
-          <div className="w-14 shrink-0 relative">
+          <div className="relative w-14 shrink-0">
             {HOURS.map((h) => (
               <div
                 key={h}
-                className="absolute left-0 right-0 flex items-start justify-end pr-2"
+                className="absolute right-0 left-0 flex items-start justify-end pr-2"
                 style={{ top: `${(h / 24) * 100}%`, height: `${100 / 24}%` }}
               >
                 {h > 0 && (
-                  <span className="text-[10px] text-muted-foreground -translate-y-2">{h < 10 ? `0${h}` : h}:00</span>
+                  <span className="-translate-y-2 text-[10px] text-muted-foreground">{h < 10 ? `0${h}` : h}:00</span>
                 )}
               </div>
             ))}
@@ -537,14 +534,14 @@ function WeekView({
             return (
               <div
                 key={dayStr}
-                className={cn("flex-1 border-l relative", isToday && "bg-primary/[0.03]")}
+                className={cn("relative flex-1 border-l", isToday && "bg-primary/[0.03]")}
                 onClick={() => setSelectedDate(day)}
               >
                 {/* Hour row lines */}
                 {HOURS.map((h) => (
                   <div
                     key={h}
-                    className="absolute left-0 right-0 border-t border-border/40"
+                    className="absolute right-0 left-0 border-border/40 border-t"
                     style={{
                       top: `${(h / 24) * 100}%`,
                       height: `${100 / 24}%`,
@@ -556,7 +553,7 @@ function WeekView({
                 {HOURS.map((h) => (
                   <div
                     key={`half-${h}`}
-                    className="absolute left-0 right-0 border-t border-border/20 border-dashed"
+                    className="absolute right-0 left-0 border-border/20 border-t border-dashed"
                     style={{ top: `${((h + 0.5) / 24) * 100}%` }}
                   />
                 ))}
@@ -565,7 +562,7 @@ function WeekView({
                 {Object.entries(txByKey)
                   .filter(([k]) => k.startsWith(dayStr))
                   .map(([k, txs]) => {
-                    const hour = parseInt(k.split("_")[1] ?? "0");
+                    const hour = parseInt(k.split("_")[1] ?? "0", 10);
                     let income = 0;
                     let expense = 0;
                     txs.forEach((t) => {
@@ -575,7 +572,7 @@ function WeekView({
                     return (
                       <div
                         key={k}
-                        className="absolute left-1 right-1 mx-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium z-10 overflow-hidden"
+                        className="absolute right-1 left-1 z-10 mx-0.5 overflow-hidden rounded px-1.5 py-0.5 font-medium text-[10px]"
                         style={{
                           top: `calc(${(hour / 24) * 100}% + 2px)`,
                           minHeight: 20,
@@ -595,11 +592,11 @@ function WeekView({
           {/* Current time indicator (only for today's column) */}
           {weekDays.some((d) => isSameDay(d, today)) && (
             <div
-              className="absolute left-14 right-0 z-20 pointer-events-none flex items-center"
+              className="pointer-events-none absolute right-0 left-14 z-20 flex items-center"
               style={{ top: `${nowPct}%` }}
             >
-              <div className="w-2 h-2 rounded-full bg-primary ml-0.5 shrink-0" />
-              <div className="flex-1 h-px bg-primary opacity-60" />
+              <div className="ml-0.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
+              <div className="h-px flex-1 bg-primary opacity-60" />
             </div>
           )}
         </div>

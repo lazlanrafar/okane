@@ -3,8 +3,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui";
 import { LayoutGrid } from "lucide-react";
 
-import { useAppStore } from "@/stores/app";
-
 export type GroupByInterval = "none" | "daily" | "weekly" | "monthly";
 
 interface Props {

@@ -136,8 +136,8 @@ export function TransactionReceiptConfirmationModal({ open, onOpenChange, data, 
                   <FormItem>
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <div className="relative group">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/50">
+                      <div className="group relative">
+                        <span className="-translate-y-1/2 absolute top-1/2 left-3 text-muted-foreground/50 text-sm">
                           {settings?.mainCurrencySymbol ?? "$"}
                         </span>
                         <CurrencyInput

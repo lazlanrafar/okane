@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { getWorkspaceMembers } from "@workspace/modules/client";
 import { Avatar, AvatarFallback, AvatarImage, Combobox, cn, Spinner } from "@workspace/ui";
 import { getInitials } from "@workspace/utils";
-import { User } from "lucide-react";
 
 interface Member {
   id: string;
@@ -75,7 +74,7 @@ export function SelectUser({
 
   if (!selectedValue && isLoading && !hideLoading) {
     return (
-      <div className="w-full h-full flex items-center justify-center min-h-[40px]">
+      <div className="flex h-full min-h-[40px] w-full items-center justify-center">
         <Spinner />
       </div>
     );
@@ -98,26 +97,26 @@ export function SelectUser({
       className="rounded-none"
       renderSelectedItem={(item: any) => (
         <div className="flex items-center space-x-2">
-          <Avatar className="w-6 h-6">
+          <Avatar className="h-6 w-6">
             <AvatarImage src={item.image} alt={item.label} />
-            <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+            <AvatarFallback className="bg-primary/10 text-[10px] text-primary">
               {getInitials(item.label)}
             </AvatarFallback>
           </Avatar>
-          <span className="text-left truncate max-w-[90%] font-medium text-xs">{item.label}</span>
+          <span className="max-w-[90%] truncate text-left font-medium text-xs">{item.label}</span>
         </div>
       )}
       renderListItem={({ item }: { item: any }) => (
         <div className="flex items-center gap-2 overflow-hidden">
-          <Avatar className="w-6 h-6">
+          <Avatar className="h-6 w-6">
             <AvatarImage src={item.image} alt={item.label} />
-            <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+            <AvatarFallback className="bg-primary/10 text-[10px] text-primary">
               {getInitials(item.label)}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col truncate">
-            <span className="font-medium truncate text-xs">{item.label}</span>
-            <span className="text-[10px] text-muted-foreground truncate">{item.email}</span>
+            <span className="truncate font-medium text-xs">{item.label}</span>
+            <span className="truncate text-[10px] text-muted-foreground">{item.email}</span>
           </div>
         </div>
       )}

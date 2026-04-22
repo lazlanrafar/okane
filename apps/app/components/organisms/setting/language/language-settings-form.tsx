@@ -48,13 +48,13 @@ export function LanguageSettingsForm({ dictionary: dict }: LanguageSettingsFormP
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">{title}</h2>
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <h2 className="font-medium text-lg tracking-tight">{title}</h2>
+        <p className="text-muted-foreground text-xs">{description}</p>
       </div>
       <Separator className="rounded-none" />
 
       <Select value={currentLocale} onValueChange={handleLanguageChange}>
-        <SelectTrigger className="w-[180px] rounded-none h-8 text-xs font-normal border bg-background">
+        <SelectTrigger className="h-8 w-[180px] rounded-none border bg-background font-normal text-xs">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent className="rounded-none border bg-background">

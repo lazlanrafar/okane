@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui";
-import { format, isValid } from "date-fns";
+import { isValid } from "date-fns";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -42,7 +42,7 @@ const CellActions = ({
       } else {
         toast.error(result.error || dictionary.accounts.toasts.delete_failed);
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error(dictionary.common.error);
     }
   };
@@ -89,7 +89,7 @@ const GroupCell = ({
       } else {
         toast.error(res.error || dictionary.accounts.toasts.group_update_failed);
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error(dictionary.common.error);
     }
   };
@@ -127,7 +127,7 @@ export const accountColumns = (
         "w-[200px] min-w-[120px] md:sticky md:left-[var(--stick-left)] bg-background group-hover:bg-[#F2F1EF] group-hover:dark:bg-[#0f0f0f] z-10",
     },
     cell: ({ getValue }) => (
-      <span className="truncate font-medium font-sans px-2">
+      <span className="truncate px-2 font-medium font-sans">
         {getValue<string>() || (dictionary.common.na ?? "N/A")}
       </span>
     ),
@@ -163,7 +163,7 @@ export const accountColumns = (
       const { formatCurrency } = (table.options.meta as any) || {};
 
       return (
-        <span className="font-sans font-medium text-right block w-full text-sm px-2">
+        <span className="block w-full px-2 text-right font-medium font-sans text-sm">
           {formatCurrency ? formatCurrency(balance) : balance}
         </span>
       );
@@ -185,7 +185,7 @@ export const accountColumns = (
       if (!val) return dictionary.common.na ?? "N/A";
       const date = new Date(val);
       return (
-        <span className="font-sans text-muted-foreground px-2">
+        <span className="px-2 font-sans text-muted-foreground">
           {isValid(date)
             ? date.toLocaleDateString(dictionary.language.locale || "en-US", {
                 year: "numeric",

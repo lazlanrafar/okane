@@ -18,8 +18,8 @@ export const dynamic = "force-dynamic";
 
 export default async function DebtsPage({ params }: { params: Promise<{ locale: Locale }> }) {
   return (
-    <div className="h-[calc(100dvh-5rem)] md:h-[calc(100dvh-6rem)] flex flex-col bg-background no-scrollbar">
-      <div className="flex-1 min-h-0 no-scrollbar">
+    <div className="no-scrollbar flex h-[calc(100dvh-5rem)] flex-col bg-background md:h-[calc(100dvh-6rem)]">
+      <div className="no-scrollbar min-h-0 flex-1">
         <Suspense fallback={<DebtTableSkeleton />}>
           <DebtsPageContent locale={(await params).locale} />
         </Suspense>

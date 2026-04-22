@@ -18,7 +18,9 @@ test.describe("Workspace: Budget", () => {
     } else {
       // It might render the "Coming Soon" label from dictionary
       await expect(
-        page.getByText(new RegExp(`${dictionary.sidebar.budget_label}|${dictionary.sidebar.coming_soon_label}`, "i")).first(),
+        page
+          .getByText(new RegExp(`${dictionary.sidebar.budget_label}|${dictionary.sidebar.coming_soon_label}`, "i"))
+          .first(),
       ).toBeVisible();
     }
   });

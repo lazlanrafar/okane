@@ -74,7 +74,7 @@ export function SelectContact({
 
   if (!selectedValue && isLoading && !hideLoading) {
     return (
-      <div className="w-full h-full flex items-center justify-center min-h-[40px]">
+      <div className="flex h-full min-h-[40px] w-full items-center justify-center">
         <Spinner />
       </div>
     );
@@ -98,15 +98,15 @@ export function SelectContact({
       }}
       renderSelectedItem={(item: any) => (
         <div className="flex items-center space-x-2">
-          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted">
             <User className="h-3 w-3 text-muted-foreground" />
           </div>
-          <span className="text-left truncate max-w-[90%] font-medium text-xs">{item.label}</span>
+          <span className="max-w-[90%] truncate text-left font-medium text-xs">{item.label}</span>
         </div>
       )}
       renderOnCreate={(value) => (
         <div className="flex items-center space-x-2">
-          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted">
             <User className="h-3 w-3 text-muted-foreground" />
           </div>
           <span className="text-xs">{`Create "${value}"`}</span>
@@ -114,12 +114,12 @@ export function SelectContact({
       )}
       renderListItem={({ item }: { item: any }) => (
         <div className="flex items-center gap-2 overflow-hidden">
-          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted">
             <User className="h-3 w-3 text-muted-foreground" />
           </div>
           <div className="flex flex-col truncate">
-            <span className="font-medium truncate text-xs">{item.label}</span>
-            {item.email && <span className="text-[10px] text-muted-foreground truncate">{item.email}</span>}
+            <span className="truncate font-medium text-xs">{item.label}</span>
+            {item.email && <span className="truncate text-[10px] text-muted-foreground">{item.email}</span>}
           </div>
         </div>
       )}

@@ -15,8 +15,8 @@ export async function downloadInvoiceAsPdf({ element, filename, onStart, onFinis
   onStart?.();
 
   // Temporarily adjust styles for cleaner print
-  const originalBoxShadow = element.style.boxShadow;
-  const originalBorder = element.style.border;
+  const _originalBoxShadow = element.style.boxShadow;
+  const _originalBorder = element.style.border;
 
   // Try to find the inner card if it exists, otherwise use the element itself
   const targetElement = (element.querySelector(".invoice-card") as HTMLElement) || element;

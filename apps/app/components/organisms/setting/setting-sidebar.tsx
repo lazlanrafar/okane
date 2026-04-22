@@ -5,21 +5,16 @@ import { usePathname } from "next/navigation";
 
 import { buttonVariants, cn } from "@workspace/ui";
 import {
-  AppWindow,
   Banknote,
   Bell,
-  Copy,
   CreditCard,
   DatabaseBackup,
   FileText,
-  Landmark,
   Languages,
   Lock,
   Monitor,
   Palette,
   PencilRuler,
-  Repeat,
-  Settings,
   TrendingDown,
   User,
   Users,
@@ -172,12 +167,12 @@ export function SettingSidebar({ className, dictionary, ...props }: SidebarNavPr
   const normalizedPath = `/${activePath.join("/")}`;
 
   return (
-    <nav className={cn("flex flex-col overflow-y-auto max-h-[300px] lg:max-h-none space-y-1", className)} {...props}>
+    <nav className={cn("flex max-h-[300px] flex-col space-y-1 overflow-y-auto lg:max-h-none", className)} {...props}>
       {sidebarNavItems.map((item, index) => {
         if ("groupLabel" in item) {
           return (
             <div key={index} className="mt-4 first:mt-0">
-              <h4 className="mb-2 text-xs font-semibold tracking-tight text-muted-foreground">{item.groupLabel}</h4>
+              <h4 className="mb-2 font-semibold text-muted-foreground text-xs tracking-tight">{item.groupLabel}</h4>
               <div className="space-y-1">
                 {/* biome-ignore lint/suspicious/noExplicitAny: implicit any */}
                 {(item as any).items.map((subItem: any) => (
@@ -189,14 +184,14 @@ export function SettingSidebar({ className, dictionary, ...props }: SidebarNavPr
                       normalizedPath === subItem.href
                         ? "bg-muted hover:bg-muted"
                         : "hover:bg-transparent hover:underline",
-                      "justify-start w-full overflow-hidden",
-                      subItem.comingSoon && "opacity-60 pointer-events-none",
+                      "w-full justify-start overflow-hidden",
+                      subItem.comingSoon && "pointer-events-none opacity-60",
                     )}
                   >
                     {subItem.icon && <subItem.icon className="mr-2 size-4 shrink-0" />}
-                    <span className="flex-1 min-w-0 text-left truncate">{subItem.title}</span>
+                    <span className="min-w-0 flex-1 truncate text-left">{subItem.title}</span>
                     {subItem.comingSoon && (
-                      <span className="ml-auto text-[10px] font-medium text-muted-foreground border px-1.5 py-0.5 rounded-md bg-muted/50">
+                      <span className="ml-auto rounded-md border bg-muted/50 px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground">
                         {sidebar.soon}
                       </span>
                     )}
@@ -218,14 +213,14 @@ export function SettingSidebar({ className, dictionary, ...props }: SidebarNavPr
             className={cn(
               buttonVariants({ variant: "ghost" }),
               normalizedPath === flatItem.href ? "bg-muted hover:bg-muted" : "hover:bg-transparent hover:underline",
-              "justify-start w-full overflow-hidden",
-              flatItem.comingSoon && "opacity-60 pointer-events-none",
+              "w-full justify-start overflow-hidden",
+              flatItem.comingSoon && "pointer-events-none opacity-60",
             )}
           >
             {flatItem.icon && <flatItem.icon className="mr-2 size-4 shrink-0" />}
-            <span className="flex-1 min-w-0 text-left truncate">{flatItem.title}</span>
+            <span className="min-w-0 flex-1 truncate text-left">{flatItem.title}</span>
             {flatItem.comingSoon && (
-              <span className="ml-auto text-[10px] font-medium text-muted-foreground border px-1.5 py-0.5 rounded-md bg-muted/50">
+              <span className="ml-auto rounded-md border bg-muted/50 px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground">
                 {sidebar.soon}
               </span>
             )}

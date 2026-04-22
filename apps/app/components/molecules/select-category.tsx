@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createCategory, getCategories } from "@workspace/modules/client";
@@ -22,7 +21,7 @@ export interface SelectCategoryProps {
 const CategoryColor = ({ type, color }: { type: string; color?: string }) => (
   <div
     className={cn(
-      "w-2.5 h-2.5 rounded-[2px] shrink-0",
+      "h-2.5 w-2.5 shrink-0 rounded-[2px]",
       color ? `bg-${color}` : type === "income" ? "bg-emerald-500" : "bg-red-500",
     )}
   />
@@ -87,7 +86,7 @@ export function SelectCategory({
 
   if (!selectedValue && isLoading && !hideLoading) {
     return (
-      <div className="w-full h-full flex items-center justify-center min-h-[40px]">
+      <div className="flex h-full min-h-[40px] w-full items-center justify-center">
         <Spinner />
       </div>
     );
@@ -114,7 +113,7 @@ export function SelectCategory({
       renderSelectedItem={(item) => (
         <div className="flex items-center space-x-2">
           <CategoryColor type={selectedCategory?.type || type || "expense"} />
-          <span className="text-left truncate max-w-[90%] font-medium">{!Array.isArray(item) ? item.label : ""}</span>
+          <span className="max-w-[90%] truncate text-left font-medium">{!Array.isArray(item) ? item.label : ""}</span>
         </div>
       )}
       renderOnCreate={(value) => (

@@ -66,7 +66,7 @@ export default async function Layout({
       />
       <SidebarInset
         className={cn(
-          "min-w-0 h-svh overflow-hidden",
+          "h-svh min-w-0 overflow-hidden",
           "[html[data-content-layout=centered]_&]:mx-auto! [html[data-content-layout=centered]_&]:max-w-screen-2xl!",
           "max-[113rem]:peer-data-[variant=inset]:mr-2! min-[101rem]:peer-data-[variant=inset]:peer-data-[state=collapsed]:mr-auto!",
         )}
@@ -77,8 +77,8 @@ export default async function Layout({
             "sticky top-0 z-50 overflow-hidden rounded-t-[inherit] bg-background/50 backdrop-blur-md",
           )}
         >
-          <div className="flex w-full items-center justify-between px-4 lg:px-6 gap-3">
-            <div className="flex items-center gap-1 lg:gap-2 flex-1">
+          <div className="flex w-full items-center justify-between gap-3 px-4 lg:px-6">
+            <div className="flex flex-1 items-center gap-1 lg:gap-2">
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
               <SearchDialog dictionary={dictionary} />
@@ -99,7 +99,7 @@ export default async function Layout({
             )}
           </div>
         </header>
-        <div className="flex flex-col flex-1 min-h-0 p-4 md:p-6 relative overflow-y-auto">{children}</div>
+        <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto p-4 md:p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

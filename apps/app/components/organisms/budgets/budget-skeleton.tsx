@@ -2,11 +2,11 @@ import { Skeleton } from "@workspace/ui";
 
 export function BudgetSkeleton() {
   return (
-    <div className="flex w-full flex-col h-full space-y-4 px-1">
+    <div className="flex h-full w-full flex-col space-y-4 px-1">
       {/* Summary Cards Skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="p-6 flex flex-col gap-2 border border-border">
+          <div key={i} className="flex flex-col gap-2 border border-border p-6">
             <Skeleton className="h-3 w-24" />
             <Skeleton className="h-9 w-32" />
           </div>
@@ -14,7 +14,7 @@ export function BudgetSkeleton() {
       </div>
 
       {/* Toolbar Skeleton */}
-      <div className="flex items-center justify-between gap-4 shrink-0 px-1">
+      <div className="flex shrink-0 items-center justify-between gap-4 px-1">
         <Skeleton className="h-10 w-full max-w-sm" />
         <div className="flex items-center gap-2">
           <Skeleton className="h-8 w-24" />
@@ -23,11 +23,11 @@ export function BudgetSkeleton() {
       </div>
 
       {/* Content Grid Skeleton */}
-      <div className="flex-1 min-h-0 relative">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="relative min-h-0 flex-1">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="p-6 border border-border rounded-lg space-y-4">
-              <div className="flex justify-between items-start">
+            <div key={i} className="space-y-4 rounded-lg border border-border p-6">
+              <div className="flex items-start justify-between">
                 <div className="space-y-2">
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-3 w-16" />

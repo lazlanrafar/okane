@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createWalletGroup, getWalletGroups } from "@workspace/modules/client";
-import { Combobox, cn, Spinner } from "@workspace/ui";
+import { Combobox, Spinner } from "@workspace/ui";
 import { Layers } from "lucide-react";
 import { toast } from "sonner";
 
@@ -74,7 +72,7 @@ export function SelectAccountGroup({
 
   if (!selectedValue && isLoading && !hideLoading) {
     return (
-      <div className="w-full h-full flex items-center justify-center min-h-[40px]">
+      <div className="flex h-full min-h-[40px] w-full items-center justify-center">
         <Spinner />
       </div>
     );
@@ -98,19 +96,19 @@ export function SelectAccountGroup({
       }}
       renderSelectedItem={(item) => (
         <div className="flex items-center space-x-2">
-          <Layers className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <span className="text-left truncate max-w-[90%]">{!Array.isArray(item) ? item.label : ""}</span>
+          <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <span className="max-w-[90%] truncate text-left">{!Array.isArray(item) ? item.label : ""}</span>
         </div>
       )}
       renderOnCreate={(value) => (
         <div className="flex items-center space-x-2">
-          <Layers className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           <span>{`Create "${value}"`}</span>
         </div>
       )}
       renderListItem={({ item }) => (
         <div className="flex items-center space-x-2">
-          <Layers className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <Layers className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           <span className="line-clamp-1 font-medium">{item.label}</span>
         </div>
       )}

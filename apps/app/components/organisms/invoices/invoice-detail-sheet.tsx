@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import type { Dictionary } from "@workspace/dictionaries";
 import { getInvoiceToken } from "@workspace/modules/invoice/invoice.action";
 import type { Invoice } from "@workspace/types";
 import {
@@ -17,7 +18,6 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Separator,
   Sheet,
   SheetContent,
   SheetHeader,
@@ -25,22 +25,9 @@ import {
   Switch,
 } from "@workspace/ui";
 import { format } from "date-fns";
-import {
-  ChevronDown,
-  Copy,
-  Download,
-  ExternalLink,
-  Eye,
-  Globe,
-  History,
-  Lock,
-  Mail,
-  MoreHorizontal,
-  Share2,
-} from "lucide-react";
+import { Copy, Download, ExternalLink, Globe, History, Lock } from "lucide-react";
 import { toast } from "sonner";
 
-import type { Dictionary } from "@workspace/dictionaries";
 import { useDebounce } from "@/hooks/use-debounce";
 import { downloadInvoiceAsPdf } from "@/lib/invoice-download";
 
@@ -93,9 +80,9 @@ interface InvoiceDetailSheetProps {
 
 function InfoRow({ label, value, className = "" }: { label: string; value: React.ReactNode; className?: string }) {
   return (
-    <div className={`flex justify-between items-center py-1.5 ${className}`}>
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium">{value}</span>
+    <div className={`flex items-center justify-between py-1.5 ${className}`}>
+      <span className="text-muted-foreground text-sm">{label}</span>
+      <span className="font-medium text-sm">{value}</span>
     </div>
   );
 }
@@ -123,13 +110,13 @@ export function InvoiceDetailSheet({
     if (invoice) {
       setAccessCode(invoice.accessCode || "");
     }
-  }, [invoice?.id]);
+  }, [invoice?.id, invoice]);
 
   useEffect(() => {
     if (invoice && debouncedAccessCode !== (invoice.accessCode || "")) {
       onUpdate?.(invoice.id, { accessCode: debouncedAccessCode });
     }
-  }, [debouncedAccessCode, invoice?.id]);
+  }, [debouncedAccessCode, invoice?.id, invoice.accessCode, invoice, onUpdate]);
 
   useEffect(() => {
     if (open && invoice?.id && invoice.isPublic && !publicToken) {
@@ -140,7 +127,7 @@ export function InvoiceDetailSheet({
     if (!open) {
       setPublicToken(null);
     }
-  }, [open, invoice?.id, invoice?.isPublic]);
+  }, [open, invoice?.id, invoice?.isPublic, publicToken]);
 
   if (!invoice) return null;
 
@@ -186,17 +173,17 @@ export function InvoiceDetailSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
-        <SheetHeader className="pb-4 border-b border-border/50 shrink-0 space-y-0">
+        <SheetHeader className="shrink-0 space-y-0 border-border/50 border-b pb-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-0.5">
-              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+              <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
                 {dict.details.title || "Invoice Details"}
               </span>
-              <SheetTitle className="text-2xl font-serif font-medium tracking-tight flex items-center gap-2">
+              <SheetTitle className="flex items-center gap-2 font-medium font-serif text-2xl tracking-tight">
                 {invoice.invoiceNumber}
                 <Badge
                   variant="outline"
-                  className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0 h-5 inline-flex items-center ${STATUS_STYLES[invoice.status] ?? ""}`}
+                  className={`inline-flex h-5 items-center px-2 py-0 font-bold text-[10px] uppercase tracking-wider ${STATUS_STYLES[invoice.status] ?? ""}`}
                 >
                   {dict.statuses[invoice.status] || invoice.status}
                 </Badge>
@@ -217,13 +204,13 @@ export function InvoiceDetailSheet({
           </div>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <div className="custom-scrollbar flex-1 overflow-y-auto">
           <div className="space-y-8">
             {/* Main Info */}
             <div className="space-y-4">
-              <div className="flex items-baseline justify-between py-2 border-b border-border/30">
-                <span className="text-sm text-muted-foreground">{dict.details.total_amount || "Total Amount"}</span>
-                <span className="text-3xl font-serif font-medium">
+              <div className="flex items-baseline justify-between border-border/30 border-b py-2">
+                <span className="text-muted-foreground text-sm">{dict.details.total_amount || "Total Amount"}</span>
+                <span className="font-medium font-serif text-3xl">
                   {formatAmount(invoice.amount, invoice.currency)}
                 </span>
               </div>
@@ -239,7 +226,7 @@ export function InvoiceDetailSheet({
             {/* Public Access Section */}
             <div className="space-y-4 border-t pt-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-medium">
+                <div className="flex items-center gap-2 font-medium text-sm">
                   <Globe className="h-4 w-4 text-emerald-500" />
                   {dict.details.public_sharing || "Public Sharing"}
                 </div>
@@ -247,7 +234,7 @@ export function InvoiceDetailSheet({
                   {invoice.isPublic && invoice.accessCode && (
                     <Badge
                       variant="secondary"
-                      className="text-[10px] bg-amber-100 text-amber-700 hover:bg-amber-100 gap-1 border-amber-200"
+                      className="gap-1 border-amber-200 bg-amber-100 text-[10px] text-amber-700 hover:bg-amber-100"
                     >
                       <Lock className="h-3 w-3" />
                       {dict.details.code_protected || "Code Protected"}
@@ -263,7 +250,7 @@ export function InvoiceDetailSheet({
               {invoice.isPublic ? (
                 <div className="space-y-3">
                   <div className="flex gap-2">
-                    <div className="flex-1 px-3 py-1.5 bg-background border border-border text-xs font-mono truncate opacity-60 flex items-center h-8">
+                    <div className="flex h-8 flex-1 items-center truncate border border-border bg-background px-3 py-1.5 font-mono text-xs opacity-60">
                       {publicToken
                         ? `${window.location.host}/invoice/${publicToken.slice(0, 12)}...`
                         : dict.details.generating_link || "Generating link..."}
@@ -293,22 +280,22 @@ export function InvoiceDetailSheet({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/50">
+                    <label className="font-bold text-[10px] text-muted-foreground/50 uppercase tracking-widest">
                       {dict.details.protection_code || "Protection Code (Optional)"}
                     </label>
-                    <div className="relative group">
-                      <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
+                    <div className="group relative">
+                      <Lock className="-translate-y-1/2 absolute top-1/2 left-2.5 h-3 w-3 text-muted-foreground/40 transition-colors group-focus-within:text-primary" />
                       <Input
                         placeholder={dict.details.set_access_code || "Set an access code..."}
                         value={accessCode}
                         onChange={(e) => setAccessCode(e.target.value)}
-                        className="h-8 pl-8 text-[11px] font-mono bg-background/50 border-border/50 focus:border-border"
+                        className="h-8 border-border/50 bg-background/50 pl-8 font-mono text-[11px] focus:border-border"
                       />
                     </div>
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   {dict.details.public_sharing_description || "Enable to share this invoice via a public link."}
                 </p>
               )}
@@ -317,17 +304,17 @@ export function InvoiceDetailSheet({
             {/* Internal Notes */}
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="internal-note" className="border-none bg-muted/20 px-4">
-                <AccordionTrigger className="py-3 hover:no-underline font-medium text-sm gap-2">
-                  <div className="flex items-center gap-2 flex-1 text-left">
+                <AccordionTrigger className="gap-2 py-3 font-medium text-sm hover:no-underline">
+                  <div className="flex flex-1 items-center gap-2 text-left">
                     <span>{dict.details.internal_note}</span>
                     {!invoice.internalNote && (
-                      <span className="text-[10px] bg-muted px-1.5 py-0.5 text-muted-foreground font-normal">
+                      <span className="bg-muted px-1.5 py-0.5 font-normal text-[10px] text-muted-foreground">
                         {(dictionary.common as any).empty}
                       </span>
                     )}
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="pb-4 text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed italic">
+                <AccordionContent className="whitespace-pre-wrap pb-4 text-muted-foreground text-sm italic leading-relaxed">
                   {invoice.internalNote ||
                     dict.details.no_internal_notes ||
                     "No internal notes have been added for this invoice."}
@@ -337,7 +324,7 @@ export function InvoiceDetailSheet({
 
             {/* Activity Feed */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-medium border-b border-border/50 pb-2">
+              <div className="flex items-center gap-2 border-border/50 border-b pb-2 font-medium text-sm">
                 <History className="h-4 w-4" />
                 {dict.details.activity || "Activity"}
               </div>
@@ -347,9 +334,9 @@ export function InvoiceDetailSheet({
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-6 border-t border-border/50 bg-background flex gap-3 shrink-0">
+        <div className="flex shrink-0 gap-3 border-border/50 border-t bg-background pt-6">
           <Select defaultValue={invoice.status} onValueChange={handleStatusChange} disabled={statusLoading}>
-            <SelectTrigger className="flex-1 h-10 border-border/50">
+            <SelectTrigger className="h-10 flex-1 border-border/50">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -361,14 +348,14 @@ export function InvoiceDetailSheet({
             </SelectContent>
           </Select>
 
-          <Button variant="outline" className="h-8 px-6 gap-2 border-border/50" onClick={() => onEdit?.(invoice)}>
+          <Button variant="outline" className="h-8 gap-2 border-border/50 px-6" onClick={() => onEdit?.(invoice)}>
             {dict.actions.edit || "Edit"}
           </Button>
         </div>
       </SheetContent>
 
       {/* Hidden InvoiceA4 for PDF Generation */}
-      <div className="fixed top-0 left-0 -z-50 opacity-0 pointer-events-none w-[800px]">
+      <div className="-z-50 pointer-events-none fixed top-0 left-0 w-[800px] opacity-0">
         <InvoiceA4 ref={invoiceRef} invoice={invoice} dictionary={dictionary} />
       </div>
     </Sheet>

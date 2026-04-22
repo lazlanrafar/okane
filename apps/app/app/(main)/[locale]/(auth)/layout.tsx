@@ -1,9 +1,5 @@
 import type { ReactNode } from "react";
 
-import { APP_CONFIG } from "@workspace/constants";
-import { Separator } from "@workspace/ui";
-import { Command } from "lucide-react";
-
 export default function Layout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <main>

@@ -12,8 +12,6 @@ import { getMe } from "@workspace/modules/user/user.action";
 import { cn, Input, Tabs, TabsList, TabsTrigger } from "@workspace/ui";
 import { Grid2X2, Link as LinkIcon, Search } from "lucide-react";
 
-import { useAppStore } from "@/stores/app";
-
 import { AppsCard } from "./apps-card";
 import { ConnectTelegram } from "./connect-telegram";
 import { ConnectWhatsApp } from "./connect-whatsapp";
@@ -25,7 +23,7 @@ interface Props {
 export function AppsClient({ dictionary }: Props) {
   const t = dictionary.apps;
 
-  const router = useRouter();
+  const _router = useRouter();
   const [search, setSearch] = React.useState("");
   const [filter, setFilter] = React.useState<"all" | "connected">("all");
   const [expandedApp, setExpandedApp] = React.useState<string | null>(null);
@@ -117,48 +115,48 @@ export function AppsClient({ dictionary }: Props) {
   const activeWorkspace = me.workspaces.find((w) => w.id === me.user.workspace_id);
   const planName = activeWorkspace.plan_name || "Starter";
 
-  const activeApp = allApps.find((a) => a.id === expandedApp);
+  const _activeApp = allApps.find((a) => a.id === expandedApp);
 
   if (!dictionary || !t) return null;
 
   return (
-    <div className="space-y-8 w-full">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+    <div className="w-full space-y-8">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         {/* Search on left */}
         <div className="relative w-full sm:max-w-[280px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={t.filter_placeholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-background/50 border-border h-9"
+            className="h-9 border-border bg-background/50 pl-9"
           />
         </div>
 
         {/* Filter Toggle on right */}
-        <div className="flex items-stretch bg-[#f7f7f7] dark:bg-[#131313] w-fit">
+        <div className="flex w-fit items-stretch bg-[#f7f7f7] dark:bg-[#131313]">
           <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
-            <TabsList className="flex items-stretch h-auto p-0 bg-transparent">
+            <TabsList className="flex h-auto items-stretch bg-transparent p-0">
               <TabsTrigger
                 value="all"
                 className={cn(
-                  "group relative flex items-center gap-1.5 px-3 py-1.5 text-[14px] transition-all whitespace-nowrap border border-transparent h-9 min-h-9",
-                  "text-[#707070] hover:text-black bg-[#f7f7f7] dark:text-[#666666] dark:hover:text-white dark:bg-[#131313] mb-0 relative z-1",
-                  "data-[state=active]:text-black data-[state=active]:bg-[#e6e6e6] dark:data-[state=active]:text-white dark:data-[state=active]:bg-[#1d1d1d] data-[state=active]:-mb-px data-[state=active]:z-10",
+                  "group relative flex h-9 min-h-9 items-center gap-1.5 whitespace-nowrap border border-transparent px-3 py-1.5 text-[14px] transition-all",
+                  "relative z-1 mb-0 bg-[#f7f7f7] text-[#707070] hover:text-black dark:bg-[#131313] dark:text-[#666666] dark:hover:text-white",
+                  "data-[state=active]:-mb-px data-[state=active]:z-10 data-[state=active]:bg-[#e6e6e6] data-[state=active]:text-black dark:data-[state=active]:bg-[#1d1d1d] dark:data-[state=active]:text-white",
                 )}
               >
-                <Grid2X2 className="w-4 h-4" />
+                <Grid2X2 className="h-4 w-4" />
                 {t.tabs.all}
               </TabsTrigger>
               <TabsTrigger
                 value="connected"
                 className={cn(
-                  "group relative flex items-center gap-1.5 px-3 py-1.5 text-[14px] transition-all whitespace-nowrap border border-transparent h-9 min-h-9",
-                  "text-[#707070] hover:text-black bg-[#f7f7f7] dark:text-[#666666] dark:hover:text-white dark:bg-[#131313] mb-0 relative z-1",
-                  "data-[state=active]:text-black data-[state=active]:bg-[#e6e6e6] dark:data-[state=active]:text-white dark:data-[state=active]:bg-[#1d1d1d] data-[state=active]:-mb-px data-[state=active]:z-10",
+                  "group relative flex h-9 min-h-9 items-center gap-1.5 whitespace-nowrap border border-transparent px-3 py-1.5 text-[14px] transition-all",
+                  "relative z-1 mb-0 bg-[#f7f7f7] text-[#707070] hover:text-black dark:bg-[#131313] dark:text-[#666666] dark:hover:text-white",
+                  "data-[state=active]:-mb-px data-[state=active]:z-10 data-[state=active]:bg-[#e6e6e6] data-[state=active]:text-black dark:data-[state=active]:bg-[#1d1d1d] dark:data-[state=active]:text-white",
                 )}
               >
-                <LinkIcon className="w-4 h-4" />
+                <LinkIcon className="h-4 w-4" />
                 {t.tabs.connected}
               </TabsTrigger>
             </TabsList>
@@ -166,7 +164,7 @@ export function AppsClient({ dictionary }: Props) {
         </div>
       </div>
 
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 mx-auto mt-8">
+      <div className="mx-auto mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {filteredApps.map((app) => (
           <AppsCard
             key={app.id}
@@ -195,10 +193,10 @@ export function AppsClient({ dictionary }: Props) {
 
         {filteredApps.length === 0 && !isLoading && (
           <div className="col-span-full flex flex-col items-center justify-center py-24 text-center">
-            <h3 className="text-lg font-semibold text-foreground">
+            <h3 className="font-semibold text-foreground text-lg">
               {search ? t.empty.no_results_title : t.empty.no_apps_title}
             </h3>
-            <p className="mt-2 text-sm text-muted-foreground max-w-sm">
+            <p className="mt-2 max-w-sm text-muted-foreground text-sm">
               {search ? t.empty.no_results_desc.replace("{search}", search) : t.empty.no_apps_desc}
             </p>
           </div>

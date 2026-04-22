@@ -2,9 +2,9 @@
 
 import * as React from "react";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getWalletGroups } from "@workspace/modules/wallet-group/wallet-group.action";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getWallets } from "@workspace/modules/wallet/wallet.action";
+import { getWalletGroups } from "@workspace/modules/wallet-group/wallet-group.action";
 import { Button, Separator, Skeleton } from "@workspace/ui";
 import { FolderPlus, Plus, Wallet } from "lucide-react";
 
@@ -25,7 +25,7 @@ export function WalletClient({ dictionary: dict }: WalletClientProps) {
   const [editingWallet, setEditingWallet] = React.useState<any>(null);
   const [editingGroup, setEditingGroup] = React.useState<any>(null);
 
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
 
   const { data: walletsData, isLoading: isWalletsLoading } = useQuery({
     queryKey: ["wallets"],
@@ -67,8 +67,8 @@ export function WalletClient({ dictionary: dict }: WalletClientProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h2 className="text-2xl font-medium tracking-tight">{wallets_t?.title}</h2>
-          <p className="text-sm text-muted-foreground">{wallets_t?.description}</p>
+          <h2 className="font-medium text-2xl tracking-tight">{wallets_t?.title}</h2>
+          <p className="text-muted-foreground text-sm">{wallets_t?.description}</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -78,7 +78,7 @@ export function WalletClient({ dictionary: dict }: WalletClientProps) {
             }}
             variant="outline"
             size="sm"
-            className="rounded-none h-8 text-xs"
+            className="h-8 rounded-none text-xs"
           >
             <FolderPlus className="mr-2 h-4 w-4" />
             {wallets_t?.add_group_button}
@@ -89,7 +89,7 @@ export function WalletClient({ dictionary: dict }: WalletClientProps) {
               setIsWalletOpen(true);
             }}
             size="sm"
-            className="rounded-none h-8 text-xs"
+            className="h-8 rounded-none text-xs"
           >
             <Plus className="mr-2 h-4 w-4" />
             {wallets_t?.add_button}
@@ -101,10 +101,10 @@ export function WalletClient({ dictionary: dict }: WalletClientProps) {
 
       <div className="grid grid-cols-1 gap-6">
         {/* Placeholder for the wallets/groups list - restored from original */}
-        <div className="border border-dashed rounded-none p-12 flex flex-col items-center justify-center text-center space-y-4 bg-accent/5">
+        <div className="flex flex-col items-center justify-center space-y-4 rounded-none border border-dashed bg-accent/5 p-12 text-center">
           <Wallet className="h-12 w-12 text-muted-foreground/50" />
           <div className="space-y-1">
-            <h3 className="text-sm font-medium">{wallets_t?.empty?.title || wallets_t?.empty}</h3>
+            <h3 className="font-medium text-sm">{wallets_t?.empty?.title || wallets_t?.empty}</h3>
           </div>
         </div>
       </div>

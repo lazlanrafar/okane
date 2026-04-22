@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { Env } from "@workspace/constants";
-import { createBrowserClient } from "@workspace/supabase/client";
 
 /**
  * useRealtime - Custom hook to listen for data change notifications via WebSockets.
@@ -40,7 +39,7 @@ export function useRealtime() {
           data: { session },
         } = await supabase.auth.getSession();
         token = session?.access_token;
-      } catch (e) {
+      } catch (_e) {
         // Ignore
       }
     }
@@ -124,7 +123,7 @@ export function useRealtime() {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, []);
+  }, [connect]);
 
   return null;
 }

@@ -1,12 +1,11 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import type { Dictionary } from "@workspace/dictionaries";
 import type { Invoice } from "@workspace/types";
 import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@workspace/ui";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
- 
-import type { Dictionary } from "@workspace/dictionaries";
 
 const STATUS_STYLES: Record<string, string> = {
   draft: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
@@ -55,7 +54,7 @@ export function buildInvoiceColumns({ onEdit, onDelete, dictionary }: InvoiceCol
       header: dict.columns.invoice_number || "Invoice No.",
       accessorKey: "invoiceNumber",
       size: 180,
-      cell: ({ row }) => <span className="font-medium truncate">{row.original.invoiceNumber}</span>,
+      cell: ({ row }) => <span className="truncate font-medium">{row.original.invoiceNumber}</span>,
     },
     {
       id: "status",

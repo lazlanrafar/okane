@@ -2,8 +2,7 @@
 
 import { type ReactNode, useEffect, useMemo } from "react";
 
-import { Provider as ChatProvider, createChatStore, type StoreState } from "@ai-sdk-tools/store";
-import { extractArtifactTypeFromMessage, getArtifactSectionMessageForStatus } from "@workspace/constants";
+import { Provider as ChatProvider, createChatStore } from "@ai-sdk-tools/store";
 import { sendChatMessage } from "@workspace/modules/ai/ai.action";
 import { useChatInterface } from "@workspace/ui/hooks";
 import type { UIMessage } from "ai";

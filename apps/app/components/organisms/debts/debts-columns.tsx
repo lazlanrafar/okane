@@ -1,6 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import type { Dictionary } from "@workspace/dictionaries";
 import type { DebtWithContact } from "@workspace/modules/client";
 import {
   Badge,
@@ -12,8 +13,6 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui";
 import { ArrowDownLeft, ArrowUpRight, Edit, ExternalLink, MoreHorizontal, Trash } from "lucide-react";
- 
-import type { Dictionary } from "@workspace/dictionaries";
 
 export const debtColumns = (
   onRowClick: (debt: DebtWithContact) => void,
@@ -67,7 +66,7 @@ export const debtColumns = (
               <ArrowUpRight className="h-4 w-4" />
             </div>
           )}
-          <span className="text-sm capitalize hidden sm:inline-block">
+          <span className="hidden text-sm capitalize sm:inline-block">
             {isReceivable ? dictionary.debts.types.receivable : dictionary.debts.types.payable}
           </span>
         </div>
@@ -80,7 +79,7 @@ export const debtColumns = (
     cell: ({ row }) => {
       return (
         <span
-          className="text-sm font-medium hover:underline cursor-pointer"
+          className="cursor-pointer font-medium text-sm hover:underline"
           onClick={(e) => {
             e.stopPropagation();
             onContactClick(row.original.contactId);
@@ -96,7 +95,7 @@ export const debtColumns = (
     header: dictionary.debts.columns.description,
     cell: ({ row }) => {
       return (
-        <span className="text-sm text-foreground/80 max-w-[200px] truncate block text-left">
+        <span className="block max-w-[200px] truncate text-left text-foreground/80 text-sm">
           {row.getValue("description") || row.original.sourceTransactionName || "-"}
         </span>
       );
@@ -113,11 +112,11 @@ export const debtColumns = (
 
       return (
         <div className="flex flex-col gap-1 text-right sm:text-left">
-          <span className="text-sm font-medium">
+          <span className="font-medium text-sm">
             {formatCurrency ? formatCurrency(remainingAmount) : remainingAmount}
           </span>
           {status !== "unpaid" && remainingAmount !== amount && (
-            <span className="text-xs text-muted-foreground line-through">
+            <span className="text-muted-foreground text-xs line-through">
               {formatCurrency ? formatCurrency(amount) : amount}
             </span>
           )}
@@ -145,7 +144,7 @@ export const debtColumns = (
     header: dictionary.debts.columns.due_date,
     cell: ({ row }) => {
       const dueDateStr = row.getValue("dueDate") as string;
-      if (!dueDateStr) return <span className="text-sm text-muted-foreground">-</span>;
+      if (!dueDateStr) return <span className="text-muted-foreground text-sm">-</span>;
       return <span className="text-sm">{format(new Date(dueDateStr), "MMM d, yyyy")}</span>;
     },
   },
@@ -174,7 +173,7 @@ export const debtColumns = (
                 e.stopPropagation();
                 onRowClick(debt);
               }}
-              className="gap-2 cursor-pointer"
+              className="cursor-pointer gap-2"
             >
               <ExternalLink className="h-4 w-4" />
               {dictionary.debts.actions.view_details}
@@ -184,18 +183,18 @@ export const debtColumns = (
                 e.stopPropagation();
                 onEdit(debt);
               }}
-              className="gap-2 cursor-pointer"
+              className="cursor-pointer gap-2"
             >
               <Edit className="h-4 w-4" />
               {dictionary.debts.actions.edit}
             </DropdownMenuItem>
-            <div className="h-px bg-muted my-1" />
+            <div className="my-1 h-px bg-muted" />
             <DropdownMenuItem
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(debt.id);
               }}
-              className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+              className="cursor-pointer gap-2 text-destructive focus:text-destructive"
             >
               <Trash className="h-4 w-4" />
               {dictionary.debts.actions.delete}

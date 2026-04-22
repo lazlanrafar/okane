@@ -22,7 +22,6 @@ import {
 } from "@workspace/ui";
 import { CircleUser, CreditCard, EllipsisVertical, LogOut, MessageSquareDot } from "lucide-react";
 
-import { useAppStore } from "@/stores/app";
 import { useLocalizedRoute } from "@/utils/localized-route";
 
 export function NavUser({

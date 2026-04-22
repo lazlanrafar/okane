@@ -15,7 +15,7 @@ export default async function VaultPage({ params }: { params: Promise<{ locale: 
   const dictionary = await getDictionary(locale);
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex min-h-0 flex-1 flex-col">
       <Hydrated fallback={<VaultSkeletonLoading />}>
         <VaultClient dictionary={dictionary} />
       </Hydrated>

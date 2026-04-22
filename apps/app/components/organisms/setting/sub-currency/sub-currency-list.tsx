@@ -18,7 +18,7 @@ interface SubCurrencyListProps {
 
 function SubCurrencySkeleton() {
   return (
-    <div className="space-y-8 animate-pulse">
+    <div className="animate-pulse space-y-8">
       <div className="space-y-2">
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-4 w-72" />
@@ -29,7 +29,7 @@ function SubCurrencySkeleton() {
       </div>
       <div className="space-y-4">
         {[1, 2].map((i) => (
-          <div key={i} className="border rounded-none p-4 flex justify-between">
+          <div key={i} className="flex justify-between rounded-none border p-4">
             <div className="space-y-2">
               <Skeleton className="h-5 w-16" />
               <Skeleton className="h-3 w-24" />
@@ -72,7 +72,7 @@ export function SubCurrencyList({ initialSubCurrencies, settings, dictionary }: 
 
   useEffect(() => {
     fetchRates();
-  }, [settings?.mainCurrencyCode]);
+  }, [fetchRates]);
 
   const handleAdd = (c: { code: string }) => {
     startTransition(async () => {
@@ -104,13 +104,13 @@ export function SubCurrencyList({ initialSubCurrencies, settings, dictionary }: 
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">{dictionary.settings.sub_currencies.title}</h3>
-          <p className="text-sm text-muted-foreground">{dictionary.settings.sub_currencies.description}</p>
+          <h3 className="font-medium text-lg">{dictionary.settings.sub_currencies.title}</h3>
+          <p className="text-muted-foreground text-sm">{dictionary.settings.sub_currencies.description}</p>
         </div>
         <SelectCurrency
           onSelect={handleAdd}
           trigger={
-            <Button size="sm" className="rounded-none h-8 text-xs gap-2 w-30">
+            <Button size="sm" className="h-8 w-30 gap-2 rounded-none text-xs">
               <Plus className="h-4 w-4" />
               {dictionary.settings.sub_currencies.add_button}
             </Button>
@@ -121,10 +121,10 @@ export function SubCurrencyList({ initialSubCurrencies, settings, dictionary }: 
 
       <div className="grid gap-4">
         {subCurrencies.map((sc) => (
-          <div key={sc.id} className="border rounded-none p-4 flex items-center justify-between">
+          <div key={sc.id} className="flex items-center justify-between rounded-none border p-4">
             <div className="flex flex-col">
               <span className="font-semibold text-lg">{sc.currencyCode}</span>
-              <span className="text-xs text-muted-foreground uppercase">
+              <span className="text-muted-foreground text-xs uppercase">
                 {dictionary.settings.sub_currencies.workspace_currency}
               </span>
             </div>
@@ -135,7 +135,7 @@ export function SubCurrencyList({ initialSubCurrencies, settings, dictionary }: 
                   <Loader2 className="h-4 w-4 animate-spin opacity-50" />
                 ) : (
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">
+                    <span className="font-medium text-sm">
                       1 {settings?.mainCurrencyCode} ={" "}
                       {rates[sc.currencyCode]
                         ? parseFloat(rates[sc.currencyCode]!).toLocaleString(undefined, { maximumFractionDigits: 4 })
@@ -152,7 +152,7 @@ export function SubCurrencyList({ initialSubCurrencies, settings, dictionary }: 
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-destructive transition-colors rounded-none"
+                className="rounded-none text-muted-foreground transition-colors hover:text-destructive"
                 onClick={() => handleRemove(sc.id, sc.currencyCode)}
                 disabled={isPending}
               >
@@ -176,7 +176,7 @@ export function SubCurrencyList({ initialSubCurrencies, settings, dictionary }: 
                 // but let's just make it look good.
               },
             }}
-            className="border-2 border-dashed rounded-none border-accent py-12"
+            className="rounded-none border-2 border-accent border-dashed py-12"
           />
         )}
       </div>

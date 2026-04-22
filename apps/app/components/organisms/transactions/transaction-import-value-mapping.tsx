@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { createCategory, getCategories } from "@workspace/modules/category/category.action";
-import { createWallet, getWallets } from "@workspace/modules/wallet/wallet.action";
+import { getWallets } from "@workspace/modules/wallet/wallet.action";
 import { Button, Icons, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui";
 import { Loader2, Plus, Tag, Wallet as WalletIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -146,7 +146,7 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
       setIsLoading(false);
     }
     fetchData();
-  }, [uniqueCategories, uniqueWallets, uniqueTypes]);
+  }, [uniqueCategories, uniqueWallets, uniqueTypes, setValueMappings, valueMappings]);
 
   const handleCategoryMap = (csvValue: string, categoryId: string) => {
     setValueMappings({
@@ -188,8 +188,8 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
 
   if (!uniqueCategories.length && !uniqueWallets.length && !uniqueTypes.length) {
     return (
-      <div className="py-12 text-center space-y-4">
-        <p className="text-sm text-muted-foreground">
+      <div className="space-y-4 py-12 text-center">
+        <p className="text-muted-foreground text-sm">
           No accounts, categories, or types were mapped for value matching.
         </p>
         <Button onClick={onNext} variant="outline" size="sm">
@@ -200,13 +200,13 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
   }
 
   return (
-    <div className="space-y-10 max-h-[500px] pr-2 font-sans overflow-y-auto no-scrollbar">
+    <div className="no-scrollbar max-h-[500px] space-y-10 overflow-y-auto pr-2 font-sans">
       {uniqueTypes.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+          <div className="flex items-center gap-2 border-border/50 border-b pb-2">
             <Icons.Apps className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold tracking-tight">Map Transaction Types</h3>
-            <span className="text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 ml-auto">
+            <h3 className="font-semibold text-sm tracking-tight">Map Transaction Types</h3>
+            <span className="ml-auto bg-primary/10 px-1.5 py-0.5 font-medium text-[11px] text-primary">
               {uniqueTypes.length} types
             </span>
           </div>
@@ -214,10 +214,10 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
             {uniqueTypes.map((val) => (
               <div
                 key={val}
-                className="flex items-center gap-4 p-2.5 border bg-muted/20 hover:bg-muted/30 transition-colors"
+                className="flex items-center gap-4 border bg-muted/20 p-2.5 transition-colors hover:bg-muted/30"
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{val}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-sm">{val}</p>
                 </div>
                 <div className="w-[240px]">
                   <Select value={valueMappings.types[val] || ""} onValueChange={(type) => handleTypeMap(val, type)}>
@@ -248,10 +248,10 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
 
       {uniqueWallets.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+          <div className="flex items-center gap-2 border-border/50 border-b pb-2">
             <WalletIcon className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold tracking-tight">Map Accounts</h3>
-            <span className="text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 ml-auto">
+            <h3 className="font-semibold text-sm tracking-tight">Map Accounts</h3>
+            <span className="ml-auto bg-primary/10 px-1.5 py-0.5 font-medium text-[11px] text-primary">
               {uniqueWallets.length} values
             </span>
           </div>
@@ -259,10 +259,10 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
             {uniqueWallets.map((val) => (
               <div
                 key={val}
-                className="flex items-center gap-4 p-2.5 border bg-muted/20 hover:bg-muted/30 transition-colors"
+                className="flex items-center gap-4 border bg-muted/20 p-2.5 transition-colors hover:bg-muted/30"
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{val}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-sm">{val}</p>
                 </div>
                 <div className="w-[240px]">
                   <SelectAccount
@@ -279,10 +279,10 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
 
       {uniqueCategories.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+          <div className="flex items-center gap-2 border-border/50 border-b pb-2">
             <Tag className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold tracking-tight">Map Categories</h3>
-            <span className="text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 ml-auto">
+            <h3 className="font-semibold text-sm tracking-tight">Map Categories</h3>
+            <span className="ml-auto bg-primary/10 px-1.5 py-0.5 font-medium text-[11px] text-primary">
               {uniqueCategories.length} categories
             </span>
           </div>
@@ -290,10 +290,10 @@ export function ValueMapping({ onNext }: { onNext: () => void }) {
             {uniqueCategories.map((val) => (
               <div
                 key={val}
-                className="flex items-center gap-4 p-2.5 border bg-muted/20 hover:bg-muted/30 transition-colors"
+                className="flex items-center gap-4 border bg-muted/20 p-2.5 transition-colors hover:bg-muted/30"
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{val}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-sm">{val}</p>
                 </div>
                 <CategoryMappingRow
                   csvValue={val}
@@ -340,17 +340,17 @@ function CategoryMappingRow({
   const inferredType = getInferredType(csvValue);
 
   return (
-    <div className="w-[280px] flex gap-2">
+    <div className="flex w-[280px] gap-2">
       <SelectCategory
         onChange={(id) => handleCategoryMap(csvValue, id)}
         value={valueMappings.categories[csvValue]}
-        className="flex-1 h-8 text-xs"
+        className="h-8 flex-1 text-xs"
       />
       {!valueMappings.categories[csvValue] && (
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8 shrink-0 hover:bg-primary/10 hover:text-primary transition-colors"
+          className="h-8 w-8 shrink-0 transition-colors hover:bg-primary/10 hover:text-primary"
           onClick={async () => {
             const res = await createCategory({
               name: csvValue,

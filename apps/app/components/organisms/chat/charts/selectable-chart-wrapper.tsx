@@ -1,9 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
-
-import { ChartSelectionOverlay } from "./chart-selection-overlay";
 
 interface SelectableChartWrapperProps {
   children: ReactNode;

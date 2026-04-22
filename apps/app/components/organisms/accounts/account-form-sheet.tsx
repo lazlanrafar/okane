@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createWallet, getWallet, updateWallet } from "@workspace/modules/client";
@@ -20,9 +19,6 @@ import {
   ScrollArea,
   Sheet,
   SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
   Switch,
 } from "@workspace/ui";
 import { useForm } from "react-hook-form";
@@ -30,7 +26,6 @@ import { toast } from "sonner";
 import * as z from "zod";
 
 import { SelectAccountGroup } from "@/components/molecules/select-account-group";
-import { useAppStore } from "@/stores/app";
 
 const getAccountSchema = (dictionary: any) => {
   const nameError = dictionary.accounts.form.name.error_required || "Name is required";
@@ -125,7 +120,7 @@ function InternalAccountForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full" noValidate>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex h-full flex-col" noValidate>
         <ScrollArea className="flex-1 px-6">
           <div className="space-y-6 py-6 pb-24">
             <div className="space-y-4">
@@ -192,7 +187,7 @@ function InternalAccountForm({
           </div>
         </ScrollArea>
 
-        <div className="absolute bottom-0 left-0 right-0 p-6 bg-background/80 backdrop-blur-md border-t">
+        <div className="absolute right-0 bottom-0 left-0 border-t bg-background/80 p-6 backdrop-blur-md">
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading
               ? dictionary.accounts.saving
@@ -249,12 +244,12 @@ export function AccountFormSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="p-0 flex flex-col h-full w-full sm:max-w-[450px]">
-        <div className="px-6 pt-6 mb-2">
-          <h2 className="text-lg font-semibold border-b pb-2">
+      <SheetContent className="flex h-full w-full flex-col p-0 sm:max-w-[450px]">
+        <div className="mb-2 px-6 pt-6">
+          <h2 className="border-b pb-2 font-semibold text-lg">
             {walletId ? dictionary.accounts.edit_account : dictionary.accounts.add_account}
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1 text-muted-foreground text-sm">
             {walletId ? dictionary.accounts.edit_description : dictionary.accounts.create_description}
           </p>
         </div>

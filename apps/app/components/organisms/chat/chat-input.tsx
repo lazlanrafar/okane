@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { useChatActions, useChatId, useChatStatus, useDataPart } from "@ai-sdk-tools/store";
-import { sendChatMessage } from "@workspace/modules/ai/ai.action";
+import type { Dictionary } from "@workspace/dictionaries";
 import {
   cn,
   PromptInput,
@@ -22,11 +22,9 @@ import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 
 import { useAiQuota } from "@/hooks/use-ai-quota";
 import { useChatStore } from "@/stores/chat";
- 
-import type { Dictionary } from "@workspace/dictionaries";
 
 import { ChatCommandMenu } from "./chat-command-menu";
-import { ChatHistoryButton, ChatHistoryDropdown, ChatHistoryProvider, useChatHistoryContext } from "./chat-history";
+import { ChatHistoryButton, ChatHistoryDropdown, useChatHistoryContext } from "./chat-history";
 import { ChatSuggestionButton } from "./chat-suggestion-button";
 import { ChatWebSearchButton } from "./chat-web-search-button";
 import { QuotaLimitCard } from "./quota-limit-card";
@@ -167,7 +165,7 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
 
   const containerDarkBg = useTransform(minimizationFactor, (factor) => `rgba(19, 19, 19, ${0.7 - factor * 0.4})`);
 
-  const containerShadow = useTransform(minimizationFactor, (factor) => {
+  const _containerShadow = useTransform(minimizationFactor, (factor) => {
     const opacity = 0.05 - factor * 0.05;
     return `0 4px 12px rgba(0,0,0,${opacity})`;
   });
@@ -305,7 +303,7 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
       className={cn(
-        "mx-auto w-full max-w-full relative",
+        "relative mx-auto w-full max-w-full",
         !isHome && "transition-all duration-300 ease-in-out",
         // isCanvasVisible ? "right-0 md:right-[603px]" : "right-0",
         isHome && "chat-input-static",
@@ -313,7 +311,7 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
     >
       <motion.div
         ref={containerRef}
-        className="mx-auto w-full max-w-full relative"
+        className="relative mx-auto w-full max-w-full"
         style={{
           maxWidth: containerMaxWidth,
         }}
@@ -339,7 +337,7 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
                 : containerBg,
           }}
           className={cn(
-            "bg-[rgba(247,247,247,0.85)]! dark:bg-[rgba(19,19,19,0.7)]! backdrop-blur-lg flex relative p-0 border border-border/50 rounded-3xl overflow-hidden transition-all shadow-none!",
+            "relative flex overflow-hidden rounded-3xl border border-border/50 bg-[rgba(247,247,247,0.85)]! p-0 shadow-none! backdrop-blur-lg transition-all dark:bg-[rgba(19,19,19,0.7)]!",
             isFocused && "border-black/20 dark:border-white/20",
           )}
         >
@@ -349,7 +347,7 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
             globalDrop
             multiple
             accept="application/pdf,image/*"
-            className="bg-transparent! w-full"
+            className="w-full bg-transparent!"
           >
             <motion.div
               style={{
@@ -360,7 +358,7 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
                 flexDirection: bodyFlexDirection,
               }}
             >
-              <PromptInputBody className={cn(targetMinimizationFactor > 0.15 && "flex-row flex-1 pr-2")}>
+              <PromptInputBody className={cn(targetMinimizationFactor > 0.15 && "flex-1 flex-row pr-2")}>
                 <PromptInputAttachments>
                   {(attachment) => <PromptInputAttachment data={attachment} />}
                 </PromptInputAttachments>
@@ -384,9 +382,9 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
                     onBlur={() => setIsFocused(false)}
                     disabled={isExceeded}
                     className={cn(
-                      "w-full h-full border-none bg-transparent resize-none outline-none whitespace-nowrap overflow-hidden text-ellipsis transition-all duration-300",
+                      "h-full w-full resize-none overflow-hidden text-ellipsis whitespace-nowrap border-none bg-transparent outline-none transition-all duration-300",
                       targetMinimizationFactor > 0.4 && !input && "text-center placeholder:text-center",
-                      isExceeded && "opacity-50 cursor-not-allowed",
+                      isExceeded && "cursor-not-allowed opacity-50",
                     )}
                     onKeyDown={(e) => {
                       // Handle Enter key for commands

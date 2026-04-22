@@ -1,15 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useEffect as useReactEffect, useRef, useState } from "react";
+import { useCallback, useMemo, useEffect as useReactEffect, useRef, useState } from "react";
 
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Row } from "@tanstack/react-table";
 import { type ParsedReceipt, parseReceipt } from "@workspace/modules/ai/ai.action";
-import {
-  createTransaction,
-  deleteTransaction,
-  getTransactions,
-} from "@workspace/modules/transaction/transaction.action";
+import { deleteTransaction, getTransactions } from "@workspace/modules/transaction/transaction.action";
 import { uploadVaultFile } from "@workspace/modules/vault/vault.action";
 import type { Category, Transaction, Wallet } from "@workspace/types";
 import {
@@ -26,10 +22,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   Icons,
-  VirtualRow,
 } from "@workspace/ui";
-import { endOfDay, endOfMonth, endOfWeek, format, parseISO, startOfDay, startOfMonth, startOfWeek } from "date-fns";
-import { ChevronDown, ChevronRight, FileUp, Landmark, Plus, Receipt, Upload } from "lucide-react";
+import { endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek } from "date-fns";
+import { ChevronDown, ChevronRight, FileUp, Plus, Receipt, Upload } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
 
@@ -76,8 +71,8 @@ export function TransactionsClient({
   const [parsedReceiptData, setParsedReceiptData] = useState<ParsedReceipt | null>(null);
   const [uploadedReceiptId, setUploadedReceiptId] = useState<string | null>(null);
   const [columns, setColumns] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<"all" | "review" | "none">("all");
-  const [activeGroupIndex, setActiveGroupIndex] = useState<number | null>(null);
+  const [activeTab, _setActiveTab] = useState<"all" | "review" | "none">("all");
+  const [_activeGroupIndex, _setActiveGroupIndex] = useState<number | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -186,7 +181,7 @@ export function TransactionsClient({
     refetchOnWindowFocus: false,
   });
 
-  const reviewCount = reviewCountData?.pages?.[0]?.meta?.pagination?.total ?? 0;
+  const _reviewCount = reviewCountData?.pages?.[0]?.meta?.pagination?.total ?? 0;
 
   const deleteMutation = useMutation({
     mutationFn: deleteTransaction,
@@ -235,7 +230,7 @@ export function TransactionsClient({
     for (const tx of transactions) {
       if (!tx.date) continue;
       const date = parseISO(tx.date);
-      if (isNaN(date.getTime())) continue;
+      if (Number.isNaN(date.getTime())) continue;
 
       let key = "";
       let label = "";
@@ -262,7 +257,7 @@ export function TransactionsClient({
       group.transactions.push(tx);
 
       const amount = Number.parseFloat(tx.amount || "0");
-      if (!isNaN(amount)) {
+      if (!Number.isNaN(amount)) {
         if (tx.type === "income" || tx.type === "transfer-in") {
           group.income += amount;
         } else if (tx.type === "expense" || tx.type === "transfer-out") {
@@ -377,7 +372,7 @@ export function TransactionsClient({
         colorClass: getBGColor("transfer"),
       },
     ],
-    [dictionary, getTransactionColor],
+    [dictionary, getBGColor],
   );
 
   const categoryOptions = useMemo(() => {
@@ -391,7 +386,7 @@ export function TransactionsClient({
         name: c.name,
         colorClass: getBGColor(c.type),
       }));
-  }, [categories, getTransactionColor]);
+  }, [categories, getBGColor]);
 
   const walletOptions = useMemo(() => {
     return wallets
@@ -530,10 +525,10 @@ export function TransactionsClient({
   };
 
   return (
-    <div className="flex w-full flex-col h-full gap-4">
+    <div className="flex h-full w-full flex-col gap-4">
       {/* Search and Actions Header */}
-      <div className="flex items-center justify-between gap-4 shrink-0">
-        <div className="flex items-center flex-1">
+      <div className="flex shrink-0 items-center justify-between gap-4">
+        <div className="flex flex-1 items-center">
           <DataTableFilter
             filters={filters}
             onFilterChange={handleFilterChange as any}
@@ -546,7 +541,7 @@ export function TransactionsClient({
             attachmentsFilters={attachmentsFilters}
             manualFilters={manualFilters}
             excludeKeys={["startDate", "endDate"]}
-            className="w-full bg-transparent border-none p-0 focus-visible:ring-0"
+            className="w-full border-none bg-transparent p-0 focus-visible:ring-0"
             categories={categories}
             accounts={wallets}
           />
@@ -580,16 +575,16 @@ export function TransactionsClient({
                 <span className="text-sm">{dictionary.transactions.add_button}</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 ">
-              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => setIsImportOpen(true)}>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setIsImportOpen(true)}>
                 <FileUp className="h-4 w-4" />
                 <span>{dictionary.transactions.import_backfill}</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={handleCreate}>
+              <DropdownMenuItem className="cursor-pointer gap-2" onClick={handleCreate}>
                 <Receipt className="h-4 w-4" />
                 <span>{dictionary.transactions.create_transaction}</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+              <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => fileInputRef.current?.click()}>
                 <Upload className="h-4 w-4" />
                 <span>{dictionary.transactions.upload_receipts}</span>
               </DropdownMenuItem>
@@ -634,7 +629,7 @@ export function TransactionsClient({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 relative">
+      <div className="relative min-h-0 flex-1">
         {isLoading ? (
           <TransactionTableSkeleton hideHeader />
         ) : (
@@ -735,9 +730,9 @@ export function TransactionsClient({
 
               if (item._isGroup) {
                 return (
-                  <tbody key={item.id} className="w-full block group-container">
+                  <tbody key={item.id} className="group-container block w-full">
                     <tr
-                      className="sticky w-full min-w-full flex border-b border-border bg-[#FBFBFA] dark:bg-[#0A0A0A] hover:bg-[#F2F1EF] hover:dark:bg-[#151515] transition-colors cursor-pointer group/header select-none z-30"
+                      className="group/header sticky z-30 flex w-full min-w-full cursor-pointer select-none border-border border-b bg-[#FBFBFA] transition-colors hover:bg-[#F2F1EF] dark:bg-[#0A0A0A] hover:dark:bg-[#151515]"
                       style={{
                         height: 40,
                         top: 44, // Sticky under the main header
@@ -748,8 +743,8 @@ export function TransactionsClient({
                         toggleGroup(item.groupKey);
                       }}
                     >
-                      <td className="flex items-center px-4 shrink-0 h-full" style={{ width: "100%" }}>
-                        <div className="flex items-center gap-3 w-full">
+                      <td className="flex h-full shrink-0 items-center px-4" style={{ width: "100%" }}>
+                        <div className="flex w-full items-center gap-3">
                           <div className="flex h-4 w-4 shrink-0 items-center justify-center transition-transform duration-200">
                             {item.isExpanded ? (
                               <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -757,15 +752,15 @@ export function TransactionsClient({
                               <ChevronRight className="h-4 w-4 text-muted-foreground" />
                             )}
                           </div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground text-nowrap">
+                          <span className="text-nowrap font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
                             {item.label}
                           </span>
 
                           <div className="ml-auto flex items-center gap-4">
-                            <span className={cn("text-[10px] font-bold", getTransactionColor("income"))}>
+                            <span className={cn("font-bold text-[10px]", getTransactionColor("income"))}>
                               {formatCurrency(item.income)}
                             </span>
-                            <span className={cn("text-[10px] font-bold", getTransactionColor("expense"))}>
+                            <span className={cn("font-bold text-[10px]", getTransactionColor("expense"))}>
                               {formatCurrency(item.expense)}
                             </span>
                           </div>
@@ -851,7 +846,7 @@ export function TransactionsClient({
                             getStickyStyle={getStickyStyle}
                             getStickyClassName={getStickyClassName}
                             nonClickableColumns={nonClickableColumns}
-                            onCellClick={(rowId, colId) => {
+                            onCellClick={(_rowId, colId) => {
                               if (!nonClickableColumns.has(colId)) {
                                 handleRowClick(tx);
                               }
@@ -869,7 +864,7 @@ export function TransactionsClient({
 
               // This case happens if groupBy === "none"
               return (
-                <tbody key={row.id} className="w-full block">
+                <tbody key={row.id} className="block w-full">
                   <DataTableRow
                     key={row.id}
                     row={row}
@@ -877,7 +872,7 @@ export function TransactionsClient({
                     getStickyStyle={getStickyStyle}
                     getStickyClassName={getStickyClassName}
                     nonClickableColumns={nonClickableColumns}
-                    onCellClick={(rowId, colId) => {
+                    onCellClick={(_rowId, colId) => {
                       if (!nonClickableColumns.has(colId)) {
                         handleRowClick(item as Transaction);
                       }

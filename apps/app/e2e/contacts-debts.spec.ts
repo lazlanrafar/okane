@@ -10,7 +10,7 @@ import { expect, test } from "./fixtures";
  * We wait for the "New Contact" button as proof of hydration.
  */
 test.describe("Workspace: Contacts", () => {
-  const testContact = {
+  const _testContact = {
     name: `E2E Contact ${Date.now()}`,
     email: `e2e_${Date.now()}@example.com`,
     phone: "+62812345678",

@@ -55,8 +55,8 @@ export function ChatStatusIndicators({
     }
 
     return (
-      <div className="h-8 flex items-center gap-2 text-destructive">
-        <span className="text-xs font-normal">{errorMessage}</span>
+      <div className="flex h-8 items-center gap-2 text-destructive">
+        <span className="font-normal text-xs">{errorMessage}</span>
       </div>
     );
   }
@@ -113,13 +113,13 @@ export function ChatStatusIndicators({
   }
 
   return (
-    <div className="h-8 flex items-center gap-2">
+    <div className="flex h-8 items-center gap-2">
       <AnimatedStatus
         text={displayMessage ?? null}
         shimmerDuration={0.75}
         fadeDuration={0.1}
         variant="slide"
-        className="text-xs font-normal"
+        className="font-normal text-xs"
         icon={toolIcon}
       />
     </div>

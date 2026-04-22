@@ -1,18 +1,7 @@
 "use client";
 
-import {
-  cn,
-  Label,
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-  Switch,
-} from "@workspace/ui";
-import { ArrowRight, Info } from "lucide-react";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui";
+import { ArrowRight } from "lucide-react";
 import { Controller } from "react-hook-form";
 
 import { mappableFields, useCsvContext } from "./transaction-import-context";
@@ -24,11 +13,11 @@ export function FieldMapping() {
     <div className="mt-4 space-y-4">
       <div className="flex flex-col gap-3 font-sans">
         <div className="flex items-center justify-between px-1">
-          <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider w-[45%]">
+          <div className="w-[45%] font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
             CSV Column
           </div>
           <div className="w-10" />
-          <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider w-[45%]">
+          <div className="w-[45%] font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
             Oewang Field
           </div>
         </div>
@@ -91,7 +80,7 @@ function FieldRow({
           render={({ field }) => (
             <div className="space-y-1.5">
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger className="h-10 text-xs text-foreground/80">
+                <SelectTrigger className="h-10 text-foreground/80 text-xs">
                   <SelectValue placeholder={`Select column`} />
                 </SelectTrigger>
                 <SelectContent>
@@ -105,8 +94,8 @@ function FieldRow({
                 </SelectContent>
               </Select>
               {field.value && (
-                <div className="px-2 overflow-hidden">
-                  <p className="text-[10px] text-muted-foreground truncate italic">
+                <div className="overflow-hidden px-2">
+                  <p className="truncate text-[10px] text-muted-foreground italic">
                     Preview:{" "}
                     {firstRows
                       ? firstRows
@@ -123,13 +112,13 @@ function FieldRow({
         />
       </div>
 
-      <div className="flex items-center justify-center w-10 shrink-0">
+      <div className="flex w-10 shrink-0 items-center justify-center">
         <ArrowRight className="h-4 w-4 text-muted-foreground/40" />
       </div>
 
-      <div className="flex items-center justify-between px-3 h-10 bg-muted/30 border w-[45%] min-w-0">
-        <span className="text-xs font-medium text-foreground/80">{label}</span>
-        {required && <span className="text-[10px] text-red-500 font-bold ml-1">*</span>}
+      <div className="flex h-10 w-[45%] min-w-0 items-center justify-between border bg-muted/30 px-3">
+        <span className="font-medium text-foreground/80 text-xs">{label}</span>
+        {required && <span className="ml-1 font-bold text-[10px] text-red-500">*</span>}
       </div>
     </div>
   );

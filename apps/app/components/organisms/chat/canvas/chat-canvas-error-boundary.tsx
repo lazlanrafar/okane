@@ -47,7 +47,7 @@ export class CanvasErrorBoundary extends Component<CanvasErrorBoundaryProps, Can
       }
 
       // Default minimal error fallback
-      return <div className="text-xs text-[#707070] dark:text-[#666666] p-2">Error loading content</div>;
+      return <div className="p-2 text-[#707070] text-xs dark:text-[#666666]">Error loading content</div>;
     }
 
     return this.props.children;

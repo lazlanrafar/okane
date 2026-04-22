@@ -8,7 +8,7 @@ import { onboardingCreateWorkspaceAction } from "@workspace/modules/auth/auth.ac
 import { createCheckoutSession } from "@workspace/modules/mayar/mayar.action";
 import { createBrowserClient } from "@workspace/supabase/client";
 import type { Pricing } from "@workspace/types";
-import { Badge, Button, cn, Input, Label, SelectCountry, SelectCurrency } from "@workspace/ui";
+import { Badge, Button, cn } from "@workspace/ui";
 import { annualSavingsPct, displayPrice, getGatewayPrice, isFree } from "@workspace/utils";
 import { ArrowLeft, Check, Loader2 } from "lucide-react";
 
@@ -162,7 +162,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
   const selected = plans.find((p) => p.id === selectedPlanId);
   const hasAnnual = plans.some((p) => p.prices.some((pr) => pr.yearly > 0) && !isFree(p));
   const hasPaid = plans.some((p) => !isFree(p));
-  const bestSavings = Math.max(...plans.map((p) => annualSavingsPct(p) ?? 0));
+  const _bestSavings = Math.max(...plans.map((p) => annualSavingsPct(p) ?? 0));
 
   return (
     <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[450px]">
@@ -174,7 +174,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
           <div className="space-y-3">
             <Steps step={1} />
             <h1 className="font-sans text-2xl tracking-tight">Business details</h1>
-            <p className="text-sm leading-relaxed text-muted-foreground">
+            <p className="text-muted-foreground text-sm leading-relaxed">
               Add company details so amounts, currency, tax, and reporting periods line up correctly across insights,
               invoices and exports.
             </p>
@@ -207,14 +207,14 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                   setStep(1);
                   setError(null);
                 }}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1.5 text-muted-foreground text-xs transition-colors hover:text-foreground"
               >
                 <ArrowLeft className="size-3" />
                 Back
               </button>
             </div>
             <h1 className="font-sans text-2xl tracking-tight">Choose a plan</h1>
-            <p className="text-sm leading-relaxed text-muted-foreground">
+            <p className="text-muted-foreground text-sm leading-relaxed">
               {hasPaid
                 ? "Start with a 14-day free trial on paid plans. No credit card required."
                 : "Select the plan that works best for your team."}
@@ -230,7 +230,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                     type="button"
                     onClick={() => setBilling("monthly")}
                     className={cn(
-                      "flex-1 py-1.5 text-xs font-medium transition-all",
+                      "flex-1 py-1.5 font-medium text-xs transition-all",
                       billing === "monthly"
                         ? "bg-foreground text-background shadow-sm"
                         : "text-muted-foreground hover:text-foreground",
@@ -242,7 +242,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                     type="button"
                     onClick={() => setBilling("annual")}
                     className={cn(
-                      "flex-1 py-1.5 text-xs font-medium transition-all",
+                      "flex-1 py-1.5 font-medium text-xs transition-all",
                       billing === "annual"
                         ? "bg-foreground text-background shadow-sm"
                         : "text-muted-foreground hover:text-foreground",
@@ -260,7 +260,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                     type="button"
                     onClick={() => setBillingCurrency(c)}
                     className={cn(
-                      "flex-1 py-1.5 text-[10px] font-bold uppercase transition-all",
+                      "flex-1 py-1.5 font-bold text-[10px] uppercase transition-all",
                       billingCurrency === c
                         ? "bg-foreground text-background shadow-sm"
                         : "text-muted-foreground hover:text-foreground",
@@ -290,7 +290,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                     type="button"
                     onClick={() => setSelectedPlanId(plan.id)}
                     className={cn(
-                      "w-full  border px-4 py-3 text-left transition-all",
+                      "w-full border px-4 py-3 text-left transition-all",
                       isSelected
                         ? "border-foreground bg-foreground/5"
                         : "border-border/60 hover:border-border hover:bg-muted/20",
@@ -299,7 +299,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-medium">{plan.name}</span>
+                          <span className="font-medium text-sm">{plan.name}</span>
                           {free && (
                             <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
                               Free forever
@@ -319,11 +319,11 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
                             </Badge>
                           )}
                         </div>
-                        {plan.description && <p className="mt-0.5 text-xs text-muted-foreground">{plan.description}</p>}
+                        {plan.description && <p className="mt-0.5 text-muted-foreground text-xs">{plan.description}</p>}
                         {isSelected && plan.features.length > 0 && (
                           <ul className="mt-3 space-y-1.5">
                             {plan.features.map((f) => (
-                              <li key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <li key={f} className="flex items-center gap-2 text-muted-foreground text-xs">
                                 <Check className="size-3 shrink-0 text-foreground" />
                                 {f}
                               </li>
@@ -334,9 +334,9 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
 
                       <div className="flex shrink-0 items-center gap-3">
                         <div className="text-right">
-                          <span className="text-sm font-semibold">{price?.label}</span>
+                          <span className="font-semibold text-sm">{price?.label}</span>
                           {price.note && (
-                            <span className="block text-[10px] whitespace-nowrap text-muted-foreground">
+                            <span className="block whitespace-nowrap text-[10px] text-muted-foreground">
                               {price.note}
                             </span>
                           )}
@@ -357,7 +357,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
             </div>
 
             {error && (
-              <div className=" border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <div className="border border-destructive/20 bg-destructive/10 px-3 py-2 text-destructive text-sm">
                 {error}
               </div>
             )}
@@ -376,7 +376,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
             </Button>
 
             {selected && !isFree(selected) && (
-              <p className="text-center text-xs text-muted-foreground">
+              <p className="text-center text-muted-foreground text-xs">
                 14-day free trial, then{" "}
                 {
                   displayPrice(selected, billing, {

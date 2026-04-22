@@ -36,9 +36,9 @@ export function BudgetCard({ budget, onEdit, onDelete, currencyCode = "USD", loc
   };
 
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-md h-full flex flex-col">
+    <Card className="flex h-full flex-col overflow-hidden transition-all hover:shadow-md">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium truncate flex-1">{budget.categoryName}</CardTitle>
+        <CardTitle className="flex-1 truncate font-medium text-sm">{budget.categoryName}</CardTitle>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -57,11 +57,11 @@ export function BudgetCard({ budget, onEdit, onDelete, currencyCode = "USD", loc
           </DropdownMenuContent>
         </DropdownMenu>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col justify-between pt-2">
+      <CardContent className="flex flex-1 flex-col justify-between pt-2">
         <div className="space-y-3">
           <div className="flex items-baseline justify-between gap-1">
-            <span className="text-2xl font-bold">{formatCurrency(budget.spent, currencySettings, { locale })}</span>
-            <span className="text-sm text-muted-foreground whitespace-nowrap">
+            <span className="font-bold text-2xl">{formatCurrency(budget.spent, currencySettings, { locale })}</span>
+            <span className="whitespace-nowrap text-muted-foreground text-sm">
               of {formatCurrency(budget.amount, currencySettings, { locale })}
             </span>
           </div>
@@ -71,7 +71,7 @@ export function BudgetCard({ budget, onEdit, onDelete, currencyCode = "USD", loc
               value={Math.min(budget.percentage, 100)}
               className={cn("h-2", isOverBudget ? "[&>div]:bg-destructive" : isWarning ? "[&>div]:bg-yellow-500" : "")}
             />
-            <div className="flex justify-between items-center text-xs">
+            <div className="flex items-center justify-between text-xs">
               <span
                 className={cn(
                   "font-medium",
@@ -81,7 +81,7 @@ export function BudgetCard({ budget, onEdit, onDelete, currencyCode = "USD", loc
                 {budget.percentage}% spent
               </span>
               {isOverBudget && (
-                <span className="text-destructive font-medium uppercase tracking-wider">Over Budget</span>
+                <span className="font-medium text-destructive uppercase tracking-wider">Over Budget</span>
               )}
             </div>
           </div>

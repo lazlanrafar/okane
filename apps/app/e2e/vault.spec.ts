@@ -1,7 +1,6 @@
-import fs from "fs";
-import path from "path";
-
 import { expect, test } from "./fixtures";
+import fs from "node:fs";
+import path from "node:path";
 
 /**
  * Workspace: Vault (Secure File Storage)

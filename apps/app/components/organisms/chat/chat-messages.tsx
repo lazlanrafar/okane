@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 
-import { extractArtifactTypeFromMessage, extractBankAccountRequired, extractInsightData } from "@workspace/constants";
+import { extractArtifactTypeFromMessage, extractInsightData } from "@workspace/constants";
+import type { Dictionary } from "@workspace/dictionaries";
 import { Message, MessageAvatar, MessageContent, Response } from "@workspace/ui";
 import type { UIMessage } from "ai";
 import { PaperclipIcon } from "lucide-react";
@@ -11,8 +12,6 @@ import { ChatArtifactToggle } from "./chat-artifact-toggle";
 import { ChatFaviconStack } from "./chat-favicon-stack";
 import { ChatInsightMessage } from "./chat-insight-message";
 import { ChatMessageActions } from "./chat-message-actions";
- 
-import type { Dictionary } from "@workspace/dictionaries";
 
 interface ChatMessagesProps {
   messages: UIMessage[];
@@ -126,7 +125,7 @@ export function ChatMessages({ messages, isStreaming = false, dictionary }: Chat
             {fileParts.length > 0 && (
               <Message from={message.role}>
                 <MessageContent className="max-w-[80%]">
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="mb-2 flex flex-wrap gap-2">
                     {fileParts.map((part) => {
                       if (part.type !== "file") return null;
 
@@ -143,11 +142,11 @@ export function ChatMessages({ messages, isStreaming = false, dictionary }: Chat
 
                       if (isImage && file.url) {
                         return (
-                          <div key={fileKey} className="relative rounded-lg border overflow-hidden">
+                          <div key={fileKey} className="relative overflow-hidden rounded-lg border">
                             <Image
                               src={file.url}
                               alt={file.filename || "attachment"}
-                              className="max-w-xs max-h-48 object-cover"
+                              className="max-h-48 max-w-xs object-cover"
                               width={300}
                               height={192}
                               unoptimized
@@ -157,9 +156,9 @@ export function ChatMessages({ messages, isStreaming = false, dictionary }: Chat
                       }
 
                       return (
-                        <div key={fileKey} className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-muted/50">
+                        <div key={fileKey} className="flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2">
                           <PaperclipIcon className="size-4 shrink-0 text-muted-foreground" />
-                          <span className="text-sm font-medium">
+                          <span className="font-medium text-sm">
                             {file.filename || dictionary.common.na || "Unknown file"}
                           </span>
                         </div>
@@ -176,7 +175,7 @@ export function ChatMessages({ messages, isStreaming = false, dictionary }: Chat
             {/* Render insight as a dedicated component - full width */}
             {insightData && message.role === "assistant" && (
               <Message from={message.role}>
-                <MessageContent className="max-w-full! w-full">
+                <MessageContent className="w-full max-w-full!">
                   <ChatInsightMessage insight={insightData} />
                 </MessageContent>
               </Message>
@@ -203,8 +202,8 @@ export function ChatMessages({ messages, isStreaming = false, dictionary }: Chat
 
             {/* Render message actions and artifact toggle for assistant messages when finished */}
             {message.role === "assistant" && isMessageFinished && (textContent || insightData) && (
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <div className="flex items-center gap-1 mt-3">
+              <div className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                <div className="mt-3 flex items-center gap-1">
                   {/* Message actions */}
                   <ChatMessageActions
                     messageContent={textContent}

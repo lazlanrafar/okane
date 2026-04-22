@@ -1,7 +1,6 @@
 "use client";
 
-import * as React from "react";
-
+import type { Dictionary } from "@workspace/dictionaries";
 import {
   Button,
   DropdownMenu,
@@ -20,7 +19,6 @@ import {
   DropdownMenuTrigger,
   SelectCurrency,
 } from "@workspace/ui";
-import type { Dictionary } from "@workspace/dictionaries";
 import {
   Calculator,
   Calendar,
@@ -38,7 +36,6 @@ import {
   Pencil,
   Percent,
   QrCode,
-  RotateCcw,
   Settings,
   Trash2,
   Type,
@@ -127,7 +124,7 @@ export function InvoiceSettings({
                     <span>{dict.settings.currency || "Currency"}</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
-                    <DropdownMenuSubContent className="p-0 border-none shadow-none">
+                    <DropdownMenuSubContent className="border-none p-0 shadow-none">
                       <SelectCurrency
                         value={settings?.currency}
                         onSelect={(c) => onUpdate("currency", c.code)}
@@ -262,7 +259,7 @@ export function InvoiceSettings({
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-[10px] font-normal text-muted-foreground px-2 py-1.5 uppercase tracking-wider">
+          <DropdownMenuLabel className="px-2 py-1.5 font-normal text-[10px] text-muted-foreground uppercase tracking-wider">
             {dict.settings.sharing || "Sharing"}
           </DropdownMenuLabel>
           <DropdownMenuCheckboxItem
@@ -280,7 +277,7 @@ export function InvoiceSettings({
                 <span>{dict.details.public_sharing || "Access code"}</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
-                <DropdownMenuSubContent className="p-2 w-48">
+                <DropdownMenuSubContent className="w-48 p-2">
                   <div className="flex flex-col gap-2">
                     <span className="text-[10px] text-muted-foreground uppercase">
                       {dict.details.set_access_code || "Set access code"}
@@ -288,7 +285,7 @@ export function InvoiceSettings({
                     <input
                       type="text"
                       placeholder={dict.details.set_access_code || "Enter code..."}
-                      className="w-full bg-muted border-none rounded-md p-1.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                      className="w-full rounded-md border-none bg-muted p-1.5 text-xs outline-none focus:ring-1 focus:ring-primary"
                       value={(settings as any).accessCode || ""}
                       onChange={(e) => onUpdate("accessCode", e.target.value)}
                       onClick={(e) => e.stopPropagation()}

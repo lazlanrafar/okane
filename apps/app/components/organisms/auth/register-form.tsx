@@ -9,8 +9,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { useAppStore } from "@/stores/app";
-
 const getFormSchema = (dictionary: any) => {
   if (!dictionary) {
     return z

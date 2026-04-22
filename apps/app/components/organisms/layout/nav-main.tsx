@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
-  Button,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -23,7 +22,7 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "@workspace/ui";
-import { ChevronRight, MailIcon, PlusCircleIcon } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 import type { NavGroup, NavMainItem } from "@/navigation/sidebar/sidebar-items";
 
@@ -36,7 +35,7 @@ import { i18n } from "@/i18n-config";
 import { useLocalizedRoute } from "@/utils/localized-route";
 
 const IsComingSoon = ({ dictionary }: { dictionary: any }) => (
-  <span className="ml-auto rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+  <span className="ml-auto whitespace-nowrap rounded-md bg-muted px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
     {dictionary.sidebar.coming_soon}
   </span>
 );

@@ -10,7 +10,6 @@ import {
   cancelAddonAction,
   cancelSubscription,
   createCheckoutSession,
-  createCustomerPortal,
   getInvoiceUrl,
   sendMagicLinkAction,
 } from "@workspace/modules/mayar/mayar.action";
@@ -24,8 +23,6 @@ import {
   Button,
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
   cn,
@@ -56,11 +53,11 @@ function BillingSkeleton() {
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border pb-2">
+        <div className="flex items-center justify-between border border-b pb-2">
           <Skeleton className="h-4 w-32 rounded-none" />
           <Skeleton className="h-8 w-40 rounded-none" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-64 w-full rounded-none" />
           ))}
@@ -82,7 +79,7 @@ export function BillingView({
   const [mounted, setMounted] = React.useState(false);
   const { workspace, settings, dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as any;
   const dictionary = dict || storeDict;
-  const [billingCycle, setBillingCycle] = React.useState<"monthly" | "annual">("monthly");
+  const [billingCycle, _setBillingCycle] = React.useState<"monthly" | "annual">("monthly");
   const [history, setHistory] = React.useState<Order[]>([]);
   const [loadingHistory, setLoadingHistory] = React.useState(true);
 
@@ -150,7 +147,7 @@ export function BillingView({
     onError: (error: any) => toast.error(error.message),
   });
 
-  const downgradeMutation = useMutation({
+  const _downgradeMutation = useMutation({
     mutationFn: async () => {
       const result = await cancelSubscription();
       if (!result.success) throw new Error(result.error);
@@ -219,9 +216,9 @@ export function BillingView({
   const vaultProgress = Math.min(100, (vaultUsed / vaultLimitBytes) * 100);
   const aiProgress = Math.min(100, (aiUsed / aiLimitTokens) * 100);
   const isOverStorageLimit = vaultUsed > vaultLimitBytes;
-  const storageViolationAt = workspace?.storage_violation_at ? new Date(workspace?.storage_violation_at) : null;
+  const _storageViolationAt = workspace?.storage_violation_at ? new Date(workspace?.storage_violation_at) : null;
 
-  const sortedPlans = [...(initialPlans || [])].sort((a, b) => {
+  const _sortedPlans = [...(initialPlans || [])].sort((a, b) => {
     const order = ["starter", "pro", "business"];
     return order.indexOf(a.name.toLowerCase()) - order.indexOf(b.name.toLowerCase());
   });
@@ -229,8 +226,8 @@ export function BillingView({
   return (
     <div className="space-y-8 pb-10">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">{billingDict.title}</h2>
-        <p className="text-xs text-muted-foreground">{billingDict.description}</p>
+        <h2 className="font-medium text-lg tracking-tight">{billingDict.title}</h2>
+        <p className="text-muted-foreground text-xs">{billingDict.description}</p>
       </div>
 
       <Separator className="rounded-none" />
@@ -238,10 +235,10 @@ export function BillingView({
       {isOverStorageLimit && (
         <Alert variant="destructive" className="rounded-none border-destructive/50 bg-destructive/5">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle className="text-xs font-semibold uppercase tracking-widest">
+          <AlertTitle className="font-semibold text-xs uppercase tracking-widest">
             {billingDict.storage_limit_exceeded || "Storage Limit Exceeded"}
           </AlertTitle>
-          <AlertDescription className="text-[11px] mt-1 opacity-90 leading-relaxed">
+          <AlertDescription className="mt-1 text-[11px] leading-relaxed opacity-90">
             {billingDict.storage_grace_period_desc ||
               "Your workspace is currently over its storage limit. Files will be kept for 30 days before being inactivated and eventually deleted. Please upgrade your plan or free up space to avoid data loss."}
           </AlertDescription>
@@ -249,25 +246,25 @@ export function BillingView({
       )}
 
       {/* Current Plan Hero Card */}
-      <Card className="rounded-none shadow-none border bg-accent/5 overflow-hidden relative group">
-        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+      <Card className="group relative overflow-hidden rounded-none border bg-accent/5 shadow-none">
+        <div className="pointer-events-none absolute top-0 right-0 p-8 opacity-5 transition-opacity group-hover:opacity-10">
           <Zap className="h-32 w-32" />
         </div>
-        <CardHeader className="p-6 pb-2 relative z-10">
-          <div className="flex items-center justify-between mb-4">
+        <CardHeader className="relative z-10 p-6 pb-2">
+          <div className="mb-4 flex items-center justify-between">
             <div className="space-y-1">
               <Badge
                 variant="outline"
-                className="rounded-none text-[10px] uppercase tracking-widest px-2 h-5 font-semibold bg-background border"
+                className="h-5 rounded-none border bg-background px-2 font-semibold text-[10px] uppercase tracking-widest"
               >
                 {billingDict.current_plan}
               </Badge>
               <div className="flex items-center gap-3">
-                <h3 className="text-2xl font-medium tracking-tight">{currentPlan.name}</h3>
+                <h3 className="font-medium text-2xl tracking-tight">{currentPlan.name}</h3>
                 {workspace?.mayar_transaction_id && (
                   <Badge
                     variant="secondary"
-                    className="rounded-none text-[9px] h-4 px-1.5 font-medium tracking-wide uppercase bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                    className="h-4 rounded-none border-emerald-500/20 bg-emerald-500/10 px-1.5 font-medium text-[9px] text-emerald-600 uppercase tracking-wide"
                   >
                     {dictionary.common.active || "Active"}
                   </Badge>
@@ -276,54 +273,54 @@ export function BillingView({
             </div>
             <div className="text-right">
               <div className="flex items-baseline justify-end gap-1">
-                <span className="text-3xl font-serif tracking-tight font-medium">
+                <span className="font-medium font-serif text-3xl tracking-tight">
                   {displayPrice(currentPlan, billingCycle, { currency }).label}
                 </span>
                 {currentPlan.name.toLowerCase() !== "starter" && (
-                  <span className="text-xs text-muted-foreground uppercase">
+                  <span className="text-muted-foreground text-xs uppercase">
                     / {billingCycle === "monthly" ? billingDict.mo : billingDict.yr}
                   </span>
                 )}
               </div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
+              <p className="mt-1 text-[10px] text-muted-foreground uppercase tracking-widest">
                 {billingCycle === "annual" ? billingDict.annual_toggle : billingDict.monthly_toggle}
               </p>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6 pt-2 pb-6 relative z-10">
-          <div className="grid md:grid-cols-2 gap-8">
+        <CardContent className="relative z-10 p-6 pt-2 pb-6">
+          <div className="grid gap-8 md:grid-cols-2">
             <div className="space-y-4">
-              <p className="text-xs text-muted-foreground leading-relaxed max-w-sm">{currentPlan.description}</p>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+              <p className="max-w-sm text-muted-foreground text-xs leading-relaxed">{currentPlan.description}</p>
+              <ul className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
                 {(currentPlan.features || []).slice(0, 8).map((feature: string, i: number) => (
                   <li key={i} className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                    <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                    <Check className="h-3 w-3 shrink-0 text-emerald-500" />
                     <span className="truncate">{feature}</span>
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="flex flex-col justify-end gap-3 sm:flex-row h-fit self-end">
+            <div className="flex h-fit flex-col justify-end gap-3 self-end sm:flex-row">
               {workspace?.mayar_transaction_id ? (
                 <>
                   <Button
                     variant="outline"
                     onClick={() => portalMutation.mutate()}
                     disabled={portalMutation.isPending}
-                    className="rounded-none text-xs h-9 px-6 font-normal bg-background border hover:bg-accent/5 transition-colors"
+                    className="h-9 rounded-none border bg-background px-6 font-normal text-xs transition-colors hover:bg-accent/5"
                   >
                     <CreditCard className="mr-2 h-3.5 w-3.5" />
                     {portalMutation.isPending
                       ? dictionary.common.opening || "Opening..."
                       : billingDict.manage_subscription}
                   </Button>
-                  <Button asChild className="rounded-none text-xs h-9 px-6 font-medium shadow-sm">
+                  <Button asChild className="h-9 rounded-none px-6 font-medium text-xs shadow-sm">
                     <Link href={getLocalizedUrl("/upgrade")}>{billingDict.upgrade || "Upgrade Plan"}</Link>
                   </Button>
                 </>
               ) : (
-                <Button asChild className="rounded-none text-xs h-9 px-8 font-medium shadow-sm">
+                <Button asChild className="h-9 rounded-none px-8 font-medium text-xs shadow-sm">
                   <Link href={getLocalizedUrl("/upgrade")}>{billingDict.upgrade || "View Plans"}</Link>
                 </Button>
               )}
@@ -335,28 +332,28 @@ export function BillingView({
       {/* Usage Indicators */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Vault */}
-        <Card className="rounded-none shadow-none border bg-background">
+        <Card className="rounded-none border bg-background shadow-none">
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between font-semibold text-[10px] text-muted-foreground uppercase tracking-widest">
               {billingDict.vault_storage || "Vault Storage"}
               <Shield className="h-3.5 w-3.5 text-muted-foreground/50" />
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 pt-0 space-y-4">
+          <CardContent className="space-y-4 p-4 pt-0">
             <div className="flex items-baseline justify-between">
-              <div className="text-2xl font-serif tracking-tight font-medium">
+              <div className="font-medium font-serif text-2xl tracking-tight">
                 {formatBytes(vaultUsed)}
-                <span className="text-xs font-normal text-muted-foreground ml-1.5 uppercase">
+                <span className="ml-1.5 font-normal text-muted-foreground text-xs uppercase">
                   / {formatBytes(vaultLimitBytes)}
                 </span>
               </div>
-              <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest">
+              <span className="font-medium text-[10px] text-muted-foreground/60 uppercase tracking-widest">
                 {vaultProgress.toFixed(0)}%
               </span>
             </div>
             <div className="space-y-2">
               <Progress value={vaultProgress} className="h-1 rounded-none bg-muted/40" />
-              <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
+              <div className="flex justify-between font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
                 <span>{dictionary.common.used || "Used"}</span>
                 <span>
                   {formatBytes(Math.max(0, vaultLimitBytes - vaultUsed))} {dictionary.common.remaining || "Remaining"}
@@ -367,28 +364,28 @@ export function BillingView({
         </Card>
 
         {/* AI Tokens */}
-        <Card className="rounded-none shadow-none border bg-background">
+        <Card className="rounded-none border bg-background shadow-none">
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between font-semibold text-[10px] text-muted-foreground uppercase tracking-widest">
               {billingDict.ai_tokens || "AI Tokens"}
               <Zap className="h-3.5 w-3.5 text-muted-foreground/50" />
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 pt-0 space-y-4">
+          <CardContent className="space-y-4 p-4 pt-0">
             <div className="flex items-baseline justify-between">
-              <div className="text-2xl font-serif tracking-tight font-medium">
+              <div className="font-medium font-serif text-2xl tracking-tight">
                 {aiUsed.toLocaleString()}
-                <span className="text-xs font-normal text-muted-foreground ml-1.5 uppercase">
+                <span className="ml-1.5 font-normal text-muted-foreground text-xs uppercase">
                   / {aiLimitTokens.toLocaleString()}
                 </span>
               </div>
-              <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest">
+              <span className="font-medium text-[10px] text-muted-foreground/60 uppercase tracking-widest">
                 {aiProgress.toFixed(0)}%
               </span>
             </div>
             <div className="space-y-2">
               <Progress value={aiProgress} className="h-1 rounded-none bg-muted/40" />
-              <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
+              <div className="flex justify-between font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
                 <span>{dictionary.common.used || "Used"}</span>
                 <span>
                   {Math.max(0, aiLimitTokens - aiUsed).toLocaleString()} {dictionary.common.remaining || "Remaining"}
@@ -402,7 +399,7 @@ export function BillingView({
       {/* Add-ons List (Horizontal Rows) */}
       <div className="space-y-4">
         <div className="border-b pb-2">
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+          <p className="font-semibold text-[10px] text-muted-foreground uppercase tracking-widest">
             {billingDict.addons || "Monthly Add-ons"}
           </p>
         </div>
@@ -420,30 +417,30 @@ export function BillingView({
               <Card
                 key={addon.id}
                 className={cn(
-                  "rounded-none shadow-none border bg-background hover:bg-accent/5 transition-all p-4",
+                  "rounded-none border bg-background p-4 shadow-none transition-all hover:bg-accent/5",
                   isActive && "opacity-80",
                 )}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                   <div className="flex items-center gap-4">
                     <div
                       className={cn(
-                        "size-10 flex items-center justify-center shrink-0 border",
+                        "flex size-10 shrink-0 items-center justify-center border",
                         addon.addon_type === "ai"
-                          ? "bg-amber-500/5 text-amber-500 border-amber-500/20"
-                          : "bg-emerald-500/5 text-emerald-500 border-emerald-500/20",
+                          ? "border-amber-500/20 bg-amber-500/5 text-amber-500"
+                          : "border-emerald-500/20 bg-emerald-500/5 text-emerald-500",
                       )}
                     >
                       {addon.addon_type === "ai" ? <Zap className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
                     </div>
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium tracking-tight">{addon.name}</span>
+                        <span className="font-medium text-sm tracking-tight">{addon.name}</span>
                         {isActive && (
                           <Badge
                             variant="secondary"
                             className={cn(
-                              "rounded-none text-[8px] h-3.5 px-1 font-mono uppercase",
+                              "h-3.5 rounded-none px-1 font-mono text-[8px] uppercase",
                               addon.addon_type === "ai"
                                 ? "bg-amber-500/10 text-amber-600"
                                 : "bg-emerald-500/10 text-emerald-600",
@@ -453,16 +450,16 @@ export function BillingView({
                           </Badge>
                         )}
                       </div>
-                      <p className="text-[10px] text-muted-foreground line-clamp-1 max-w-md">{addon.description}</p>
+                      <p className="line-clamp-1 max-w-md text-[10px] text-muted-foreground">{addon.description}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-10">
-                    <div className="text-right whitespace-nowrap">
-                      <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium mb-0.5">
+                  <div className="flex items-center justify-between gap-6 sm:justify-end sm:gap-10">
+                    <div className="whitespace-nowrap text-right">
+                      <p className="mb-0.5 font-medium text-[9px] text-muted-foreground uppercase tracking-widest">
                         {addon.addon_type === "ai" ? "Quota" : "Storage"}
                       </p>
-                      <p className="text-xs font-serif font-medium">
+                      <p className="font-medium font-serif text-xs">
                         {addon.addon_type === "ai"
                           ? `+${addon.max_ai_tokens.toLocaleString()}`
                           : `+${addon.max_vault_size_mb} MB`}
@@ -471,11 +468,11 @@ export function BillingView({
 
                     {isActive &&
                       workspace?.active_addons.find((a: any) => a.id === addon.id).status === "cancelled" && (
-                        <div className="text-right whitespace-nowrap">
-                          <p className="text-[9px] text-destructive uppercase tracking-widest font-medium mb-0.5">
+                        <div className="whitespace-nowrap text-right">
+                          <p className="mb-0.5 font-medium text-[9px] text-destructive uppercase tracking-widest">
                             {billingDict.deactivating_at || "Deactivating at"}
                           </p>
-                          <p className="text-xs font-medium text-destructive">
+                          <p className="font-medium text-destructive text-xs">
                             {(() => {
                               if (!addonData) return null;
                               const date = new Date(addonData.created_at);
@@ -490,20 +487,20 @@ export function BillingView({
                         </div>
                       )}
 
-                    <div className="text-right whitespace-nowrap min-w-[80px]">
-                      <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium mb-0.5">
+                    <div className="min-w-[80px] whitespace-nowrap text-right">
+                      <p className="mb-0.5 font-medium text-[9px] text-muted-foreground uppercase tracking-widest">
                         {billingDict.price || "Price"}
                       </p>
-                      <p className="text-xs font-serif font-medium">
+                      <p className="font-medium font-serif text-xs">
                         {price?.label}{" "}
-                        <span className="text-[9px] font-normal text-muted-foreground">/ {billingDict.mo}</span>
+                        <span className="font-normal text-[9px] text-muted-foreground">/ {billingDict.mo}</span>
                       </p>
                     </div>
 
                     <Button
                       size="sm"
                       variant={isActive ? "outline" : "default"}
-                      className="rounded-none text-[10px] uppercase tracking-widest h-8 px-5"
+                      className="h-8 rounded-none px-5 text-[10px] uppercase tracking-widest"
                       disabled={checkoutMutation.isPending || cancelAddonMutation.isPending}
                       onClick={async () => {
                         if (isActive) {
@@ -553,14 +550,14 @@ export function BillingView({
       {/* Billing history */}
       <div className="space-y-6">
         <div className="border-b pb-2">
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+          <p className="font-semibold text-[10px] text-muted-foreground uppercase tracking-widest">
             {billingDict.history.title}
           </p>
         </div>
-        <Card className="rounded-none shadow-none border overflow-hidden bg-background">
+        <Card className="overflow-hidden rounded-none border bg-background shadow-none">
           <CardContent className="p-0">
             {loadingHistory ? (
-              <div className="p-6 space-y-4">
+              <div className="space-y-4 p-6">
                 {[1, 2, 3].map((i) => (
                   <Skeleton key={i} className="h-10 w-full rounded-none" />
                 ))}
@@ -569,18 +566,18 @@ export function BillingView({
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-[11px]">
                   <thead>
-                    <tr className="border-b bg-accent/5 uppercase tracking-widest font-semibold text-muted-foreground/80">
+                    <tr className="border-b bg-accent/5 font-semibold text-muted-foreground/80 uppercase tracking-widest">
                       <th className="p-4 font-semibold text-[10px]">{billingDict.history.date}</th>
                       <th className="p-4 font-semibold text-[10px]">{billingDict.history.invoice}</th>
                       <th className="p-4 font-semibold text-[10px]">{billingDict.history.amount}</th>
                       <th className="p-4 font-semibold text-[10px]">{billingDict.history.status}</th>
-                      <th className="p-4 font-semibold text-[10px] text-right">{billingDict.history.action}</th>
+                      <th className="p-4 text-right font-semibold text-[10px]">{billingDict.history.action}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-muted/40">
                     {history.map((order) => (
-                      <tr key={order.id} className="hover:bg-accent/5 transition-all group">
-                        <td className="p-4 text-muted-foreground font-medium">
+                      <tr key={order.id} className="group transition-all hover:bg-accent/5">
+                        <td className="p-4 font-medium text-muted-foreground">
                           {new Date(order.created_at).toLocaleDateString(undefined, {
                             year: "numeric",
                             month: "short",
@@ -598,9 +595,9 @@ export function BillingView({
                           <Badge
                             variant="outline"
                             className={cn(
-                              "rounded-none text-[9px] uppercase font-semibold px-2 py-0.5 border",
+                              "rounded-none border px-2 py-0.5 font-semibold text-[9px] uppercase",
                               order.status.toLowerCase() === "paid"
-                                ? "text-emerald-500 bg-emerald-500/5 border-emerald-500/20"
+                                ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-500"
                                 : "text-muted-foreground",
                             )}
                           >
@@ -612,7 +609,7 @@ export function BillingView({
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-7 px-3 text-[10px] uppercase tracking-widest rounded-none border font-medium hover:bg-foreground hover:text-background transition-all"
+                              className="h-7 rounded-none border px-3 font-medium text-[10px] uppercase tracking-widest transition-all hover:bg-foreground hover:text-background"
                               onClick={() => downloadMutation.mutate(order.mayar_invoice_id!)}
                               disabled={downloadMutation.isPending}
                             >
@@ -628,14 +625,12 @@ export function BillingView({
                 </table>
               </div>
             ) : (
-              <div className="p-16 text-center bg-accent/5">
-                <div className="size-12 rounded-none border-dashed flex items-center justify-center mx-auto mb-4 opacity-50">
+              <div className="bg-accent/5 p-16 text-center">
+                <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-none border-dashed opacity-50">
                   <CreditCard className="h-6 w-6 text-muted-foreground" />
                 </div>
-                <p className="text-xs font-semibold uppercase tracking-widest mb-1">
-                  {billingDict.history.no_history}
-                </p>
-                <p className="text-[11px] text-muted-foreground max-w-[200px] mx-auto leading-relaxed">
+                <p className="mb-1 font-semibold text-xs uppercase tracking-widest">{billingDict.history.no_history}</p>
+                <p className="mx-auto max-w-[200px] text-[11px] text-muted-foreground leading-relaxed">
                   {billingDict.history.no_history_description}
                 </p>
               </div>

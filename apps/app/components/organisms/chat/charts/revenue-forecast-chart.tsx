@@ -102,7 +102,7 @@ const CustomTooltip = ({
 
     return (
       <div
-        className="bg-white dark:bg-[#0c0c0c] border border-[#e6e6e6] dark:border-[#1d1d1d] p-2 text-[10px] font-stack-sans-slashed-zero min-w-[180px]"
+        className="min-w-[180px] border border-[#e6e6e6] bg-white p-2 font-stack-sans-slashed-zero text-[10px] dark:border-[#1d1d1d] dark:bg-[#0c0c0c]"
         style={{
           opacity: 1,
           boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
@@ -112,54 +112,54 @@ const CustomTooltip = ({
         <p className="mb-1 text-[#707070] dark:text-[#666666]">
           {data.month} {year}
         </p>
-        <p className="text-black dark:text-white font-medium">Revenue: {value != null ? formatCurrency(value) : "-"}</p>
-        <p className="text-[#707070] dark:text-[#666666] mb-1">
+        <p className="font-medium text-black dark:text-white">Revenue: {value != null ? formatCurrency(value) : "-"}</p>
+        <p className="mb-1 text-[#707070] dark:text-[#666666]">
           {isForecastStart ? (isActual ? "Actual (Baseline)" : "Forecast Start") : isActual ? "Actual" : "Forecast"}
         </p>
 
         {/* Confidence band info for forecasts */}
         {!isActual && optimistic != null && pessimistic != null && (
-          <div className="mt-1.5 pt-1.5 border-t border-[#e6e6e6] dark:border-[#1d1d1d]">
-            <p className="text-[#707070] dark:text-[#666666] text-[9px]">
+          <div className="mt-1.5 border-[#e6e6e6] border-t pt-1.5 dark:border-[#1d1d1d]">
+            <p className="text-[#707070] text-[9px] dark:text-[#666666]">
               Range: {formatCurrency(pessimistic)} - {formatCurrency(optimistic)}
             </p>
             {confidence != null && (
-              <p className="text-[#707070] dark:text-[#666666] text-[9px]">Confidence: {confidence}%</p>
+              <p className="text-[#707070] text-[9px] dark:text-[#666666]">Confidence: {confidence}%</p>
             )}
           </div>
         )}
 
         {/* Breakdown of revenue sources */}
         {hasBreakdown && breakdown && (
-          <div className="mt-1.5 pt-1.5 border-t border-[#e6e6e6] dark:border-[#1d1d1d]">
-            <p className="text-[#888] dark:text-[#555] text-[9px] mb-0.5 uppercase tracking-wider">Sources</p>
+          <div className="mt-1.5 border-[#e6e6e6] border-t pt-1.5 dark:border-[#1d1d1d]">
+            <p className="mb-0.5 text-[#888] text-[9px] uppercase tracking-wider dark:text-[#555]">Sources</p>
             {breakdown.recurringInvoices > 0 && (
-              <p className="text-[#707070] dark:text-[#666666] text-[9px]">
+              <p className="text-[#707070] text-[9px] dark:text-[#666666]">
                 Recurring Invoices: {formatCurrency(breakdown.recurringInvoices)}
               </p>
             )}
             {breakdown.recurringTransactions > 0 && (
-              <p className="text-[#707070] dark:text-[#666666] text-[9px]">
+              <p className="text-[#707070] text-[9px] dark:text-[#666666]">
                 Recurring Deposits: {formatCurrency(breakdown.recurringTransactions)}
               </p>
             )}
             {breakdown.scheduled > 0 && (
-              <p className="text-[#707070] dark:text-[#666666] text-[9px]">
+              <p className="text-[#707070] text-[9px] dark:text-[#666666]">
                 Scheduled: {formatCurrency(breakdown.scheduled)}
               </p>
             )}
             {breakdown.collections > 0 && (
-              <p className="text-[#707070] dark:text-[#666666] text-[9px]">
+              <p className="text-[#707070] text-[9px] dark:text-[#666666]">
                 Collections: {formatCurrency(breakdown.collections)}
               </p>
             )}
             {breakdown.billableHours > 0 && (
-              <p className="text-[#707070] dark:text-[#666666] text-[9px]">
+              <p className="text-[#707070] text-[9px] dark:text-[#666666]">
                 Billable Hours: {formatCurrency(breakdown.billableHours)}
               </p>
             )}
             {breakdown.newBusiness > 0 && (
-              <p className="text-[#707070] dark:text-[#666666] text-[9px]">
+              <p className="text-[#707070] text-[9px] dark:text-[#666666]">
                 New Business: {formatCurrency(breakdown.newBusiness)}
               </p>
             )}

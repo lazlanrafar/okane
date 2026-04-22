@@ -1,12 +1,12 @@
 import { headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { geolocation } from "@vercel/functions";
 import { getChatSession, getChatSessionMessages } from "@workspace/modules/ai/ai.action";
 import type { Metadata } from "next";
 
-import { getDictionary } from "@/get-dictionary";
 import ChatInterface from "@/components/organisms/chat/chat-interface";
+import { getDictionary } from "@/get-dictionary";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -37,10 +37,7 @@ export default async function ChatPage(props: Props) {
     headers: headersList,
   });
 
-  const [response, dictionary] = await Promise.all([
-    getChatSessionMessages(id),
-    getDictionary(locale as any),
-  ]);
+  const [response, dictionary] = await Promise.all([getChatSessionMessages(id), getDictionary(locale as any)]);
 
   if (!response.success || !response.data) {
     notFound();

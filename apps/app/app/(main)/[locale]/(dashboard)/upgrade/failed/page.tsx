@@ -17,10 +17,10 @@ export default async function FailedPage({ params }: { params: Promise<{ locale:
       </div>
 
       <div className="text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        <h1 className="font-bold text-2xl text-foreground tracking-tight sm:text-3xl">
           {dict.settings.billing.failed.title}
         </h1>
-        <p className="mt-2 text-muted-foreground max-w-md">{dict.settings.billing.failed.description}</p>
+        <p className="mt-2 max-w-md text-muted-foreground">{dict.settings.billing.failed.description}</p>
       </div>
 
       <div className="flex gap-4">

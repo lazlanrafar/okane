@@ -50,7 +50,7 @@ export function AcceptInviteClient({ token }: AcceptInviteClientProps) {
         setErrorMessage(result.error || "Failed to accept invitation");
         toast.error(result.error || "Failed to accept invitation");
       }
-    } catch (error: any) {
+    } catch (_error: any) {
       setStatus("error");
       setErrorMessage("An unexpected error occurred");
       toast.error("An unexpected error occurred");
@@ -66,10 +66,10 @@ export function AcceptInviteClient({ token }: AcceptInviteClientProps) {
 
   if (!token) {
     return (
-      <div className="flex items-center justify-center w-full min-h-full p-4">
+      <div className="flex min-h-full w-full items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-destructive flex items-center justify-center gap-2">
+            <CardTitle className="flex items-center justify-center gap-2 text-destructive">
               <XCircle className="h-5 w-5" />
               Invalid Link
             </CardTitle>
@@ -88,19 +88,19 @@ export function AcceptInviteClient({ token }: AcceptInviteClientProps) {
   }
 
   return (
-    <div className="flex items-center justify-center w-full min-h-full p-4">
+    <div className="flex min-h-full w-full items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle>Workspace Invitation</CardTitle>
           <CardDescription>You have been invited to join a workspace?.</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col items-center py-6 gap-4 text-center">
+        <CardContent className="flex flex-col items-center gap-4 py-6 text-center">
           {isAuthenticated === null ? (
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           ) : isAuthenticated === false ? (
             <>
               <p className="text-muted-foreground">Please log in or sign up to accept this invitation.</p>
-              <div className="flex flex-col w-full gap-2">
+              <div className="flex w-full flex-col gap-2">
                 <Button asChild>
                   <Link
                     href={`/login?redirectTo=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`}
@@ -127,15 +127,15 @@ export function AcceptInviteClient({ token }: AcceptInviteClientProps) {
               <CheckCircle2 className="h-12 w-12 text-green-500" />
               <div className="space-y-1">
                 <p className="font-medium text-lg">Invitation Accepted!</p>
-                <p className="text-sm text-muted-foreground">Redirecting you to your dashboard...</p>
+                <p className="text-muted-foreground text-sm">Redirecting you to your dashboard...</p>
               </div>
             </>
           ) : status === "error" ? (
             <>
               <XCircle className="h-12 w-12 text-destructive" />
               <div className="space-y-1">
-                <p className="font-medium text-lg text-destructive">Failed to Accept</p>
-                <p className="text-sm text-muted-foreground">{errorMessage}</p>
+                <p className="font-medium text-destructive text-lg">Failed to Accept</p>
+                <p className="text-muted-foreground text-sm">{errorMessage}</p>
               </div>
               <Button onClick={() => setStatus("idle")} variant="outline" className="mt-4">
                 Try Again

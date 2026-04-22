@@ -42,7 +42,7 @@ export function ChartSelectionOverlay({
       endPos,
       width,
     };
-  }, [data.length, selection.startIndex, selection.endIndex, containerWidth, containerHeight]);
+  }, [data.length, selection.startIndex, selection.endIndex, containerWidth]);
 
   if (!overlayStyles) {
     return null;
@@ -52,7 +52,7 @@ export function ChartSelectionOverlay({
     <>
       {/* Selection overlay - shaded rectangle */}
       <div
-        className="absolute top-0 bottom-0 pointer-events-none chart-selection-overlay"
+        className="chart-selection-overlay pointer-events-none absolute top-0 bottom-0"
         style={{
           left: `${overlayStyles.startPos}px`,
           width: `${overlayStyles.width}px`,
@@ -62,7 +62,7 @@ export function ChartSelectionOverlay({
       />
       {/* Start line */}
       <div
-        className="absolute top-0 bottom-0 pointer-events-none chart-selection-border"
+        className="chart-selection-border pointer-events-none absolute top-0 bottom-0"
         style={{
           left: `${overlayStyles.startPos}px`,
           width: "1px",
@@ -72,7 +72,7 @@ export function ChartSelectionOverlay({
       />
       {/* End line */}
       <div
-        className="absolute top-0 bottom-0 pointer-events-none chart-selection-border"
+        className="chart-selection-border pointer-events-none absolute top-0 bottom-0"
         style={{
           left: `${overlayStyles.endPos}px`,
           width: "1px",

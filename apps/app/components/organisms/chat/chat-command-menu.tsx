@@ -22,7 +22,7 @@ export function ChatCommandMenu() {
   } = useChatStore();
 
   const { sendMessage } = useChatActions();
-  const chatId = useChatId();
+  const _chatId = useChatId();
   const { setChatId } = useChatInterface();
 
   // Close command menu when clicking outside (but not on the toggle button or input toolbar buttons)
@@ -73,10 +73,10 @@ export function ChatCommandMenu() {
   if (!showCommands || filteredCommands.length === 0) return null;
 
   return (
-    <div ref={commandListRef} data-command-menu className="absolute bottom-full left-0 right-0 mb-2 w-full z-30">
+    <div ref={commandListRef} data-command-menu className="absolute right-0 bottom-full left-0 z-30 mb-2 w-full">
       <AnimatedSizeContainer
         height
-        className="bg-[#f7f7f7]/85 dark:bg-[#171717]/85 backdrop-blur-lg max-h-80 overflow-y-auto"
+        className="max-h-80 overflow-y-auto bg-[#f7f7f7]/85 backdrop-blur-lg dark:bg-[#171717]/85"
         transition={{
           type: "spring",
           duration: 0.2,
@@ -94,7 +94,7 @@ export function ChatCommandMenu() {
               <div
                 key={`${command.command}-${index}`}
                 className={cn(
-                  "px-2 py-2 text-sm cursor-pointer transition-colors flex items-center justify-between group",
+                  "group flex cursor-pointer items-center justify-between px-2 py-2 text-sm transition-colors",
                   isActive ? "bg-black/5 dark:bg-white/5" : "hover:bg-black/5 dark:hover:bg-white/5",
                 )}
                 onMouseDown={(e) => {
@@ -105,10 +105,10 @@ export function ChatCommandMenu() {
                 data-index={index}
               >
                 <div>
-                  <span className="text-[#666] ml-2">{command.title}</span>
+                  <span className="ml-2 text-[#666]">{command.title}</span>
                 </div>
                 {isActive && (
-                  <span className="material-icons-outlined text-sm opacity-50 group-hover:opacity-100 text-gray-600 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white">
+                  <span className="material-icons-outlined text-gray-600 text-sm opacity-50 group-hover:text-black group-hover:opacity-100 dark:text-gray-400 dark:group-hover:text-white">
                     <Icons.ArrowForward />
                   </span>
                 )}

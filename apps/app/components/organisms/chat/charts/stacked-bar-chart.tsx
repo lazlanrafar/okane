@@ -29,7 +29,7 @@ const ToolTipContent = ({ active, payload, label }: { active?: boolean; payload?
     }) ?? `${current.currency}${amount.toLocaleString()}`;
 
   return (
-    <div className="border p-2 text-[10px] font-hedvig-sans bg-white dark:bg-[#0c0c0c] border-[#e6e6e6] dark:border-[#1d1d1d] text-black dark:text-white shadow-sm">
+    <div className="border border-[#e6e6e6] bg-white p-2 font-hedvig-sans text-[10px] text-black shadow-sm dark:border-[#1d1d1d] dark:bg-[#0c0c0c] dark:text-white">
       <p className="mb-1 text-[#707070] dark:text-[#666666]">{label}</p>
       <p className="text-black dark:text-white">Total: {formatCurrency(current.total)}</p>
       <p className="text-black dark:text-white">Recurring: {formatCurrency(current.recurring)}</p>
@@ -67,14 +67,14 @@ export function StackedBarChart({
   const { marginLeft } = useChartMargin(formattedData, "total", tickFormatter);
 
   const chartContent = (
-    <div className="w-full relative">
+    <div className="relative w-full">
       {/* Chart */}
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%" debounce={1}>
           <ComposedChart data={formattedData} barGap={15} margin={{ top: 6, right: 6, left: -marginLeft, bottom: 6 }}>
             <defs>
               <pattern id="raster" patternUnits="userSpaceOnUse" width="64" height="64">
-                <rect width="64" height="64" className="dark:fill-[#323232] fill-[#C6C6C6]" />
+                <rect width="64" height="64" className="fill-[#C6C6C6] dark:fill-[#323232]" />
                 <path d="M-106 110L22 -18" className="stroke-[#323232] dark:stroke-white" />
                 <path d="M-98 110L30 -18" className="stroke-[#323232] dark:stroke-white" />
                 <path d="M-90 110L38 -18" className="stroke-[#323232] dark:stroke-white" />
@@ -124,7 +124,7 @@ export function StackedBarChart({
 
             <Bar barSize={16} dataKey="recurring" stackId="a" fill="url(#raster)" />
 
-            <Bar barSize={16} dataKey="value" stackId="a" className="dark:fill-[#323232] fill-[#C6C6C6]" />
+            <Bar barSize={16} dataKey="value" stackId="a" className="fill-[#C6C6C6] dark:fill-[#323232]" />
 
             <Line type="monotone" dataKey="recurring" strokeWidth={2.5} stroke="hsl(var(--border))" dot={false} />
           </ComposedChart>

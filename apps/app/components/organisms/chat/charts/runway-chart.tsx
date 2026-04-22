@@ -2,7 +2,7 @@
 
 import { Area, CartesianGrid, ComposedChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-import { ChartLegend, StyledArea, StyledLine, StyledTooltip, StyledXAxis, StyledYAxis } from "./base-charts";
+import { ChartLegend, StyledArea, StyledLine, StyledTooltip } from "./base-charts";
 import type { BaseChartProps } from "./chart-utils";
 import { commonChartConfig, createMonthsTickFormatter, createYAxisTickFormatter, useChartMargin } from "./chart-utils";
 import { formatAmount } from "./format-amount";
@@ -75,8 +75,8 @@ export function RunwayChart({
   // Guard against empty data
   if (!data || data.length === 0) {
     return (
-      <div className={`w-full h-full flex items-center justify-center ${className}`}>
-        <div className="text-xs text-muted-foreground -mt-12">No runway data available</div>
+      <div className={`flex h-full w-full items-center justify-center ${className}`}>
+        <div className="-mt-12 text-muted-foreground text-xs">No runway data available</div>
       </div>
     );
   }

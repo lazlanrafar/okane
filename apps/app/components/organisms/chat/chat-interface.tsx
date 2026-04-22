@@ -13,7 +13,8 @@ import {
   useChatStatus as useSDKChatStatus,
 } from "@ai-sdk-tools/store";
 import type { Geo } from "@vercel/functions";
-import { Conversation, ConversationContent, cn, Portal, useSidebar } from "@workspace/ui";
+import type { Dictionary } from "@workspace/dictionaries";
+import { cn, useSidebar } from "@workspace/ui";
 import { useChatInterface, useChatStatus } from "@workspace/ui/hooks";
 import { generateId } from "ai";
 import { parseAsString, useQueryState } from "nuqs";
@@ -23,8 +24,6 @@ import { useChatStore } from "@/stores/chat";
 import { ChatHeader } from "./chat-header";
 import { ChatHistoryProvider } from "./chat-history";
 import { ChatInput } from "./chat-input";
- 
-import type { Dictionary } from "@workspace/dictionaries";
 import { ChatMessages } from "./chat-messages";
 import { ChatStatusIndicators } from "./chat-status-indicators";
 
@@ -39,13 +38,13 @@ type Props = {
 export default function ChatInterface({ geo, dictionary }: Props) {
   const { state: sidebarState } = useSidebar();
   const { chatId: routeChatId, setChatId, isHome: routeIsHome } = useChatInterface();
-  const chatIdFromStore = useSDKChatId();
+  const _chatIdFromStore = useSDKChatId();
   const { reset } = useChatActions();
   const { setScrollY, setIsHome } = useChatStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const chatId = useMemo(() => routeChatId ?? generateId(), [routeChatId]);
+  const _chatId = useMemo(() => routeChatId ?? generateId(), [routeChatId]);
   const prevChatIdRef = useRef<string | null>(routeChatId);
 
   const messages = useChatMessages();
@@ -105,7 +104,7 @@ export default function ChatInterface({ geo, dictionary }: Props) {
     handleScroll();
 
     return () => scrollParent.removeEventListener("scroll", handleScroll);
-  }, [setScrollY, effectiveIsHome, hasMessages]);
+  }, [setScrollY]);
 
   const {
     agentStatus,
@@ -128,28 +127,28 @@ export default function ChatInterface({ geo, dictionary }: Props) {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, status]);
+  }, []);
 
-  const [, setSelectedType] = useQueryState("artifact-type", parseAsString);
+  const [, _setSelectedType] = useQueryState("artifact-type", parseAsString);
 
   return (
     <ChatHistoryProvider>
       <div
         ref={containerRef}
         className={cn(
-          "relative flex flex-row size-full scroll-smooth",
+          "relative flex size-full flex-row scroll-smooth",
           !effectiveIsHome ? "h-[calc(100vh-88px)] overflow-hidden" : "h-auto min-h-[100px] pb-24",
         )}
       >
         {/* Canvas slides in from right when artifacts are present */}
         <div
           className={cn(
-            "fixed right-0 top-[48px] bottom-0 z-40 w-full md:w-[600px] bg-background/95 backdrop-blur-xl border-l border-border/50 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+            "fixed top-[48px] right-0 bottom-0 z-40 w-full border-border/50 border-l bg-background/95 backdrop-blur-xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] md:w-[600px]",
             showCanvas ? "translate-x-0" : "translate-x-full",
           )}
         >
-          <div className="h-[calc(100vh-48px)] flex flex-col relative">
-            <div className="absolute inset-0 bg-linear-to-b from-primary/5 to-transparent pointer-events-none opacity-50" />
+          <div className="relative flex h-[calc(100vh-48px)] flex-col">
+            <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-primary/5 to-transparent opacity-50" />
             <Canvas />
           </div>
         </div>
@@ -157,7 +156,7 @@ export default function ChatInterface({ geo, dictionary }: Props) {
         {hasMessages && (
           <div
             className={cn(
-              "flex-1 min-h-0 flex flex-col relative transition-all duration-300 ease-in-out",
+              "relative flex min-h-0 flex-1 flex-col transition-all duration-300 ease-in-out",
               showCanvas && "mr-0 md:mr-[600px]",
             )}
           >
@@ -166,15 +165,15 @@ export default function ChatInterface({ geo, dictionary }: Props) {
               <div
                 className={cn("sticky top-0 left-0 z-10 shrink-0 outline-none transition-all duration-300 ease-in-out")}
               >
-                <div className="bg-background/80 dark:bg-background/50 backdrop-blur-sm">
+                <div className="bg-background/80 backdrop-blur-sm dark:bg-background/50">
                   <div className="mx-auto w-full px-4 md:px-0">
                     <ChatHeader dictionary={dictionary} />
                   </div>
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-4 md:px-0 scroll-smooth scrollbar-hide">
-                <div className="max-w-2xl mx-auto w-full pb-32">
+              <div className="scrollbar-hide flex-1 overflow-y-auto scroll-smooth px-4 md:px-0">
+                <div className="mx-auto w-full max-w-2xl pb-32">
                   <ChatMessages
                     messages={messages}
                     isStreaming={status === "streaming" || status === "submitted"}
@@ -204,11 +203,11 @@ export default function ChatInterface({ geo, dictionary }: Props) {
             "fixed bottom-0 z-30 transition-all duration-300 ease-in-out",
             sidebarState === "collapsed" ? "left-0 md:left-(--sidebar-width-icon)" : "left-0 md:left-(--sidebar-width)",
             "right-0",
-            "flex justify-center items-end pointer-events-none pb-6",
+            "pointer-events-none flex items-end justify-center pb-6",
             showCanvas && "mr-0 md:mr-[600px]",
           )}
         >
-          <div className="w-full max-w-[770px] px-4 pointer-events-auto">
+          <div className="pointer-events-auto w-full max-w-[770px] px-4">
             <ChatInput dictionary={dictionary} />
           </div>
         </div>

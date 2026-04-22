@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-import { APP_CONFIG } from "@workspace/constants";
 import {
   CONTENT_LAYOUT_VALUES,
   fontRegistry,
@@ -19,7 +18,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { Providers } from "@/components/providers/root-provider";
 import { getDictionary } from "@/get-dictionary";
-import { i18n, type Locale } from "@/i18n-config";
+import type { Locale } from "@/i18n-config";
 import { ThemeBootScript } from "@/scripts/theme-boot";
 import { getPreference } from "@/server/server-actions";
 import "@workspace/ui/globals.css";

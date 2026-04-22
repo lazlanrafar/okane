@@ -33,7 +33,7 @@ export function OverviewMetrics({
   return (
     <div className="flex flex-col gap-3">
       {/* Top: Income and Expense Line Charts side-by-side */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <LineMetricChart
           title={dictionary.overview.metrics.income_total_title}
           description={dictionary.overview.metrics.income_total_desc}
@@ -55,7 +55,7 @@ export function OverviewMetrics({
       </div>
 
       {/* Bottom: Income and Expense Breakdown Bar Charts side-by-side */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <BarMetricChart
           title={dictionary.overview.metrics.income_breakdown_title}
           description={dictionary.overview.metrics.current_month_desc}

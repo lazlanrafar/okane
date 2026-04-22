@@ -1,5 +1,3 @@
-import React from "react";
-
 import type { Metadata } from "next";
 
 import { AppearanceForm } from "@/components/organisms/setting/appearance/appearance-form";

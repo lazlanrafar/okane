@@ -9,7 +9,6 @@ import {
   AvatarFallback,
   AvatarImage,
   Button,
-  cn,
   Form,
   FormControl,
   FormDescription,
@@ -174,7 +173,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
       } else {
         toast.error(response.error || profile.avatar.error_upload || "Upload failed");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error(profile.avatar.error_upload || "Upload failed");
     } finally {
       setIsUploading(false);
@@ -184,8 +183,8 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h2 className="text-lg font-medium tracking-tight">{profile.title}</h2>
-        <p className="text-xs text-muted-foreground">{profile.description}</p>
+        <h2 className="font-medium text-lg tracking-tight">{profile.title}</h2>
+        <p className="text-muted-foreground text-xs">{profile.description}</p>
       </div>
       <Separator className="rounded-none" />
 
@@ -194,7 +193,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
           <div className="flex items-center gap-6">
             <Avatar className="h-20 w-20 rounded-none">
               <AvatarImage src={form.getValues("profile_picture")} />
-              <AvatarFallback className="text-xl rounded-none">
+              <AvatarFallback className="rounded-none text-xl">
                 {form.getValues("username").charAt(0).toUpperCase() || "?"}
               </AvatarFallback>
             </Avatar>
@@ -205,7 +204,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-8 text-xs rounded-none"
+                  className="h-8 rounded-none text-xs"
                   disabled={isUploading}
                   onClick={() => (document.getElementById("avatar-upload") as HTMLInputElement)?.click()}
                 >
@@ -228,11 +227,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
               <FormItem>
                 <FormLabel>{profile.form.username_label}</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder={profile.form.username_placeholder}
-                    {...field}
-                    className="rounded-none max-w-md"
-                  />
+                  <Input placeholder={profile.form.username_placeholder} {...field} className="max-w-md rounded-none" />
                 </FormControl>
                 <FormDescription>{profile.username.description}</FormDescription>
                 <FormMessage />
@@ -246,7 +241,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
               <FormItem>
                 <FormLabel>{profile.form.email_label || profile.email.label}</FormLabel>
                 <FormControl>
-                  <Input disabled {...field} className="rounded-none max-w-md" />
+                  <Input disabled {...field} className="max-w-md rounded-none" />
                 </FormControl>
                 <FormDescription>{profile.email.description}</FormDescription>
                 <FormMessage />
@@ -265,7 +260,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
                     placeholder={profile.form.mobile_placeholder}
                     {...field}
                     value={field.value || ""}
-                    className="rounded-none max-w-md"
+                    className="max-w-md rounded-none"
                   />
                 </FormControl>
                 <FormDescription>{profile.form.mobile_description}</FormDescription>
@@ -274,7 +269,7 @@ function ProfileFormInner({ profile, user }: { profile: any; user: any }) {
             )}
           />
 
-          <Button type="submit" disabled={updateMutation.isPending} className="rounded-none text-xs h-8">
+          <Button type="submit" disabled={updateMutation.isPending} className="h-8 rounded-none text-xs">
             {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {profile.update_profile}
           </Button>

@@ -2,6 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { Dictionary } from "@workspace/dictionaries";
 import { deleteContact } from "@workspace/modules/client";
 import type { Contact } from "@workspace/types";
 import {
@@ -15,8 +16,6 @@ import {
 } from "@workspace/ui";
 import { Globe, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
- 
-import type { Dictionary } from "@workspace/dictionaries";
 
 const CellActions = ({
   row,
@@ -86,7 +85,7 @@ export const getContactColumns = (onEdit: (contact: Contact) => void, dictionary
     cell: ({ row }) => (
       <a
         href={`mailto:${row.original.email}`}
-        className="text-muted-foreground hover:text-foreground transition-colors"
+        className="text-muted-foreground transition-colors hover:text-foreground"
         onClick={(e) => e.stopPropagation()}
       >
         {row.original.email}
@@ -107,7 +106,7 @@ export const getContactColumns = (onEdit: (contact: Contact) => void, dictionary
           href={`https://${row.original.website}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
           onClick={(e) => e.stopPropagation()}
         >
           <Globe className="h-3.5 w-3.5" />

@@ -189,7 +189,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
                   <FormLabel>{walletForm.group.label}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value ?? "none"}>
                     <FormControl>
-                      <SelectTrigger className="rounded-none h-8 text-xs">
+                      <SelectTrigger className="h-8 rounded-none text-xs">
                         <SelectValue placeholder={walletForm.group.placeholder} />
                       </SelectTrigger>
                     </FormControl>
@@ -220,7 +220,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
                       step="0.01"
                       placeholder={common?.form?.balance?.placeholder || "0"}
                       {...field}
-                      className="rounded-none border h-8 text-xs"
+                      className="h-8 rounded-none border text-xs"
                     />
                   </FormControl>
                   <FormMessage />
@@ -239,7 +239,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
                     <p className="text-[0.7rem] text-muted-foreground">{walletForm.is_included.description}</p>
                   </div>
                   <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} className="rounded-none scale-75" />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} className="scale-75 rounded-none" />
                   </FormControl>
                 </FormItem>
               )}
@@ -251,11 +251,11 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
                 variant="outline"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="rounded-none h-8 text-xs"
+                className="h-8 rounded-none text-xs"
               >
                 {common?.cancel || "Cancel"}
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="rounded-none h-8 text-xs">
+              <Button type="submit" disabled={isSubmitting} className="h-8 rounded-none text-xs">
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {common?.save || "Save"}
               </Button>

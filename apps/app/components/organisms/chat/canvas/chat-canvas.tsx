@@ -4,16 +4,7 @@ import { useCallback, useEffect, useMemo } from "react";
 
 import { useArtifacts } from "@ai-sdk-tools/artifacts/client";
 import { useChatMessages } from "@ai-sdk-tools/store";
-import {
-  Button,
-  cn,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  Icons,
-  Loader,
-} from "@workspace/ui";
+import { cn, Icons, Loader } from "@workspace/ui";
 import { parseAsString, useQueryState } from "nuqs";
 
 import { BurnRateCanvas } from "./chat-canvas-burn-rate";
@@ -102,7 +93,7 @@ export function ArtifactTabs() {
   }
 
   return (
-    <div className="flex items-center gap-1 h-10 min-h-10 max-h-10 border-b border-[#e6e6e6] dark:border-[#1d1d1d] bg-[#fdfdfc] dark:bg-[#0c0c0c] px-4">
+    <div className="flex h-10 max-h-10 min-h-10 items-center gap-1 border-[#e6e6e6] border-b bg-[#fdfdfc] px-4 dark:border-[#1d1d1d] dark:bg-[#0c0c0c]">
       {available.map((type: string) => {
         const isActive = type === activeType;
         const label = ARTIFACT_TYPE_LABELS[type] || type;
@@ -111,18 +102,18 @@ export function ArtifactTabs() {
           <div
             key={type}
             className={cn(
-              "group flex items-center px-3 h-10 text-[13px] font-medium transition-all whitespace-nowrap border-b-2",
+              "group flex h-10 items-center whitespace-nowrap border-b-2 px-3 font-medium text-[13px] transition-all",
               isActive
-                ? "border-black dark:border-white text-black dark:text-white"
+                ? "border-black text-black dark:border-white dark:text-white"
                 : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
-            <button type="button" onClick={() => handleTabClick(type)} className="text-left h-full flex items-center">
+            <button type="button" onClick={() => handleTabClick(type)} className="flex h-full items-center text-left">
               {label}
             </button>
             <button
               type="button"
-              className="h-4 w-0 opacity-0 ml-0 group-hover:w-4 group-hover:opacity-100 group-hover:ml-2 focus:w-4 focus:opacity-100 focus:ml-2 transition-all overflow-hidden flex items-center justify-center focus:outline-none text-muted-foreground hover:text-primary"
+              className="ml-0 flex h-4 w-0 items-center justify-center overflow-hidden text-muted-foreground opacity-0 transition-all hover:text-primary focus:ml-2 focus:w-4 focus:opacity-100 focus:outline-none group-hover:ml-2 group-hover:w-4 group-hover:opacity-100"
               onClick={(e) => handleDismiss(e, type)}
             >
               <Icons.Close className="size-3" />
@@ -180,9 +171,9 @@ export function Canvas() {
         // Loading state if we have a selection but No activeType yet
         if (selectedType) {
           return (
-            <div className="flex flex-col items-center justify-center h-full space-y-4">
-              <Loader className="size-8 text-primary animate-spin" />
-              <p className="text-sm text-muted-foreground">Generating analysis...</p>
+            <div className="flex h-full flex-col items-center justify-center space-y-4">
+              <Loader className="size-8 animate-spin text-primary" />
+              <p className="text-muted-foreground text-sm">Generating analysis...</p>
             </div>
           );
         }
@@ -191,7 +182,7 @@ export function Canvas() {
   }, [activeType, selectedType, available]);
 
   return (
-    <div className="h-full flex flex-col relative bg-[#fdfdfc] dark:bg-[#0c0c0c] overflow-y-auto w-full">
+    <div className="relative flex h-full w-full flex-col overflow-y-auto bg-[#fdfdfc] dark:bg-[#0c0c0c]">
       <CanvasErrorBoundary key={activeType} fallback={<CanvasErrorFallback />}>
         {renderCanvas()}
       </CanvasErrorBoundary>

@@ -87,7 +87,7 @@ export function CreateWorkspaceDialog({ open, onOpenChange }: CreateWorkspaceDia
           />
         </div>
 
-        {error && <p className="text-sm text-destructive mt-2">{error}</p>}
+        {error && <p className="mt-2 text-destructive text-sm">{error}</p>}
       </DialogContent>
     </Dialog>
   );

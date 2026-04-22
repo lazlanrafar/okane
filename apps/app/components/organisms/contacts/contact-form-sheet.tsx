@@ -4,6 +4,7 @@ import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { createContact, updateContact } from "@workspace/modules/client";
 import type { Contact } from "@workspace/types";
 import {
@@ -30,8 +31,6 @@ import { X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
- 
-import type { Dictionary } from "@workspace/dictionaries";
 
 const getContactSchema = (dictionary: Dictionary) =>
   z.object({
@@ -97,11 +96,11 @@ function BillingEmailsInput({ value, onChange }: { value: string[]; onChange: (e
 
   return (
     <div
-      className="min-h-9 w-full border border-input bg-transparent px-3 py-1.5 text-sm flex flex-wrap gap-1.5 cursor-text"
+      className="flex min-h-9 w-full cursor-text flex-wrap gap-1.5 border border-input bg-transparent px-3 py-1.5 text-sm"
       onClick={() => inputRef.current.focus()}
     >
       {value.map((email) => (
-        <Badge key={email} variant="secondary" className="flex items-center gap-1 pl-2 pr-1 py-0.5 text-xs font-normal">
+        <Badge key={email} variant="secondary" className="flex items-center gap-1 py-0.5 pr-1 pl-2 font-normal text-xs">
           {email}
           <button
             type="button"
@@ -109,7 +108,7 @@ function BillingEmailsInput({ value, onChange }: { value: string[]; onChange: (e
               e.stopPropagation();
               removeEmail(email);
             }}
-            className="ml-0.5 rounded-sm hover:bg-muted-foreground/20 p-0.5"
+            className="ml-0.5 rounded-sm p-0.5 hover:bg-muted-foreground/20"
           >
             <X className="h-3 w-3" />
           </button>
@@ -122,7 +121,7 @@ function BillingEmailsInput({ value, onChange }: { value: string[]; onChange: (e
         onKeyDown={handleKeyDown}
         onBlur={handleBlur}
         placeholder={value.length === 0 ? "email@example.com" : ""}
-        className="flex-1 min-w-[120px] bg-transparent outline-none placeholder:text-muted-foreground/60 text-sm"
+        className="min-w-[120px] flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
       />
     </div>
   );
@@ -223,7 +222,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
         billingEmails,
       };
 
-      const result = isEdit ? await updateContact(contact!.id, payload) : await createContact(payload as any);
+      const result = isEdit ? await updateContact(contact?.id, payload) : await createContact(payload as any);
 
       if (result.success) {
         toast.success(isEdit ? dictionary.contacts.toasts.updated : dictionary.contacts.toasts.created);
@@ -246,19 +245,19 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent className="sm:max-w-[520px] p-0 flex flex-col">
-        <SheetHeader className="p-6 pb-0 shrink-0">
+      <SheetContent className="flex flex-col p-0 sm:max-w-[520px]">
+        <SheetHeader className="shrink-0 p-6 pb-0">
           <SheetTitle>{isEdit ? dictionary.contacts.details.edit_contact : dictionary.contacts.add_button}</SheetTitle>
         </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
             {/* Scrollable body */}
             <div className="flex-1 overflow-y-auto p-6">
               <Accordion type="multiple" defaultValue={["general"]} className="space-y-4">
                 {/* General */}
                 <AccordionItem value="general" className="border-none">
-                  <AccordionTrigger className="text-sm font-medium py-2">
+                  <AccordionTrigger className="py-2 font-medium text-sm">
                     {dictionary.settings.sidebar.general}
                   </AccordionTrigger>
                   <AccordionContent>
@@ -268,7 +267,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs text-muted-foreground font-normal">
+                            <FormLabel className="font-normal text-muted-foreground text-xs">
                               {dictionary.contacts.form.name_label}
                             </FormLabel>
                             <FormControl>
@@ -283,7 +282,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs text-muted-foreground font-normal">
+                            <FormLabel className="font-normal text-muted-foreground text-xs">
                               {dictionary.contacts.form.email_label}
                             </FormLabel>
                             <FormControl>
@@ -296,7 +295,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
 
                       {/* Billing Emails */}
                       <div className="space-y-1">
-                        <label className="text-xs text-muted-foreground font-normal">
+                        <label className="font-normal text-muted-foreground text-xs">
                           {dictionary.contacts.form.billing_emails_label}
                         </label>
                         <BillingEmailsInput value={billingEmails} onChange={setBillingEmails} />
@@ -310,7 +309,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
                         name="phone"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs text-muted-foreground font-normal">
+                            <FormLabel className="font-normal text-muted-foreground text-xs">
                               {dictionary.contacts.form.phone_label}
                             </FormLabel>
                             <FormControl>
@@ -325,7 +324,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
                         name="website"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs text-muted-foreground font-normal">
+                            <FormLabel className="font-normal text-muted-foreground text-xs">
                               {dictionary.contacts.form.website_label}
                             </FormLabel>
                             <FormControl>
@@ -340,7 +339,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
                         name="contact"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs text-muted-foreground font-normal">
+                            <FormLabel className="font-normal text-muted-foreground text-xs">
                               {dictionary.contacts.form.contact_person_label}
                             </FormLabel>
                             <FormControl>
@@ -356,7 +355,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
 
                 {/* Details */}
                 <AccordionItem value="details" className="border-none">
-                  <AccordionTrigger className="text-sm font-medium py-2">
+                  <AccordionTrigger className="py-2 font-medium text-sm">
                     {dictionary.transactions.details}
                   </AccordionTrigger>
                   <AccordionContent>
@@ -366,7 +365,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
                         name="addressLine1"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs text-muted-foreground font-normal">
+                            <FormLabel className="font-normal text-muted-foreground text-xs">
                               {dictionary.contacts.form.address_label}
                             </FormLabel>
                             <FormControl>
@@ -381,7 +380,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
                         name="addressLine2"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs text-muted-foreground font-normal">
+                            <FormLabel className="font-normal text-muted-foreground text-xs">
                               {dictionary.contacts.form.address_line_2_label}
                             </FormLabel>
                             <FormControl>
@@ -397,7 +396,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
                           name="city"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs text-muted-foreground font-normal">
+                              <FormLabel className="font-normal text-muted-foreground text-xs">
                                 {dictionary.contacts.form.city_label}
                               </FormLabel>
                               <FormControl>
@@ -412,7 +411,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
                           name="state"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs text-muted-foreground font-normal">
+                              <FormLabel className="font-normal text-muted-foreground text-xs">
                                 {dictionary.contacts.form.state_label}
                               </FormLabel>
                               <FormControl>
@@ -429,7 +428,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
                           name="country"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs text-muted-foreground font-normal">
+                              <FormLabel className="font-normal text-muted-foreground text-xs">
                                 {dictionary.contacts.form.country_label}
                               </FormLabel>
                               <FormControl>
@@ -444,7 +443,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
                           name="zip"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs text-muted-foreground font-normal">
+                              <FormLabel className="font-normal text-muted-foreground text-xs">
                                 {dictionary.contacts.form.zip_code_label}
                               </FormLabel>
                               <FormControl>
@@ -460,7 +459,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
                         name="vatNumber"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs text-muted-foreground font-normal">
+                            <FormLabel className="font-normal text-muted-foreground text-xs">
                               {dictionary.contacts.form.tax_id_label}
                             </FormLabel>
                             <FormControl>
@@ -475,7 +474,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
                         name="note"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs text-muted-foreground font-normal">
+                            <FormLabel className="font-normal text-muted-foreground text-xs">
                               {dictionary.contacts.form.notes_label}
                             </FormLabel>
                             <FormControl>
@@ -496,7 +495,7 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
             </div>
 
             {/* Fixed bottom actions */}
-            <div className="border-t px-6 py-4 flex justify-end gap-3 shrink-0">
+            <div className="flex shrink-0 justify-end gap-3 border-t px-6 py-4">
               <Button type="button" variant="outline" onClick={handleClose}>
                 {dictionary.contacts.form.cancel}
               </Button>

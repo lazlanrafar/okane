@@ -22,7 +22,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     const healthScore = payload[0].value;
 
     return (
-      <div className="border p-2 text-[10px] font-hedvig-sans bg-white dark:bg-[#0c0c0c] border-[#e6e6e6] dark:border-[#1d1d1d] text-black dark:text-white shadow-sm">
+      <div className="border border-[#e6e6e6] bg-white p-2 font-hedvig-sans text-[10px] text-black shadow-sm dark:border-[#1d1d1d] dark:bg-[#0c0c0c] dark:text-white">
         <p className="mb-1 text-[#707070] dark:text-[#666666]">{label}</p>
         {typeof healthScore === "number" && (
           <p className="text-black dark:text-white">Health Score: {healthScore.toFixed(1)}/100</p>

@@ -15,19 +15,19 @@ export function TransactionTableSkeleton({ hideHeader = false }: { hideHeader?: 
   ];
 
   return (
-    <div className="flex w-full flex-col h-full space-y-4">
+    <div className="flex h-full w-full flex-col space-y-4">
       {/* Skeleton for Header (Search and Actions) */}
       {!hideHeader && (
-        <div className="flex items-center justify-between gap-4 shrink-0">
-          <div className="flex items-center flex-1 max-w-sm h-10 bg-muted/30 animate-pulse rounded-md" />
+        <div className="flex shrink-0 items-center justify-between gap-4">
+          <div className="flex h-10 max-w-sm flex-1 animate-pulse items-center rounded-md bg-muted/30" />
           <div className="flex items-center gap-2">
-            <div className="w-24 h-9 bg-muted/30 animate-pulse rounded-md" />
-            <div className="w-24 h-9 bg-muted/30 animate-pulse rounded-md" />
+            <div className="h-9 w-24 animate-pulse rounded-md bg-muted/30" />
+            <div className="h-9 w-24 animate-pulse rounded-md bg-muted/30" />
           </div>
         </div>
       )}
 
-      <div className="flex-1 min-h-0 relative">
+      <div className="relative min-h-0 flex-1">
         <TableSkeleton
           columns={columns as any}
           rowCount={20}

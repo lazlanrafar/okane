@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { getWallets } from "@workspace/modules/client";
@@ -103,7 +103,7 @@ export function AccountsClient({
     return data.pages?.flatMap((page: any) => page.data || []) || [];
   }, [data]);
 
-  const selectedWallet = useMemo(() => {
+  const _selectedWallet = useMemo(() => {
     return wallets.find((w) => w.id === selectedWalletId);
   }, [wallets, selectedWalletId]);
 
@@ -141,7 +141,7 @@ export function AccountsClient({
     setIsFormSheetOpen(true);
   };
 
-  const handleDelete = (wallet: Wallet) => {
+  const handleDelete = (_wallet: Wallet) => {
     // Implementation for delete
   };
 
@@ -173,36 +173,36 @@ export function AccountsClient({
   if (!dictionary) return null;
 
   return (
-    <div className="flex w-full flex-col h-full space-y-4">
+    <div className="flex h-full w-full flex-col space-y-4">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-6 flex flex-col gap-1 border border-border">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="flex flex-col gap-1 border border-border p-6">
+          <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
             {dictionary.accounts.total_balance}
           </span>
-          <span className="text-3xl font-serif font-medium tracking-tight">
+          <span className="font-medium font-serif text-3xl tracking-tight">
             {formatCurrency(totalBalance, { locale })}
           </span>
         </div>
-        <div className="p-6 flex flex-col gap-1 border border-border">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+        <div className="flex flex-col gap-1 border border-border p-6">
+          <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
             {dictionary.accounts.title}
           </span>
-          <span className="text-3xl font-serif font-medium tracking-tight">{wallets.length}</span>
+          <span className="font-medium font-serif text-3xl tracking-tight">{wallets.length}</span>
         </div>
-        <div className="p-6 flex flex-col gap-1 border border-border">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.2em]">
+        <div className="flex flex-col gap-1 border border-border p-6">
+          <span className="font-medium text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
             {dictionary.accounts.active}
           </span>
-          <span className="text-3xl font-serif font-medium tracking-tight text-emerald-600 dark:text-emerald-400">
+          <span className="font-medium font-serif text-3xl text-emerald-600 tracking-tight dark:text-emerald-400">
             {activeAccounts}
           </span>
         </div>
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4 shrink-0 px-1">
-        <div className="flex items-center flex-1 max-w-sm">
+      <div className="flex shrink-0 items-center justify-between gap-4 px-1">
+        <div className="flex max-w-sm flex-1 items-center">
           <DataTableFilter
             filters={filters}
             onFilterChange={handleFilterChange as any}
@@ -212,20 +212,20 @@ export function AccountsClient({
             statusOptions={groupOptions}
             statusKey="groupId"
             statusLabel={dictionary.accounts.group_label}
-            className="w-full bg-transparent border-none p-0 focus-visible:ring-0"
+            className="w-full border-none bg-transparent p-0 focus-visible:ring-0"
           />
         </div>
 
         <div className="flex items-center gap-2">
           <DataTableColumnsVisibility columns={columns} />
           <Button onClick={handleCreate} variant="outline" size="sm">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             {dictionary.accounts.add_account}
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 relative">
+      <div className="relative min-h-0 flex-1">
         <DataTable
           data={wallets}
           columns={columnsWithActions}

@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { updateWallet } from "@workspace/modules/client";
 import type { Wallet } from "@workspace/types";
-import { Button, CurrencyInput, Input, Label, Separator, Sheet, SheetContent, Switch } from "@workspace/ui";
+import { CurrencyInput, Input, Label, Separator, Sheet, SheetContent, Switch } from "@workspace/ui";
 import { format } from "date-fns";
-import { CheckCircle2, Landmark, Layers, Pencil, X, XCircle } from "lucide-react";
+import { Landmark } from "lucide-react";
 import { toast } from "sonner";
 
 import { SelectAccountGroup } from "@/components/molecules/select-account-group";
@@ -71,7 +71,7 @@ export function AccountDetailSheet({
       setBalance(Number(wallet.balance) || 0);
       setIsIncludedInTotals(wallet.isIncludedInTotals ?? true);
     }
-  }, [wallet?.id]);
+  }, [wallet?.id, wallet.balance, wallet.isIncludedInTotals, wallet]);
 
   const updateWalletInCache = (updatedData: Partial<Wallet>) => {
     if (!wallet?.id) return;
@@ -104,23 +104,23 @@ export function AccountDetailSheet({
     };
 
     update();
-  }, [debouncedName, wallet?.id, dictionary]);
+  }, [debouncedName, wallet?.id, dictionary, updateWalletInCache, wallet]);
 
   if (!mounted || !wallet || !dictionary) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex flex-col h-full p-0">
-        <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-8 pb-32">
+      <SheetContent className="flex h-full flex-col p-0">
+        <div className="no-scrollbar flex-1 space-y-8 overflow-y-auto p-6 pb-32">
           {/* Header Bar */}
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+          <div className="mb-5 flex items-center justify-between">
+            <div className="flex items-center gap-2 font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
               <Landmark className="h-3 w-3 text-muted-foreground/60" />
               <span>{dictionary.accounts.title}</span>
             </div>
             <span className="text-[11px] text-muted-foreground tracking-tight">
               {dictionary.accounts.updated}{" "}
-              {wallet.updatedAt && !isNaN(new Date(wallet.updatedAt).getTime())
+              {wallet.updatedAt && !Number.isNaN(new Date(wallet.updatedAt).getTime())
                 ? format(new Date(wallet.updatedAt), "MMM d, yyyy")
                 : "N/A"}
             </span>
@@ -131,7 +131,7 @@ export function AccountDetailSheet({
             <div className="flex items-baseline justify-start gap-3 pt-1">
               {isEditingBalance ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-3xl font-serif font-medium text-foreground/90">
+                  <span className="font-medium font-serif text-3xl text-foreground/90">
                     {settings?.mainCurrencySymbol}
                   </span>
                   <CurrencyInput
@@ -139,7 +139,7 @@ export function AccountDetailSheet({
                     onChange={(val) => setBalance(val)}
                     currencySymbol={settings?.mainCurrencySymbol}
                     decimalPlaces={settings?.mainCurrencyDecimalPlaces}
-                    className="text-5xl tracking-tighter font-medium font-serif bg-transparent border-none p-0 h-auto focus:ring-0 w-full"
+                    className="h-auto w-full border-none bg-transparent p-0 font-medium font-serif text-5xl tracking-tighter focus:ring-0"
                     autoFocus
                     onBlur={async () => {
                       setIsEditingBalance(false);
@@ -160,7 +160,7 @@ export function AccountDetailSheet({
                 </div>
               ) : (
                 <h1
-                  className="text-5xl tracking-tighter font-medium font-serif cursor-pointer hover:opacity-80 transition-opacity"
+                  className="cursor-pointer font-medium font-serif text-5xl tracking-tighter transition-opacity hover:opacity-80"
                   onClick={() => setIsEditingBalance(true)}
                 >
                   {formatCurrency(Number(wallet.balance), { locale })}
@@ -172,7 +172,7 @@ export function AccountDetailSheet({
           {/* Inline Selection Grid */}
           <div className="grid grid-cols-2 gap-4 pt-2">
             <div className="space-y-2">
-              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest px-1">
+              <Label className="px-1 font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
                 {dictionary.accounts.group_label}
               </Label>
               <SelectAccountGroup
@@ -191,11 +191,11 @@ export function AccountDetailSheet({
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest px-1">
+              <Label className="px-1 font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
                 {dictionary.transactions.type_label}
               </Label>
-              <div className="flex items-center justify-between border px-3 h-10 bg-background/50">
-                <span className="text-[11px] font-medium">{dictionary.accounts.include_in_totals_label}</span>
+              <div className="flex h-10 items-center justify-between border bg-background/50 px-3">
+                <span className="font-medium text-[11px]">{dictionary.accounts.include_in_totals_label}</span>
                 <Switch
                   checked={isIncludedInTotals}
                   onCheckedChange={async (checked) => {
@@ -217,14 +217,14 @@ export function AccountDetailSheet({
 
           {/* Name Input Row */}
           <div className="space-y-2">
-            <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest px-1">
+            <Label className="px-1 font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
               {dictionary.accounts.account_name}
             </Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={dictionary.accounts.account_name_placeholder}
-              className="font-sans font-medium"
+              className="font-medium font-sans"
             />
           </div>
 
@@ -232,27 +232,27 @@ export function AccountDetailSheet({
 
           {/* Additional Info Section */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between group">
+            <div className="group flex items-center justify-between">
               <div className="space-y-1">
-                <Label className="text-sm font-medium text-foreground/90 group-hover:text-foreground transition-colors cursor-pointer">
+                <Label className="cursor-pointer font-medium text-foreground/90 text-sm transition-colors group-hover:text-foreground">
                   {dictionary.accounts.created_date}
                 </Label>
-                <p className="text-[11px] text-muted-foreground leading-relaxed max-w-[280px]">
+                <p className="max-w-[280px] text-[11px] text-muted-foreground leading-relaxed">
                   {dictionary.accounts.created_date_description}
                 </p>
               </div>
-              <span className="text-[11px] font-medium">{format(new Date(wallet.createdAt), "MMMM d, yyyy")}</span>
+              <span className="font-medium text-[11px]">{format(new Date(wallet.createdAt), "MMMM d, yyyy")}</span>
             </div>
           </div>
         </div>
 
         {/* Footer Toolbar */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] bg-background/70 backdrop-blur-xl border px-4 py-1 flex items-center justify-between z-50 shadow-2xl shadow-black/20">
+        <div className="-translate-x-1/2 absolute bottom-6 left-1/2 z-50 flex w-[calc(100%-3rem)] items-center justify-between border bg-background/70 px-4 py-1 shadow-2xl shadow-black/20 backdrop-blur-xl">
           <div className="flex items-center gap-4">{/* Future account actions could go here */}</div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => onOpenChange(false)} className="px-3 py-2 hover:bg-muted/40 transition-colors group">
-              <span className="text-[10px] font-bold text-muted-foreground group-hover:text-foreground uppercase tracking-widest">
+            <button onClick={() => onOpenChange(false)} className="group px-3 py-2 transition-colors hover:bg-muted/40">
+              <span className="font-bold text-[10px] text-muted-foreground uppercase tracking-widest group-hover:text-foreground">
                 {dictionary.transactions.esc}
               </span>
             </button>

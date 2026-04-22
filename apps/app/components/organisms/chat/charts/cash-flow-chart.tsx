@@ -126,7 +126,7 @@ export function CashFlowChart({
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="p-2 text-[10px] font-sans border bg-white dark:bg-[#0c0c0c] border-gray-200 dark:border-[#1d1d1d] text-black dark:text-white">
+                    <div className="border border-gray-200 bg-white p-2 font-sans text-[10px] text-black dark:border-[#1d1d1d] dark:bg-[#0c0c0c] dark:text-white">
                       <p className="mb-1 text-gray-500 dark:text-[#666666]">{label}</p>
                       {payload.map((entry, index) => {
                         const value = typeof entry.value === "number" ? entry.value : 0;

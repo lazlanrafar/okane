@@ -1,5 +1,3 @@
-import React from "react";
-
 import type { Metadata } from "next";
 
 import { TransactionSettingsForm } from "@/components/organisms/setting/transaction/transaction-settings-form";

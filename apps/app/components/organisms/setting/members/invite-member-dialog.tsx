@@ -80,15 +80,15 @@ export function InviteMemberDialog({ onSuccess, dictionary: dict }: InviteMember
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Button onClick={() => setOpen(true)} className="rounded-none h-8 text-xs">
-        <UserPlus className="h-4 w-4 mr-2" />
+      <Button onClick={() => setOpen(true)} className="h-8 rounded-none text-xs">
+        <UserPlus className="mr-2 h-4 w-4" />
         {membersDict.invite_button}
       </Button>
 
       <DialogContent className="rounded-none sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium">{membersDict.invite_button}</DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">{membersDict.description}</DialogDescription>
+          <DialogTitle className="font-medium text-lg">{membersDict.invite_button}</DialogTitle>
+          <DialogDescription className="text-muted-foreground text-xs">{membersDict.description}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -103,7 +103,7 @@ export function InviteMemberDialog({ onSuccess, dictionary: dict }: InviteMember
                     <Input
                       placeholder={membersDict.form.email.placeholder}
                       {...field}
-                      className="rounded-none text-sm h-10 px-3"
+                      className="h-10 rounded-none px-3 text-sm"
                     />
                   </FormControl>
                   <FormMessage className="text-[10px]" />
@@ -119,7 +119,7 @@ export function InviteMemberDialog({ onSuccess, dictionary: dict }: InviteMember
                   <FormLabel className="text-xs">{membersDict.form.role.label}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className="rounded-none h-10 px-3 text-sm">
+                      <SelectTrigger className="h-10 rounded-none px-3 text-sm">
                         <SelectValue placeholder={membersDict.form.role.placeholder} />
                       </SelectTrigger>
                     </FormControl>
@@ -143,11 +143,11 @@ export function InviteMemberDialog({ onSuccess, dictionary: dict }: InviteMember
                 variant="outline"
                 onClick={() => setOpen(false)}
                 disabled={loading}
-                className="rounded-none h-9 text-xs flex-1 sm:flex-none"
+                className="h-9 flex-1 rounded-none text-xs sm:flex-none"
               >
                 {membersDict.form.cancel}
               </Button>
-              <Button type="submit" disabled={loading} className="rounded-none h-9 text-xs flex-1 sm:flex-none">
+              <Button type="submit" disabled={loading} className="h-9 flex-1 rounded-none text-xs sm:flex-none">
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {membersDict.form.submit}
               </Button>

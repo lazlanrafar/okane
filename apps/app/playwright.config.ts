@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 import { baseConfig } from "@workspace/playwright";
 import { loadEnv } from "@workspace/utils/load-env";
-import path from "path";
+
+import path from "node:path";
 
 // Load environment variables from .env file
 loadEnv();

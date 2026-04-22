@@ -32,7 +32,7 @@ export function ChatFaviconStack({ sources }: FaviconStackProps) {
   if (sources.length === 0) return null;
 
   return (
-    <div className="flex items-center not-prose mb-4">
+    <div className="not-prose mb-4 flex items-center">
       <div className="flex items-center">
         <AnimatePresence mode="popLayout">
           {sources.map((source, index) => (
@@ -62,15 +62,15 @@ export function ChatFaviconStack({ sources }: FaviconStackProps) {
                 delay: index * 0.04,
                 ease: [0.16, 1, 0.3, 1], // Custom easing for smooth motion
               }}
-              className="relative -ml-2 first:ml-0"
+              className="-ml-2 relative first:ml-0"
               style={{ zIndex: sources.length - index }}
             >
               <span onClick={() => handleOnClick(source.url)} className="cursor-pointer">
-                <div className="relative w-5 h-5 rounded-full bg-background border-2 border-border overflow-hidden flex items-center justify-center shadow-sm cursor-pointer">
+                <div className="relative flex h-5 w-5 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-border bg-background shadow-sm">
                   <img
                     src={getFaviconUrl(source.url)}
                     alt=""
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                     onError={(e) => {
                       // Hide image and show fallback icon
                       const target = e.target as HTMLImageElement;
@@ -81,7 +81,7 @@ export function ChatFaviconStack({ sources }: FaviconStackProps) {
                     }}
                   />
                   <BookIcon
-                    className="fallback-icon w-3 h-3 hidden text-muted-foreground"
+                    className="fallback-icon hidden h-3 w-3 text-muted-foreground"
                     style={{ display: "none" }}
                   />
                 </div>
@@ -92,7 +92,7 @@ export function ChatFaviconStack({ sources }: FaviconStackProps) {
       </div>
 
       {sources.length > 0 && (
-        <span className="text-xs text-muted-foreground ml-2">
+        <span className="ml-2 text-muted-foreground text-xs">
           {sources.length} {sources.length === 1 ? "source" : "sources"}
         </span>
       )}
