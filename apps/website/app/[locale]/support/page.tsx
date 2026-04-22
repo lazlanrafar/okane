@@ -24,7 +24,7 @@ const FAQ_ITEMS = [
   {
     question: "Is my data secure?",
     answer:
-      "Yes. We use AES-256 encryption for all your data, both in transit and at rest. Your financial data is private and secure.",
+      "Yes. We use encryption in transit and at rest, plus authenticated workspace-based access controls. Users only see data they own or data shared within workspaces they are active members of.",
   },
   {
     question: "Can I use oewang on mobile?",

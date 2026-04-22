@@ -31,6 +31,7 @@ import { metricsController } from "./modules/metrics/metrics.controller";
 import { ordersController } from "./modules/orders/orders.controller";
 import { pricingController } from "./modules/pricing/pricing.controller";
 import { publicPricingController } from "./modules/pricing/public-pricing.controller";
+import { privacyController } from "./modules/privacy/privacy.controller";
 import { settingsController } from "./modules/settings/settings.controller";
 import { mayarController } from "./modules/mayar/mayar.controller";
 import { systemAdminsController } from "./modules/system-admins/system-admins.controller";
@@ -122,6 +123,7 @@ const app = new Elysia()
       .use(mayarController)
       .use(ordersController)
       .use(systemMetricsController)
+      .use(privacyController)
       .use(invoicesController)
       .use(publicInvoicesController)
       .use(contactsController)
@@ -167,7 +169,7 @@ const app = new Elysia()
           }
         },
         open(ws) {
-          const workspace_id = ws.data.wsAuth?.workspace_id;
+          const workspace_id = ws.data.wsAuth?.workspaceId;
           if (workspace_id) {
             ws.subscribe(workspace_id);
             log.info(
@@ -183,7 +185,7 @@ const app = new Elysia()
           }
         },
         close(ws) {
-          const workspace_id = ws.data.wsAuth?.workspace_id;
+          const workspace_id = ws.data.wsAuth?.workspaceId;
           if (workspace_id) {
             ws.unsubscribe(workspace_id);
             log.info(

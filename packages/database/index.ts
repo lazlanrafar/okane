@@ -12,6 +12,7 @@ export * from "./schema/debts";
 export * from "./schema/invoices";
 export * from "./schema/orders";
 export * from "./schema/pricing";
+export * from "./schema/privacy-requests";
 export * from "./schema/transaction-attachments";
 export * from "./schema/transaction-items";
 export * from "./schema/transactions";

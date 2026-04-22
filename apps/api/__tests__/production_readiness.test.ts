@@ -71,7 +71,7 @@ const mockWorkspacesRepository = {
   findById: mock(() => Promise.resolve({ id: "w1", name: "WS1" })),
   getMembership: mock(() => Promise.resolve({ role: "owner" })),
   addMember: mock(() => Promise.resolve()),
-  getMemberships: mock(() => Promise.resolve([{ workspace_id: "w1" }])),
+  getMemberships: mock(() => Promise.resolve([{ workspaceId: "w1" }])),
   getWorkspaceId: mock(() => Promise.resolve("w1")),
   getWorkspacesWithPlans: mock(() => Promise.resolve([])),
   findPendingInvitationsByEmail: mock(() => Promise.resolve([])),
@@ -140,9 +140,9 @@ const mockUsersRepository = {
   getWorkspaceId: mock(() => Promise.resolve(null)),
   setWorkspaceId: mock(() => Promise.resolve()),
   findByEmail: mock(() => Promise.resolve(null)),
-  findById: mock((id: string) => Promise.resolve({ id, email: "test@example.com", name: "User", workspace_id: "w1" })),
+  findById: mock((id: string) => Promise.resolve({ id, email: "test@example.com", name: "User", workspaceId: "w1" })),
   getWorkspacesWithRole: mock(() => Promise.resolve([{ id: "w1", name: "WS1", role: "owner" }])),
-  getMemberships: mock(() => Promise.resolve([{ workspace_id: "w1" }])),
+  getMemberships: mock(() => Promise.resolve([{ workspaceId: "w1" }])),
   update: mock(() => Promise.resolve()),
 };
 const mockSettingsRepository = {
@@ -188,11 +188,11 @@ mock.module("@workspace/database", () => ({
     select: mock(() => ({
       from: mock(() => ({
         where: mock(() => ({
-          limit: mock(() => Promise.resolve([{ workspace_id: "w1", user_id: "u1", email: "test@example.com", id: "p1", system_role: "owner" }])),
+          limit: mock(() => Promise.resolve([{ workspaceId: "w1", user_id: "u1", email: "test@example.com", id: "p1", system_role: "owner" }])),
         })),
         leftJoin: mock(() => ({
           where: mock(() => ({
-            limit: mock(() => Promise.resolve([{ id: "u1", system_role: "owner", workspace_id: "w1" }])),
+            limit: mock(() => Promise.resolve([{ id: "u1", system_role: "owner", workspaceId: "w1" }])),
           })),
         })),
       })),
@@ -208,8 +208,8 @@ mock.module("@workspace/database", () => ({
     })),
   },
   eq: mock((a: any, b: any) => ({ a, b })),
-  users: { workspace_id: "workspace_id", id: "id", system_role: "system_role" },
-  user_workspaces: { user_id: "user_id", workspace_id: "workspace_id" },
+  users: { workspaceId: "workspace_id", id: "id", system_role: "system_role" },
+  user_workspaces: { user_id: "user_id", workspaceId: "workspace_id" },
   pricing: { id: "id", name: "name" },
 }));
 

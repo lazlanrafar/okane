@@ -6,6 +6,9 @@ import { IntegrationsRepository } from "./integrations.repository";
 import { ConnectWhatsAppDto } from "./integrations.dto";
 import { logger } from "@workspace/logger";
 import { Env } from "@workspace/constants";
+import { status } from "elysia";
+import { ErrorCode } from "@workspace/types";
+import { buildError } from "@workspace/utils";
 import {
   getPublicRequestUrl,
   parseFormBody,
@@ -115,8 +118,10 @@ export const integrationsController = new Elysia({ prefix: "/integrations" })
   .get(
     "/",
     async ({ auth }) => {
-      if (!auth?.workspace_id) throw Error("Unauthorized");
-      return await IntegrationsService.getAll(auth.workspace_id);
+      if (!auth?.workspaceId) {
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      }
+      return await IntegrationsService.getAll(auth.workspaceId);
     },
     {
       detail: {
@@ -130,9 +135,11 @@ export const integrationsController = new Elysia({ prefix: "/integrations" })
   .post(
     "/whatsapp/connect",
     async ({ body, auth }) => {
-      if (!auth?.workspace_id || !auth?.user_id) throw Error("Unauthorized");
+      if (!auth?.workspaceId || !auth?.user_id) {
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      }
       return await IntegrationsService.connectWhatsApp(
-        auth.workspace_id,
+        auth.workspaceId,
         auth.user_id,
         body.phoneNumber,
       );
@@ -150,9 +157,11 @@ export const integrationsController = new Elysia({ prefix: "/integrations" })
   .post(
     "/telegram/connect",
     async ({ body, auth }) => {
-      if (!auth?.workspace_id || !auth?.user_id) throw Error("Unauthorized");
+      if (!auth?.workspaceId || !auth?.user_id) {
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      }
       return await IntegrationsService.connectTelegram(
-        auth.workspace_id,
+        auth.workspaceId,
         auth.user_id,
         body.chatId,
       );

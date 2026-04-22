@@ -3,7 +3,6 @@ import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import { createClient } from "@workspace/supabase/server";
 import { BucketClient } from "@workspace/bucket";
 import { Env } from "@workspace/constants";
-import * as fs from "node:fs";
 import * as path from "node:path";
 import { logger } from "@workspace/logger";
 
@@ -43,7 +42,6 @@ export abstract class UsersService {
     profile_picture?: string | null;
     providers?: string[] | null;
   }) {
-    const log_file = path.join(process.cwd(), "debug-sync.log");
     try {
       // 1. Validate ID format (must be UUID)
       const uuidRegex =
@@ -91,10 +89,10 @@ export abstract class UsersService {
 
       return { has_workspace, workspace_id };
     } catch (error: any) {
-      fs.appendFileSync(
-        log_file,
-        `[${new Date().toISOString()}] Sync Error: ${error.message}\nStack: ${error.stack}\nData: ${JSON.stringify(data)}\n\n`,
-      );
+      logger.error("Sync user failed", {
+        error,
+        userId: data.id,
+      });
       throw error;
     }
   }
@@ -134,21 +132,21 @@ export abstract class UsersService {
   /**
    * Update the user's active workspace.
    */
-  static async updateActiveWorkspace(user_id: string, workspace_id: string) {
+  static async updateActiveWorkspace(user_id: string, workspaceId: string) {
     // 1. Verify membership
     const memberships = await UsersRepository.getMemberships(user_id);
-    const isMember = memberships.some((m) => m.workspace_id === workspace_id);
+    const isMember = memberships.some((m) => m.workspace_id === workspaceId);
 
     if (!isMember) {
       throw new Error("User is not a member of this workspace");
     }
 
     // 2. Update active workspace
-    await UsersRepository.setWorkspaceId(user_id, workspace_id);
+    await UsersRepository.setWorkspaceId(user_id, workspaceId);
 
     // 3. Log action
     await AuditLogsService.log({
-      workspace_id,
+      workspace_id: workspaceId,
       user_id,
       action: "user.workspace_switched",
       entity: "user",

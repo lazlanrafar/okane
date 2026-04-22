@@ -1,19 +1,13 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-  integer,
-  bigint,
-} from "drizzle-orm/pg-core";
+import { createId } from "@paralleldrive/cuid2";
+import { pgTable, text, timestamp, integer, bigint } from "drizzle-orm/pg-core";
 import { pricing } from "./pricing";
 
 export const workspaces = pgTable("workspaces", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: text("id").primaryKey().$defaultFn(createId),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   country: text("country"),
-  plan_id: uuid("plan_id").references(() => pricing.id),
+  plan_id: text("plan_id").references(() => pricing.id),
   plan_status: text("plan_status").default("free").notNull(),
   mayar_customer_email: text("mayar_customer_email"),
   mayar_transaction_id: text("mayar_transaction_id").unique(),

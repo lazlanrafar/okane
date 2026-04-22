@@ -1,13 +1,14 @@
-import { decimal, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { createId } from "@paralleldrive/cuid2";
+import { decimal, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { workspaces } from "./workspaces";
 import { categories } from "./categories";
 
 export const budgets = pgTable("budgets", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  workspaceId: uuid("workspace_id")
+  id: text("id").primaryKey().$defaultFn(createId),
+  workspaceId: text("workspace_id")
     .references(() => workspaces.id, { onDelete: "cascade" })
     .notNull(),
-  categoryId: uuid("category_id")
+  categoryId: text("category_id")
     .references(() => categories.id, { onDelete: "cascade" })
     .notNull(),
   amount: decimal("amount", { precision: 19, scale: 4 }).notNull(),

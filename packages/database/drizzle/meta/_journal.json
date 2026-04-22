@@ -22,6 +22,13 @@
       "when": 1776760053790,
       "tag": "0002_bored_bloodstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776851414998,
+      "tag": "0003_colossal_pyro",
+      "breakpoints": true
     }
   ]
 }

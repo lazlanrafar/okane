@@ -50,7 +50,7 @@ export const mayarController = new Elysia({
 
       // Find workspace owner or customer email from workspace context
       const workspace = await MayarRepository.findWorkspaceById(
-        auth.workspace_id,
+        auth.workspaceId,
       );
       const email = workspace?.mayar_customer_email;
 
@@ -82,7 +82,7 @@ export const mayarController = new Elysia({
         locale,
       } = body;
 
-      if (workspaceId && workspaceId !== auth.workspace_id) {
+      if (workspaceId && workspaceId !== auth.workspaceId) {
         const membership = await WorkspacesRepository.getMembership(
           auth.user_id,
           workspaceId,
@@ -92,7 +92,7 @@ export const mayarController = new Elysia({
         }
       }
 
-      const targetWorkspaceId = workspaceId || auth.workspace_id;
+      const targetWorkspaceId = workspaceId || auth.workspaceId;
 
       return MayarService.createCheckoutSession(
         targetWorkspaceId,
@@ -132,14 +132,17 @@ export const mayarController = new Elysia({
       if (!auth)
         return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       
-      await MayarService.syncWorkspaceInvoices(auth.workspace_id, auth.email || "");
+      await MayarService.syncWorkspaceInvoices(auth.workspaceId, auth.email || "");
       return { success: true };
     },
     { detail: { summary: "Sync Workspace Invoices", tags: ["Mayar"] } },
   )
   .get(
     "/invoices/:id",
-    async ({ params }) => {
+    async ({ params, auth, status }) => {
+      if (!auth) {
+        return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      }
       return MayarService.getInvoiceUrl(params.id);
     },
     { detail: { summary: "Get Invoice URL", tags: ["Mayar"] } },
@@ -149,7 +152,7 @@ export const mayarController = new Elysia({
     async ({ auth, status }) => {
       if (!auth)
         return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
-      return MayarService.cancelSubscription(auth.workspace_id);
+      return MayarService.cancelSubscription(auth.workspaceId);
     },
     { detail: { summary: "Cancel Subscription", tags: ["Mayar"] } },
   )
@@ -162,7 +165,7 @@ export const mayarController = new Elysia({
           buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"),
         );
       return MayarService.cancelAddon(
-        auth.workspace_id,
+        auth.workspaceId,
         body.addonId,
         auth.user_id,
       );
