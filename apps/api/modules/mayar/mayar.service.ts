@@ -160,6 +160,16 @@ export abstract class MayarService {
   static async handleWebhook(event: any, receivedToken?: string) {
     // 1. Verify Webhook Token
     const configuredToken = Env.MAYAR_WEBHOOK_TOKEN;
+    if (process.env.NODE_ENV === "production" && !configuredToken) {
+      logger.error("[Mayar Webhook] Missing MAYAR_WEBHOOK_TOKEN in production");
+      throw status(
+        500,
+        buildError(
+          ErrorCode.INTERNAL_ERROR,
+          "Webhook configuration is missing",
+        ),
+      );
+    }
     if (configuredToken && receivedToken !== configuredToken) {
       logger.error("[Mayar Webhook] Unauthorized - Invalid or missing token", {
         receivedLen: receivedToken?.length,

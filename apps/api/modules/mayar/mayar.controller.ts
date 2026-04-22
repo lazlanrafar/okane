@@ -5,6 +5,7 @@ import { CreateMayarCheckoutDto, MayarWebhookDto, CancelAddonDto } from "./mayar
 import { authPlugin } from "../../plugins/auth";
 import { buildError } from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
+import { WorkspacesRepository } from "../workspaces/workspaces.repository";
 
 export const mayarController = new Elysia({
   prefix: "/mayar",
@@ -14,16 +15,21 @@ export const mayarController = new Elysia({
     "/webhook",
     async ({ body, headers }) => {
       try {
-
+        const rawAuthorization = headers["authorization"];
+        const bearerToken =
+          typeof rawAuthorization === "string" &&
+          rawAuthorization.toLowerCase().startsWith("bearer ")
+            ? rawAuthorization.slice(7).trim()
+            : rawAuthorization;
         const token =
           headers["x-mayar-token"] ||
           headers["x-callback-token"] ||
-          headers["authorization"];
+          bearerToken;
         await MayarService.handleWebhook(body, token);
         return { success: true };
       } catch (err: any) {
         console.error("[Mayar Webhook Error]", err.stack || err.message);
-        return { success: false, error: err.message };
+        return { success: false, error: "Webhook processing failed" };
       }
     },
     {
@@ -76,8 +82,20 @@ export const mayarController = new Elysia({
         locale,
       } = body;
 
+      if (workspaceId && workspaceId !== auth.workspace_id) {
+        const membership = await WorkspacesRepository.getMembership(
+          auth.user_id,
+          workspaceId,
+        );
+        if (!membership) {
+          return status(403, buildError(ErrorCode.FORBIDDEN, "Forbidden"));
+        }
+      }
+
+      const targetWorkspaceId = workspaceId || auth.workspace_id;
+
       return MayarService.createCheckoutSession(
-        workspaceId || auth.workspace_id,
+        targetWorkspaceId,
         auth.user_id,
         priceId,
         returnPath,

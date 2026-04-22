@@ -18,39 +18,11 @@ export function useRealtime() {
   const reconnectAttempts = useRef(0);
 
   const connect = useCallback(async () => {
-    // 1. Get Token (similar logic to axios.client.ts)
-    // For HttpOnly cookies, we won't be able to read it here, but the browser
-    // will automatically send it in the WebSocket headers.
-    let token: string | undefined;
-    const cookieName = Env.NEXT_PUBLIC_SESSION_COOKIE_NAME || "oewang-session";
-
-    const cookies = document.cookie.split(";");
-    token = cookies.find((c) => c.trim().startsWith(`${cookieName}=`))?.split("=")[1];
-
-    if (!token) {
-      token = localStorage.getItem("auth-token") || localStorage.getItem("token") || undefined;
-    }
-
-    if (!token) {
-      try {
-        const { createBrowserClient } = await import("@workspace/supabase/client");
-        const supabase = createBrowserClient();
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        token = session?.access_token;
-      } catch (_e) {
-        // Ignore
-      }
-    }
-
-    // 2. Establish Connection
+    // Browser automatically attaches cookies for same-site WebSocket requests.
+    // Avoid query-token transport in production to prevent token leakage via URLs/logs.
     const apiUrl = Env.NEXT_PUBLIC_API_URL ?? "http://localhost:3002";
     const baseWsUrl = apiUrl.replace(/^http/, "ws").replace(/\/$/, "");
-
-    // Fallback: If we extracted a local token, pass it.
-    // Otherwise, rely entirely on the browser sending the HttpOnly cookie.
-    const wsUrl = token ? `${baseWsUrl}/v1/realtime?token=${token}` : `${baseWsUrl}/v1/realtime`;
+    const wsUrl = `${baseWsUrl}/v1/realtime`;
 
     console.log("[Realtime] Attempting connection to", wsUrl);
 

@@ -14,7 +14,6 @@ import * as QRCode from "qrcode";
 
 export function ConnectWhatsApp({ dictionary }: { dictionary: Dictionary }) {
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState<"meta" | "twilio">("meta");
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [copied, setCopied] = useState(false);
 
@@ -28,13 +27,11 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: Dictionary }) {
 
   const params = useParams();
   const _locale = (params.locale as string) || "en";
-  const workspaceId = me.user.workspace_id;
-
-  const activeWorkspace = me.workspaces.find((w) => w.id === workspaceId);
+  const workspaceId = me?.user.workspace_id;
+  const activeWorkspace = me?.workspaces.find((w) => w.id === workspaceId);
   const planName = activeWorkspace.plan_name || "Starter";
   const isPro = planName === "Pro" || planName === "Business";
-  // Use a fallback if the env var is not set to ensure the dialog at least opens
-  const whatsappNumber = type === "meta" ? Env.NEXT_PUBLIC_WHATSAPP_NUMBER : Env.NEXT_PUBLIC_TWILIO_WHATSAPP_NUMBER;
+  const whatsappNumber = Env.NEXT_PUBLIC_TWILIO_WHATSAPP_NUMBER;
   const message = `Connect Oewang ${workspaceId}`;
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
@@ -63,21 +60,14 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: Dictionary }) {
   }, [open, workspaceId, whatsappNumber, isPro, generateQRCode]);
 
   useEffect(() => {
-    const handleOpenMeta = () => {
-      setType("meta");
-      setOpen(true);
-    };
-    const handleOpenTwilio = () => {
-      setType("twilio");
-      setOpen(true);
-    };
+    const handleOpen = () => setOpen(true);
 
-    window.addEventListener("openWhatsAppConnect", handleOpenMeta);
-    window.addEventListener("openWhatsAppTwilioConnect", handleOpenTwilio);
+    window.addEventListener("openWhatsAppConnect", handleOpen);
+    window.addEventListener("openWhatsAppTwilioConnect", handleOpen);
 
     return () => {
-      window.removeEventListener("openWhatsAppConnect", handleOpenMeta);
-      window.removeEventListener("openWhatsAppTwilioConnect", handleOpenTwilio);
+      window.removeEventListener("openWhatsAppConnect", handleOpen);
+      window.removeEventListener("openWhatsAppTwilioConnect", handleOpen);
     };
   }, []);
 
@@ -99,7 +89,7 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: Dictionary }) {
         <div className="p-8">
           <DialogHeader>
             <DialogTitle className="text-xl tracking-tight">
-              {dictionary.apps.connect.whatsapp.title} {type === "twilio" && "(Twilio)"}
+              {dictionary.apps.connect.whatsapp.title} (Twilio)
             </DialogTitle>
             <DialogDescription className="pt-2 text-muted-foreground">
               {dictionary.apps.connect.whatsapp.description}

@@ -143,6 +143,13 @@ const app = new Elysia()
           log.warn(`[WS] Missing token and cookie for connection from ${ip}`);
           return { wsAuth: null };
         }
+
+        if (process.env.NODE_ENV === "production") {
+          log.warn(
+            `[WS] Query-token auth blocked in production from ${ip}`,
+          );
+          return { wsAuth: null };
+        }
         
         const ws_auth = await getAuth(token);
         if (!ws_auth) {

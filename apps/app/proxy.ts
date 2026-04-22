@@ -96,7 +96,17 @@ export async function proxy(request: NextRequest) {
   // 2. Workspace Guard (Lightweight JWT check)
   if (isDashboardRoute && token) {
     try {
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET || "default_secret");
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        console.error("[Proxy] Missing JWT_SECRET. Refusing to verify session.");
+        const redirectResponse = NextResponse.redirect(
+          new URL(`/${locale}/login`, request.url),
+        );
+        redirectResponse.cookies.delete("oewang-session");
+        return redirectResponse;
+      }
+
+      const secret = new TextEncoder().encode(jwtSecret);
       const { payload } = await jwtVerify(token, secret);
 
       if (

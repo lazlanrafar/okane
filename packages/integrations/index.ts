@@ -22,7 +22,6 @@ import slackApp from "./slack/config-client";
 import stripeApp from "./stripe/config";
 import stripePaymentsApp from "./stripe-payments/config-client";
 import telegramApp from "./telegram/config-client";
-import whatsappApp from "./whatsapp/config-client";
 import whatsappTwilioApp from "./whatsapp-twilio/config-client";
 import xeroApp from "./xero/config-client";
 import zapierMcpApp from "./zapier-mcp/config";
@@ -34,7 +33,6 @@ export const apps = [
   quickBooksApp,
   xeroApp,
   fortnoxApp,
-  whatsappApp,
   whatsappTwilioApp,
   stripePaymentsApp,
   raycastApp,
