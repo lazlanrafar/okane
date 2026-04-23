@@ -1,3 +1,5 @@
+import type { CurrencyFormatOptions } from "@workspace/types";
+
 export const CURRENCY_CONFIG: Record<
   string,
   { divisor: number; decimals: number; symbol: string; position: "Front" | "Back" }
@@ -14,10 +16,7 @@ export function formatCurrency(
     mainCurrencySymbolPosition?: string;
     mainCurrencyDecimalPlaces?: number;
   } | null,
-  options?: {
-    compact?: boolean;
-    locale?: string;
-  },
+  options?: CurrencyFormatOptions,
 ) {
   if (!settings) {
     if (isNaN(amount)) return "—";
@@ -54,7 +53,7 @@ export function formatCurrency(
 export function formatPrice(
   amount: number,
   currencyCode: string,
-  options?: { compact?: boolean },
+  options?: CurrencyFormatOptions,
 ) {
   const config = CURRENCY_CONFIG[currencyCode.toLowerCase()] || {
     divisor: 100,
@@ -77,7 +76,7 @@ export function formatPrice(
 export function formatSubunits(
   amount: number,
   currencyCode: string,
-  options?: { compact?: boolean },
+  options?: CurrencyFormatOptions,
 ) {
   const config = CURRENCY_CONFIG[currencyCode.toLowerCase()] || {
     symbol: currencyCode.toUpperCase(),

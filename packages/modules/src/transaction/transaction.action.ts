@@ -14,24 +14,14 @@ import type {
   ActionResponse,
   ApiResponse,
   Transaction,
+  TransactionQueryParams,
 } from "@workspace/types";
 
 import { axiosInstance as api } from "../lib/axios.server";
 
-export const getTransactions = async (params: {
-  page?: number;
-  limit?: number;
-  type?: string | string[];
-  walletId?: string | string[];
-  categoryId?: string | string[];
-  startDate?: string;
-  endDate?: string;
-  minAmount?: number;
-  maxAmount?: number;
-  hasAttachments?: boolean;
-  search?: string;
-  uncategorized?: boolean;
-}): Promise<ApiResponse<Transaction[]>> => {
+export const getTransactions = async (
+  params: TransactionQueryParams,
+): Promise<ApiResponse<Transaction[]>> => {
   try {
     const response = await api.get("/transactions", {
       params,
@@ -226,4 +216,3 @@ export const getTransactionDebts = async (
     };
   }
 };
-

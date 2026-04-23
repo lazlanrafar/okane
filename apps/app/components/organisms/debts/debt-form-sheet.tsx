@@ -60,7 +60,7 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary, settings }
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"payable" | "receivable">(
-    (debt.type as "payable" | "receivable") || "receivable",
+    debt?.type || "receivable",
   );
   const dict = dictionary.debts;
 
@@ -106,7 +106,7 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary, settings }
         dueDate: data.dueDate || undefined,
       };
 
-      if (debt.id) {
+      if (debt?.id) {
         return updateDebt(debt.id, {
           description: formattedData.description,
           dueDate: formattedData.dueDate,

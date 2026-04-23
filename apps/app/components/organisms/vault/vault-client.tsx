@@ -313,7 +313,7 @@ export function VaultClient({ dictionary }: Props) {
 
         <ScrollArea className="h-full min-h-0 flex-1 border bg-card/10 p-4" ref={scrollRef}>
           {isLoading && !isRefetching ? (
-            <VaultContentSkeleton view={view as unknown} />
+            <VaultContentSkeleton view={view === "grid" ? "grid" : "list"} />
           ) : (
             <>
               {files.length === 0 ? (

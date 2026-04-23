@@ -180,7 +180,7 @@ export function CategoryForm({ type, dictionary }: { type: "income" | "expense";
   );
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema as unknown),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
     },

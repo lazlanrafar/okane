@@ -6,12 +6,13 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import type { Dictionary } from "@workspace/dictionaries";
 import {
   type CreateInvoiceData,
+  type UpdateInvoiceData,
   createInvoice,
   deleteInvoice,
   getInvoices,
   updateInvoice,
 } from "@workspace/modules/client";
-import type { ApiResponse, Invoice, PaginatedList } from "@workspace/types";
+import type { ApiResponse, Invoice } from "@workspace/types";
 import { Button, DataTable, DataTableColumnsVisibility, DataTableEmptyState, DataTableFilter } from "@workspace/ui";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -29,9 +30,10 @@ type InvoiceRow = Invoice & {
 
 interface Props {
   dictionary: Dictionary;
+  initialData?: Invoice[] | null;
 }
 
-export function InvoicesClient({ dictionary }: Props) {
+export function InvoicesClient({ dictionary, initialData: _initialData }: Props) {
   const queryClient = useQueryClient();
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
@@ -57,15 +59,15 @@ export function InvoicesClient({ dictionary }: Props) {
     initialPageParam: 1,
     queryFn: async ({ pageParam }) => {
       const res = await getInvoices({
-        search: filters.q as string,
-        status: (filters.status as string) || undefined,
-        page: pageParam as number,
+        search: filters.q || undefined,
+        status: filters.status || undefined,
+        page: pageParam,
         limit: 50,
       });
-      if (!res.success) throw new Error(res.error || "Failed to fetch invoices");
+      if (!res.success) throw new Error(res.message || "Failed to fetch invoices");
       return res;
     },
-    getNextPageParam: (lastPage: ApiResponse<PaginatedList<InvoiceRow>>) => {
+    getNextPageParam: (lastPage: ApiResponse<Invoice[]>) => {
       const meta = lastPage.meta?.pagination;
       if (!meta) return undefined;
       const nextPage = meta.page + 1;
@@ -75,33 +77,7 @@ export function InvoicesClient({ dictionary }: Props) {
     refetchOnWindowFocus: false,
   });
 
-  const allInvoices: InvoiceRow[] =
-    data.pages?.flatMap((p) => {
-      const items = p.data;
-      if (!items) return [];
-
-      if (Array.isArray(items)) {
-        return items.map(
-          (item: InvoiceRow & { invoice?: Invoice; contact?: { name?: string; email?: string } | null }) => {
-            if (item.invoice) {
-              return {
-                ...item.invoice,
-                contact: item.contact,
-              };
-            }
-            return item;
-          },
-        );
-      }
-
-      // Handle single object response if any
-      if (items && typeof items === "object" && "invoice" in items) {
-        const typed = items as { invoice: Invoice; contact?: { name?: string; email?: string } | null };
-        return [{ ...typed.invoice, contact: typed.contact }];
-      }
-
-      return [];
-    }) ?? [];
+  const allInvoices: InvoiceRow[] = data?.pages?.flatMap((p) => p.data ?? []) ?? [];
 
   // Derived counts
   const openCount = allInvoices.filter((i) => i.status === "unpaid" || i.status === "draft").length;
@@ -113,7 +89,7 @@ export function InvoicesClient({ dictionary }: Props) {
   }, [queryClient]);
 
   const handleEdit = useCallback((invoice: InvoiceRow) => {
-    setEditInvoice(invoice as Invoice);
+    setEditInvoice(invoice);
     setIsFormSheetOpen(true);
   }, []);
 
@@ -136,11 +112,33 @@ export function InvoicesClient({ dictionary }: Props) {
   );
 
   const handleUpdate = useCallback(
-    async (id: string, data: Partial<Invoice>) => {
+    async (id: string, data: UpdateInvoiceData) => {
       const res = await updateInvoice(id, data);
       if (res.success) {
         refresh();
-        setSelectedInvoice((prev) => (prev.id === id ? { ...prev, ...data } : prev));
+        setSelectedInvoice((prev) => {
+          if (!prev || prev.id !== id) return prev;
+
+          return {
+            ...prev,
+            contactId: data.contactId ?? prev.contactId,
+            invoiceNumber: data.invoiceNumber ?? prev.invoiceNumber,
+            issueDate: data.issueDate === undefined ? prev.issueDate : data.issueDate,
+            dueDate: data.dueDate === undefined ? prev.dueDate : data.dueDate,
+            amount: data.amount ?? prev.amount,
+            vat: data.vat ?? prev.vat,
+            tax: data.tax ?? prev.tax,
+            currency: data.currency ?? prev.currency,
+            internalNote: data.internalNote === undefined ? prev.internalNote : data.internalNote,
+            noteDetails: data.noteDetails === undefined ? prev.noteDetails : data.noteDetails,
+            paymentDetails: data.paymentDetails === undefined ? prev.paymentDetails : data.paymentDetails,
+            logoUrl: data.logoUrl === undefined ? prev.logoUrl : data.logoUrl,
+            lineItems: data.lineItems ?? prev.lineItems,
+            isPublic: data.isPublic ?? prev.isPublic,
+            accessCode: data.accessCode === undefined ? prev.accessCode : data.accessCode,
+            status: data.status ?? prev.status,
+          };
+        });
       } else {
         throw new Error("Update failed");
       }
@@ -151,7 +149,7 @@ export function InvoicesClient({ dictionary }: Props) {
   const handleFormSubmit = useCallback(
     async (formData: CreateInvoiceData, isSilent?: boolean): Promise<Invoice | boolean> => {
       let result: Invoice | boolean = false;
-      if (editInvoice.id) {
+      if (editInvoice?.id) {
         const res = await updateInvoice(editInvoice.id, formData);
         if (!res.success) {
           if (!isSilent) toast.error("Failed to update invoice");

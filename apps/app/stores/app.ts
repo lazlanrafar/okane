@@ -1,6 +1,6 @@
 import { INCOME_EXPENSES_COLOR_OPTIONS } from "@workspace/constants";
 import { type AiQuota, getAiQuota } from "@workspace/modules/ai/ai.action";
-import type { SubCurrency, TransactionSettings, User, Workspace } from "@workspace/types";
+import type { CurrencyFormatOptions, SubCurrency, TransactionSettings, User, Workspace } from "@workspace/types";
 import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
 import { create } from "zustand";
 
@@ -21,7 +21,7 @@ export interface AppState {
   setDictionary: (dictionary: Record<string, unknown> | null) => void;
   fetchAiQuota: () => Promise<void>;
   getTransactionColor: (type: string) => string;
-  formatCurrency: (amount: number, options?: Intl.NumberFormatOptions) => string;
+  formatCurrency: (amount: number, options?: CurrencyFormatOptions) => string;
   checkLimit: (
     feature: "vault_size" | "ai_tokens",
     currentUsage: number,

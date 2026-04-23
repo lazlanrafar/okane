@@ -2,6 +2,16 @@ import type { Pricing } from "./pricing";
 
 export type WorkspaceRole = "owner" | "admin" | "member";
 
+export type WorkspaceActiveAddon = {
+  id: string;
+  addon_type: "ai" | "vault" | null;
+  max_ai_tokens: number;
+  max_vault_size_mb: number;
+  amount: number;
+  status: "active" | "cancelled";
+  created_at: string | Date;
+};
+
 export type Workspace = {
   id: string;
   name: string;
@@ -12,11 +22,12 @@ export type Workspace = {
   mayar_customer_email?: string | null;
   mayar_transaction_id?: string | null;
   plan_current_period_end?: string | null;
+  storage_violation_at?: string | null;
   ai_tokens_used: number;
   vault_size_used_bytes: number;
   extra_ai_tokens: number;
   extra_vault_size_mb: number;
-  active_addons?: (Pricing & { mayar_transaction_id: string })[];
+  active_addons?: WorkspaceActiveAddon[];
   plan?: Pricing | null;
   created_at: string;
   updated_at: string;

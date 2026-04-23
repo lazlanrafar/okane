@@ -1,9 +1,10 @@
 "use client";
 
+import type { ColumnDef } from "@tanstack/react-table";
 import { TableSkeleton } from "@workspace/ui";
 
 export function TransactionTableSkeleton({ hideHeader = false }: { hideHeader?: boolean }) {
-  const columns = [
+  const columns: ColumnDef<Record<string, string>>[] = [
     { id: "select", header: "" },
     { id: "date", header: "Date" },
     { id: "type", header: "Type" },
@@ -29,7 +30,7 @@ export function TransactionTableSkeleton({ hideHeader = false }: { hideHeader?: 
 
       <div className="relative min-h-0 flex-1">
         <TableSkeleton
-          columns={columns as unknown}
+          columns={columns}
           rowCount={20}
           stickyColumnIds={["select", "date", "name", "actions"]}
           actionsColumnId="actions"

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import type { Dictionary } from "@workspace/dictionaries";
 import { getInvoiceToken } from "@workspace/modules/invoice/invoice.action";
+import type { UpdateInvoiceData } from "@workspace/modules/client";
 import type { Invoice } from "@workspace/types";
 import {
   Accordion,
@@ -74,7 +75,7 @@ interface InvoiceDetailSheetProps {
   invoice: InvoiceRow | null;
   onEdit?: (invoice: InvoiceRow) => void;
   onDelete?: (id: string) => void;
-  onUpdate?: (id: string, data: Partial<Invoice>) => void;
+  onUpdate?: (id: string, data: UpdateInvoiceData) => void;
   dictionary: Dictionary;
 }
 

@@ -53,7 +53,7 @@ export function AppSidebar({
       <SidebarHeader>
         <WorkspaceSwitcher
           workspaces={workspaces}
-          activeWorkspaceId={currentUser.workspace_id}
+          activeWorkspaceId={currentUser?.workspace_id ?? undefined}
           dictionary={dictionary}
         />
       </SidebarHeader>

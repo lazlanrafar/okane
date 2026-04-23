@@ -2,9 +2,12 @@
 
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui";
 import { ArrowRight } from "lucide-react";
+import type { Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
-import { mappableFields, useCsvContext } from "./transaction-import-context";
+import { type ImportCsvFormData, mappableFields, useCsvContext } from "./transaction-import-context";
+
+type MappableFieldKey = keyof typeof mappableFields;
 
 export function FieldMapping() {
   const { fileColumns, firstRows, control } = useCsvContext();
@@ -22,7 +25,8 @@ export function FieldMapping() {
           </div>
         </div>
 
-        {Object.entries(mappableFields).map(([key, field]) => (
+        {(Object.entries(mappableFields) as Array<[MappableFieldKey, (typeof mappableFields)[MappableFieldKey]]>).map(
+          ([key, field]) => (
           <FieldRow
             key={key}
             fieldKey={key}
@@ -32,7 +36,8 @@ export function FieldMapping() {
             control={control}
             firstRows={firstRows || []}
           />
-        ))}
+          ),
+        )}
       </div>
 
       {/* <div className="pt-4 border-t border-border">
@@ -64,12 +69,12 @@ function FieldRow({
   control,
   firstRows,
 }: {
-  fieldKey: string;
+  fieldKey: MappableFieldKey;
   label: string;
   required: boolean;
   columns: string[];
-  control: unknown;
-  firstRows: unknown[];
+  control: Control<ImportCsvFormData>;
+  firstRows: Record<string, string>[];
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
@@ -99,7 +104,7 @@ function FieldRow({
                     Preview:{" "}
                     {firstRows
                       ? firstRows
-                          .map((row: unknown) => row[field.value])
+                          .map((row) => (typeof field.value === "string" ? row[field.value] : ""))
                           .filter(Boolean)
                           .slice(0, 3)
                           .join(", ")

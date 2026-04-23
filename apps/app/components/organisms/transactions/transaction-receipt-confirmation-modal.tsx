@@ -55,7 +55,7 @@ export function TransactionReceiptConfirmationModal({ open, onOpenChange, data, 
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<ConfirmationFormValues>({
-    resolver: zodResolver(confirmationSchema as unknown),
+    resolver: zodResolver(confirmationSchema),
     defaultValues: {
       amount: 0,
       date: new Date().toISOString().split("T")[0],

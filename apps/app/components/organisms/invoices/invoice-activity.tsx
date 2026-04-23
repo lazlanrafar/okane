@@ -5,17 +5,9 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Dictionary } from "@workspace/dictionaries";
 import { getInvoiceActivity } from "@workspace/modules/invoice/invoice.action";
+import type { InvoiceActivityItem } from "@workspace/types";
 import { format } from "date-fns";
 import { CheckCircle2, Clock, FileEdit, History } from "lucide-react";
-
-interface InvoiceActivityItem {
-  id: string;
-  action: string;
-  created_at: string;
-  before?: Record<string, unknown>;
-  after?: Record<string, unknown>;
-  user: { name?: string | null; email?: string | null };
-}
 
 interface InvoiceActivityProps {
   invoiceId: string;
@@ -30,7 +22,7 @@ export function InvoiceActivity({ invoiceId, dictionary }: InvoiceActivityProps)
     enabled: !!invoiceId,
   });
 
-  const activities = useMemo(() => (response?.data as InvoiceActivityItem[] | null) || [], [response]);
+  const activities = useMemo(() => response?.data || [], [response]);
 
   if (isLoading) {
     return (
@@ -123,12 +115,19 @@ function ActivityDiff({
   after,
   dict,
 }: {
-  before: Record<string, unknown>;
-  after: Record<string, unknown>;
+  before: Record<string, string | number | boolean | null>;
+  after: Record<string, string | number | boolean | null>;
   dict: Dictionary["invoices"];
 }) {
+  const columnsLabels = dict.columns as Record<string, string>;
+  const detailsLabels = dict.details as Record<string, string>;
+
   const changes = useMemo(() => {
-    const diffs: Array<{ field: string; from: unknown; to: unknown }> = [];
+    const diffs: Array<{
+      field: string;
+      from: string | number | boolean | null | undefined;
+      to: string | number | boolean | null | undefined;
+    }> = [];
     const keys = ["status", "amount", "dueDate", "contactId", "isPublic"];
 
     for (const key of keys) {
@@ -146,8 +145,8 @@ function ActivityDiff({
       {changes.map((change) => (
         <div key={change.field} className="flex items-center gap-2 font-mono text-[10px]">
           <span className="w-20 shrink-0 text-muted-foreground/60 uppercase tracking-tighter">
-            {dict.columns[change.field.replace(/([A-Z])/g, "_$1").toLowerCase()] ||
-              dict.details[change.field.replace(/([A-Z])/g, "_$1").toLowerCase()] ||
+            {columnsLabels[change.field.replace(/([A-Z])/g, "_$1").toLowerCase()] ||
+              detailsLabels[change.field.replace(/([A-Z])/g, "_$1").toLowerCase()] ||
               change.field.replace(/([A-Z])/g, " $1")}
           </span>
           <div className="flex items-center gap-2 overflow-hidden">

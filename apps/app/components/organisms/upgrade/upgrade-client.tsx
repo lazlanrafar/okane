@@ -67,7 +67,7 @@ export function UpgradeClient({ dictionary, settings, workspace }: UpgradeClient
         window.location.href = data.url;
       }
     },
-    onError: (error: unknown) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   if (isLoading) {
@@ -120,7 +120,15 @@ export function UpgradeClient({ dictionary, settings, workspace }: UpgradeClient
       <div className="flex flex-col items-center space-y-8">
         <div className="flex flex-col items-center gap-6 sm:flex-row">
           <div className="inline-flex rounded-xl bg-muted/50 p-1 shadow-inner">
-            <Tabs value={billingCycle} onValueChange={(v) => setBillingCycle(v as unknown)} className="w-auto">
+            <Tabs
+              value={billingCycle}
+              onValueChange={(v) => {
+                if (v === "monthly" || v === "annual") {
+                  setBillingCycle(v);
+                }
+              }}
+              className="w-auto"
+            >
               <TabsList className="h-10 gap-1 bg-transparent">
                 <TabsTrigger
                   value="monthly"

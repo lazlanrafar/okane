@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useQueryClient } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Table } from "@tanstack/react-table";
 import type { Dictionary } from "@workspace/dictionaries";
 import { updateTransaction } from "@workspace/modules/transaction/transaction.action";
 import type { Transaction } from "@workspace/types";
@@ -277,14 +277,12 @@ function CategoryCell({
   dictionary,
 }: {
   transaction: Transaction;
-  table: { options: { meta: TransactionTableMeta } };
+  table: Table<Transaction>;
   dictionary: Dictionary;
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
-  const _meta = table.options.meta as unknown;
-
   const handleCategoryChange = async (categoryId: string) => {
     if (categoryId === transaction?.categoryId) return;
 
@@ -336,14 +334,12 @@ function AccountCell({
   dictionary,
 }: {
   transaction: Transaction;
-  table: { options: { meta: TransactionTableMeta } };
+  table: Table<Transaction>;
   dictionary: Dictionary;
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
-  const _meta = table.options.meta as unknown;
-
   const handleAccountChange = async (walletId: string) => {
     if (walletId === transaction?.walletId) return;
 
@@ -387,12 +383,12 @@ function ActionCell({
   onEdit,
 }: {
   transaction: Transaction;
-  table: { options: { meta: TransactionTableMeta } };
+  table: Table<Transaction>;
   dictionary: Dictionary;
   onEdit: (transaction: Transaction) => void;
 }) {
   const queryClient = useQueryClient();
-  const meta = table.options.meta;
+  const meta = table.options.meta as TransactionTableMeta | undefined;
 
   return (
     <DropdownMenu>
@@ -403,7 +399,7 @@ function ActionCell({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48 font-sans">
-        <DropdownMenuItem onClick={() => meta.onRowClick?.(transaction)} className="cursor-pointer gap-2">
+        <DropdownMenuItem onClick={() => meta?.onRowClick?.(transaction)} className="cursor-pointer gap-2">
           <ExternalLink className="h-4 w-4" />
           {dictionary.transactions.view_details}
         </DropdownMenuItem>
@@ -467,7 +463,7 @@ function ActionCell({
         <div className="my-1 h-px bg-muted" />
 
         <DropdownMenuItem
-          onClick={() => meta.onDelete?.(transaction?.id)}
+          onClick={() => meta?.onDelete?.(transaction?.id)}
           className="cursor-pointer gap-2 text-destructive focus:text-destructive"
         >
           <Trash className="h-4 w-4" />
@@ -483,7 +479,7 @@ function UserCell({
   dictionary,
 }: {
   transaction: Transaction;
-  table: { options: { meta: TransactionTableMeta } };
+  table: Table<Transaction>;
   dictionary: Dictionary;
 }) {
   const router = useRouter();

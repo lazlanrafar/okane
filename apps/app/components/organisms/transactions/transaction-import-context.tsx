@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 
+import type { TransactionImportValueMappings } from "@workspace/types";
 import type { Control, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -31,7 +32,7 @@ export const mappableFields = {
 } as const;
 
 export const importSchema = z.object({
-  file: z.any().optional(),
+  file: z.instanceof(File).optional(),
   currency: z.string().default("USD"),
   walletId: z.string().default(""),
   amount: z.string().default(""),
@@ -58,11 +59,7 @@ export const ImportCsvContext = createContext<{
     wallets: Record<string, string>;
     types: Record<string, string>;
   };
-  setValueMappings: (mappings: {
-    categories: Record<string, string>;
-    wallets: Record<string, string>;
-    types: Record<string, string>;
-  }) => void;
+  setValueMappings: (mappings: TransactionImportValueMappings) => void;
 } | null>(null);
 
 export function useCsvContext() {

@@ -1,14 +1,36 @@
 "use client";
 
-import { useCallback, useMemo, useEffect as useReactEffect, useRef, useState } from "react";
+import {
+  type ComponentProps,
+  useCallback,
+  useEffect as useReactEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Row } from "@tanstack/react-table";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import type { ColumnDef, Row } from "@tanstack/react-table";
 import type { Dictionary } from "@workspace/dictionaries";
-import { type ParsedReceipt, parseReceipt } from "@workspace/modules/ai/ai.action";
-import { deleteTransaction, getTransactions } from "@workspace/modules/transaction/transaction.action";
+import {
+  type ParsedReceipt,
+  parseReceipt,
+} from "@workspace/modules/ai/ai.action";
+import {
+  deleteTransaction,
+  getTransactions,
+} from "@workspace/modules/transaction/transaction.action";
 import { uploadVaultFile } from "@workspace/modules/vault/vault.action";
-import type { Category, Transaction, Wallet } from "@workspace/types";
+import type {
+  Category,
+  Transaction,
+  TransactionQueryParams,
+  Wallet,
+} from "@workspace/types";
 import {
   Button,
   cn,
@@ -24,8 +46,22 @@ import {
   DropdownMenuTrigger,
   Icons,
 } from "@workspace/ui";
-import { endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek } from "date-fns";
-import { ChevronDown, ChevronRight, FileUp, Plus, Receipt, Upload } from "lucide-react";
+import {
+  endOfMonth,
+  endOfWeek,
+  format,
+  parseISO,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
+import {
+  ChevronDown,
+  ChevronRight,
+  FileUp,
+  Plus,
+  Receipt,
+  Upload,
+} from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
 
@@ -38,7 +74,10 @@ import { TransactionBulkEditBar } from "./transaction-bulk-edit-bar";
 import { transactionColumns } from "./transaction-columns";
 import { TransactionDetailSheet } from "./transaction-detail-sheet";
 import { TransactionFormSheet } from "./transaction-form-sheet";
-import { type GroupByInterval, TransactionGroupingSelector } from "./transaction-grouping-selector";
+import {
+  type GroupByInterval,
+  TransactionGroupingSelector,
+} from "./transaction-grouping-selector";
 import { ImportModal } from "./transaction-import-modal";
 import { TransactionReceiptConfirmationModal } from "./transaction-receipt-confirmation-modal";
 import { TransactionTableSkeleton } from "./transaction-table-skeleton";
@@ -56,6 +95,18 @@ interface TransactionGroup {
 
 type TransactionRow = Transaction | TransactionGroup;
 
+type TransactionsFilters = {
+  q: string;
+  type: string;
+  walletId: string | string[];
+  categoryId: string[];
+  startDate: string;
+  endDate: string;
+  minAmount: string | number | null;
+  maxAmount: string | number | null;
+  attachments: "include" | "exclude" | null;
+};
+
 interface TransactionsClientProps {
   initialData: Transaction[];
   rowCount: number;
@@ -66,6 +117,41 @@ interface TransactionsClientProps {
   categories: Category[];
   dictionary: Dictionary;
 }
+
+const isTransactionGroup = (row: TransactionRow): row is TransactionGroup =>
+  "_isGroup" in row;
+
+const toNumberOrUndefined = (
+  value: string | number | null,
+): number | undefined => {
+  if (value === null || value === "") return undefined;
+  if (typeof value === "number")
+    return Number.isFinite(value) ? value : undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const getRowTransactionIds = (rows: TransactionRow[]): string[] =>
+  rows.flatMap((row) =>
+    isTransactionGroup(row) ? row.transactions.map((tx) => tx.id) : [row.id],
+  );
+
+const getTransactionValueByColumn = (
+  tx: Transaction,
+  columnId: string,
+): string | number | boolean => {
+  if (columnId === "wallet.name") return tx.wallet?.name || "";
+  if (columnId === "category.name") return tx.category?.name || "";
+  const value = tx[columnId as keyof Transaction];
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return value;
+  }
+  return "";
+};
 
 export function TransactionsClient({
   initialData,
@@ -80,19 +166,24 @@ export function TransactionsClient({
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>();
+  const [selectedTransaction, setSelectedTransaction] = useState<
+    Transaction | undefined
+  >();
   const [isReceiptConfirmOpen, setIsReceiptConfirmOpen] = useState(false);
-  const [parsedReceiptData, setParsedReceiptData] = useState<ParsedReceipt | null>(null);
-  const [uploadedReceiptId, setUploadedReceiptId] = useState<string | null>(null);
-  const [columns, setColumns] = useState<unknown[]>([]);
+  const [parsedReceiptData, setParsedReceiptData] =
+    useState<ParsedReceipt | null>(null);
+  const [uploadedReceiptId, setUploadedReceiptId] = useState<string | null>(
+    null,
+  );
+  const [columns, setColumns] = useState<
+    ComponentProps<typeof DataTableColumnsVisibility>["columns"]
+  >([]);
   const [activeTab, _setActiveTab] = useState<"all" | "review" | "none">("all");
-  const [_activeGroupIndex, _setActiveGroupIndex] = useState<number | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { formatCurrency, getTransactionColor } = useAppStore();
-
   const { rowSelection, setRowSelection } = useTransactionsStore();
   const confirm = useConfirm();
 
@@ -101,35 +192,48 @@ export function TransactionsClient({
     parseAsString.withDefault("").withOptions({ shallow: true }),
   );
 
-  const [groupBy, setGroupBy] = useQueryState("groupBy", parseAsString.withDefault("daily"));
+  const [groupBy, setGroupBy] = useQueryState(
+    "groupBy",
+    parseAsString.withDefault("daily"),
+  );
 
-  const { filters, handleFilterChange } = useDataTableFilter({
-    initialFilters: {
-      q: "",
-      type: "",
-      walletId: "",
-      categoryId: [],
-      startDate: startOfMonth(new Date()).toISOString(),
-      endDate: endOfMonth(new Date()).toISOString(),
-      minAmount: null,
-      maxAmount: null,
-      attachments: null,
-    },
-    debounceMs: 500,
-  });
+  const { filters, handleFilterChange } =
+    useDataTableFilter<TransactionsFilters>({
+      initialFilters: {
+        q: "",
+        type: "",
+        walletId: "",
+        categoryId: [],
+        startDate: startOfMonth(new Date()).toISOString(),
+        endDate: endOfMonth(new Date()).toISOString(),
+        minAmount: null,
+        maxAmount: null,
+        attachments: null,
+      },
+      debounceMs: 500,
+    });
 
   const queryClient = useQueryClient();
-
   const [mountFilters] = useState(filters);
 
-  const isInitial = useMemo(() => {
-    return JSON.stringify(filters) === JSON.stringify(mountFilters) && activeTab === "all";
-  }, [filters, mountFilters, activeTab]);
+  const isInitial = useMemo(
+    () =>
+      JSON.stringify(filters) === JSON.stringify(mountFilters) &&
+      activeTab === "all",
+    [filters, mountFilters, activeTab],
+  );
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch, isLoading } = useInfiniteQuery({
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+    isLoading,
+  } = useInfiniteQuery({
     queryKey: ["transactions", filters, activeTab],
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await getTransactions({
+      const params: TransactionQueryParams = {
         page: pageParam,
         limit: pageSize,
         type: filters.type || undefined,
@@ -137,20 +241,26 @@ export function TransactionsClient({
         categoryId: filters.categoryId || undefined,
         startDate: filters.startDate || undefined,
         endDate: filters.endDate || undefined,
-        minAmount: filters.minAmount || undefined,
-        maxAmount: filters.maxAmount || undefined,
+        minAmount: toNumberOrUndefined(filters.minAmount),
+        maxAmount: toNumberOrUndefined(filters.maxAmount),
         hasAttachments:
-          filters.attachments === "include" ? true : filters.attachments === "exclude" ? false : undefined,
+          filters.attachments === "include"
+            ? true
+            : filters.attachments === "exclude"
+              ? false
+              : undefined,
         search: filters.q || undefined,
         uncategorized: activeTab === "review",
-      } as unknown);
-      return res;
+      };
+      return getTransactions(params);
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const pagination = lastPage.meta?.pagination;
       if (!pagination) return undefined;
-      return pagination.page < pagination.total_pages ? pagination.page + 1 : undefined;
+      return pagination.page < pagination.total_pages
+        ? pagination.page + 1
+        : undefined;
     },
     staleTime: 300000,
     refetchOnWindowFocus: false,
@@ -179,15 +289,15 @@ export function TransactionsClient({
   });
 
   const { data: reviewCountData } = useInfiniteQuery({
-    queryKey: ["transactions", "review-count"],
+    queryKey: ["transactions", "review-count", filters.q],
     queryFn: async () => {
-      const res = await getTransactions({
+      const params: TransactionQueryParams = {
         page: 1,
         limit: 1,
         search: filters.q || undefined,
         uncategorized: true,
-      } as unknown);
-      return res;
+      };
+      return getTransactions(params);
     },
     initialPageParam: 1,
     getNextPageParam: () => undefined,
@@ -195,17 +305,24 @@ export function TransactionsClient({
     refetchOnWindowFocus: false,
   });
 
-  const _reviewCount = reviewCountData?.pages?.[0]?.meta?.pagination?.total ?? 0;
+  const _reviewCount =
+    reviewCountData?.pages?.[0]?.meta?.pagination?.total ?? 0;
 
   const deleteMutation = useMutation({
     mutationFn: deleteTransaction,
     onSuccess: () => {
-      toast.success(dictionary.transactions.toasts.deleted || "Transaction deleted");
+      toast.success(
+        dictionary.transactions.toasts.deleted || "Transaction deleted",
+      );
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       refetch();
     },
-    onError: (error: unknown) => {
-      toast.error(error.message || dictionary.transactions.errors.process_failed || "Failed to delete transaction");
+    onError: (error: Error) => {
+      toast.error(
+        error.message ||
+          dictionary.transactions.errors.process_failed ||
+          "Failed to delete transaction",
+      );
     },
   });
 
@@ -224,11 +341,14 @@ export function TransactionsClient({
   }, []);
 
   const transactions = useMemo(
-    () => (data.pages?.flatMap((page) => page.data ?? []).filter(Boolean) as Transaction[]) ?? [],
+    () =>
+      data?.pages
+        ?.flatMap((page) => page.data ?? [])
+        .filter((tx): tx is Transaction => Boolean(tx)) ?? [],
     [data],
   );
 
-  const processedRows = useMemo(() => {
+  const processedRows = useMemo<TransactionRow[]>(() => {
     if (groupBy === "none" || !transactions.length) return transactions;
 
     const groups = new Map<
@@ -306,15 +426,26 @@ export function TransactionsClient({
   }, []);
 
   const columnsWithActions = useMemo(
-    () => (dictionary ? transactionColumns(handleEdit, dictionary, formatCurrency, getTransactionColor) : []),
+    () =>
+      dictionary
+        ? (transactionColumns(
+            handleEdit,
+            dictionary,
+            formatCurrency,
+            getTransactionColor,
+          ) as ColumnDef<TransactionRow>[])
+        : [],
     [handleEdit, dictionary, formatCurrency, getTransactionColor],
   );
 
-  const handleRowClick = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
-    setTransactionId(transaction?.id);
-    setIsDetailOpen(true);
-  };
+  const handleRowClick = useCallback(
+    (transaction: Transaction) => {
+      setSelectedTransaction(transaction);
+      setTransactionId(transaction.id);
+      setIsDetailOpen(true);
+    },
+    [setTransactionId],
+  );
 
   useReactEffect(() => {
     if (transactionId) {
@@ -332,15 +463,12 @@ export function TransactionsClient({
   }, [transactionId, transactions, isDetailOpen, selectedTransaction]);
 
   useReactEffect(() => {
-    // Scroll handling is now managed by DataTable scrollTop prop.
-  }, [groupBy]);
-
-  // Keyboard navigation
-  useReactEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isDetailOpen || !transactionId) return;
 
-      const currentIndex = transactions.findIndex((t) => t.id === transactionId);
+      const currentIndex = transactions.findIndex(
+        (t) => t.id === transactionId,
+      );
       if (currentIndex === -1) return;
 
       if (e.key === "ArrowDown") {
@@ -392,40 +520,58 @@ export function TransactionsClient({
     [dictionary, getBGColor],
   );
 
-  const categoryOptions = useMemo(() => {
-    return categories
-      .sort((a, b) => {
-        if (a.type !== b.type) return a.type.localeCompare(b.type);
-        return a.name.localeCompare(b.name);
-      })
-      .map((c) => ({
-        id: c.id,
-        name: c.name,
-        colorClass: getBGColor(c.type),
-      }));
-  }, [categories, getBGColor]);
+  const categoryOptions = useMemo(
+    () =>
+      categories
+        .sort((a, b) => {
+          if (a.type !== b.type) return a.type.localeCompare(b.type);
+          return a.name.localeCompare(b.name);
+        })
+        .map((c) => ({
+          id: c.id,
+          name: c.name,
+          colorClass: getBGColor(c.type),
+        })),
+    [categories, getBGColor],
+  );
 
-  const walletOptions = useMemo(() => {
-    return wallets
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((w) => ({
-        id: w.id,
-        name: w.name,
-      }));
-  }, [wallets]);
+  const walletOptions = useMemo(
+    () =>
+      wallets
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((w) => ({
+          id: w.id,
+          name: w.name,
+        })),
+    [wallets],
+  );
 
   const attachmentsFilters = useMemo(
     () => [
-      { id: "include", name: dictionary.transactions.filter.has_attachments || "Has attachments" },
-      { id: "exclude", name: dictionary.transactions.filter.no_attachments || "No attachments" },
+      {
+        id: "include",
+        name:
+          dictionary.transactions.filter.has_attachments || "Has attachments",
+      },
+      {
+        id: "exclude",
+        name: dictionary.transactions.filter.no_attachments || "No attachments",
+      },
     ],
     [dictionary],
   );
 
   const manualFilters = useMemo(
     () => [
-      { id: "include", name: dictionary.transactions.filter.manual || "Manual" },
-      { id: "exclude", name: dictionary.transactions.filter.bank_connection || "Bank connection" },
+      {
+        id: "include",
+        name: dictionary.transactions.filter.manual || "Manual",
+      },
+      {
+        id: "exclude",
+        name:
+          dictionary.transactions.filter.bank_connection || "Bank connection",
+      },
     ],
     [dictionary],
   );
@@ -457,7 +603,10 @@ export function TransactionsClient({
     ];
   }, [dictionary, typeOptions, categoryOptions, walletOptions]);
 
-  const nonClickableColumns = useMemo(() => new Set(["select", "actions", "category", "assignee", "account"]), []);
+  const nonClickableColumns = useMemo(
+    () => new Set(["select", "actions", "category", "assignee", "account"]),
+    [],
+  );
 
   if (!dictionary) return <TransactionTableSkeleton hideHeader />;
 
@@ -466,39 +615,53 @@ export function TransactionsClient({
     setIsFormOpen(true);
   };
 
-  const handleUploadReceipt = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadReceipt = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Limit size to 3MB
     if (file.size > 3 * 1024 * 1024) {
-      toast.error(dictionary.transactions.errors.file_size_limit || "File size too large");
+      toast.error(
+        dictionary.transactions.errors.file_size_limit || "File size too large",
+      );
       return;
     }
 
-    // Limit type to image or pdf
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "application/pdf",
+    ];
     if (!allowedTypes.includes(file.type)) {
-      toast.error(dictionary.transactions.errors.file_type_limit || "File type not supported");
+      toast.error(
+        dictionary.transactions.errors.file_type_limit ||
+          "File type not supported",
+      );
       return;
     }
 
-    const toastId = toast.loading(dictionary.transactions.toasts.parsing_receipt || "Parsing receipt...");
+    const toastId = toast.loading(
+      dictionary.transactions.toasts.parsing_receipt || "Parsing receipt...",
+    );
 
     try {
-      // 1. Upload to Vault
       const formData = new FormData();
       formData.append("file", file);
       const uploadResult = await uploadVaultFile(formData);
 
       if (!uploadResult.success || !uploadResult.data) {
-        throw new Error(uploadResult.error || dictionary.transactions.errors.upload_failed || "Upload failed");
+        throw new Error(
+          uploadResult.error ||
+            dictionary.transactions.errors.upload_failed ||
+            "Upload failed",
+        );
       }
 
       const vaultFileId = uploadResult.data.id;
       setUploadedReceiptId(vaultFileId);
 
-      // 2. Read file as base64 for AI parsing
       const reader = new FileReader();
       const base64Promise = new Promise<string>((resolve, reject) => {
         reader.onload = () => {
@@ -514,7 +677,6 @@ export function TransactionsClient({
       reader.readAsDataURL(file);
       const base64Data = await base64Promise;
 
-      // 3. Parse with AI
       const parseResult = await parseReceipt({
         name: file.name,
         type: file.type,
@@ -522,19 +684,28 @@ export function TransactionsClient({
       });
 
       if (!parseResult.success || !parseResult.data) {
-        throw new Error(parseResult.error || dictionary.transactions.errors.parse_failed || "Parsing failed");
+        throw new Error(
+          parseResult.error ||
+            dictionary.transactions.errors.parse_failed ||
+            "Parsing failed",
+        );
       }
 
       setParsedReceiptData(parseResult.data);
       setIsReceiptConfirmOpen(true);
-      toast.success(dictionary.transactions.toasts.parse_success || "Receipt parsed successfully", { id: toastId });
-    } catch (error: unknown) {
+      toast.success(
+        dictionary.transactions.toasts.parse_success ||
+          "Receipt parsed successfully",
+        { id: toastId },
+      );
+    } catch (error) {
       console.error(error);
-      toast.error(error.message || dictionary.transactions.errors.process_failed || "Failed to process receipt", {
-        id: toastId,
-      });
+      const message =
+        error instanceof Error
+          ? error.message
+          : dictionary.transactions.errors.process_failed;
+      toast.error(message || "Failed to process receipt", { id: toastId });
     } finally {
-      // Clear input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -543,12 +714,11 @@ export function TransactionsClient({
 
   return (
     <div className="flex h-full w-full flex-col gap-4">
-      {/* Search and Actions Header */}
       <div className="flex shrink-0 items-center justify-between gap-4">
         <div className="flex flex-1 items-center">
           <DataTableFilter
             filters={filters}
-            onFilterChange={handleFilterChange as unknown}
+            onFilterChange={handleFilterChange}
             placeholder={dictionary.transactions.search_placeholder}
             showDateFilter={false}
             showAmountFilter={true}
@@ -578,8 +748,8 @@ export function TransactionsClient({
             onSelect={(range) => {
               handleFilterChange({
                 ...filters,
-                startDate: range.from.toISOString() ?? "",
-                endDate: range.to.toISOString() ?? "",
+                startDate: range?.from ? range.from.toISOString() : "",
+                endDate: range?.to ? range.to.toISOString() : "",
               });
             }}
           />
@@ -589,19 +759,30 @@ export function TransactionsClient({
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
                 <Plus className="h-4 w-4" />
-                <span className="text-sm">{dictionary.transactions.add_button}</span>
+                <span className="text-sm">
+                  {dictionary.transactions.add_button}
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setIsImportOpen(true)}>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2"
+                onClick={() => setIsImportOpen(true)}
+              >
                 <FileUp className="h-4 w-4" />
                 <span>{dictionary.transactions.import_backfill}</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer gap-2" onClick={handleCreate}>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2"
+                onClick={handleCreate}
+              >
                 <Receipt className="h-4 w-4" />
                 <span>{dictionary.transactions.create_transaction}</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => fileInputRef.current?.click()}>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <Upload className="h-4 w-4" />
                 <span>{dictionary.transactions.upload_receipts}</span>
               </DropdownMenuItem>
@@ -615,34 +796,6 @@ export function TransactionsClient({
             accept="image/*,application/pdf"
             onChange={handleUploadReceipt}
           />
-
-          {/* <div className="flex items-center bg-muted/20 p-1 rounded-md h-8 ml-2">
-            <button
-              onClick={() => setActiveTab("all")}
-              className={cn(
-                "px-3 h-6 text-xs font-medium rounded-[4px] transition-colors",
-                activeTab === "all"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setActiveTab("review")}
-              className={cn(
-                "px-3 h-6 text-xs font-medium rounded-[4px] transition-colors flex items-center gap-1.5",
-                activeTab === "review"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              Review
-              {reviewCount > 0 && (
-                <span className="text-[10px] opacity-60">({reviewCount})</span>
-              )}
-            </button>
-          </div> */}
         </div>
       </div>
 
@@ -650,7 +803,7 @@ export function TransactionsClient({
         {isLoading ? (
           <TransactionTableSkeleton hideHeader />
         ) : (
-          <DataTable
+          <DataTable<TransactionRow>
             data={processedRows}
             columns={columnsWithActions}
             setColumns={setColumns}
@@ -678,13 +831,15 @@ export function TransactionsClient({
             isFetchingNextPage={isFetchingNextPage}
             hFull
             virtualizationStrategy="flow"
-            enableRowSelection={(row) => !("groupKey" in row.original)}
+            enableRowSelection={(row) => !isTransactionGroup(row.original)}
             getRowHeight={(index) => {
-              const item = processedRows[index] as unknown;
-              if (item._isGroup) {
+              const item = processedRows[index];
+              if (item && isTransactionGroup(item)) {
                 const headerHeight = 40;
                 const rowHeight = 45;
-                return item.isExpanded ? headerHeight + item.transactions.length * rowHeight : headerHeight;
+                return item.isExpanded
+                  ? headerHeight + item.transactions.length * rowHeight
+                  : headerHeight;
               }
               return 45;
             }}
@@ -693,14 +848,22 @@ export function TransactionsClient({
             meta={{
               categories,
               wallets,
-              onRowClick: handleRowClick,
+              onRowClick: (row) => {
+                if (!isTransactionGroup(row)) {
+                  handleRowClick(row);
+                }
+              },
               onDelete: async (id: string) => {
                 const ok = await confirm({
-                  title: dictionary.transactions.delete_title || "Delete transaction",
+                  title:
+                    dictionary.transactions.delete_title ||
+                    "Delete transaction",
                   description:
-                    dictionary.transactions.delete_description || "Are you sure you want to delete this transaction?",
+                    dictionary.transactions.delete_description ||
+                    "Are you sure you want to delete this transaction?",
                   destructive: true,
-                  confirmLabel: dictionary.transactions.delete_confirm || "Delete",
+                  confirmLabel:
+                    dictionary.transactions.delete_confirm || "Delete",
                 });
                 if (ok) {
                   deleteMutation.mutate(id);
@@ -708,27 +871,20 @@ export function TransactionsClient({
               },
               formatCurrency,
               getTransactionColor,
-              // Custom selection logic for grouped rows (proxy rows)
               isAllTransactionsSelected: () => {
-                const transactionIds = processedRows.flatMap((r: unknown) =>
-                  r._isGroup ? (r.transactions || []).map((t: unknown) => t.id) : r.id ? [r.id] : [],
-                );
+                const transactionIds = getRowTransactionIds(processedRows);
                 if (transactionIds.length === 0) return false;
                 return transactionIds.every((id) => !!rowSelection[id]);
               },
               isSomeTransactionsSelected: () => {
-                const transactionIds = processedRows.flatMap((r: unknown) =>
-                  r._isGroup ? (r.transactions || []).map((t: unknown) => t.id) : [r.id],
-                );
+                const transactionIds = getRowTransactionIds(processedRows);
                 return (
-                  transactionIds.some((id) => !!rowSelection[id]) && !transactionIds.every((id) => !!rowSelection[id])
+                  transactionIds.some((id) => !!rowSelection[id]) &&
+                  !transactionIds.every((id) => !!rowSelection[id])
                 );
               },
               toggleAllTransactions: (value: boolean) => {
-                const transactionIds = processedRows.flatMap((r: unknown) =>
-                  r._isGroup ? (r.transactions || []).map((t: unknown) => t.id) : [r.id],
-                );
-
+                const transactionIds = getRowTransactionIds(processedRows);
                 setRowSelection((prev) => {
                   const next = { ...prev };
                   transactionIds.forEach((id) => {
@@ -743,16 +899,16 @@ export function TransactionsClient({
               },
             }}
             renderRow={({ row, getStickyStyle, getStickyClassName, table }) => {
-              const item = row.original as unknown;
+              const item = row.original;
 
-              if (item._isGroup) {
+              if (isTransactionGroup(item)) {
                 return (
                   <tbody key={item.id} className="group-container block w-full">
                     <tr
                       className="group/header sticky z-30 flex w-full min-w-full cursor-pointer select-none border-border border-b bg-[#FBFBFA] transition-colors hover:bg-[#F2F1EF] dark:bg-[#0A0A0A] hover:dark:bg-[#151515]"
                       style={{
                         height: 40,
-                        top: 44, // Sticky under the main header
+                        top: 44,
                         width: "100%",
                       }}
                       onClick={(e) => {
@@ -760,7 +916,10 @@ export function TransactionsClient({
                         toggleGroup(item.groupKey);
                       }}
                     >
-                      <td className="flex h-full shrink-0 items-center px-4" style={{ width: "100%" }}>
+                      <td
+                        className="flex h-full shrink-0 items-center px-4"
+                        style={{ width: "100%" }}
+                      >
                         <div className="flex w-full items-center gap-3">
                           <div className="flex h-4 w-4 shrink-0 items-center justify-center transition-transform duration-200">
                             {item.isExpanded ? (
@@ -774,10 +933,20 @@ export function TransactionsClient({
                           </span>
 
                           <div className="ml-auto flex items-center gap-4">
-                            <span className={cn("font-bold text-[10px]", getTransactionColor("income"))}>
+                            <span
+                              className={cn(
+                                "font-bold text-[10px]",
+                                getTransactionColor("income"),
+                              )}
+                            >
                               {formatCurrency(item.income)}
                             </span>
-                            <span className={cn("font-bold text-[10px]", getTransactionColor("expense"))}>
+                            <span
+                              className={cn(
+                                "font-bold text-[10px]",
+                                getTransactionColor("expense"),
+                              )}
+                            >
                               {formatCurrency(item.expense)}
                             </span>
                           </div>
@@ -786,23 +955,15 @@ export function TransactionsClient({
                     </tr>
 
                     {item.isExpanded &&
-                      item.transactions.map((tx: unknown) => {
-                        // We need to create a "proxy row" for the transaction because it's not actually
-                        // in the table's internal row model (which only sees the groups).
-                        // This ensures that table.column hooks (date, formatCurrency, etc.) get the right data.
-                        const baseRow = table.getRowModel().flatRows[0] || row; // Fallback to avoid crash
+                      item.transactions.map((tx) => {
+                        const baseRow = table.getRowModel().flatRows[0] || row;
 
                         const txRow = {
                           ...baseRow,
                           id: tx.id,
                           original: tx,
-                          getValue: (columnId: string) => {
-                            if (columnId in tx) return (tx as unknown)[columnId];
-                            // Handle nested access (e.g. wallet.name)
-                            if (columnId === "wallet.name") return tx.wallet.name;
-                            if (columnId === "category.name") return tx.category.name;
-                            return "";
-                          },
+                          getValue: (columnId: string) =>
+                            getTransactionValueByColumn(tx, columnId),
                           getVisibleCells: () =>
                             baseRow.getVisibleCells().map((cell) => ({
                               ...cell,
@@ -815,8 +976,10 @@ export function TransactionsClient({
                                 toggleSelected: (value?: boolean) => {
                                   setRowSelection((prev) => {
                                     const next = { ...prev };
-                                    const isSelected = value !== undefined ? value : !prev[tx.id];
-
+                                    const isSelected =
+                                      value !== undefined
+                                        ? value
+                                        : !prev[tx.id];
                                     if (isSelected) {
                                       next[tx.id] = true;
                                     } else {
@@ -826,8 +989,7 @@ export function TransactionsClient({
                                   });
                                 },
                                 getValue: (colId: string) =>
-                                  (tx as unknown)[colId] ||
-                                  (tx.wallet && colId === "wallet.name" ? tx.wallet.name : ""),
+                                  getTransactionValueByColumn(tx, colId),
                               },
                               getContext: () => ({
                                 ...cell.getContext(),
@@ -839,8 +1001,10 @@ export function TransactionsClient({
                                   toggleSelected: (value?: boolean) => {
                                     setRowSelection((prev) => {
                                       const next = { ...prev };
-                                      const isSelected = value !== undefined ? value : !prev[tx.id];
-
+                                      const isSelected =
+                                        value !== undefined
+                                          ? value
+                                          : !prev[tx.id];
                                       if (isSelected) {
                                         next[tx.id] = true;
                                       } else {
@@ -850,12 +1014,11 @@ export function TransactionsClient({
                                     });
                                   },
                                   getValue: (colId: string) =>
-                                    (tx as unknown)[colId] ||
-                                    (tx.wallet && colId === "wallet.name" ? tx.wallet.name : ""),
+                                    getTransactionValueByColumn(tx, colId),
                                 },
                               }),
                             })),
-                        } as unknown as Row<Transaction>;
+                        } as Row<TransactionRow>;
 
                         return (
                           <DataTableRow
@@ -881,7 +1044,6 @@ export function TransactionsClient({
                 );
               }
 
-              // This case happens if groupBy === "none"
               return (
                 <tbody key={row.id} className="block w-full">
                   <DataTableRow
@@ -893,7 +1055,7 @@ export function TransactionsClient({
                     nonClickableColumns={nonClickableColumns}
                     onCellClick={(_rowId, colId) => {
                       if (!nonClickableColumns.has(colId)) {
-                        handleRowClick(item as Transaction);
+                        handleRowClick(item);
                       }
                     }}
                     isSelected={!!rowSelection[item.id]}
@@ -944,10 +1106,15 @@ export function TransactionsClient({
         transaction={selectedTransaction}
         dictionary={dictionary}
         onNext={() => {
-          const currentIndex = transactions.findIndex((t) => t.id === transactionId);
+          const currentIndex = transactions.findIndex(
+            (t) => t.id === transactionId,
+          );
 
-          // Trigger fetch next page if we are near the end
-          if (currentIndex >= transactions.length - 2 && hasNextPage && !isFetchingNextPage) {
+          if (
+            currentIndex >= transactions.length - 2 &&
+            hasNextPage &&
+            !isFetchingNextPage
+          ) {
             fetchNextPage();
           }
 
@@ -958,7 +1125,9 @@ export function TransactionsClient({
           }
         }}
         onPrevious={() => {
-          const currentIndex = transactions.findIndex((t) => t.id === transactionId);
+          const currentIndex = transactions.findIndex(
+            (t) => t.id === transactionId,
+          );
           const prev = transactions[currentIndex - 1];
           if (prev) {
             setTransactionId(prev.id);
@@ -971,7 +1140,6 @@ export function TransactionsClient({
         open={isImportOpen}
         onOpenChange={setIsImportOpen}
         wallets={wallets}
-        dictionary={dictionary}
         onSuccess={() => {
           setIsImportOpen(false);
           refetch();

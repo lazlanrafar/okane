@@ -147,6 +147,35 @@ export default function PublicInvoicePage() {
     );
   }
 
+  if (!invoice) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md border-none">
+          <CardContent className="space-y-2 pt-8 text-center">
+            <h3 className="font-serif text-2xl text-foreground tracking-wider">Invoice Not Found</h3>
+            <p className="text-muted-foreground">Invoice data is unavailable for this link.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const invoiceForRender = {
+    ...invoice,
+    contact: {
+      name: invoice.contact?.name || "Customer",
+      email: invoice.contact?.email ?? null,
+    },
+  };
+
+  const workspaceForRender =
+    workspace?.name
+      ? {
+          name: workspace.name,
+          logoUrl: workspace.logoUrl ?? null,
+        }
+      : undefined;
+
   return (
     <div className="min-h-screen bg-background p-4 font-sans text-foreground selection:bg-primary/20 md:p-12 print:bg-white print:p-0 print:text-black">
       <style jsx global>{`
@@ -193,7 +222,7 @@ export default function PublicInvoicePage() {
               {settings?.invoiceLogoUrl ? (
                 <>
                   {/* biome-ignore lint/performance/noImgElement: Invoice logo is a dynamic external image */}
-                  <img src={settings.invoiceLogoUrl} alt={workspace?.name} className="h-full w-full object-cover" />
+                  <img src={settings.invoiceLogoUrl} alt={workspace?.name || "Workspace"} className="h-full w-full object-cover" />
                 </>
               ) : (
                 <span>{workspace?.name?.charAt(0)}</span>
@@ -213,7 +242,12 @@ export default function PublicInvoicePage() {
 
         {/* Main Invoice Card */}
         <Card className="invoice-card overflow-hidden border border-border bg-background shadow-2xl print:rounded-none">
-          <InvoiceA4 ref={invoiceRef} invoice={invoice} workspace={workspace} dictionary={invoiceDictionary} />
+          <InvoiceA4
+            ref={invoiceRef}
+            invoice={invoiceForRender}
+            workspace={workspaceForRender}
+            dictionary={invoiceDictionary}
+          />
         </Card>
       </div>
 

@@ -52,7 +52,7 @@ export function SelectFile() {
             const jsonData = XLSX.utils.sheet_to_json(worksheet, {
               defval: "",
               raw: false,
-            });
+            }) as Record<string, string>[];
 
             if (jsonData.length < 1) {
               setError("Excel file looks empty.");
@@ -64,10 +64,11 @@ export function SelectFile() {
             const headers = Object.keys(jsonData[0] as object);
 
             setFileColumns(headers);
-            setFirstRows(jsonData as Record<string, string>[]);
+            setFirstRows(jsonData);
             setIsLoading(false);
-          } catch (err: unknown) {
-            setError(`Failed to parse Excel: ${err.message}`);
+          } catch (err) {
+            const message = err instanceof Error ? err.message : "Unknown parsing error";
+            setError(`Failed to parse Excel: ${message}`);
             setIsLoading(false);
           }
         };
@@ -78,7 +79,7 @@ export function SelectFile() {
           Papa.parse(text, {
             header: true,
             skipEmptyLines: true,
-            complete: (results: Papa.ParseResult<unknown>) => {
+            complete: (results: Papa.ParseResult<Record<string, string>>) => {
               if (results.data.length < 1) {
                 setError("CSV file looks empty.");
                 setIsLoading(false);
@@ -86,7 +87,7 @@ export function SelectFile() {
               }
 
               setFileColumns(results.meta.fields || []);
-              setFirstRows(results.data as unknown[]);
+              setFirstRows(results.data);
               setIsLoading(false);
             },
             error: (err: Error) => {

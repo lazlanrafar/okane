@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
+import type { TransactionImportValueMappings } from "@workspace/types";
 import { createCategory, getCategories } from "@workspace/modules/category/category.action";
 import { getWallets } from "@workspace/modules/wallet/wallet.action";
 import { Button, Icons, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui";
@@ -319,8 +320,8 @@ function CategoryMappingRow({
 }: {
   csvValue: string;
   handleCategoryMap: (csvValue: string, categoryId: string) => void;
-  valueMappings: unknown;
-  firstRows: unknown[] | null;
+  valueMappings: TransactionImportValueMappings;
+  firstRows: Record<string, string>[] | null;
   categoryCol: string;
   typeCol: string;
 }) {
