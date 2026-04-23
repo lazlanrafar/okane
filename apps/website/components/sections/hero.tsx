@@ -19,17 +19,17 @@ export function HeroSection({ isLoggedIn, appUrl }: HeroSectionProps) {
 
       <div className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground mb-8">
         <span className="size-1.5 rounded-full bg-green-500 animate-pulse" />
-        Open-source financial OS
+        Personal finance OS
       </div>
 
       <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl tracking-tight text-foreground max-w-4xl mb-6">
-        Run your business finances without manual work.
+        Your money, finally clear in one place.
       </h1>
 
       <p className="text-muted-foreground text-lg sm:text-xl max-w-2xl mb-10">
-        oewang is the financial OS for modern businesses. AI-powered insights,
-        automatic categorization, real-time sync. Manage spending, send
-        invoices, track transactions.
+        oewang helps you track spending, plan upcoming bills, and understand
+        cash flow without juggling spreadsheets. AI organizes your transactions
+        automatically so you can make better money decisions faster.
       </p>
 
       <div className="flex flex-wrap items-center justify-center gap-4">
@@ -40,7 +40,7 @@ export function HeroSection({ isLoggedIn, appUrl }: HeroSectionProps) {
         ) : (
           <>
             <Button size="lg" asChild>
-              <Link href={`${appUrl}/register`}>Start free trial</Link>
+              <Link href={`${appUrl}/register`}>Start free</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="#how-it-works">See how it works</Link>
@@ -50,7 +50,7 @@ export function HeroSection({ isLoggedIn, appUrl }: HeroSectionProps) {
       </div>
 
       <p className="mt-6 text-xs text-muted-foreground">
-        14-day free trial · Cancel anytime
+        14-day free trial · No credit card required
       </p>
     </section>
   );

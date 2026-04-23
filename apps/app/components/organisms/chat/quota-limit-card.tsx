@@ -8,11 +8,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Zap } from "lucide-react";
 
 import { useAiQuota } from "@/hooks/use-ai-quota";
-import { useAppStore } from "@/stores/app";
 import { useLocalizedRoute } from "@/utils/localized-route";
 
-export function QuotaLimitCard() {
-  const { dictionary } = useAppStore() as unknown as { dictionary: Dictionary };
+export function QuotaLimitCard({ dictionary }: { dictionary: Dictionary }) {
   const { quota, isExceeded, loading } = useAiQuota();
   const { getLocalizedUrl } = useLocalizedRoute();
 

@@ -1,5 +1,6 @@
 "use client";
 
+import type { Dictionary } from "@workspace/dictionaries";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui";
 import { LayoutGrid } from "lucide-react";
 
@@ -8,7 +9,7 @@ export type GroupByInterval = "none" | "daily" | "weekly" | "monthly";
 interface Props {
   value: GroupByInterval;
   onValueChange: (value: GroupByInterval) => void;
-  dictionary: unknown;
+  dictionary: Dictionary;
 }
 
 export function TransactionGroupingSelector({ value, onValueChange, dictionary }: Props) {

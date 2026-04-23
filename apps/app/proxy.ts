@@ -83,14 +83,26 @@ export async function proxy(request: NextRequest) {
     pathAfterLocale.startsWith("/vault");
 
   const isAuthRoute = pathAfterLocale === "/login" || pathAfterLocale === "/register";
+  const isSyncRoute = pathAfterLocale === "/sync";
+  const isCreateWorkspaceRoute = pathAfterLocale === "/create-workspace";
+  const isProtectedRoute = isDashboardRoute || isSyncRoute || isCreateWorkspaceRoute;
 
   // 1. Auth Guard
-  if (isDashboardRoute && !session) {
+  if (isProtectedRoute && !session) {
     return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
 
   if (isAuthRoute && session) {
+    // Supabase session exists but app JWT is missing/expired.
+    // Route to sync to mint a fresh app session cookie and avoid redirect loops.
+    if (!token) {
+      return NextResponse.redirect(new URL(`/${locale}/sync`, request.url));
+    }
     return NextResponse.redirect(new URL(`/${locale}/overview`, request.url));
+  }
+
+  if (isDashboardRoute && session && !token) {
+    return NextResponse.redirect(new URL(`/${locale}/sync`, request.url));
   }
 
   // 2. Workspace Guard (Lightweight JWT check)
@@ -99,9 +111,7 @@ export async function proxy(request: NextRequest) {
       const jwtSecret = process.env.JWT_SECRET;
       if (!jwtSecret) {
         console.error("[Proxy] Missing JWT_SECRET. Refusing to verify session.");
-        const redirectResponse = NextResponse.redirect(
-          new URL(`/${locale}/login`, request.url),
-        );
+        const redirectResponse = NextResponse.redirect(new URL(`/${locale}/login`, request.url));
         redirectResponse.cookies.delete("oewang-session");
         return redirectResponse;
       }

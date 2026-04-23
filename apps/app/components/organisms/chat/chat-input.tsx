@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { useChatActions, useChatId, useChatStatus, useDataPart } from "@ai-sdk-tools/store";
+import type { Dictionary } from "@workspace/dictionaries";
 import {
   cn,
   PromptInput,
@@ -35,7 +36,7 @@ export interface ChatInputMessage extends PromptInputMessage {
   };
 }
 
-export function ChatInput() {
+export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
   const [mounted, setMounted] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isInteractingWithButtons, setIsInteractingWithButtons] = useState(false);
@@ -309,7 +310,7 @@ export function ChatInput() {
           maxWidth: containerMaxWidth,
         }}
       >
-        <QuotaLimitCard />
+        <QuotaLimitCard dictionary={dictionary} />
         <ChatCommandMenu />
         <ChatHistoryDropdown />
 

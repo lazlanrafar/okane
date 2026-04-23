@@ -23,8 +23,8 @@ export function ConnectTelegram({ dictionary }: { dictionary: Dictionary }) {
     },
   });
 
-  const workspaceId = me.user.workspace_id;
-  const userId = me.user.id;
+  const workspaceId = me?.user?.workspace_id;
+  const userId = me?.user?.id;
   const botUsername = Env.NEXT_PUBLIC_TELEGRAM_BOT_USER || "OewangBot";
   const telegramUrl =
     workspaceId && userId

@@ -3,27 +3,25 @@
 import * as React from "react";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { getWallets } from "@workspace/modules/wallet/wallet.action";
-import { getWalletGroups } from "@workspace/modules/wallet-group/wallet-group.action";
+import { getWalletGroups, type WalletGroup } from "@workspace/modules/wallet-group/wallet-group.action";
+import type { Wallet as WalletType } from "@workspace/types";
 import { Button, Separator, Skeleton } from "@workspace/ui";
 import { FolderPlus, Plus, Wallet } from "lucide-react";
-
-import { useAppStore } from "@/stores/app";
 
 import { WalletForm } from "./wallet-form";
 import { WalletGroupForm } from "./wallet-group-form";
 
 interface WalletClientProps {
-  dictionary?: unknown;
+  dictionary: Dictionary;
 }
 
-export function WalletClient({ dictionary: dict }: WalletClientProps) {
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
-  const dictionary = dict || storeDict;
+export function WalletClient({ dictionary }: WalletClientProps) {
   const [isWalletOpen, setIsWalletOpen] = React.useState(false);
   const [isGroupOpen, setIsGroupOpen] = React.useState(false);
-  const [editingWallet, setEditingWallet] = React.useState<unknown>(null);
-  const [editingGroup, setEditingGroup] = React.useState<unknown>(null);
+  const [editingWallet, setEditingWallet] = React.useState<WalletType | null>(null);
+  const [editingGroup, setEditingGroup] = React.useState<WalletGroup | null>(null);
 
   const _queryClient = useQueryClient();
 
@@ -32,7 +30,7 @@ export function WalletClient({ dictionary: dict }: WalletClientProps) {
     queryFn: async () => {
       const result = await getWallets();
       if (result.success) return result.data;
-      throw new Error((result.error as unknown) || "Failed to fetch wallets");
+      throw new Error(result.message || "Failed to fetch wallets");
     },
   });
 
@@ -41,13 +39,13 @@ export function WalletClient({ dictionary: dict }: WalletClientProps) {
     queryFn: async () => {
       const result = await getWalletGroups();
       if (result.success) return result.data;
-      throw new Error((result.error as unknown) || "Failed to fetch wallet groups");
+      throw new Error(result.error || "Failed to fetch wallet groups");
     },
   });
 
   const wallets_t = dictionary.wallets;
 
-  if (isDictLoading || !dictionary || isWalletsLoading || isGroupsLoading || !wallets_t) {
+  if (!dictionary || isWalletsLoading || isGroupsLoading || !wallets_t) {
     return (
       <div className="space-y-6">
         <div className="space-y-2">
@@ -104,7 +102,9 @@ export function WalletClient({ dictionary: dict }: WalletClientProps) {
         <div className="flex flex-col items-center justify-center space-y-4 rounded-none border border-dashed bg-accent/5 p-12 text-center">
           <Wallet className="h-12 w-12 text-muted-foreground/50" />
           <div className="space-y-1">
-            <h3 className="font-medium text-sm">{wallets_t?.empty?.title || wallets_t?.empty}</h3>
+            <h3 className="font-medium text-sm">
+              {wallets_t.empty}
+            </h3>
           </div>
         </div>
       </div>

@@ -2,10 +2,10 @@
 
 import { usePathname, useRouter } from "next/navigation";
 
+import type { Dictionary } from "@workspace/dictionaries";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator, Skeleton } from "@workspace/ui";
 
 import type { Locale } from "@/i18n-config";
-import { useAppStore } from "@/stores/app";
 
 function LanguageSkeleton() {
   return (
@@ -21,14 +21,12 @@ function LanguageSkeleton() {
 }
 
 interface LanguageSettingsFormProps {
-  dictionary: unknown;
+  dictionary: Dictionary;
 }
 
-export function LanguageSettingsForm({ dictionary: dict }: LanguageSettingsFormProps) {
+export function LanguageSettingsForm({ dictionary }: LanguageSettingsFormProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { dictionary: storeDict, isLoading } = useAppStore() as unknown;
-  const dictionary = dict || storeDict;
 
   const currentLocale = pathname.split("/")[1] as Locale;
 
@@ -39,11 +37,11 @@ export function LanguageSettingsForm({ dictionary: dict }: LanguageSettingsFormP
     router.push(newPath);
   };
 
-  if (!dictionary && (isLoading || !dictionary)) {
+  if (!dictionary) {
     return <LanguageSkeleton />;
   }
 
-  const { title, description, options, placeholder } = dictionary.language;
+  const { title, description, options, placeholder } = dictionary.settings.language;
 
   return (
     <div className="space-y-8">

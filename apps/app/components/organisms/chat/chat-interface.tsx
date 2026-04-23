@@ -206,7 +206,7 @@ export default function ChatInterface({ dictionary }: Props) {
           )}
         >
           <div className="pointer-events-auto w-full max-w-[770px] px-4">
-            <ChatInput />
+            <ChatInput dictionary={dictionary} />
           </div>
         </div>
       </div>

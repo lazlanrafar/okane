@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { Dictionary } from "@workspace/dictionaries";
 import { inviteMember } from "@workspace/modules/workspace/workspace.action";
 import {
   Button,
@@ -30,8 +31,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-import { useAppStore } from "@/stores/app";
-
 const inviteSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   role: z.enum(["admin", "member"]),
@@ -41,23 +40,21 @@ type InviteFormValues = z.infer<typeof inviteSchema>;
 
 interface InviteMemberDialogProps {
   onSuccess?: () => void;
-  dictionary: unknown;
+  dictionary: Dictionary;
 }
 
-export function InviteMemberDialog({ onSuccess, dictionary: dict }: InviteMemberDialogProps) {
+export function InviteMemberDialog({ onSuccess, dictionary }: InviteMemberDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { dictionary: storeDict } = useAppStore();
-  const dictionary = dict || storeDict;
 
   const form = useForm<InviteFormValues>({
-    resolver: zodResolver(inviteSchema as unknown),
+    resolver: zodResolver(inviteSchema),
     defaultValues: { email: "", role: "member" },
   });
 
   if (!dictionary) return null;
 
-  const membersDict = dictionary.members;
+  const membersDict = dictionary.settings.members;
 
   async function onSubmit(values: InviteFormValues) {
     setLoading(true);

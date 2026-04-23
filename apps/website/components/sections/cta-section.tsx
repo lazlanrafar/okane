@@ -12,11 +12,11 @@ export function CTASection({ isLoggedIn, appUrl }: CTASectionProps) {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="font-serif text-2xl sm:text-4xl tracking-tight text-foreground mb-4">
-            Ready to take control?
+            Ready for calmer money decisions?
           </h2>
           <p className="text-muted-foreground text-base sm:text-lg mb-8 max-w-lg mx-auto">
-            Join hundreds of businesses already using oewang to manage their
-            finances.
+            Join people using oewang to track spending, understand cash flow,
+            and stay ahead of bills without financial busywork.
           </p>
 
           {isLoggedIn ? (

@@ -200,12 +200,12 @@ export function TransactionsClient({
   const deleteMutation = useMutation({
     mutationFn: deleteTransaction,
     onSuccess: () => {
-      toast.success(dictionary?.transactions?.toasts?.deleted || "Transaction deleted");
+      toast.success(dictionary.transactions.toasts.deleted || "Transaction deleted");
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       refetch();
     },
     onError: (error: unknown) => {
-      toast.error(error.message || dictionary?.transactions?.errors?.process_failed || "Failed to delete transaction");
+      toast.error(error.message || dictionary.transactions.errors.process_failed || "Failed to delete transaction");
     },
   });
 

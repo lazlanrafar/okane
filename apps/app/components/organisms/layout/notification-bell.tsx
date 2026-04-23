@@ -33,7 +33,7 @@ export function NotificationBell({ dictionary }: { dictionary: AppDictionary }) 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="icon" className="relative h-8 w-8 rounded-full hover:bg-accent">
+        <Button variant="ghost" size="icon" className="relative h-8 w-8 hover:bg-accent">
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
             <Badge
@@ -69,9 +69,9 @@ export function NotificationBell({ dictionary }: { dictionary: AppDictionary }) 
           ) : notifications.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center p-8 text-center text-muted-foreground">
               <Bell className="mb-2 h-8 w-8 opacity-20" />
-              <p className="font-medium text-sm">{dictionary.notifications.empty.title || "No notifications yet"}</p>
+              <p className="font-medium text-sm">{dictionary.notifications.empty?.title || "No notifications yet"}</p>
               <p className="text-xs opacity-60">
-                {dictionary.notifications.empty.description || "We'll notify you when something happens."}
+                {dictionary.notifications.empty?.description || "We'll notify you when something happens."}
               </p>
             </div>
           ) : (

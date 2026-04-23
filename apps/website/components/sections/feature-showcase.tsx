@@ -70,13 +70,13 @@ export function FeatureShowcases() {
   return (
     <>
       <FeatureShowcase
-        title="All your transactions, unified"
-        description="Every payment in and out of the business is automatically synced and categorized. No more manual entry."
+        title="One money feed, not five disconnected apps"
+        description="Bring your accounts into one view and let oewang categorize activity automatically so your day-to-day tracking stays clean."
         features={[
-          "Auto-categorization with AI",
-          "Search and filter instantly",
-          "Multi-currency support",
-          "Bulk edit transactions",
+          "Auto-categorization that improves over time",
+          "Search, filter, and review in seconds",
+          "Personal categories you can customize",
+          "Bulk actions for fast cleanup",
         ]}
         wireframe="transactions"
       />
@@ -84,13 +84,13 @@ export function FeatureShowcases() {
       <div className="h-px w-full border-t border-border" />
 
       <FeatureShowcase
-        title="Ask anything about your finances"
-        description="Get instant answers about your spending, revenue, and trends. No more digging through reports."
+        title="Ask plain questions, get useful money answers"
+        description="Skip spreadsheet detective work. Ask what changed, where you overspent, or what is due next, and get a direct answer."
         features={[
-          "Natural language queries",
-          "Real-time insights",
-          "Weekly summaries",
-          "Multi-agent AI system",
+          "Natural language money questions",
+          "Weekly trend summaries",
+          "Category-level spending insights",
+          "Action-focused suggestions",
         ]}
         wireframe="chat"
         reverse
@@ -99,13 +99,13 @@ export function FeatureShowcases() {
       <div className="h-px w-full border-t border-border" />
 
       <FeatureShowcase
-        title="Professional invoices, payments tracked"
-        description="Create and send invoices in seconds. Get paid faster with online payment links."
+        title="Handle personal and freelance payments in one flow"
+        description="Track recurring bills and, when needed, send clean payment requests for side work without leaving your finance workspace."
         features={[
-          "Customizable templates",
-          "Online payment links",
-          "Automatic reminders",
-          "VAT and tax support",
+          "Recurring bill visibility",
+          "Simple payment request templates",
+          "Automatic due reminders",
+          "Payment status tracking",
         ]}
         wireframe="invoice"
       />
@@ -113,13 +113,13 @@ export function FeatureShowcases() {
       <div className="h-px w-full border-t border-border" />
 
       <FeatureShowcase
-        title="Complete financial overview"
-        description="See your complete financial picture at a glance. Income, expenses, and trends in one dashboard."
+        title="A dashboard that tells you where you stand"
+        description="See income, spending, and trend shifts at a glance so you can decide quickly, not guess."
         features={[
-          "Real-time metrics",
-          "Trend analysis",
+          "Daily money snapshot",
+          "Month-over-month trend view",
           "Top expense categories",
-          "AI-powered insights",
+          "AI highlights that matter",
         ]}
         wireframe="dashboard"
         reverse

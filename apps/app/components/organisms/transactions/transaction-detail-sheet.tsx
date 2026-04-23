@@ -86,10 +86,10 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
     },
     onSuccess: (res) => {
       if (res.success) {
-        toast.success(dictionary?.transactions?.toasts?.updated || "Updated");
+        toast.success(dictionary.transactions.toasts.updated || "Updated");
         queryClient.invalidateQueries({ queryKey: ["transactions"] });
       } else {
-        toast.error(res.error || dictionary?.transactions?.errors?.save_failed || "Error");
+        toast.error(res.error || dictionary.transactions.errors.save_failed || "Error");
       }
     },
     onError: (error: unknown) => {
@@ -125,12 +125,12 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
     },
     onSuccess: (res: ActionResponse<void>) => {
       if (res.success) {
-        toast.success(dictionary?.transactions?.items?.item_deleted || "Deleted");
+        toast.success(dictionary.transactions.items.item_deleted || "Deleted");
         queryClient.invalidateQueries({
           queryKey: ["transaction-items", transactionId],
         });
       } else {
-        toast.error(res.error || dictionary?.transactions?.items?.delete_failed || "Error");
+        toast.error(res.error || dictionary.transactions.items.delete_failed || "Error");
       }
     },
   });
@@ -152,7 +152,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
       });
       setPreviewOpen(true);
     } else {
-      toast.error(dictionary?.transactions?.errors?.preview_failed || "Error");
+      toast.error(dictionary.transactions.errors.preview_failed || "Error");
     }
   };
 

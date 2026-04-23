@@ -1,16 +1,15 @@
 "use client";
 
+import type { Dictionary } from "@workspace/dictionaries";
 import { Label, Separator, Switch, Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui";
 import { toast } from "sonner";
 
 import { useNotifications } from "@/hooks/use-notifications";
-import { useAppStore } from "@/stores/app";
 
 import { NotificationList } from "./notification-list";
 
-export function NotificationSettings() {
+export function NotificationSettings({ dictionary }: { dictionary: Dictionary }) {
   const { settings, updateSettings, isLoading } = useNotifications();
-  const { dictionary } = useAppStore() as unknown;
   const dict = dictionary.settings.notifications || {};
 
   const handleToggle = (key: string, value: boolean) => {
@@ -69,7 +68,7 @@ export function NotificationSettings() {
         </TabsList>
 
         <TabsContent value="inbox" className="border-none pt-6 shadow-none focus-visible:ring-0">
-          <NotificationList />
+          <NotificationList dictionary={dictionary} />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6 border-none pt-6 shadow-none focus-visible:ring-0">

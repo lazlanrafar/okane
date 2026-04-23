@@ -5,39 +5,39 @@ import { BarChart3, Wallet, Receipt, Zap, Globe2 } from "lucide-react";
 
 const FEATURES = [
   {
-    title: "All your transactions, unified",
+    title: "See every account in one timeline",
     subtitle:
-      "Every payment in and out of the business stays in sync. No manual entry, no gaps.",
+      "Cards, bank transfers, and wallet activity stay synced in one place. No manual reconciling.",
     icon: Receipt,
-    stat: "Auto-categorized",
+    stat: "Always in sync",
   },
   {
-    title: "Real-time financial insights",
+    title: "Know what changed today",
     subtitle:
-      "Oewang explains changes in cash, revenue, and spending as they happen across all your connected accounts.",
+      "oewang explains jumps in spending and cash flow as they happen, so nothing catches you off guard.",
     icon: BarChart3,
-    stat: "Live dashboards",
+    stat: "Live insights",
   },
   {
-    title: "Multi-wallet management",
+    title: "Manage daily money without stress",
     subtitle:
-      "Cash, digital wallets, and bank accounts — all organized in one unified view. Switch between workspaces instantly.",
+      "Set categories that fit your life and quickly review transactions in minutes, not hours.",
     icon: Wallet,
-    stat: "Unlimited wallets",
+    stat: "Quick reviews",
   },
   {
-    title: "Multi-currency support",
+    title: "Built for local and global spending",
     subtitle:
-      "Manage international finances with live exchange rates and sub-currency tracking built-in.",
+      "Track spending across currencies with automatic conversion support whenever you travel or earn globally.",
     icon: Globe2,
     stat: "150+ currencies",
   },
   {
-    title: "Built for speed",
+    title: "Ask AI instead of digging through reports",
     subtitle:
-      "Every action responds in milliseconds. Oewang is engineered for performance from the ground up.",
+      "Ask questions in plain language and get clear answers about where your money went and what to adjust next.",
     icon: Zap,
-    stat: "<100ms response",
+    stat: "Fast answers",
   },
 ];
 

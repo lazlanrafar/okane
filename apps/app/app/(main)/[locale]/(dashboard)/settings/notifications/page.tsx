@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default async function NotificationsSettingsPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
-  const _dictionary = await getDictionary(locale);
+  const dictionary = await getDictionary(locale);
 
-  return <NotificationSettings />;
+  return <NotificationSettings dictionary={dictionary} />;
 }

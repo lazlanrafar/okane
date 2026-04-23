@@ -1,12 +1,11 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { disconnectProviderAction, getProvidersAction } from "@workspace/modules/user/user.action";
 import { Button, Separator, Skeleton } from "@workspace/ui";
 import { Loader2, Unlink } from "lucide-react";
 import { toast } from "sonner";
-
-import { useAppStore } from "@/stores/app";
 
 function SettingAccountSkeleton() {
   return (
@@ -35,12 +34,10 @@ function SettingAccountSkeleton() {
 }
 
 interface AccountFormProps {
-  dictionary: unknown;
+  dictionary: Dictionary;
 }
 
-export function AccountForm({ dictionary: dict }: AccountFormProps) {
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
-  const dictionary = dict || storeDict;
+export function AccountForm({ dictionary }: AccountFormProps) {
   const account = dictionary.settings.account;
   const providers_t = account.providers;
 
@@ -71,7 +68,7 @@ export function AccountForm({ dictionary: dict }: AccountFormProps) {
     },
   });
 
-  if (isLoading || isDictLoading || !account || !providers_t) {
+  if (isLoading || !account || !providers_t) {
     return <SettingAccountSkeleton />;
   }
 

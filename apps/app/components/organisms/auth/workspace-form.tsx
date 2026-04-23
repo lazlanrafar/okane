@@ -59,7 +59,7 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
   // Step 2 fields
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [billingCurrency, setBillingCurrency] = useState<"usd" | "eur" | "idr">("idr");
-  const defaultPlanId = (plans.find(isFree) ?? plans[0]).id ?? null;
+  const defaultPlanId = (plans.find(isFree) ?? plans[0])?.id ?? null;
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(defaultPlanId);
 
   const [loading, setLoading] = useState(false);
@@ -95,10 +95,10 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (!session) router.push("/login");
+      if (!session) router.push(`/${locale}/login`);
     };
     checkAuth();
-  }, [router]);
+  }, [locale, router]);
 
   const handleContinue = (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,6 +122,12 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
 
     if (!createResult.success) {
       setError(createResult.error);
+      setLoading(false);
+      return;
+    }
+
+    if (!createResult.data?.id) {
+      setError("Workspace created but session payload is incomplete. Please try again.");
       setLoading(false);
       return;
     }

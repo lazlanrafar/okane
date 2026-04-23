@@ -1,16 +1,15 @@
 "use client";
 
+import type { Dictionary } from "@workspace/dictionaries";
 import { Button, cn } from "@workspace/ui";
 import { formatDistanceToNow } from "date-fns";
 import { AlertCircle, Bell, Check, CheckCheck, Receipt, Trash2, TrendingUp, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 import { useNotifications } from "@/hooks/use-notifications";
-import { useAppStore } from "@/stores/app";
 
-export function NotificationList() {
+export function NotificationList({ dictionary }: { dictionary: Dictionary }) {
   const { notifications, isLoading, markAsRead, deleteNotification, unreadCount } = useNotifications();
-  const { dictionary } = useAppStore() as unknown;
   const dict = dictionary.settings.notifications || {};
 
   const handleMarkAllAsRead = () => {

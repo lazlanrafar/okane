@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { useMutation } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { cancelSubscription, createCheckoutSession } from "@workspace/modules/mayar/mayar.action";
 import type { Pricing } from "@workspace/types";
 import {
@@ -22,13 +23,24 @@ import { toast } from "sonner";
 
 import { useAppStore } from "@/stores/app";
 
-export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[]; locale: string }) {
-  const { workspace, settings, dictionary } = useAppStore() as unknown;
+export function UpgradeView({
+  initialPlans,
+  locale,
+  dictionary,
+}: {
+  initialPlans: Pricing[];
+  locale: string;
+  dictionary: Dictionary;
+}) {
+  const { workspace, settings } = useAppStore() as {
+    workspace?: { id?: string; plan_id?: string | null; mayar_transaction_id?: string | null };
+    settings?: { mainCurrencyCode?: string };
+  };
   const [billingCycle, setBillingCycle] = React.useState<"monthly" | "annual">("monthly");
 
-  const currency = settings?.mainCurrencyCode.toLowerCase() || "usd";
+  const currency = settings?.mainCurrencyCode?.toLowerCase() || "usd";
   const workspaceId = workspace?.id;
-  const dict = dictionary.settings.billing || dictionary.billing;
+  const dict = dictionary.settings.billing;
   const currentPlanId = workspace?.plan_id;
 
   const checkoutMutation = useMutation({
@@ -50,7 +62,7 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
     onSuccess: (data) => {
       if (data.url) window.location.href = data.url;
     },
-    onError: (error: unknown) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error instanceof Error ? error.message : "Something went wrong"),
   });
 
   const downgradeMutation = useMutation({
@@ -62,7 +74,7 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
     onSuccess: () => {
       toast.success("Subscription scheduled for cancellation");
     },
-    onError: (error: unknown) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error instanceof Error ? error.message : "Something went wrong"),
   });
 
   if (!dict) return null;
@@ -205,10 +217,10 @@ export function UpgradeView({ initialPlans, locale }: { initialPlans: Pricing[];
                           : dict.current_plan
                         : canDowngrade
                           ? downgradeMutation.isPending
-                            ? dictionary.settings.common.processing || "Processing..."
+                            ? dictionary.common.processing || "Processing..."
                             : dict.upgrade
-                          : checkoutMutation.isPending
-                            ? dictionary.settings.common.connecting || "Connecting..."
+                            : checkoutMutation.isPending
+                              ? dictionary.common.connecting || "Connecting..."
                             : isStarter
                               ? dict.free_plan
                               : dict.get_started}

@@ -43,6 +43,15 @@
     "welcome": "Oewangへようこそ",
     "description": "あなたの財務を管理するための最高のアプリ。"
   },
+  "notifications": {
+    "title": "通知",
+    "mark_all_read": "すべて既読にする",
+    "empty": {
+      "title": "まだ通知はありません",
+      "description": "何かあればここに通知されます。"
+    },
+    "view_settings": "通知設定を表示"
+  },
   "accounts": {
     "title": "アカウント",
     "total_balance": "総残高",
@@ -99,7 +108,8 @@
     },
     "confirmations": {
       "delete": "このアカウントを削除してもよろしいですか？"
-    }
+    },
+    "edit_description": "Update your account details."
   },
   "settings": {
     "common": {
@@ -143,7 +153,18 @@
     },
     "account": {
       "title": "アカウント",
-      "description": "アカウント設定と環境設定を管理します。"
+      "description": "アカウント設定と環境設定を管理します。",
+      "no_providers": "接続されているアカウントは見つかりません。",
+      "providers": {
+        "title": "接続済みアカウント",
+        "description": "接続されているソーシャルアカウントを管理します。",
+        "disconnect": "切断",
+        "disconnect_confirm": "このアカウントを切断してもよろしいですか？",
+        "disconnect_success": "アカウントが正常に切断されました"
+      },
+      "form": {
+        "logged_in_via": "ログイン方法:"
+      }
     },
     "sidebar": {
       "profile": "プロフィール",
@@ -263,7 +284,16 @@
         "description": "お支払いを処理できませんでした。もう一度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。",
         "try_again": "再試行",
         "back_to_pricing": "価格設定に戻る"
-      }
+      },
+      "choose_plan_description": "Choose the plan that best fits your needs.",
+      "storage_limit_exceeded": "Storage Limit Exceeded",
+      "storage_grace_period_desc": "Your workspace is over the storage limit. Upgrade or free up space to avoid data loss.",
+      "deactivating_at": "Deactivating at",
+      "price": "Price",
+      "deactivate_addon_title": "Deactivate Add-on",
+      "deactivate_addon_desc": "Are you sure you want to deactivate this add-on? It will remain active until the end of your billing cycle.",
+      "deactivate": "Deactivate",
+      "purchase": "Purchase"
     },
     "profile": {
       "title": "プロフィール",
@@ -945,7 +975,10 @@
       "wallet_required": "アカウントを選択してください",
       "upload_failed": "ファイルのアップロードに失敗しました",
       "some_uploads_failed": "一部のファイルのアップロードに失敗しました",
-      "preview_failed": "添付ファイルのプレビューに失敗しました"
+      "preview_failed": "添付ファイルのプレビューに失敗しました",
+      "file_size_limit": "File size exceeds the limit.",
+      "file_type_limit": "File type is not supported.",
+      "parse_failed": "Failed to parse receipt."
     },
     "group_by": {
       "placeholder": "グループ化...",
@@ -967,7 +1000,9 @@
       "marked_pending": "トランザクションを保留中としてマークしました",
       "marked_exported": "トランザクションを書き出し済みとしてマークしました",
       "unmarked_exported": "トランザクションの書き出しマークを解除しました",
-      "assignee_updated": "担当者が正常に更新されました"
+      "assignee_updated": "担当者が正常に更新されました",
+      "parsing_receipt": "Parsing receipt...",
+      "parse_success": "Receipt parsed successfully."
     },
     "items": {
       "section_title": "アイテム",
@@ -1110,7 +1145,8 @@
       }
     },
     "by": "by",
-    "system": "システム"
+    "system": "システム",
+    "cancelled": "Cancelled"
   },
   "vault": {
     "title": "保管庫",
@@ -1458,7 +1494,117 @@
       "positive": "ポジティブなフィードバック",
       "negative": "ネガティブなフィードバック",
       "remove_positive": "ポジティブなフィードバックを削除",
-      "remove_negative": "ネガティブなフィードバックを削除"
+      "remove_negative": "ネガティブなフィードバックを削除",
+      "open_artifact": "Open artifact",
+      "close_artifact": "Close artifact"
+    }
+  },
+  "profile": {
+    "title": "プロフィール",
+    "description": "これは、サイト上で他の人があなたをどのように見るかです。",
+    "username": {
+      "label": "ユーザー名",
+      "placeholder": "shadcn",
+      "description": "これはあなたの公開表示名です。本名でもペンネームでも構いません。30日間に1回のみ変更できます。",
+      "error_min": "ユーザー名は少なくとも2文字である必要があります。",
+      "error_max": "ユーザー名は30文字を超えてはいけません。"
+    },
+    "email": {
+      "label": "メールアドレス",
+      "placeholder": "表示する確認済みのメールを選択してください",
+      "description": "確認済みのメールアドレスはメール設定で管理できます。",
+      "error_required": "表示するメールを選択してください。"
+    },
+    "bio": {
+      "label": "略歴",
+      "placeholder": "自分自身について少し教えてください",
+      "description": "他のユーザーや組織を@メンションしてリンクできます。"
+    },
+    "urls": {
+      "label": "URL",
+      "description": "ウェブサイト、ブログ、またはソーシャルメディアプロフィールへのリンクを追加します。",
+      "add_url": "URLを追加",
+      "error_invalid": "有効なURLを入力してください。"
+    },
+    "update_profile": "プロフィールを更新",
+    "toast_success": "プロフィールが正常に更新されました",
+    "toast_submitted": "次の値を送信しました：",
+    "avatar": {
+      "label": "プロフィール写真",
+      "upload_new": "新規アップロード",
+      "allowed_formats": "JPG、GIF、またはPNG。最大10MB。",
+      "error_size": "ファイルサイズが10MBの制限を超えています",
+      "toast_success": "プロフィール写真が自動的に更新されました",
+      "error_upload": "写真のアップロードに失敗しました"
+    },
+    "form": {
+      "name_label": "表示名",
+      "name_placeholder": "名前を入力してください",
+      "username_label": "ユーザー名",
+      "username_placeholder": "ユニークなユーザー名を選択してください",
+      "mobile_label": "携帯番号",
+      "mobile_placeholder": "例：628123456789",
+      "mobile_description": "公式請求書と支払いに使用されます（インドネシア形式推奨：628xxx）。",
+      "bio_label": "略歴",
+      "bio_placeholder": "自分自身について教えてください",
+      "website_label": "ウェブサイト",
+      "website_placeholder": "https://example.com",
+      "save": "プロフィールを更新",
+      "saving": "更新中...",
+      "success": "プロフィールが正常に更新されました"
+    }
+  },
+  "wallets": {
+    "title": "ウォレット & 銀行",
+    "description": "ウォレット、銀行、その他の財務アカウントを管理します。",
+    "add_button": "ウォレットを追加",
+    "add_group_button": "グループを追加",
+    "empty": "ウォレットが見つかりません",
+    "groups": {
+      "title": "アカウントグループ",
+      "add": "グループを追加",
+      "edit": "グループを編集",
+      "delete": "グループを削除",
+      "delete_confirm": "このグループを削除してもよろしいですか？中のすべてのウォレットは切り離されます。",
+      "form": {
+        "name": {
+          "label": "名前",
+          "placeholder": "グループ名",
+          "error_required": "名前は必須です"
+        }
+      },
+      "add_title": "Add Group",
+      "edit_title": "Edit Group"
+    },
+    "form": {
+      "name": {
+        "label": "名前",
+        "placeholder": "ウォレット名",
+        "error_required": "名前は必須です"
+      },
+      "group": {
+        "label": "グループ",
+        "placeholder": "グループを選択",
+        "none": "グループなし"
+      },
+      "balance": {
+        "label": "現在の残高",
+        "placeholder": "0.00"
+      },
+      "is_included": {
+        "label": "合計に含める",
+        "description": "このアカウントを総残高に含めます。"
+      },
+      "submit": "保存",
+      "cancel": "キャンセル",
+      "delete": "削除",
+      "delete_confirm": "このウォレットを削除してもよろしいですか？",
+      "delete_success": "ウォレットが正常に削除されました",
+      "create_success": "ウォレットが正常に作成されました",
+      "update_success": "ウォレットが正常に更新されました",
+      "updated": "Wallet updated successfully",
+      "add_title": "Add Wallet",
+      "edit_title": "Edit Wallet"
     }
   }
 }

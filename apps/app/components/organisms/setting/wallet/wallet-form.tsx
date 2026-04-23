@@ -4,13 +4,14 @@ import * as React from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import {
   type CreateWalletData,
   createWallet,
   type UpdateWalletData,
   updateWallet,
 } from "@workspace/modules/wallet/wallet.action";
-import { getWalletGroups } from "@workspace/modules/wallet-group/wallet-group.action";
+import { getWalletGroups, type WalletGroup } from "@workspace/modules/wallet-group/wallet-group.action";
 import type { Wallet } from "@workspace/types";
 import {
   Button,
@@ -37,23 +38,19 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-import { useAppStore } from "@/stores/app";
-
 interface WalletFormProps {
   open: boolean;
   wallet?: Wallet | null;
   onClose: () => void;
-  dictionary: unknown;
+  dictionary: Dictionary;
 }
 
-export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop }: WalletFormProps) {
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
-  const dictionary = dictionary_prop || storeDict;
+export function WalletForm({ open, wallet, onClose, dictionary }: WalletFormProps) {
   const queryClient = useQueryClient();
 
-  const wallets_t = dictionary?.wallets || (dictionary as unknown)?.settings?.wallets;
-  const walletForm = wallets_t?.form;
-  const common = dictionary?.common;
+  const wallets_t = dictionary.wallets ?? dictionary.settings.wallets;
+  const walletForm = wallets_t.form;
+  const common = dictionary.common;
 
   const formSchema = z.object({
     name: z.string().min(1, { message: walletForm?.name?.error_required || "Name is required" }),
@@ -63,7 +60,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema as unknown),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: wallet?.name ?? "",
       groupId: wallet?.groupId ?? "none",
@@ -91,7 +88,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
   }, [wallet, form]);
 
   // Fetch groups for selection
-  const { data: groups = [] } = useQuery({
+  const { data: groups = [] } = useQuery<WalletGroup[]>({
     queryKey: ["wallet-groups"],
     queryFn: async () => {
       const result = await getWalletGroups();
@@ -137,7 +134,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      toast.success(walletForm?.updated || "Wallet updated");
+      toast.success(walletForm.update_success || "Wallet updated");
       onClose();
     },
     onError: (error) => {
@@ -153,7 +150,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
     }
   };
 
-  if (isDictLoading || !dictionary || !walletForm) return null;
+  if (!walletForm) return null;
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
@@ -161,7 +158,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="rounded-none sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{wallet ? walletForm.edit_title : walletForm.add_title}</DialogTitle>
+          <DialogTitle>{wallet ? wallets_t.groups.edit : wallets_t.add_button}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -195,7 +192,7 @@ export function WalletForm({ open, wallet, onClose, dictionary: dictionary_prop 
                     </FormControl>
                     <SelectContent className="rounded-none">
                       <SelectItem value="none">{walletForm.group.none}</SelectItem>
-                      {(groups || []).map((group: unknown) => (
+                      {(groups || []).map((group) => (
                         <SelectItem key={group.id} value={group.id}>
                           {group.name}
                         </SelectItem>

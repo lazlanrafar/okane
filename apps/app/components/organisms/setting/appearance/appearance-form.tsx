@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 
+import type { Dictionary } from "@workspace/dictionaries";
 import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from "@workspace/ui";
 import {
   applyContentLayout,
@@ -29,8 +30,6 @@ import {
   ToggleGroupItem,
   usePreferencesStore,
 } from "@workspace/ui";
-
-import { useAppStore } from "@/stores/app";
 
 function SettingAppearanceSkeleton() {
   return (
@@ -67,13 +66,10 @@ function SettingAppearanceSkeleton() {
 }
 
 interface AppearanceFormProps {
-  dictionary: unknown;
+  dictionary: Dictionary;
 }
 
-export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
-  const dictionary = dict || storeDict;
-
+export function AppearanceForm({ dictionary }: AppearanceFormProps) {
   const themeMode = usePreferencesStore((s) => s.themeMode);
   const resolvedThemeMode = usePreferencesStore((s) => s.resolvedThemeMode);
   const setThemeMode = usePreferencesStore((s) => s.setThemeMode);
@@ -96,7 +92,7 @@ export function AppearanceForm({ dictionary: dict }: AppearanceFormProps) {
     setMounted(true);
   }, []);
 
-  if (!dictionary && (isDictLoading || !mounted)) {
+  if (!dictionary || !mounted) {
     return <SettingAppearanceSkeleton />;
   }
 

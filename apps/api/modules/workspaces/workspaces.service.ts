@@ -38,8 +38,23 @@ export abstract class WorkspacesService {
       mainCurrencyCode?: string;
       mainCurrencySymbol?: string;
     },
+    user_email?: string,
   ) {
     const { name, country, mainCurrencyCode, mainCurrencySymbol } = data;
+
+    // Ensure the internal user row exists before linking workspace membership.
+    // This can be missing when auth succeeds via Supabase token but sync has not run yet.
+    const existingUser = await UsersRepository.findById(user_id);
+    if (!existingUser) {
+      if (!user_email) {
+        throw new Error("User profile is not synced yet. Please sign in again.");
+      }
+      await UsersRepository.upsert({
+        id: user_id,
+        email: user_email,
+        oauth_provider: "email",
+      });
+    }
 
     // 0. Check for existing workspaces (Plan Gating)
     const workspacesWithPlans =

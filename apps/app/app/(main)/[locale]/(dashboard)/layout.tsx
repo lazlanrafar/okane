@@ -49,7 +49,9 @@ export default async function Layout({
   ]);
 
   if (!me_data) {
-    redirect(`/${locale}/login`);
+    // If app JWT is missing/expired but Supabase session still exists,
+    // routing to sync prevents login/overview redirect loops.
+    redirect(`/${locale}/sync`);
   }
 
   const current_user = me_data.user;

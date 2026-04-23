@@ -27,9 +27,9 @@ export function ConnectWhatsApp({ dictionary }: { dictionary: Dictionary }) {
 
   const params = useParams();
   const _locale = (params.locale as string) || "en";
-  const workspaceId = me?.user.workspace_id;
+  const workspaceId = me?.user?.workspace_id;
   const activeWorkspace = me?.workspaces.find((w) => w.id === workspaceId);
-  const planName = activeWorkspace.plan_name || "Starter";
+  const planName = activeWorkspace?.plan_name || "Starter";
   const isPro = planName === "Pro" || planName === "Business";
   const whatsappNumber = Env.NEXT_PUBLIC_TWILIO_WHATSAPP_NUMBER;
   const message = `Connect Oewang ${workspaceId}`;

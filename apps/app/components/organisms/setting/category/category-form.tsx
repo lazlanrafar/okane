@@ -21,6 +21,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import {
   createCategory,
   deleteCategory,
@@ -67,8 +68,6 @@ import { GripVertical, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
-
-import { useAppStore } from "@/stores/app";
 
 interface SortableRowProps {
   category: Category;
@@ -158,10 +157,8 @@ function CategorySkeleton() {
   );
 }
 
-export function CategoryForm({ type, dictionary: dict }: { type: "income" | "expense"; dictionary: unknown }) {
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
-  const dictionary = dict || storeDict;
-  const dictionary_t = type === "income" ? dictionary.category.income : dictionary.category.expense;
+export function CategoryForm({ type, dictionary }: { type: "income" | "expense"; dictionary: Dictionary }) {
+  const dictionary_t = type === "income" ? dictionary.settings.category.income : dictionary.settings.category.expense;
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [activeCategory, setActiveCategory] = React.useState<Category | null>(null);
@@ -253,7 +250,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
       form.reset();
     },
     onError: (error) => {
-      toast.error(`${dictionary.settings.common.error || "Error"}: ${(error as Error).message}`);
+      toast.error(`${dictionary.common.error || "Error"}: ${(error as Error).message}`);
     },
   });
 
@@ -274,7 +271,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
       form.reset();
     },
     onError: (error) => {
-      toast.error(`${dictionary.settings.common.error || "Error"}: ${(error as Error).message}`);
+      toast.error(`${dictionary.common.error || "Error"}: ${(error as Error).message}`);
     },
   });
 
@@ -291,7 +288,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
       setCategoryToDelete(null);
     },
     onError: (error) => {
-      toast.error(`${dictionary.settings.common.error || "Error"}: ${(error as Error).message}`);
+      toast.error(`${dictionary.common.error || "Error"}: ${(error as Error).message}`);
     },
   });
 
@@ -323,7 +320,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
       return { previousCategories };
     },
     onError: (error, _, context) => {
-      toast.error(`${dictionary.settings.common.error || "Error"}: ${(error as Error).message}`);
+      toast.error(`${dictionary.common.error || "Error"}: ${(error as Error).message}`);
       if (context?.previousCategories) {
         queryClient.setQueryData(queryKey, context.previousCategories);
       }
@@ -364,7 +361,7 @@ export function CategoryForm({ type, dictionary: dict }: { type: "income" | "exp
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
-  if (isLoading || isDictLoading || !dictionary_t) {
+  if (isLoading || !dictionary_t) {
     return <CategorySkeleton />;
   }
 

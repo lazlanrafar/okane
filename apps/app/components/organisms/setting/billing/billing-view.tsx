@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import {
   cancelAddonAction,
   cancelSubscription,
@@ -70,15 +71,27 @@ function BillingSkeleton() {
 export function BillingView({
   initialPlans,
   initialAddons = [],
-  dictionary: dict,
+  dictionary,
 }: {
   initialPlans: Pricing[];
   initialAddons?: Pricing[];
-  dictionary: unknown;
+  dictionary: Dictionary;
 }) {
   const [mounted, setMounted] = React.useState(false);
-  const { workspace, settings, dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
-  const dictionary = dict || storeDict;
+  const { workspace, settings } = useAppStore() as {
+    workspace?: {
+      id?: string;
+      plan_id?: string | null;
+      vault_size_used_bytes?: number;
+      ai_tokens_used?: number;
+      extra_vault_size_mb?: number;
+      extra_ai_tokens?: number;
+      storage_violation_at?: string | null;
+      mayar_transaction_id?: string | null;
+      active_addons?: Array<{ id: string; status: string; created_at?: string }>;
+    };
+    settings?: { mainCurrencyCode?: string };
+  };
   const [billingCycle, _setBillingCycle] = React.useState<"monthly" | "annual">("monthly");
   const [history, setHistory] = React.useState<Order[]>([]);
   const [loadingHistory, setLoadingHistory] = React.useState(true);
@@ -130,7 +143,7 @@ export function BillingView({
     onSuccess: (data) => {
       if (data.url) window.location.href = data.url;
     },
-    onError: (error: unknown) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error instanceof Error ? error.message : "Something went wrong"),
   });
 
   const portalMutation = useMutation({
@@ -144,7 +157,7 @@ export function BillingView({
         description: "A secure link has been sent to your email to access the portal",
       });
     },
-    onError: (error: unknown) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error instanceof Error ? error.message : "Something went wrong"),
   });
 
   const _downgradeMutation = useMutation({
@@ -156,7 +169,7 @@ export function BillingView({
     onSuccess: () => {
       toast.success("Subscription scheduled for cancellation");
     },
-    onError: (error: unknown) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error instanceof Error ? error.message : "Something went wrong"),
   });
 
   const downloadMutation = useMutation({
@@ -168,7 +181,7 @@ export function BillingView({
     onSuccess: (data) => {
       if (data.url) window.open(data.url, "_blank");
     },
-    onError: (error: unknown) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error instanceof Error ? error.message : "Something went wrong"),
   });
 
   const cancelAddonMutation = useMutation({
@@ -182,14 +195,14 @@ export function BillingView({
       queryClient.invalidateQueries({ queryKey: ["workspace", "active"] });
       router.refresh();
     },
-    onError: (error: unknown) => toast.error(error.message),
+    onError: (error: unknown) => toast.error(error instanceof Error ? error.message : "Something went wrong"),
   });
 
-  if (!mounted || !dictionary || isDictLoading) {
+  if (!mounted || !dictionary) {
     return <BillingSkeleton />;
   }
 
-  const billingDict = dictionary.settings.billing || dictionary.billing;
+  const billingDict = dictionary.settings.billing;
 
   if (!billingDict || !billingDict.history) {
     return <BillingSkeleton />;

@@ -4,6 +4,8 @@ import * as React from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
+import type { User } from "@workspace/types";
 import {
   Avatar,
   AvatarFallback,
@@ -20,8 +22,6 @@ import {
   Separator,
   Skeleton,
 } from "@workspace/ui";
-
-import { useAppStore } from "@/stores/app";
 
 function SettingProfileSkeleton() {
   return (
@@ -63,13 +63,10 @@ import { toast } from "sonner";
 import * as z from "zod";
 
 interface SettingProfileFormProps {
-  dictionary: unknown;
+  dictionary: Dictionary;
 }
 
-export function SettingProfileForm({ dictionary: dict }: SettingProfileFormProps) {
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
-  const dictionary = dict || storeDict;
-
+export function SettingProfileForm({ dictionary }: SettingProfileFormProps) {
   const { data: meData, isLoading: isMeLoading } = useQuery({
     queryKey: ["me"],
     queryFn: async () => {
@@ -79,17 +76,27 @@ export function SettingProfileForm({ dictionary: dict }: SettingProfileFormProps
     },
   });
 
-  const profile = dictionary?.profile || (dictionary as unknown)?.settings?.profile;
+  const profile =
+    (dictionary as Dictionary & { profile?: Dictionary["settings"]["profile"] }).profile ?? dictionary.settings.profile;
 
-  if (isMeLoading || (!dictionary && isDictLoading) || !dictionary || !meData?.user || !profile) {
+  if (isMeLoading || !dictionary || !meData?.user || !profile) {
     return <SettingProfileSkeleton />;
   }
 
-  return <ProfileFormInner profile={profile} user={meData.user} />;
+  return <ProfileFormInner dictionary={dictionary} profile={profile} user={meData.user} />;
 }
 
-function ProfileFormInner({ profile, user }: { profile: unknown; user: unknown }) {
-  const { dictionary } = useAppStore() as unknown;
+function ProfileFormInner({
+  dictionary,
+  profile,
+  user,
+}: {
+  dictionary: Dictionary;
+  profile: Dictionary["settings"]["profile"];
+  user: Pick<User, "name" | "email" | "profile_picture"> & {
+    mobile?: string | null;
+  };
+}) {
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = React.useState(false);
 
@@ -105,7 +112,7 @@ function ProfileFormInner({ profile, user }: { profile: unknown; user: unknown }
     email: z
       .string({
         required_error: profile.email.error_required || "Required",
-      } as unknown)
+      })
       .email(),
     profile_picture: z.string().optional(),
     mobile: z.string().optional().nullable(),
@@ -114,10 +121,10 @@ function ProfileFormInner({ profile, user }: { profile: unknown; user: unknown }
   type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
   const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema as unknown),
+    resolver: zodResolver(profileFormSchema),
     defaultValues: {
       username: user?.name || "",
-      email: user?.email,
+      email: user?.email || "",
       profile_picture: user?.profile_picture || "",
       mobile: user?.mobile || "",
     },
@@ -139,9 +146,7 @@ function ProfileFormInner({ profile, user }: { profile: unknown; user: unknown }
       queryClient.invalidateQueries({ queryKey: ["me"] });
     },
     onError: (error) => {
-      toast.error(
-        `${dictionary.settings.common.error || dictionary.common.error || "Error"}: ${(error as Error).message}`,
-      );
+      toast.error(`${dictionary.common.error || "Error"}: ${(error as Error).message}`);
     },
   });
 
@@ -239,7 +244,7 @@ function ProfileFormInner({ profile, user }: { profile: unknown; user: unknown }
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{profile.form.email_label || profile.email.label}</FormLabel>
+                  <FormLabel>{profile.email.label}</FormLabel>
                 <FormControl>
                   <Input disabled {...field} className="max-w-md rounded-none" />
                 </FormControl>

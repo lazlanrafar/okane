@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import type { Dictionary } from "@workspace/dictionaries";
 import { updateTransactionSettings } from "@workspace/modules/setting/setting.action";
 import type { TransactionSettings } from "@workspace/types";
 import {
@@ -18,14 +19,12 @@ import {
 } from "@workspace/ui";
 import { toast } from "sonner";
 
-import { useAppStore } from "@/stores/app";
-
 interface MainCurrencyFormProps {
   settings: TransactionSettings;
-  dictionary: unknown;
+  dictionary: Dictionary;
 }
 
-function MainCurrencySkeleton() {
+function _MainCurrencySkeleton() {
   return (
     <div className="animate-pulse space-y-8">
       <div className="space-y-2">
@@ -56,9 +55,7 @@ function MainCurrencySkeleton() {
 export function MainCurrencyForm({ settings, dictionary }: MainCurrencyFormProps) {
   const [data, setData] = useState(settings);
   const [_isPending, startTransition] = useTransition();
-  const { isLoading: isStoreLoading } = useAppStore();
 
-  if (!dictionary && isStoreLoading) return <MainCurrencySkeleton />;
   if (!data) return null;
 
   const handleUpdate = (updates: Partial<TransactionSettings>) => {

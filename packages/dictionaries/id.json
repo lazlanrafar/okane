@@ -43,6 +43,15 @@
     "welcome": "Selamat datang di Oewang",
     "description": "Aplikasi terbaik untuk mengelola keuangan Anda."
   },
+  "notifications": {
+    "title": "Notifikasi",
+    "mark_all_read": "Tandai semua telah dibaca",
+    "empty": {
+      "title": "Belum ada notifikasi",
+      "description": "Kami akan memberi tahu Anda saat ada sesuatu yang terjadi."
+    },
+    "view_settings": "Lihat pengaturan notifikasi"
+  },
   "accounts": {
     "title": "Akun",
     "total_balance": "Total Saldo",
@@ -99,7 +108,8 @@
     },
     "confirmations": {
       "delete": "Apakah Anda yakin ingin menghapus akun ini?"
-    }
+    },
+    "edit_description": "Update your account details."
   },
   "settings": {
     "language": {
@@ -114,7 +124,18 @@
     },
     "account": {
       "title": "Akun",
-      "description": "Kelola pengaturan dan preferensi akun Anda."
+      "description": "Kelola pengaturan dan preferensi akun Anda.",
+      "no_providers": "Tidak ada akun terhubung yang ditemukan.",
+      "providers": {
+        "title": "Akun Terhubung",
+        "description": "Kelola akun sosial Anda yang terhubung.",
+        "disconnect": "Putuskan Hubungan",
+        "disconnect_confirm": "Apakah Anda yakin ingin memutuskan hubungan akun ini?",
+        "disconnect_success": "Akun berhasil diputuskan"
+      },
+      "form": {
+        "logged_in_via": "Masuk melalui"
+      }
     },
     "sidebar": {
       "profile": "Profil",
@@ -234,7 +255,16 @@
         "description": "Kami tidak dapat memproses pembayaran Anda. Silakan coba lagi atau hubungi dukungan jika masalah berlanjut.",
         "try_again": "Coba Lagi",
         "back_to_pricing": "Kembali ke Harga"
-      }
+      },
+      "choose_plan_description": "Choose the plan that best fits your needs.",
+      "storage_limit_exceeded": "Storage Limit Exceeded",
+      "storage_grace_period_desc": "Your workspace is over the storage limit. Upgrade or free up space to avoid data loss.",
+      "deactivating_at": "Deactivating at",
+      "price": "Price",
+      "deactivate_addon_title": "Deactivate Add-on",
+      "deactivate_addon_desc": "Are you sure you want to deactivate this add-on? It will remain active until the end of your billing cycle.",
+      "deactivate": "Deactivate",
+      "purchase": "Purchase"
     },
     "profile": {
       "title": "Profil",
@@ -610,6 +640,47 @@
         "create_success": "Dompet berhasil dibuat",
         "update_success": "Dompet berhasil diperbarui"
       }
+    },
+    "common": {
+      "loading_more": "Memuat lebih banyak...",
+      "select_currency": "Pilih mata uang...",
+      "search_currency": "Cari mata uang...",
+      "no_currency_found": "Mata uang tidak ditemukan.",
+      "change": "Ubah",
+      "active": "Aktif",
+      "processing": "Memproses...",
+      "connecting": "Menghubungkan...",
+      "loading": "Memuat...",
+      "copied": "Tersalin",
+      "copy_link": "Salin Tautan",
+      "close": "Tutup",
+      "current": "Saat Ini",
+      "na": "N/A",
+      "actions": "Aksi",
+      "remove": "Hapus",
+      "cancel": "Batal",
+      "save": "Simpan",
+      "saving": "Menyimpan...",
+      "create": "Buat",
+      "delete": "Hapus",
+      "opening": "Membuka...",
+      "view_pdf": "Lihat PDF",
+      "coming_soon": "Segera Hadir",
+      "used": "terpakai",
+      "remaining": "tersisa",
+      "open_menu": "Buka menu",
+      "error": "Masalah",
+      "empty": "Kosong",
+      "email": "Email",
+      "form": {
+        "balance": {
+          "label": "Saldo Saat Ini",
+          "placeholder": "0.00"
+        }
+      },
+      "by": "oleh",
+      "system": "Sistem",
+      "cancelled": "Cancelled"
     }
   },
   "debts": {
@@ -916,7 +987,10 @@
       "wallet_required": "Akun wajib dipilih",
       "upload_failed": "Gagal mengunggah file",
       "some_uploads_failed": "Beberapa file gagal diunggah",
-      "preview_failed": "Gagal menampilkan pratinjau lampiran"
+      "preview_failed": "Gagal menampilkan pratinjau lampiran",
+      "file_size_limit": "File size exceeds the limit.",
+      "file_type_limit": "File type is not supported.",
+      "parse_failed": "Failed to parse receipt."
     },
     "group_by": {
       "placeholder": "Kelompokkan berdasarkan",
@@ -938,7 +1012,9 @@
       "marked_pending": "Transaksi ditandai sebagai tertunda",
       "marked_exported": "Transaksi ditandai sebagai diekspor",
       "unmarked_exported": "Tanda ekspor transaksi dihapus",
-      "assignee_updated": "Penerima tugas berhasil diperbarui"
+      "assignee_updated": "Penerima tugas berhasil diperbarui",
+      "parsing_receipt": "Parsing receipt...",
+      "parse_success": "Receipt parsed successfully."
     },
     "items": {
       "section_title": "Item",
@@ -1081,7 +1157,8 @@
       }
     },
     "by": "oleh",
-    "system": "Sistem"
+    "system": "Sistem",
+    "cancelled": "Cancelled"
   },
   "vault": {
     "title": "Brankas",
@@ -1429,7 +1506,117 @@
       "positive": "Umpan Balik Positif",
       "negative": "Umpan Balik Negatif",
       "remove_positive": "Hapus Umpan Balik Positif",
-      "remove_negative": "Hapus Umpan Balik Negatif"
+      "remove_negative": "Hapus Umpan Balik Negatif",
+      "open_artifact": "Open artifact",
+      "close_artifact": "Close artifact"
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "description": "Ini adalah bagaimana orang lain akan melihat Anda di situs.",
+    "username": {
+      "label": "Nama Pengguna",
+      "placeholder": "shadcn",
+      "description": "Ini adalah nama tampilan publik Anda. Bisa nama asli atau nama samaran. Anda hanya dapat mengubah ini sekali setiap 30 hari.",
+      "error_min": "Nama pengguna harus minimal 2 karakter.",
+      "error_max": "Nama pengguna tidak boleh lebih dari 30 karakter."
+    },
+    "email": {
+      "label": "Email",
+      "placeholder": "Pilih email terverifikasi untuk ditampilkan",
+      "description": "Anda dapat mengelola alamat email terverifikasi di pengaturan email Anda.",
+      "error_required": "Silakan pilih email untuk ditampilkan."
+    },
+    "bio": {
+      "label": "Bio",
+      "placeholder": "Ceritakan sedikit tentang diri Anda",
+      "description": "Anda dapat @mention pengguna dan organisasi lain untuk menautkan ke mereka."
+    },
+    "urls": {
+      "label": "URL",
+      "description": "Tambahkan tautan ke situs web, blog, atau profil media sosial Anda.",
+      "add_url": "Tambah URL",
+      "error_invalid": "Silakan masukkan URL yang valid."
+    },
+    "update_profile": "Perbarui profil",
+    "toast_success": "Profil berhasil diperbarui",
+    "toast_submitted": "Anda mengirimkan nilai berikut:",
+    "avatar": {
+      "label": "Foto Profil",
+      "upload_new": "Unggah Baru",
+      "allowed_formats": "JPG, GIF atau PNG. Maks 10MB.",
+      "error_size": "Ukuran file melebihi batas 10MB",
+      "toast_success": "Foto profil diperbarui secara otomatis",
+      "error_upload": "Gagal mengunggah foto"
+    },
+    "form": {
+      "name_label": "Nama Tampilan",
+      "name_placeholder": "Masukkan nama Anda",
+      "username_label": "Nama Pengguna",
+      "username_placeholder": "Pilih nama pengguna yang unik",
+      "mobile_label": "Nomor HP",
+      "mobile_placeholder": "misal: 628123456789",
+      "mobile_description": "Digunakan untuk tagihan dan pembayaran resmi (format Indonesia: 628xxx).",
+      "bio_label": "Bio",
+      "bio_placeholder": "Ceritakan tentang diri Anda",
+      "website_label": "Situs Web",
+      "website_placeholder": "https://contoh.com",
+      "save": "Perbarui profil",
+      "saving": "Memperbarui...",
+      "success": "Profil berhasil diperbarui"
+    }
+  },
+  "wallets": {
+    "title": "Dompet & Bank",
+    "description": "Kelola dompet, bank, dan akun keuangan lainnya.",
+    "add_button": "Tambah Dompet",
+    "add_group_button": "Tambah Grup",
+    "empty": "Tidak ada dompet ditemukan",
+    "groups": {
+      "title": "Grup Akun",
+      "add": "Tambah Grup",
+      "edit": "Edit Grup",
+      "delete": "Hapus Grup",
+      "delete_confirm": "Apakah Anda yakin ingin menghapus grup ini? Semua dompet di dalamnya akan dipisahkan.",
+      "form": {
+        "name": {
+          "label": "Nama",
+          "placeholder": "Nama grup",
+          "error_required": "Nama wajib diisi"
+        }
+      },
+      "add_title": "Add Group",
+      "edit_title": "Edit Group"
+    },
+    "form": {
+      "name": {
+        "label": "Nama",
+        "placeholder": "Nama dompet",
+        "error_required": "Nama wajib diisi"
+      },
+      "group": {
+        "label": "Grup",
+        "placeholder": "Pilih grup",
+        "none": "Tanpa Grup"
+      },
+      "balance": {
+        "label": "Saldo Saat Ini",
+        "placeholder": "0.00"
+      },
+      "is_included": {
+        "label": "Sertakan dalam total",
+        "description": "Sertakan akun ini dalam total saldo Anda."
+      },
+      "submit": "Simpan",
+      "cancel": "Batal",
+      "delete": "Hapus",
+      "delete_confirm": "Apakah Anda yakin ingin menghapus dompet ini?",
+      "delete_success": "Dompet berhasil dihapus",
+      "create_success": "Dompet berhasil dibuat",
+      "update_success": "Dompet berhasil diperbarui",
+      "updated": "Wallet updated successfully",
+      "add_title": "Add Wallet",
+      "edit_title": "Edit Wallet"
     }
   }
 }

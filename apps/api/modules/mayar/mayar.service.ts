@@ -466,7 +466,7 @@ export abstract class MayarService {
         : `Subscription for ${workspace?.name || "Workspace"}`;
 
     const redirectLocale = options?.metadata?.locale || "en";
-    const successUrl = `${appUrl}/${redirectLocale}/upgrade/success`;
+    const successUrl = `${appUrl}/${redirectLocale}/payment/success`;
     const cancelUrl = `${appUrl}/${redirectLocale}/upgrade/failed`;
 
     try {

@@ -22,7 +22,7 @@ const FOOTER_LINKS: Record<
     { href: "/integrations", label: "Integrations" },
     { href: "/story", label: "Story" },
   ],
-  Company: [
+  Help: [
     { href: "/support", label: "Support" },
     { href: "#", label: "GitHub", external: true },
   ],
@@ -49,7 +49,7 @@ export function Footer() {
               <span className="font-serif text-xl tracking-tight">oewang</span>
             </Link>
             <p className="text-sm text-muted-foreground mb-6 max-w-xs">
-              Run your company. Not the admin.
+              Money clarity for real life.
             </p>
             <button
               type="button"

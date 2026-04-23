@@ -13,6 +13,7 @@ import {
   TIME_INPUT_OPTIONS,
   WEEKLY_START_DAY_OPTIONS,
 } from "@workspace/constants";
+import type { Dictionary } from "@workspace/dictionaries";
 import { getTransactionSettings, updateTransactionSettings } from "@workspace/modules/setting/setting.action";
 import type { TransactionSettings } from "@workspace/types";
 import {
@@ -29,8 +30,6 @@ import {
   Switch,
 } from "@workspace/ui";
 import { toast } from "sonner";
-
-import { useAppStore } from "@/stores/app";
 
 function SettingTransactionSkeleton() {
   return (
@@ -70,13 +69,11 @@ function SettingTransactionSkeleton() {
 }
 
 interface TransactionSettingsFormProps {
-  dictionary: unknown;
+  dictionary: Dictionary;
 }
 
-export function TransactionSettingsForm({ dictionary: dict }: TransactionSettingsFormProps) {
+export function TransactionSettingsForm({ dictionary }: TransactionSettingsFormProps) {
   const queryClient = useQueryClient();
-  const { dictionary: storeDict, isLoading: isDictLoading } = useAppStore() as unknown;
-  const dictionary = dict || storeDict;
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["settings", "transaction"],
@@ -102,12 +99,12 @@ export function TransactionSettingsForm({ dictionary: dict }: TransactionSetting
     },
   });
 
-  if (isLoading || (!dictionary && isDictLoading) || !settings || !dictionary) {
+  if (isLoading || !settings || !dictionary) {
     return <SettingTransactionSkeleton />;
   }
 
-  const transaction = dictionary.settings.transaction || (dictionary as unknown).transaction;
-  const _common = dictionary.settings.common || (dictionary as unknown).common;
+  const transaction = dictionary.settings.transaction;
+  const _common = dictionary.common;
 
   const updateSetting = (key: keyof TransactionSettings, value: unknown) => {
     mutation.mutate({ [key]: value });

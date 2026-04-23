@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import {
   createWalletGroup,
   updateWalletGroup,
@@ -32,22 +33,22 @@ interface WalletGroupFormProps {
   open: boolean;
   group?: WalletGroup | null;
   onClose: () => void;
-  dictionary: unknown;
+  dictionary: Dictionary;
 }
 
 export function WalletGroupForm({ open, group, onClose, dictionary }: WalletGroupFormProps) {
   const queryClient = useQueryClient();
 
-  const wallets_t = dictionary?.wallets || (dictionary as unknown)?.settings?.wallets;
-  const groups_t = wallets_t?.groups;
-  const common = dictionary?.common;
+  const wallets_t = dictionary.wallets ?? dictionary.settings.wallets;
+  const groups_t = wallets_t.groups;
+  const common = dictionary.common;
 
   const formSchema = z.object({
     name: z.string().min(1, { message: groups_t?.form?.name?.error_required || "Name is required" }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema as unknown),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: group?.name ?? "",
     },
@@ -110,7 +111,7 @@ export function WalletGroupForm({ open, group, onClose, dictionary }: WalletGrou
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="rounded-none sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{group ? groups_t.edit_title : groups_t.add_title}</DialogTitle>
+          <DialogTitle>{group ? groups_t.edit : groups_t.add}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
