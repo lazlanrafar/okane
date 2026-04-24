@@ -2,10 +2,14 @@
 
 import { cn, Icons } from "@workspace/ui";
 
+import { useAppStore } from "@/stores/app";
 import { useChatStore } from "@/stores/chat";
+import { getDictionaryText } from "./chat-i18n";
 
 export function ChatWebSearchButton() {
   const { isWebSearch, setIsWebSearch } = useChatStore();
+  const dictionary = useAppStore((state) => state.dictionary);
+  const label = getDictionaryText(dictionary, "chat.web_search_label", "Search");
 
   return (
     <button
@@ -35,7 +39,7 @@ export function ChatWebSearchButton() {
           isWebSearch ? "ml-0.5 max-w-[100px] opacity-100" : "ml-0 max-w-0 opacity-0",
         )}
       >
-        Search
+        {label}
       </span>
     </button>
   );

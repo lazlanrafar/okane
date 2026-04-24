@@ -8,6 +8,7 @@ import { Message, MessageAvatar, MessageContent, Response } from "@workspace/ui"
 import type { UIMessage } from "ai";
 import { PaperclipIcon } from "lucide-react";
 
+import { getDictionaryText } from "./chat-i18n";
 import { ChatArtifactToggle } from "./chat-artifact-toggle";
 import { ChatFaviconStack } from "./chat-favicon-stack";
 import { ChatInsightMessage } from "./chat-insight-message";
@@ -40,7 +41,7 @@ function extractWebSearchSources(parts: UIMessage["parts"]): SourceItem[] {
     const type = part.type as string;
     if (type === "tool-webSearch") {
       const output = (part as { output?: WebSearchToolOutput }).output;
-      if (output.sources) {
+      if (output?.sources) {
         sources.push(...output.sources);
       }
     }
@@ -81,6 +82,9 @@ export function ChatMessages({ messages, isStreaming = false, dictionary }: Chat
     fullName: "",
     email: "",
   };
+
+  const attachmentAlt = getDictionaryText(dictionary as Record<string, unknown>, "chat.messages.attachment_alt", "attachment");
+  const unknownFile = getDictionaryText(dictionary as Record<string, unknown>, "chat.messages.unknown_file", "Unknown file");
 
   return (
     <>
@@ -138,14 +142,14 @@ export function ChatMessages({ messages, isStreaming = false, dictionary }: Chat
 
                       // Create a unique key from file properties
                       const fileKey = `${file.url}-${file.filename}-${fileParts.indexOf(part)}`;
-                      const isImage = file.mediaType.startsWith("image/");
+                      const isImage = file.mediaType?.startsWith("image/") ?? false;
 
                       if (isImage && file.url) {
                         return (
                           <div key={fileKey} className="relative overflow-hidden rounded-lg border">
                             <Image
                               src={file.url}
-                              alt={file.filename || "attachment"}
+                              alt={file.filename || attachmentAlt}
                               className="max-h-48 max-w-xs object-cover"
                               width={300}
                               height={192}
@@ -159,7 +163,7 @@ export function ChatMessages({ messages, isStreaming = false, dictionary }: Chat
                         <div key={fileKey} className="flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2">
                           <PaperclipIcon className="size-4 shrink-0 text-muted-foreground" />
                           <span className="font-medium text-sm">
-                            {file.filename || dictionary.common.na || "Unknown file"}
+                            {file.filename || dictionary.common.na || unknownFile}
                           </span>
                         </div>
                       );
@@ -176,7 +180,7 @@ export function ChatMessages({ messages, isStreaming = false, dictionary }: Chat
             {insightData && message.role === "assistant" && (
               <Message from={message.role}>
                 <MessageContent className="w-full max-w-full!">
-                  <ChatInsightMessage insight={insightData} />
+                  <ChatInsightMessage insight={insightData} dictionary={dictionary} />
                 </MessageContent>
               </Message>
             )}
@@ -208,7 +212,7 @@ export function ChatMessages({ messages, isStreaming = false, dictionary }: Chat
                   <ChatMessageActions
                     messageContent={textContent}
                     messageId={message.id}
-                    insightId={insightData.id}
+                    insightId={insightData?.id}
                     dictionary={dictionary}
                   />
                   {/* Artifact toggle icon */}

@@ -3,10 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 
 import type { InsightData } from "@workspace/constants";
+import type { Dictionary } from "@workspace/dictionaries";
 import { AnimatePresence, motion } from "framer-motion";
+import { getDictionaryText } from "./chat-i18n";
 
 interface InsightMessageProps {
   insight: InsightData;
+  dictionary: Dictionary;
 }
 
 /**
@@ -69,19 +72,19 @@ function StreamingText({
   );
 }
 
-function formatAmount({ amount, currency }: { amount: number; currency: string }) {
-  return new Intl.NumberFormat("en-US", {
+function formatAmount({ amount, currency, locale }: { amount: number; currency: string; locale: string }) {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
   }).format(amount);
 }
 
-function formatMetricValue(value: number, type: string, currency: string): string {
+function formatMetricValue(value: number, type: string, currency: string, locale: string, monthsLabel: string): string {
   if (type.includes("margin") || type.includes("rate")) {
     return `${value.toFixed(1)}%`;
   }
   if (type === "runway_months") {
-    return `${value.toFixed(1)} months`;
+    return `${value.toFixed(1)} ${monthsLabel}`;
   }
   if (type.includes("hours") || type === "hours_tracked" || type === "unbilled_hours") {
     return `${value.toFixed(1)}h`;
@@ -95,7 +98,7 @@ function formatMetricValue(value: number, type: string, currency: string): strin
   ) {
     return value.toLocaleString();
   }
-  return formatAmount({ amount: value, currency }) ?? value.toLocaleString();
+  return formatAmount({ amount: value, currency, locale }) ?? value.toLocaleString(locale);
 }
 
 function formatChange(
@@ -103,19 +106,26 @@ function formatChange(
   direction: "up" | "down" | "flat",
   currentValue?: number,
   previousValue?: number,
+  labels?: {
+    steady: string;
+    noActivity: string;
+    newActivity: string;
+    turnedPositive: string;
+    turnedNegative: string;
+  },
 ): string {
   if (direction === "flat" || Math.abs(change) < 0.5) {
-    return "steady";
+    return labels?.steady ?? "steady";
   }
 
   // Current value is zero (went to zero from something)
   if (currentValue === 0 && previousValue !== undefined && previousValue !== 0) {
-    return "no activity";
+    return labels?.noActivity ?? "no activity";
   }
 
   // Previous was zero, now has value
   if (previousValue === 0 && currentValue !== undefined && currentValue !== 0) {
-    return "new activity";
+    return labels?.newActivity ?? "new activity";
   }
 
   // Detect sign change (profit to loss or vice versa) with extreme swing
@@ -125,7 +135,7 @@ function formatChange(
     ((previousValue > 0 && currentValue < 0) || (previousValue < 0 && currentValue > 0));
 
   if (signChanged && Math.abs(change) > 200) {
-    return change > 0 ? "turned positive" : "turned negative";
+    return change > 0 ? (labels?.turnedPositive ?? "turned positive") : (labels?.turnedNegative ?? "turned negative");
   }
 
   // Cap at 999% for readability
@@ -160,8 +170,30 @@ const sectionVariants = {
   },
 };
 
-export function ChatInsightMessage({ insight }: InsightMessageProps) {
-  const { content, selectedMetrics, expenseAnomalies, predictions, currency } = insight;
+export function ChatInsightMessage({ insight, dictionary }: InsightMessageProps) {
+  const content = insight.content ?? { summary: "", story: "", actions: [] };
+  const selectedMetrics = insight.selectedMetrics ?? [];
+  const expenseAnomalies = insight.expenseAnomalies ?? [];
+  const predictions = insight.predictions ?? {};
+  const activity = insight.activity ?? {};
+  const currency = insight.currency;
+  const locale = typeof navigator !== "undefined" ? navigator.language : "en-US";
+  const dict = dictionary as Record<string, unknown>;
+  const t = (key: string, fallback: string, params?: Record<string, string | number>) =>
+    getDictionaryText(dict, key, fallback, params);
+  const periodLabels = {
+    weekly: t("chat.insight.period.week", "week"),
+    monthly: t("chat.insight.period.month", "month"),
+    quarterly: t("chat.insight.period.quarter", "quarter"),
+    yearly: t("chat.insight.period.year", "year"),
+  };
+  const changeLabels = {
+    steady: t("chat.insight.change.steady", "steady"),
+    noActivity: t("chat.insight.change.no_activity", "no activity"),
+    newActivity: t("chat.insight.change.new_activity", "new activity"),
+    turnedPositive: t("chat.insight.change.turned_positive", "turned positive"),
+    turnedNegative: t("chat.insight.change.turned_negative", "turned negative"),
+  };
 
   // Sheet hooks for opening details, here after
 
@@ -180,12 +212,12 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
   // Get period name for change comparison text
   const periodName =
     insight.periodType === "weekly"
-      ? "week"
+      ? periodLabels.weekly
       : insight.periodType === "monthly"
-        ? "month"
+        ? periodLabels.monthly
         : insight.periodType === "quarterly"
-          ? "quarter"
-          : "year";
+          ? periodLabels.quarterly
+          : periodLabels.yearly;
 
   // Memoize callbacks
   const handleTitleComplete = useCallback(() => setTitleComplete(true), []);
@@ -246,16 +278,25 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
       <AnimatePresence>
         {showMetrics && selectedMetrics && selectedMetrics.length > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
-            <p className="text-primary text-sm">Key Metrics</p>
+            <p className="text-primary text-sm">{t("chat.insight.key_metrics", "Key Metrics")}</p>
             <div className="grid grid-cols-2 gap-3 pb-3">
               {selectedMetrics.slice(0, 4).map((metric, index) => {
                 const isRunway = metric.type === "runway_months";
                 // For first insight, don't show misleading "vs last week"
                 const changeText = isRunway
-                  ? "based on 3 month avg"
+                  ? t("chat.insight.based_on_avg_3_months", "based on 3 month avg")
                   : isFirstInsight
-                    ? "this period"
-                    : `${formatChange(metric.change, metric.changeDirection, metric.value, metric.previousValue)} vs last ${periodName}`;
+                    ? t("chat.insight.this_period", "this period")
+                    : t("chat.insight.vs_last_period", "{change} vs last {period}", {
+                        change: formatChange(
+                          metric.change,
+                          metric.changeDirection,
+                          metric.value,
+                          metric.previousValue,
+                          changeLabels,
+                        ),
+                        period: periodName,
+                      });
 
                 return (
                   <motion.div
@@ -268,7 +309,13 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
                   >
                     <p className="mb-1 text-muted-foreground text-xs">{metric.label}</p>
                     <p className="font-mono text-lg text-primary tabular-nums">
-                      {formatMetricValue(metric.value, metric.type, metric.currency || currency)}
+                      {formatMetricValue(
+                        metric.value,
+                        metric.type,
+                        metric.currency || currency,
+                        locale,
+                        t("chat.insight.months", "months"),
+                      )}
                     </p>
                     <p className="mt-1 text-[10px] text-muted-foreground">{changeText}</p>
                   </motion.div>
@@ -296,7 +343,7 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
       <AnimatePresence>
         {showActions && content.actions && content.actions.length > 0 && (
           <motion.div variants={sectionVariants} initial="hidden" animate="visible" className="space-y-2">
-            <p className="text-primary text-sm">Recommended actions</p>
+            <p className="text-primary text-sm">{t("chat.insight.recommended_actions", "Recommended actions")}</p>
             <ul className="space-y-1">
               {content.actions.map((action, i) => {
                 const hasLink = action.entityId && action.entityType;
@@ -350,19 +397,22 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
 
       {/* Overdue Alert */}
       <AnimatePresence>
-        {showActions && insight.activity.invoicesOverdue != null && insight.activity.invoicesOverdue > 0 && (
+        {showActions && activity.invoicesOverdue != null && activity.invoicesOverdue > 0 && (
           <motion.div variants={sectionVariants} initial="hidden" animate="visible" className="text-sm">
-            <span className="font-medium">Needs attention:</span>{" "}
+            <span className="font-medium">{t("chat.insight.needs_attention", "Needs attention:")}</span>{" "}
             <span className="text-muted-foreground">
-              {insight.activity.invoicesOverdue} overdue invoice
-              {insight.activity.invoicesOverdue > 1 ? "s" : ""}
-              {insight.activity.overdueAmount != null && insight.activity.overdueAmount > 0 && (
+              {activity.invoicesOverdue}{" "}
+              {activity.invoicesOverdue > 1
+                ? t("chat.insight.overdue_invoices", "overdue invoices")
+                : t("chat.insight.overdue_invoice", "overdue invoice")}
+              {activity.overdueAmount != null && activity.overdueAmount > 0 && (
                 <span>
                   {" "}
                   (
                   {formatAmount({
-                    amount: insight.activity.overdueAmount,
+                    amount: activity.overdueAmount,
                     currency,
+                    locale,
                   })}
                   )
                 </span>
@@ -378,7 +428,7 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
           expenseAnomalies &&
           expenseAnomalies.filter((ea) => ea.type === "category_spike" || ea.type === "new_category").length > 0 && (
             <motion.div variants={sectionVariants} initial="hidden" animate="visible" className="space-y-2">
-              <p className="text-primary text-sm">Expense alerts</p>
+              <p className="text-primary text-sm">{t("chat.insight.expense_alerts", "Expense alerts")}</p>
               <ul className="space-y-1">
                 {expenseAnomalies
                   .filter((ea) => ea.type === "category_spike" || ea.type === "new_category")
@@ -395,19 +445,24 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
                       <span>
                         {ea.type === "new_category" ? (
                           <>
-                            New: {ea.categoryName} (
+                            {t("chat.insight.new_category_prefix", "New:")} {ea.categoryName} (
                             {formatAmount({
                               amount: ea.currentAmount,
                               currency: ea.currency,
+                              locale,
                             })}
                             )
                           </>
                         ) : (
                           <>
-                            {ea.categoryName} up {ea.change}% to{" "}
+                            {t("chat.insight.category_up_to", "{category} up {change}% to", {
+                              category: ea.categoryName,
+                              change: ea.change,
+                            })}{" "}
                             {formatAmount({
                               amount: ea.currentAmount,
                               currency: ea.currency,
+                              locale,
                             })}
                           </>
                         )}
@@ -423,13 +478,17 @@ export function ChatInsightMessage({ insight }: InsightMessageProps) {
       <AnimatePresence>
         {showActions && predictions.invoicesDue && predictions.invoicesDue.count > 0 && (
           <motion.div variants={sectionVariants} initial="hidden" animate="visible" className="space-y-2">
-            <p className="text-primary text-sm">Next week</p>
+            <p className="text-primary text-sm">{t("chat.insight.next_week", "Next week")}</p>
             <p className="text-muted-foreground text-sm">
-              {predictions.invoicesDue.count} invoice
-              {predictions.invoicesDue.count > 1 ? "s" : ""} due (
+              {predictions.invoicesDue.count}{" "}
+              {predictions.invoicesDue.count > 1
+                ? t("chat.insight.invoices_due_plural", "invoices due")
+                : t("chat.insight.invoices_due_singular", "invoice due")}{" "}
+              (
               {formatAmount({
                 amount: predictions.invoicesDue.totalAmount,
                 currency: predictions.invoicesDue.currency,
+                locale,
               })}
               )
             </p>

@@ -147,7 +147,24 @@ export function ChatHistoryDropdown() {
 
   if (!isOpen) return null;
 
-  const chats = (sessionsResponse.data as Record<string, unknown>[]) || [];
+  const chats = (sessionsResponse?.data ?? []).flatMap((chat) =>
+    chat?.id
+      ? [
+          {
+            id: chat.id,
+            title: chat.title,
+            updatedAt: chat.updatedAt,
+          },
+        ]
+      : [],
+  );
+
+  const formatUpdatedAt = (value?: string) => {
+    if (!value) return "Recently";
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) return "Recently";
+    return formatDistanceToNow(parsedDate, { addSuffix: true });
+  };
 
   return (
     <div ref={historyListRef} data-chat-history-menu className="absolute right-0 bottom-full left-0 z-100 mb-2 w-full">
@@ -217,9 +234,7 @@ export function ChatHistoryDropdown() {
                       </div>
                       <div className="ml-2 flex min-w-0 shrink-0 items-center gap-2">
                         <span className="whitespace-nowrap text-[#666] text-xs transition-all duration-200 group-hover:mr-1 dark:text-[#999]">
-                          {formatDistanceToNow(new Date(chat.updatedAt), {
-                            addSuffix: true,
-                          })}
+                          {formatUpdatedAt(chat.updatedAt)}
                         </span>
                         <button
                           type="button"

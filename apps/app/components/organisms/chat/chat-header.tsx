@@ -6,7 +6,6 @@ import { useChatActions, useDataPart } from "@ai-sdk-tools/store";
 import { useQuery } from "@tanstack/react-query";
 import type { Dictionary } from "@workspace/dictionaries";
 import { getChatSessions } from "@workspace/modules/ai/ai.action";
-import type { ChatSession } from "@workspace/types";
 import { Button, Icons } from "@workspace/ui";
 import { useChatInterface } from "@workspace/ui/hooks";
 import { AnimatePresence, motion } from "framer-motion";
@@ -28,8 +27,9 @@ export function ChatHeader({ dictionary }: { dictionary: Dictionary }) {
 
   const [dataPartTitle] = useDataPart<ChatTitleData>("chat-title", {
     onData: (dataPart) => {
-      if (dataPart.data.title) {
-        document.title = `${dataPart.data.title} - Oewang`;
+      const title = dataPart?.data?.title;
+      if (title) {
+        document.title = `${title} - Oewang`;
       }
     },
   });
@@ -40,10 +40,10 @@ export function ChatHeader({ dictionary }: { dictionary: Dictionary }) {
     enabled: !!chatId && !isHome,
   });
 
-  const sessions = (sessionsResponse.data as ChatSession[]) || [];
-  const sessionTitle = sessions.find((s) => s.id === chatId).title;
+  const sessions = sessionsResponse?.data ?? [];
+  const sessionTitle = sessions.find((session) => session.id === chatId)?.title;
 
-  const displayTitle = dataPartTitle.title || sessionTitle;
+  const displayTitle = dataPartTitle?.title || sessionTitle;
 
   const handleBack = () => {
     reset();

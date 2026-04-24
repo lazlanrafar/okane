@@ -23,6 +23,7 @@ import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 import { useAiQuota } from "@/hooks/use-ai-quota";
 import { useChatStore } from "@/stores/chat";
 
+import { getDictionaryText } from "./chat-i18n";
 import { ChatCommandMenu } from "./chat-command-menu";
 import { ChatHistoryButton, ChatHistoryDropdown, useChatHistoryContext } from "./chat-history";
 import { ChatSuggestionButton } from "./chat-suggestion-button";
@@ -37,6 +38,23 @@ export interface ChatInputMessage extends PromptInputMessage {
 }
 
 export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
+  const chatInputPlaceholder = getDictionaryText(dictionary as Record<string, unknown>, "chat.placeholder", "Ask anything...");
+  const webSearchPlaceholder = getDictionaryText(
+    dictionary as Record<string, unknown>,
+    "chat.search_placeholder",
+    "Search the web...",
+  );
+  const focusAriaLabel = getDictionaryText(
+    dictionary as Record<string, unknown>,
+    "chat.input.focus_aria",
+    "Focus chat input",
+  );
+  const attachmentFallbackText = getDictionaryText(
+    dictionary as Record<string, unknown>,
+    "chat.input.attachment_fallback_text",
+    "Sent with attachments",
+  );
+
   const [mounted, setMounted] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isInteractingWithButtons, setIsInteractingWithButtons] = useState(false);
@@ -268,7 +286,7 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
     // OR call our action if the store doesn't handle the API call.
 
     sendMessage({
-      text: message.text || "Sent with attachments",
+      text: message.text || attachmentFallbackText,
       files: message.files,
       metadata: {
         agentChoice: message.metadata?.agentChoice,
@@ -320,7 +338,7 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
             type="button"
             className="absolute inset-0 z-10 cursor-text border-none bg-transparent p-0"
             onClick={() => textareaRef.current?.focus()}
-            aria-label="Focus chat input"
+            aria-label={focusAriaLabel}
           />
         )}
 
@@ -435,7 +453,7 @@ export function ChatInput({ dictionary }: { dictionary: Dictionary }) {
                       handleKeyDown(e);
                     }}
                     value={input}
-                    placeholder={isWebSearch ? "Search the web" : "Ask anything"}
+                    placeholder={isWebSearch ? webSearchPlaceholder : chatInputPlaceholder}
                   />
                 </motion.div>
               </PromptInputBody>

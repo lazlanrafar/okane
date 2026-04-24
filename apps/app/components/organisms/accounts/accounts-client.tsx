@@ -3,8 +3,10 @@
 import { useCallback, useMemo, useState } from "react";
 
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { getWallets } from "@workspace/modules/client";
-import type { Wallet } from "@workspace/types";
+import type { WalletGroup } from "@workspace/modules/wallet-group/wallet-group.action";
+import type { ApiResponse, FilterRecord, Wallet } from "@workspace/types";
 import { Button, DataTable, DataTableColumnsVisibility, DataTableEmptyState, DataTableFilter } from "@workspace/ui";
 import { Plus } from "lucide-react";
 
@@ -22,9 +24,9 @@ interface Props {
   pageCount: number;
   initialPage: number;
   pageSize: number;
-  groups: Array<Record<string, unknown>>;
-  initialFilters?: Record<string, unknown>;
-  dictionary: Record<string, unknown>;
+  groups: WalletGroup[];
+  initialFilters?: FilterRecord;
+  dictionary: Dictionary;
   locale: string;
 }
 
@@ -39,14 +41,19 @@ export function AccountsClient({
   dictionary,
   locale,
 }: Props) {
+  type AccountsFilters = {
+    q: string;
+    groupId: string;
+  };
+
   const [isFormSheetOpen, setIsFormSheetOpen] = useState(false);
   const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [selectedWalletId, setSelectedWalletId] = useState<string | undefined>();
   const { settings, formatCurrency } = useAppStore();
   const queryClient = useQueryClient();
 
-  const { filters, handleFilterChange } = useDataTableFilter({
-    initialFilters: initialFilters || {
+  const { filters, handleFilterChange } = useDataTableFilter<AccountsFilters>({
+    initialFilters: (initialFilters as AccountsFilters) || {
       q: "",
       groupId: "",
     },
@@ -82,15 +89,14 @@ export function AccountsClient({
           code: "OK",
           message: "Initial data",
           meta: {
+            timestamp: Date.now(),
             pagination: {
               total: rowCount,
-              count: rowCount,
-              per_page: pageSize,
-              current_page: initialPage + 1,
+              page: initialPage + 1,
+              limit: pageSize,
               total_pages: pageCount,
             },
           },
-          timestamp: Date.now(),
         },
       ],
       pageParams: [1],
@@ -100,7 +106,7 @@ export function AccountsClient({
   });
 
   const wallets = useMemo(() => {
-    return data.pages?.flatMap((page: { data?: Wallet[] }) => page.data || []) || [];
+    return data.pages?.flatMap((page: ApiResponse<Wallet[]>) => page.data || []) || [];
   }, [data]);
 
   const _selectedWallet = useMemo(() => {
@@ -162,7 +168,6 @@ export function AccountsClient({
   };
 
   const columnsWithActions = useMemo(() => {
-    if (!dictionary) return [];
     return accountColumns(handleEdit, updateWalletInCache, dictionary);
   }, [handleEdit, updateWalletInCache, dictionary]);
 
@@ -172,8 +177,6 @@ export function AccountsClient({
       id: g.id,
     }));
   }, [groups]);
-
-  if (!dictionary) return null;
 
   return (
     <div className="flex h-full w-full flex-col space-y-4">
@@ -208,7 +211,7 @@ export function AccountsClient({
         <div className="flex max-w-sm flex-1 items-center">
           <DataTableFilter
             filters={filters}
-            onFilterChange={handleFilterChange as never}
+            onFilterChange={handleFilterChange}
             placeholder={dictionary.accounts.search_placeholder}
             showDateFilter={false}
             showAmountFilter={false}
@@ -267,8 +270,7 @@ export function AccountsClient({
         onOpenChange={setIsFormSheetOpen}
         walletId={selectedWalletId}
         onSuccess={handleSuccess}
-        groups={groups}
-        dictionaryByProps={dictionary}
+        dictionary={dictionary}
       />
 
       <AccountDetailSheet
@@ -277,7 +279,6 @@ export function AccountsClient({
         walletId={selectedWalletId}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        groups={groups}
         dictionary={dictionary}
         locale={locale}
       />

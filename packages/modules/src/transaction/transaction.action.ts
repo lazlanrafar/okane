@@ -82,7 +82,7 @@ export const createTransaction = async (
     );
     const result = response.data.data as Transaction;
     revalidatePath("/transactions");
-    revalidateTag("transactions", "profile");
+    revalidateTag("transactions", "max");
     return { success: true, data: result };
   } catch (error: any) {
     return {
@@ -123,7 +123,7 @@ export const bulkCreateTransactions = async (
     }
 
     revalidatePath("/transactions");
-    revalidateTag("transactions", "profile");
+    revalidateTag("transactions", "max");
 
     return {
       success: true,
@@ -151,7 +151,7 @@ export const updateTransaction = async (
       ._api_response as ApiResponse<Transaction>;
     const transaction = apiResponse?.data ?? response.data?.data;
     revalidatePath("/transactions");
-    revalidateTag("transactions", "profile");
+    revalidateTag("transactions", "max");
     return { success: true, data: transaction as Transaction };
   } catch (error: any) {
     return {
@@ -167,7 +167,7 @@ export const deleteTransaction = async (
   try {
     await api.delete(`/transactions/${id}`);
     revalidatePath("/transactions");
-    revalidateTag("transactions", "profile");
+    revalidateTag("transactions", "max");
     return { success: true, data: undefined };
   } catch (error: any) {
     return {
@@ -190,7 +190,7 @@ export const bulkDeleteTransactions = async (
     }>;
     const result = apiResponse?.data ?? response.data?.data;
     revalidatePath("/transactions");
-    revalidateTag("transactions", "profile");
+    revalidateTag("transactions", "max");
     return { success: true, data: result || { deleted: 0 } };
   } catch (error: any) {
     return {

@@ -9,11 +9,13 @@ import {
   getToolIcon,
   TOOL_TO_ARTIFACT_MAP,
 } from "@workspace/constants";
+import type { Dictionary } from "@workspace/dictionaries";
 import type { AgentStatus } from "@workspace/types";
 import { ErrorCode } from "@workspace/types";
 import { AnimatedStatus } from "@workspace/ui";
 import { getStatusMessage, getToolMessage } from "@workspace/utils";
 import { format } from "date-fns";
+import { getDictionaryText } from "./chat-i18n";
 
 interface ChatStatusIndicatorsProps {
   agentStatus: AgentStatus | null;
@@ -26,6 +28,7 @@ interface ChatStatusIndicatorsProps {
   bankAccountRequired?: boolean;
   hasTextContent?: boolean;
   hasInsightData?: boolean;
+  dictionary: Dictionary;
 }
 
 export function ChatStatusIndicators({
@@ -39,6 +42,7 @@ export function ChatStatusIndicators({
   bankAccountRequired = false,
   hasTextContent = false,
   hasInsightData = false,
+  dictionary,
 }: ChatStatusIndicatorsProps) {
   // Don't show status indicators when bank account is required or when insight data is being displayed
   if (bankAccountRequired || hasInsightData) {
@@ -46,12 +50,23 @@ export function ChatStatusIndicators({
   }
 
   if (status === "error") {
-    let errorMessage = "Message failed to send. Please try again.";
+    let errorMessage = getDictionaryText(
+      dictionary as Record<string, unknown>,
+      "chat.status.send_failed",
+      "Message failed to send. Please try again.",
+    );
 
-    if (error.code === ErrorCode.PLAN_LIMIT_REACHED) {
-      const resetAt = error.meta.reset_at;
-      const formattedDate = resetAt ? format(new Date(resetAt), "PPP") : "next month";
-      errorMessage = `AI limit reached. Resets on ${formattedDate}.`;
+    if (error?.code === ErrorCode.PLAN_LIMIT_REACHED) {
+      const resetAt = error.meta?.reset_at;
+      const formattedDate = resetAt
+        ? format(new Date(resetAt), "PPP")
+        : getDictionaryText(dictionary as Record<string, unknown>, "chat.status.next_month", "next month");
+      errorMessage = getDictionaryText(
+        dictionary as Record<string, unknown>,
+        "chat.status.ai_limit_reset",
+        "AI limit reached. Resets on {date}.",
+        { date: formattedDate },
+      );
     }
 
     return (
@@ -90,7 +105,7 @@ export function ChatStatusIndicators({
 
     // Default to "Thinking..." if we're working but have no message yet
     if (!displayMessage && isStreaming && !hasTextContent && !hasInsightData) {
-      displayMessage = "Thinking...";
+      displayMessage = getDictionaryText(dictionary as Record<string, unknown>, "chat.status.thinking", "Thinking...");
     }
   }
 

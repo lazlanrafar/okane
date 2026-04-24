@@ -113,7 +113,7 @@ export function WorkspaceSwitcher({
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-muted-foreground text-xs">
-              {t("workspace?.switcher.title")}
+              {t("workspace.switcher.title")}
             </DropdownMenuLabel>
             {workspaces.map((workspace, index) => (
               <DropdownMenuItem
@@ -140,7 +140,7 @@ export function WorkspaceSwitcher({
 
                 if (ownedWorkspaces.length >= maxAllowed) {
                   toast.error(
-                    t("workspace?.switcher.limit_reached", {
+                    t("workspace.switcher.limit_reached", {
                       maxLimit: maxAllowed,
                     }),
                   );
@@ -153,7 +153,7 @@ export function WorkspaceSwitcher({
               <div className="flex size-6 items-center justify-center border bg-background">
                 <Plus className="size-4" />
               </div>
-              <div className="font-medium text-muted-foreground">{t("workspace?.switcher.add_workspace")}</div>
+              <div className="font-medium text-muted-foreground">{t("workspace.switcher.add_workspace")}</div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

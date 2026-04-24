@@ -44,15 +44,21 @@ export function HeroSection({
             <div className="mt-8 flex flex-wrap items-center gap-3">
               {isLoggedIn ? (
                 <Button size="lg" asChild>
-                  <Link href={`${appUrl}/`}>{dictionary.hero.ctaGoToDashboard}</Link>
+                  <Link href={`${appUrl}/`}>
+                    {dictionary.hero.ctaGoToDashboard}
+                  </Link>
                 </Button>
               ) : (
                 <>
                   <Button size="lg" asChild>
-                    <Link href={`${appUrl}/register`}>{dictionary.hero.ctaStartFree}</Link>
+                    <Link href={`${appUrl}/register`}>
+                      {dictionary.hero.ctaStartFree}
+                    </Link>
                   </Button>
                   <Button size="lg" variant="outline" asChild>
-                    <Link href={withLocale("/features")}>{dictionary.hero.ctaSeeHow}</Link>
+                    <Link href={withLocale("/features")}>
+                      {dictionary.hero.ctaSeeHow}
+                    </Link>
                   </Button>
                 </>
               )}
@@ -81,10 +87,14 @@ export function HeroSection({
                 <div className="rounded-none border border-border bg-muted/30 p-4">
                   <p className="text-xs text-muted-foreground">Uncategorized</p>
                   <p className="font-serif text-2xl mt-1">18</p>
-                  <p className="text-xs text-muted-foreground mt-1">Auto-rules active</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Auto-rules active
+                  </p>
                 </div>
                 <div className="rounded-none border border-border bg-muted/30 p-4 col-span-2">
-                  <p className="text-xs text-muted-foreground">Teams and personal workspaces in one account</p>
+                  <p className="text-xs text-muted-foreground">
+                    Teams and personal workspaces in one account
+                  </p>
                   <div className="mt-3 flex items-center justify-between text-sm">
                     <span>Personal</span>
                     <span className="text-muted-foreground">Synced</span>

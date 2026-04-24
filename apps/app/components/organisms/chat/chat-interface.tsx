@@ -47,7 +47,27 @@ export default function ChatInterface({ dictionary }: Props) {
 
   const messages = useChatMessages();
   const status = useSDKChatStatus();
-  const error = useSDKChatError();
+  const sdkError = useSDKChatError();
+
+  const error = useMemo(() => {
+    if (!sdkError || typeof sdkError !== "object") return undefined;
+
+    const maybeError = sdkError as { code?: unknown; meta?: unknown };
+    const code = typeof maybeError.code === "string" ? maybeError.code : undefined;
+
+    let resetAt: string | undefined;
+    if (maybeError.meta && typeof maybeError.meta === "object") {
+      const meta = maybeError.meta as { reset_at?: unknown };
+      resetAt = typeof meta.reset_at === "string" ? meta.reset_at : undefined;
+    }
+
+    if (!code && !resetAt) return undefined;
+
+    return {
+      code,
+      meta: resetAt ? { reset_at: resetAt } : undefined,
+    };
+  }, [sdkError]);
 
   const [, clearSuggestions] = useDataPart<{ prompts: string[] }>("suggestions");
 
@@ -120,12 +140,16 @@ export default function ChatInterface({ dictionary }: Props) {
     setIsHome(effectiveIsHome);
   }, [effectiveIsHome, setIsHome]);
 
-  // Auto-scroll to bottom when messages or status change
+  // Auto-scroll to bottom as new messages/streaming updates arrive
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, []);
+    if (!messagesEndRef.current) return;
+
+    const behavior = status === "streaming" || status === "submitted" ? "auto" : "smooth";
+
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
+    });
+  }, [messages, status]);
 
   const [, _setSelectedType] = useQueryState("artifact-type", parseAsString);
 
@@ -182,6 +206,7 @@ export default function ChatInterface({ dictionary }: Props) {
                     currentToolCall={currentToolCall}
                     status={status}
                     error={error}
+                    dictionary={dictionary}
                     artifactStage={artifactStage}
                     artifactType={artifactType}
                     currentSection={currentSection}

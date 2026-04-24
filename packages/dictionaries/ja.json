@@ -1487,7 +1487,53 @@
     "new_chat": "新しいチャット",
     "placeholder": "何でも聞いてください...",
     "search_placeholder": "ウェブを検索...",
+    "web_search_label": "検索",
     "esc": "Esc",
+    "input": {
+      "focus_aria": "チャット入力にフォーカス",
+      "attachment_fallback_text": "添付付きで送信"
+    },
+    "messages": {
+      "attachment_alt": "添付ファイル",
+      "unknown_file": "不明なファイル"
+    },
+    "status": {
+      "send_failed": "メッセージの送信に失敗しました。もう一度お試しください。",
+      "next_month": "来月",
+      "ai_limit_reset": "AIの上限に達しました。{date} にリセットされます。",
+      "thinking": "考え中..."
+    },
+    "shortcuts": {
+      "show_latest_transactions": "最新の取引を表示",
+      "show_monthly_spending_hotspots": "今月の支出ホットスポットを表示",
+      "show_spending_most_this_month": "今月の最大支出を表示",
+      "analyze_weekly_trends": "週次トレンドとインサイトを分析",
+      "show_revenue_performance": "収入パフォーマンスを表示",
+      "show_expense_breakdown_category": "カテゴリ別支出内訳を表示",
+      "show_cash_runway": "キャッシュランウェイを表示",
+      "analyze_cashflow_stress_test": "キャッシュフローストレステストを分析",
+      "find_uncategorized_transactions": "先月の未分類取引を検索",
+      "find_recurring_payments": "定期支払いを検索",
+      "analyze_spending_patterns": "支出パターンを分析",
+      "show_profit_loss": "損益計算書を表示",
+      "analyze_profit_margins": "利益率を分析",
+      "show_budget_vs_actual": "予算と実績の比較を表示",
+      "show_upcoming_debts": "今月期限の債務を表示",
+      "find_overdue_debts": "延滞債務を検索",
+      "analyze_debt_risk": "債務リスクとエイジングを分析",
+      "show_account_balances": "口座残高を表示",
+      "show_latest_invoices": "最新の請求書を表示",
+      "find_unpaid_invoices": "未払い請求書を検索",
+      "find_overdue_invoices": "期限超過請求書を検索",
+      "show_contacts": "連絡先を表示",
+      "find_top_contacts": "主要連絡先を検索",
+      "show_cash_flow": "キャッシュフローを表示",
+      "show_cash_flow_this_month": "今月のキャッシュフローを表示",
+      "analyze_cash_flow_trends": "キャッシュフロートレンドを分析",
+      "show_expenses": "支出を表示",
+      "show_expenses_this_month": "今月の支出を表示",
+      "analyze_expense_trends": "支出トレンドを分析"
+    },
     "actions": {
       "copy": "コピー",
       "retry": "再試行",
@@ -1495,8 +1541,98 @@
       "negative": "ネガティブなフィードバック",
       "remove_positive": "ポジティブなフィードバックを削除",
       "remove_negative": "ネガティブなフィードバックを削除",
-      "open_artifact": "Open artifact",
-      "close_artifact": "Close artifact"
+      "open_artifact": "アーティファクトを開く",
+      "close_artifact": "アーティファクトを閉じる"
+    },
+    "canvas": {
+      "tabs": {
+        "income": "収入",
+        "burn_rate": "バーンレート",
+        "expense": "支出",
+        "expense_this_month": "今月の支出",
+        "expense_this_year": "今年の支出",
+        "close_tab": "タブを閉じる"
+      },
+      "loading": {
+        "generating_analysis": "分析を生成中..."
+      },
+      "error": {
+        "title": "エラー",
+        "loading_content": "コンテンツの読み込みに失敗しました",
+        "go_back": "戻る"
+      },
+      "common": {
+        "current": "現在",
+        "average": "平均",
+        "uncategorized": "未分類",
+        "top_category": "上位カテゴリ",
+        "date": "日付",
+        "category": "カテゴリ",
+        "amount": "金額",
+        "share": "割合",
+        "summary": "概要"
+      },
+      "revenue": {
+        "income_label": "収入",
+        "monthly_total": "月次合計",
+        "income_this_month": "今月の収入",
+        "latest_period": "最新期間",
+        "largest_share_income": "総収入に占める最大割合",
+        "monthly_income_trend": "月次収入トレンド",
+        "legend_this_year": "今年",
+        "legend_last_year": "昨年",
+        "latest_income": "最新の収入",
+        "source": "ソース",
+        "no_income_found": "収入データがありません",
+        "no_summary": "収入の概要はまだありません。"
+      },
+      "spending": {
+        "expense_this_month": "今月の支出",
+        "across_transactions": "{count} 件の高額取引に基づく",
+        "largest_share_expense": "月間支出に占める最大割合",
+        "expense_by_category": "カテゴリ別支出",
+        "largest_transactions": "最大取引",
+        "vendor": "取引先",
+        "no_transactions_found": "取引が見つかりません",
+        "summary_recommendations": "概要と推奨事項"
+      },
+      "burn_rate": {
+        "avg_monthly_burn": "月次平均バーンレート",
+        "based_last_6_months": "過去6か月ベース",
+        "estimated_runway": "推定ランウェイ",
+        "at_current_burn_rate": "現在のバーンレート基準",
+        "monthly_burn_rate": "月次バーンレート"
+      }
+    },
+    "insight": {
+      "period": {
+        "week": "週",
+        "month": "月",
+        "quarter": "四半期",
+        "year": "年"
+      },
+      "change": {
+        "steady": "横ばい",
+        "no_activity": "活動なし",
+        "new_activity": "新しい活動",
+        "turned_positive": "プラスに転換",
+        "turned_negative": "マイナスに転換"
+      },
+      "key_metrics": "主要指標",
+      "based_on_avg_3_months": "直近3か月平均ベース",
+      "this_period": "今期",
+      "vs_last_period": "{change}（前{period}比）",
+      "months": "か月",
+      "recommended_actions": "推奨アクション",
+      "needs_attention": "要対応:",
+      "overdue_invoice": "期限超過の請求書",
+      "overdue_invoices": "期限超過の請求書",
+      "expense_alerts": "支出アラート",
+      "new_category_prefix": "新規:",
+      "category_up_to": "{category} が {change}% 増で",
+      "next_week": "来週",
+      "invoices_due_singular": "件の請求書が期限",
+      "invoices_due_plural": "件の請求書が期限"
     }
   },
   "profile": {

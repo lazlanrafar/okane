@@ -4,11 +4,7 @@ import * as React from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dictionary } from "@workspace/dictionaries";
-import {
-  createWallet,
-  getWallet,
-  updateWallet,
-} from "@workspace/modules/client";
+import { createWallet, getWallet, updateWallet } from "@workspace/modules/client";
 import type { Wallet } from "@workspace/types";
 import {
   Button,
@@ -61,10 +57,7 @@ function InternalAccountForm({
 }) {
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const schema = React.useMemo(
-    () => getAccountSchema(dictionary.accounts),
-    [dictionary],
-  );
+  const schema = React.useMemo(() => getAccountSchema(dictionary.accounts), [dictionary]);
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -105,16 +98,10 @@ function InternalAccountForm({
         balance: values.balance.toString(),
       };
 
-      const result = walletId
-        ? await updateWallet(walletId, formattedValues)
-        : await createWallet(formattedValues);
+      const result = walletId ? await updateWallet(walletId, formattedValues) : await createWallet(formattedValues);
 
       if (result.success) {
-        toast.success(
-          walletId
-            ? dictionary.accounts.toasts.updated
-            : dictionary.accounts.toasts.created,
-        );
+        toast.success(walletId ? dictionary.accounts.toasts.updated : dictionary.accounts.toasts.created);
         onSuccess?.(result.data);
         onOpenChange(false);
       } else {
@@ -130,11 +117,7 @@ function InternalAccountForm({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex h-full flex-col"
-        noValidate
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex h-full flex-col" noValidate>
         <ScrollArea className="flex-1 px-6">
           <div className="space-y-6 py-6 pb-24">
             <div className="space-y-4">
@@ -145,12 +128,7 @@ function InternalAccountForm({
                   <FormItem>
                     <FormLabel>{dictionary.accounts.account_name}</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder={
-                          dictionary.accounts.account_name_placeholder
-                        }
-                        {...field}
-                      />
+                      <Input placeholder={dictionary.accounts.account_name_placeholder} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -180,10 +158,7 @@ function InternalAccountForm({
                   <FormItem>
                     <FormLabel>{dictionary.accounts.initial_balance}</FormLabel>
                     <FormControl>
-                      <CurrencyInput
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
+                      <CurrencyInput value={field.value} onChange={field.onChange} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -196,18 +171,11 @@ function InternalAccountForm({
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">
-                        {dictionary.accounts.include_in_totals_label}
-                      </FormLabel>
-                      <FormDescription>
-                        {dictionary.accounts.include_in_totals_description}
-                      </FormDescription>
+                      <FormLabel className="text-base">{dictionary.accounts.include_in_totals_label}</FormLabel>
+                      <FormDescription>{dictionary.accounts.include_in_totals_description}</FormDescription>
                     </div>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -235,7 +203,6 @@ interface AccountSheetProps {
   onOpenChange: (open: boolean) => void;
   walletId?: string;
   onSuccess?: (wallet: Wallet) => void;
-  groups?: Array<Record<string, unknown>>;
   dictionary?: Dictionary;
 }
 
@@ -276,14 +243,10 @@ export function AccountFormSheet({
       <SheetContent className="flex h-full w-full flex-col p-0 sm:max-w-[450px]">
         <div className="mb-2 px-6 pt-6">
           <h2 className="border-b pb-2 font-semibold text-lg">
-            {walletId
-              ? dictionary.accounts.edit_account
-              : dictionary.accounts.add_account}
+            {walletId ? dictionary.accounts.edit_account : dictionary.accounts.add_account}
           </h2>
           <p className="mt-1 text-muted-foreground text-sm">
-            {walletId
-              ? dictionary.accounts.edit_description
-              : dictionary.accounts.create_description}
+            {walletId ? dictionary.accounts.edit_description : dictionary.accounts.create_description}
           </p>
         </div>
 

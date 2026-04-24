@@ -10,6 +10,8 @@ import { cn, Icons, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } f
 
 interface ChatMessageActionsProps {
   messageContent: string;
+  messageId?: string;
+  insightId?: string;
   dictionary: Dictionary;
 }
 

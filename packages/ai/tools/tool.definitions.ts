@@ -79,7 +79,13 @@ export const aiToolDefinitions = [
     input_schema: {
       type: "object",
       properties: {
-        period: { type: "string", enum: ["3-months", "6-months", "this-year", "1-year"], description: "Historical period for analysis." },
+        period: {
+          type: "string",
+          enum: ["3-months", "6-months", "this-year", "1-year", "last-12-months", "year-to-date", "last-year"],
+          description: "Historical period for analysis.",
+        },
+        from: { type: "string", description: "Optional ISO date-time start, e.g. 2026-01-01T00:00:00.000Z." },
+        to: { type: "string", description: "Optional ISO date-time end, e.g. 2026-12-31T23:59:59.000Z." },
         currency: { type: "string", description: "Currency code (e.g., USD, IDR)." },
         showCanvas: { type: "boolean", description: "Whether to show a visual chart/canvas for this analysis." },
       },
@@ -91,6 +97,13 @@ export const aiToolDefinitions = [
     input_schema: {
       type: "object",
       properties: {
+        period: {
+          type: "string",
+          enum: ["3-months", "6-months", "1-year", "last-6-months", "last-12-months", "year-to-date"],
+          description: "Historical period for burn analysis.",
+        },
+        from: { type: "string", description: "Optional ISO date-time start, e.g. 2026-01-01T00:00:00.000Z." },
+        to: { type: "string", description: "Optional ISO date-time end, e.g. 2026-12-31T23:59:59.000Z." },
         currency: { type: "string", description: "Currency code (e.g., USD, IDR)." },
         showCanvas: { type: "boolean", description: "Whether to show a visual chart/canvas for this analysis." },
       },
@@ -102,7 +115,13 @@ export const aiToolDefinitions = [
     input_schema: {
       type: "object",
       properties: {
-        period: { type: "string", enum: ["this-month", "last-month", "last-3-months"], description: "Time period for analysis." },
+        period: {
+          type: "string",
+          enum: ["this-month", "last-month", "last-3-months", "this-year", "year-to-date", "last-year", "last-12-months"],
+          description: "Time period for analysis.",
+        },
+        from: { type: "string", description: "Optional ISO date-time start, e.g. 2026-01-01T00:00:00.000Z." },
+        to: { type: "string", description: "Optional ISO date-time end, e.g. 2026-12-31T23:59:59.000Z." },
         currency: { type: "string", description: "Currency code (e.g., USD, IDR)." },
         showCanvas: { type: "boolean", description: "Whether to show a visual chart/canvas for this analysis." },
       },

@@ -1499,7 +1499,53 @@
     "new_chat": "Chat Baru",
     "placeholder": "Tanya apa saja...",
     "search_placeholder": "Cari di web...",
+    "web_search_label": "Cari",
     "esc": "Esc",
+    "input": {
+      "focus_aria": "Fokus ke input chat",
+      "attachment_fallback_text": "Terkirim dengan lampiran"
+    },
+    "messages": {
+      "attachment_alt": "lampiran",
+      "unknown_file": "File tidak diketahui"
+    },
+    "status": {
+      "send_failed": "Gagal mengirim pesan. Silakan coba lagi.",
+      "next_month": "bulan depan",
+      "ai_limit_reset": "Batas AI tercapai. Akan direset pada {date}.",
+      "thinking": "Sedang berpikir..."
+    },
+    "shortcuts": {
+      "show_latest_transactions": "Tampilkan transaksi terbaru",
+      "show_monthly_spending_hotspots": "Tampilkan titik pengeluaran terbesar bulan ini",
+      "show_spending_most_this_month": "Tampilkan pengeluaran terbesar bulan ini",
+      "analyze_weekly_trends": "Analisis tren dan insight mingguan",
+      "show_revenue_performance": "Tampilkan performa pemasukan",
+      "show_expense_breakdown_category": "Tampilkan rincian pengeluaran per kategori",
+      "show_cash_runway": "Tampilkan proyeksi runway kas",
+      "analyze_cashflow_stress_test": "Analisis stress test arus kas",
+      "find_uncategorized_transactions": "Cari transaksi belum terkategori bulan lalu",
+      "find_recurring_payments": "Cari pembayaran berulang",
+      "analyze_spending_patterns": "Analisis pola pengeluaran",
+      "show_profit_loss": "Tampilkan laporan laba rugi",
+      "analyze_profit_margins": "Analisis margin laba",
+      "show_budget_vs_actual": "Tampilkan perbandingan budget vs aktual",
+      "show_upcoming_debts": "Tampilkan hutang yang jatuh tempo bulan ini",
+      "find_overdue_debts": "Cari hutang yang terlambat",
+      "analyze_debt_risk": "Analisis risiko dan aging hutang",
+      "show_account_balances": "Tampilkan saldo akun",
+      "show_latest_invoices": "Tampilkan invoice terbaru",
+      "find_unpaid_invoices": "Cari invoice belum dibayar",
+      "find_overdue_invoices": "Cari invoice terlambat",
+      "show_contacts": "Tampilkan kontak",
+      "find_top_contacts": "Cari kontak teratas",
+      "show_cash_flow": "Tampilkan arus kas",
+      "show_cash_flow_this_month": "Tampilkan arus kas bulan ini",
+      "analyze_cash_flow_trends": "Analisis tren arus kas",
+      "show_expenses": "Tampilkan pengeluaran",
+      "show_expenses_this_month": "Tampilkan pengeluaran bulan ini",
+      "analyze_expense_trends": "Analisis tren pengeluaran"
+    },
     "actions": {
       "copy": "Salin",
       "retry": "Coba lagi",
@@ -1507,8 +1553,98 @@
       "negative": "Umpan Balik Negatif",
       "remove_positive": "Hapus Umpan Balik Positif",
       "remove_negative": "Hapus Umpan Balik Negatif",
-      "open_artifact": "Open artifact",
-      "close_artifact": "Close artifact"
+      "open_artifact": "Buka artefak",
+      "close_artifact": "Tutup artefak"
+    },
+    "canvas": {
+      "tabs": {
+        "income": "Pemasukan",
+        "burn_rate": "Laju Bakar",
+        "expense": "Pengeluaran",
+        "expense_this_month": "Pengeluaran bulan ini",
+        "expense_this_year": "Pengeluaran tahun ini",
+        "close_tab": "Tutup tab"
+      },
+      "loading": {
+        "generating_analysis": "Sedang membuat analisis..."
+      },
+      "error": {
+        "title": "Error",
+        "loading_content": "Gagal memuat konten",
+        "go_back": "Kembali"
+      },
+      "common": {
+        "current": "Saat Ini",
+        "average": "Rata-rata",
+        "uncategorized": "Tanpa kategori",
+        "top_category": "Kategori teratas",
+        "date": "Tanggal",
+        "category": "Kategori",
+        "amount": "Jumlah",
+        "share": "Porsi",
+        "summary": "Ringkasan"
+      },
+      "revenue": {
+        "income_label": "Pemasukan",
+        "monthly_total": "Total bulanan",
+        "income_this_month": "Pemasukan bulan ini",
+        "latest_period": "Periode terbaru",
+        "largest_share_income": "Porsi terbesar dari total pemasukan",
+        "monthly_income_trend": "Tren Pemasukan Bulanan",
+        "legend_this_year": "Tahun Ini",
+        "legend_last_year": "Tahun Lalu",
+        "latest_income": "Pemasukan terbaru",
+        "source": "Sumber",
+        "no_income_found": "Tidak ada pemasukan",
+        "no_summary": "Ringkasan pemasukan belum tersedia."
+      },
+      "spending": {
+        "expense_this_month": "Pengeluaran bulan ini",
+        "across_transactions": "Dari {count} transaksi bernilai besar",
+        "largest_share_expense": "Porsi terbesar dari pengeluaran bulanan",
+        "expense_by_category": "Pengeluaran per kategori",
+        "largest_transactions": "Transaksi terbesar",
+        "vendor": "Vendor",
+        "no_transactions_found": "Tidak ada transaksi",
+        "summary_recommendations": "Ringkasan & Rekomendasi"
+      },
+      "burn_rate": {
+        "avg_monthly_burn": "Rata-rata Laju Bakar Bulanan",
+        "based_last_6_months": "Berdasarkan 6 bulan terakhir",
+        "estimated_runway": "Perkiraan Runway",
+        "at_current_burn_rate": "Pada laju bakar saat ini",
+        "monthly_burn_rate": "Laju Bakar Bulanan"
+      }
+    },
+    "insight": {
+      "period": {
+        "week": "minggu",
+        "month": "bulan",
+        "quarter": "kuartal",
+        "year": "tahun"
+      },
+      "change": {
+        "steady": "stabil",
+        "no_activity": "tidak ada aktivitas",
+        "new_activity": "aktivitas baru",
+        "turned_positive": "berubah positif",
+        "turned_negative": "berubah negatif"
+      },
+      "key_metrics": "Metrik Utama",
+      "based_on_avg_3_months": "berdasarkan rata-rata 3 bulan",
+      "this_period": "periode ini",
+      "vs_last_period": "{change} vs {period} lalu",
+      "months": "bulan",
+      "recommended_actions": "Rekomendasi tindakan",
+      "needs_attention": "Perlu perhatian:",
+      "overdue_invoice": "invoice terlambat",
+      "overdue_invoices": "invoice terlambat",
+      "expense_alerts": "Peringatan pengeluaran",
+      "new_category_prefix": "Baru:",
+      "category_up_to": "{category} naik {change}% menjadi",
+      "next_week": "Minggu depan",
+      "invoices_due_singular": "invoice jatuh tempo",
+      "invoices_due_plural": "invoice jatuh tempo"
     }
   },
   "profile": {

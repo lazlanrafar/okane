@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
+import type { Dictionary } from "@workspace/dictionaries";
 import { updateWallet } from "@workspace/modules/client";
 import type { Wallet } from "@workspace/types";
 import { CurrencyInput, Input, Label, Separator, Sheet, SheetContent, Switch } from "@workspace/ui";
@@ -20,7 +21,7 @@ interface AccountDetailSheetProps {
   walletId?: string;
   onEdit?: (wallet: Wallet) => void;
   onDelete?: (wallet: Wallet) => void;
-  dictionary: Record<string, unknown>;
+  dictionary: Dictionary;
   locale?: string;
 }
 
@@ -67,7 +68,7 @@ export function AccountDetailSheet({
       setBalance(Number(wallet.balance) || 0);
       setIsIncludedInTotals(wallet.isIncludedInTotals ?? true);
     }
-  }, [wallet?.id, wallet.balance, wallet.isIncludedInTotals, wallet]);
+  }, [wallet?.id, wallet?.balance, wallet?.isIncludedInTotals, wallet]);
 
   const updateWalletInCache = useCallback(
     (updatedData: Partial<Wallet>) => {
@@ -91,7 +92,7 @@ export function AccountDetailSheet({
 
   // Real-time update for Name
   useEffect(() => {
-    if (!wallet || !dictionary) return;
+    if (!wallet) return;
 
     if (debouncedName === wallet.name || debouncedName === "") return;
 
@@ -106,9 +107,9 @@ export function AccountDetailSheet({
     };
 
     update();
-  }, [debouncedName, wallet?.id, dictionary, updateWalletInCache, wallet]);
+  }, [debouncedName, wallet?.id, updateWalletInCache, wallet]);
 
-  if (!mounted || !wallet || !dictionary) return null;
+  if (!mounted || !wallet) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

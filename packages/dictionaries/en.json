@@ -1476,7 +1476,53 @@
     "new_chat": "New Chat",
     "placeholder": "Ask anything...",
     "search_placeholder": "Search the web...",
+    "web_search_label": "Search",
     "esc": "Esc",
+    "input": {
+      "focus_aria": "Focus chat input",
+      "attachment_fallback_text": "Sent with attachments"
+    },
+    "messages": {
+      "attachment_alt": "attachment",
+      "unknown_file": "Unknown file"
+    },
+    "status": {
+      "send_failed": "Message failed to send. Please try again.",
+      "next_month": "next month",
+      "ai_limit_reset": "AI limit reached. Resets on {date}.",
+      "thinking": "Thinking..."
+    },
+    "shortcuts": {
+      "show_latest_transactions": "Show latest transactions",
+      "show_monthly_spending_hotspots": "Show monthly spending hotspots",
+      "show_spending_most_this_month": "Show where we spend the most this month",
+      "analyze_weekly_trends": "Analyze weekly trends and insights",
+      "show_revenue_performance": "Show revenue performance",
+      "show_expense_breakdown_category": "Show expense breakdown by category",
+      "show_cash_runway": "Show cash runway",
+      "analyze_cashflow_stress_test": "Analyze cash flow stress test",
+      "find_uncategorized_transactions": "Find uncategorized transactions from last month",
+      "find_recurring_payments": "Find recurring payments",
+      "analyze_spending_patterns": "Analyze spending patterns",
+      "show_profit_loss": "Show profit and loss statement",
+      "analyze_profit_margins": "Analyze profit margins",
+      "show_budget_vs_actual": "Show budget versus actual spending",
+      "show_upcoming_debts": "Show upcoming debts due this month",
+      "find_overdue_debts": "Find overdue debts",
+      "analyze_debt_risk": "Analyze debt risk and aging",
+      "show_account_balances": "Show account balances",
+      "show_latest_invoices": "Show latest invoices",
+      "find_unpaid_invoices": "Find unpaid invoices",
+      "find_overdue_invoices": "Find overdue invoices",
+      "show_contacts": "Show contacts",
+      "find_top_contacts": "Find top contacts",
+      "show_cash_flow": "Show cash flow",
+      "show_cash_flow_this_month": "Show cash flow this month",
+      "analyze_cash_flow_trends": "Analyze cash flow trends",
+      "show_expenses": "Show expenses",
+      "show_expenses_this_month": "Show expenses this month",
+      "analyze_expense_trends": "Analyze expense trends"
+    },
     "actions": {
       "copy": "Copy",
       "retry": "Retry",
@@ -1486,6 +1532,96 @@
       "remove_negative": "Remove Negative Feedback",
       "open_artifact": "Open artifact",
       "close_artifact": "Close artifact"
+    },
+    "canvas": {
+      "tabs": {
+        "income": "Income",
+        "burn_rate": "Burn Rate",
+        "expense": "Expense",
+        "expense_this_month": "Expense this month",
+        "expense_this_year": "Expense this year",
+        "close_tab": "Close tab"
+      },
+      "loading": {
+        "generating_analysis": "Generating analysis..."
+      },
+      "error": {
+        "title": "Error",
+        "loading_content": "Error loading content",
+        "go_back": "Go back"
+      },
+      "common": {
+        "current": "Current",
+        "average": "Average",
+        "uncategorized": "Uncategorized",
+        "top_category": "Top category",
+        "date": "Date",
+        "category": "Category",
+        "amount": "Amount",
+        "share": "Share",
+        "summary": "Summary"
+      },
+      "revenue": {
+        "income_label": "Income",
+        "monthly_total": "Monthly total",
+        "income_this_month": "Income this month",
+        "latest_period": "Latest period",
+        "largest_share_income": "Largest share of total income",
+        "monthly_income_trend": "Monthly Income Trend",
+        "legend_this_year": "This Year",
+        "legend_last_year": "Last Year",
+        "latest_income": "Latest income",
+        "source": "Source",
+        "no_income_found": "No income found",
+        "no_summary": "No income summary available yet."
+      },
+      "spending": {
+        "expense_this_month": "Expense this month",
+        "across_transactions": "Across {count} high-value transactions",
+        "largest_share_expense": "Largest share of monthly expense",
+        "expense_by_category": "Expense by category",
+        "largest_transactions": "Largest transactions",
+        "vendor": "Vendor",
+        "no_transactions_found": "No transactions found",
+        "summary_recommendations": "Summary & Recommendations"
+      },
+      "burn_rate": {
+        "avg_monthly_burn": "Avg Monthly Burn",
+        "based_last_6_months": "Based on last 6 months",
+        "estimated_runway": "Estimated Runway",
+        "at_current_burn_rate": "At current burn rate",
+        "monthly_burn_rate": "Monthly Burn Rate"
+      }
+    },
+    "insight": {
+      "period": {
+        "week": "week",
+        "month": "month",
+        "quarter": "quarter",
+        "year": "year"
+      },
+      "change": {
+        "steady": "steady",
+        "no_activity": "no activity",
+        "new_activity": "new activity",
+        "turned_positive": "turned positive",
+        "turned_negative": "turned negative"
+      },
+      "key_metrics": "Key Metrics",
+      "based_on_avg_3_months": "based on 3 month avg",
+      "this_period": "this period",
+      "vs_last_period": "{change} vs last {period}",
+      "months": "months",
+      "recommended_actions": "Recommended actions",
+      "needs_attention": "Needs attention:",
+      "overdue_invoice": "overdue invoice",
+      "overdue_invoices": "overdue invoices",
+      "expense_alerts": "Expense alerts",
+      "new_category_prefix": "New:",
+      "category_up_to": "{category} up {change}% to",
+      "next_week": "Next week",
+      "invoices_due_singular": "invoice due",
+      "invoices_due_plural": "invoices due"
     }
   },
   "profile": {

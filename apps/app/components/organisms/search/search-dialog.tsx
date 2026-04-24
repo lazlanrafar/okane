@@ -70,12 +70,12 @@ export function SearchDialog({ dictionary }: { dictionary: AppDictionary }) {
 
   const SETTINGS_ITEMS = [
     {
-      label: t("settings?.account.title"),
+      label: t("settings.account.title"),
       icon: Icons.Settings,
       href: getLocalizedUrl("/settings/profile"),
     },
     {
-      label: t("settings?.appearance.title"),
+      label: t("settings.appearance.title"),
       icon: Icons.Settings,
       href: getLocalizedUrl("/settings/appearance"),
     },
