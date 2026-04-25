@@ -9,6 +9,7 @@ import { commonChartConfig } from "./chart-utils";
 // Base Chart Wrapper with common styling
 export function BaseChart<T extends object>({
   data,
+  height = 320,
   margin = { top: 6, right: 6, left: -20, bottom: 6 },
   children,
 }: {
@@ -19,50 +20,68 @@ export function BaseChart<T extends object>({
   config?: Record<string, unknown>;
 }) {
   return (
-    <RechartsPrimitive.ComposedChart data={data} margin={margin}>
-      <RechartsPrimitive.CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid-stroke)" />
-      {children}
-    </RechartsPrimitive.ComposedChart>
+    <div style={{ height }}>
+      <RechartsPrimitive.ResponsiveContainer
+        width="100%"
+        height="100%"
+        debounce={1}
+      >
+        <RechartsPrimitive.ComposedChart data={data} margin={margin}>
+          <defs>
+            <linearGradient id="chartAreaGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="0%"
+                stopColor="var(--chart-gradient-start)"
+                stopOpacity={0.65}
+              />
+              <stop
+                offset="100%"
+                stopColor="var(--chart-gradient-end)"
+                stopOpacity={0.12}
+              />
+            </linearGradient>
+            <pattern
+              id="chartAreaPattern"
+              x="0"
+              y="0"
+              width="8"
+              height="8"
+              patternUnits="userSpaceOnUse"
+            >
+              <rect width="8" height="8" fill="var(--chart-pattern-bg)" />
+              <path
+                d="M0,0 L8,8 M-2,6 L6,16 M-4,4 L4,12"
+                stroke="var(--chart-pattern-stroke)"
+                strokeWidth="0.8"
+                opacity="0.6"
+              />
+            </pattern>
+            <pattern
+              id="chartBarPattern"
+              x="0"
+              y="0"
+              width="8"
+              height="8"
+              patternUnits="userSpaceOnUse"
+            >
+              <rect width="8" height="8" fill="var(--chart-bar-fill)" />
+              <path
+                d="M0,8 L8,0"
+                stroke="var(--chart-pattern-stroke)"
+                strokeWidth="0.8"
+                opacity="0.35"
+              />
+            </pattern>
+          </defs>
+          <RechartsPrimitive.CartesianGrid
+            strokeDasharray="3 3"
+            stroke="var(--chart-grid-stroke)"
+          />
+          {children}
+        </RechartsPrimitive.ComposedChart>
+      </RechartsPrimitive.ResponsiveContainer>
+    </div>
   );
-}
-
-// Styled XAxis
-export function StyledXAxis(props: Record<string, unknown>) {
-  return (
-    <RechartsPrimitive.XAxis
-      axisLine={false}
-      tickLine={false}
-      tick={{ fill: "var(--chart-axis-text)", fontSize: 10 }}
-      {...props}
-    />
-  );
-}
-
-// Styled YAxis
-export function StyledYAxis(props: Record<string, unknown>) {
-  return (
-    <RechartsPrimitive.YAxis
-      axisLine={false}
-      tickLine={false}
-      tick={{ fill: "var(--chart-axis-text)", fontSize: 10 }}
-      {...props}
-    />
-  );
-}
-
-// Styled Area
-export function StyledArea(props: Record<string, unknown>) {
-  return <RechartsPrimitive.Area type="monotone" strokeWidth={2} isAnimationActive={false} {...props} />;
-}
-
-// Styled Line
-export function StyledLine(props: Record<string, unknown>) {
-  return <RechartsPrimitive.Line type="monotone" strokeWidth={2} dot={false} isAnimationActive={false} {...props} />;
-}
-
-// Styled Bar
-export function StyledBar(props: Record<string, unknown>) {
-  return <RechartsPrimitive.Bar {...props} />;
 }
 
 // Styled Tooltip
@@ -90,12 +109,16 @@ export function StyledTooltip({
         <p className="mb-1 text-gray-500 dark:text-[#666666]">{label}</p>
         {payload.map((entry, index) => {
           const value = typeof entry.value === "number" ? entry.value : 0;
+          const dataKeyStr = String(entry.dataKey ?? "");
           const [formattedValue, name] = formatter
-            ? formatter(value, entry.dataKey)
-            : [`${value.toLocaleString()}`, entry.dataKey];
+            ? formatter(value, dataKeyStr)
+            : [`${value.toLocaleString()}`, dataKeyStr];
 
           return (
-            <p key={`${entry.dataKey}-${index}`} className="text-black dark:text-white">
+            <p
+              key={`${dataKeyStr}-${index}`}
+              className="text-black dark:text-white"
+            >
               {name}: {formattedValue}
             </p>
           );
@@ -120,11 +143,20 @@ export function ChartLegend({
   }[];
 }) {
   return (
-    <div className={`flex items-center ${title ? "justify-between" : "justify-end"} mb-4`}>
-      {title && <h4 className="font-normal font-serif text-[18px] text-black dark:text-white">{title}</h4>}
+    <div
+      className={`flex items-center ${title ? "justify-between" : "justify-end"} mb-4`}
+    >
+      {title && (
+        <h4 className="font-normal font-serif text-[18px] text-black dark:text-white">
+          {title}
+        </h4>
+      )}
       <div className="flex items-center gap-4">
         {items.map((item, index) => (
-          <div key={`legend-${item.label}-${index}`} className="flex items-center gap-2">
+          <div
+            key={`legend-${item.label}-${index}`}
+            className="flex items-center gap-2"
+          >
             <div
               className="h-2 w-2"
               style={{
@@ -137,7 +169,9 @@ export function ChartLegend({
                 borderRadius: "0",
               }}
             />
-            <span className="text-[12px] text-gray-500 dark:text-[#666666]">{item.label}</span>
+            <span className="text-[12px] text-gray-500 dark:text-[#666666]">
+              {item.label}
+            </span>
           </div>
         ))}
       </div>

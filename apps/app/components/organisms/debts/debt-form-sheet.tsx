@@ -30,6 +30,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui";
+import { getCurrencyDisplayUnit } from "@workspace/utils";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -56,6 +57,10 @@ interface Props {
 }
 
 export function DebtFormSheet({ open, onOpenChange, debt, dictionary, settings }: Props) {
+  const currencyUnit = getCurrencyDisplayUnit(
+    settings?.mainCurrencyCode,
+    settings?.mainCurrencySymbol,
+  );
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -186,7 +191,7 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary, settings }
                     <FormControl>
                       <div className="group relative">
                         <span className="-translate-y-1/2 absolute top-1/2 left-3 text-muted-foreground/50 text-sm transition-colors group-focus-within:text-foreground">
-                          {settings?.mainCurrencySymbol ?? "$"}
+                          {currencyUnit}
                         </span>
                         <CurrencyInput
                           value={field.value}
@@ -194,7 +199,7 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary, settings }
                           currencySymbol={settings?.mainCurrencySymbol}
                           decimalPlaces={settings?.mainCurrencyDecimalPlaces}
                           className={cn(
-                            "rounded-none border-border bg-transparent pl-8 font-normal font-serif text-2xl tracking-tight focus:border-foreground",
+                            "rounded-none border-border bg-transparent pl-14 font-normal font-serif text-2xl tracking-tight focus:border-foreground",
                             activeTab === "payable" ? "text-rose-500" : "text-emerald-500",
                           )}
                         />

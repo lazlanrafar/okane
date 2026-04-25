@@ -23,6 +23,7 @@ import {
   Input,
   InputDate,
 } from "@workspace/ui";
+import { getCurrencyDisplayUnit } from "@workspace/utils";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -53,6 +54,10 @@ export function TransactionReceiptConfirmationModal({ open, onOpenChange, data, 
   const { settings, user } = useAppStore();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+  const currencyUnit = getCurrencyDisplayUnit(
+    settings?.mainCurrencyCode,
+    settings?.mainCurrencySymbol,
+  );
 
   const form = useForm<ConfirmationFormValues>({
     resolver: zodResolver(confirmationSchema),
@@ -138,14 +143,14 @@ export function TransactionReceiptConfirmationModal({ open, onOpenChange, data, 
                     <FormControl>
                       <div className="group relative">
                         <span className="-translate-y-1/2 absolute top-1/2 left-3 text-muted-foreground/50 text-sm">
-                          {settings?.mainCurrencySymbol ?? "$"}
+                          {currencyUnit}
                         </span>
                         <CurrencyInput
                           value={field.value}
                           onChange={field.onChange}
                           currencySymbol={settings?.mainCurrencySymbol}
                           decimalPlaces={settings?.mainCurrencyDecimalPlaces}
-                          className="pl-8"
+                          className="pl-14"
                         />
                       </div>
                     </FormControl>

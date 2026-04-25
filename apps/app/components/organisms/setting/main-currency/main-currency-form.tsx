@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import type { Dictionary } from "@workspace/dictionaries";
 import { updateTransactionSettings } from "@workspace/modules/setting/setting.action";
 import type { TransactionSettings } from "@workspace/types";
+import { getCurrencyDisplayUnit } from "@workspace/utils";
 import {
   Button,
   Label,
@@ -79,10 +80,14 @@ export function MainCurrencyForm({ settings, dictionary }: MainCurrencyFormProps
 
   const formatPreview = () => {
     const amount = (1).toFixed(data.mainCurrencyDecimalPlaces);
+    const currencyUnit = getCurrencyDisplayUnit(
+      data.mainCurrencyCode,
+      data.mainCurrencySymbol,
+    );
     if (data.mainCurrencySymbolPosition === "Front") {
-      return `${data.mainCurrencySymbol} ${amount}`;
+      return `${currencyUnit} ${amount}`;
     }
-    return `${amount} ${data.mainCurrencySymbol}`;
+    return `${amount} ${currencyUnit}`;
   };
 
   const dict = dictionary.settings.currency;

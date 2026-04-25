@@ -1,10 +1,20 @@
 "use client";
 
+import { format } from "date-fns";
+
 import { useChatActions } from "@ai-sdk-tools/store";
 import { useQuery } from "@tanstack/react-query";
-import { getCategoryBreakdown, getExpenseMetrics, getRevenueMetrics } from "@workspace/modules/server";
+import {
+  getBudgetStatus,
+  getBurnRateMetrics,
+  getCategoryBreakdown,
+  getDebts,
+  getExpenseMetrics,
+  getRevenueMetrics,
+  getWallets,
+} from "@workspace/modules/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Skeleton } from "@workspace/ui";
-import { ArrowDownRight, ArrowUpRight, LineChart, Minus, PieChart, Receipt, TrendingUp, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Flame, LineChart, Minus, PiggyBank, PieChart, Receipt, TrendingUp, Wallet } from "lucide-react";
 
 import type { AppDictionary } from "@/modules/types/dictionary";
 import { useAppStore } from "@/stores/app";
@@ -19,26 +29,78 @@ function TrendSkeleton() {
   return <Skeleton className="mt-1 h-3 w-24" />;
 }
 
-export function OverviewCards({ dictionary }: { dictionary: AppDictionary }) {
+function formatRangeText(startDate?: string, endDate?: string) {
+  if (!startDate || !endDate) {
+    return "Selected range";
+  }
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return "Selected range";
+  }
+
+  return `${format(start, "MMM d")} - ${format(end, "MMM d, yyyy")}`;
+}
+
+export function OverviewCards({
+  dictionary,
+  startDate,
+  endDate,
+}: {
+  dictionary: AppDictionary;
+  startDate?: string;
+  endDate?: string;
+}) {
   const { sendMessage } = useChatActions();
   const { formatCurrency } = useAppStore();
+  const metricsParams = {
+    startDate,
+    endDate,
+  };
+  const rangeLabel = formatRangeText(startDate, endDate);
 
   // —— Data fetching ——
   const { data: incomeResult, isLoading: loadingIncome } = useQuery({
-    queryKey: ["metrics", "revenue"],
-    queryFn: getRevenueMetrics,
+    queryKey: ["metrics", "revenue", startDate, endDate],
+    queryFn: () => getRevenueMetrics(metricsParams),
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: expenseResult, isLoading: loadingExpense } = useQuery({
-    queryKey: ["metrics", "expense"],
-    queryFn: getExpenseMetrics,
+    queryKey: ["metrics", "expense", startDate, endDate],
+    queryFn: () => getExpenseMetrics(metricsParams),
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: categoryResult, isLoading: loadingCategory } = useQuery({
-    queryKey: ["metrics", "category", "expense"],
-    queryFn: () => getCategoryBreakdown("expense"),
+    queryKey: ["metrics", "category", "expense", startDate, endDate],
+    queryFn: () => getCategoryBreakdown("expense", metricsParams),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: burnRateResult, isLoading: loadingBurnRate } = useQuery({
+    queryKey: ["metrics", "burn-rate", startDate, endDate],
+    queryFn: () => getBurnRateMetrics(metricsParams),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: budgetResult, isLoading: loadingBudgets } = useQuery({
+    queryKey: ["budgets", "status"],
+    queryFn: () => getBudgetStatus(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: debtsResult, isLoading: loadingDebts } = useQuery({
+    queryKey: ["debts", "overview-cards"],
+    queryFn: () => getDebts({ page: 1, limit: 250 }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: walletsResult, isLoading: loadingWallets } = useQuery({
+    queryKey: ["wallets", "overview-cards"],
+    queryFn: () => getWallets({ page: 1, limit: 250 }),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -78,6 +140,10 @@ export function OverviewCards({ dictionary }: { dictionary: AppDictionary }) {
   const revenueData = incomeResult?.success ? (incomeResult.data ?? []) : [];
   const expenseData = expenseResult?.success ? (expenseResult.data ?? []) : [];
   const categoryData = categoryResult?.success ? (categoryResult.data ?? []) : [];
+  const burnRateData = burnRateResult?.success ? (burnRateResult.data ?? []) : [];
+  const budgetData = budgetResult?.success ? (budgetResult.data ?? []) : [];
+  const debtsData = debtsResult?.success ? (debtsResult.data ?? []) : [];
+  const walletsData = walletsResult?.success ? (walletsResult.data ?? []) : [];
 
   const fmt = (v: number) => formatCurrency(v);
 
@@ -95,6 +161,19 @@ export function OverviewCards({ dictionary }: { dictionary: AppDictionary }) {
   const topCategory = categoryData.length
     ? categoryData.reduce((prev, current) => (prev.value > current.value ? prev : current))
     : null;
+
+  const averageBurn = burnRateData[burnRateData.length - 1]?.average ?? 0;
+  const totalBudgeted = budgetData.reduce((acc, item) => acc + item.amount, 0);
+  const totalBudgetSpent = budgetData.reduce((acc, item) => acc + item.spent, 0);
+  const budgetUsage = totalBudgeted > 0 ? (totalBudgetSpent / totalBudgeted) * 100 : 0;
+  const openDebts = debtsData.filter((debt) => debt.status !== "paid");
+  const debtBalance = openDebts.reduce((acc, debt) => {
+    const remaining = typeof debt.remainingAmount === "number" ? debt.remainingAmount : Number(debt.remainingAmount) || 0;
+    return acc + (debt.type === "receivable" ? remaining : -remaining);
+  }, 0);
+  const trackedBalance = walletsData
+    .filter((wallet) => wallet.isIncludedInTotals)
+    .reduce((acc, wallet) => acc + (typeof wallet.balance === "number" ? wallet.balance : Number(wallet.balance) || 0), 0);
 
   // —— Helpers ——
   const handleCardClick = (message: string) => {
@@ -135,7 +214,7 @@ export function OverviewCards({ dictionary }: { dictionary: AppDictionary }) {
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
         {/* Total Income */}
         <Card
           className="cursor-pointer rounded-none shadow-none transition-colors hover:border-primary/50"
@@ -155,7 +234,7 @@ export function OverviewCards({ dictionary }: { dictionary: AppDictionary }) {
               <div className="font-medium font-serif text-2xl tracking-tight">{fmt(currentRevenue)}</div>
             )}
             <div className="mt-1 flex items-center">
-              <span className="text-muted-foreground text-xs">{dictionary.overview.metrics.this_month}</span>
+              <span className="text-muted-foreground text-xs">{rangeLabel}</span>
               {renderTrend(currentRevenue, previousRevenue)}
             </div>
           </CardContent>
@@ -180,7 +259,7 @@ export function OverviewCards({ dictionary }: { dictionary: AppDictionary }) {
               <div className="font-medium font-serif text-2xl tracking-tight">{fmt(currentExpense)}</div>
             )}
             <div className="mt-1 flex items-center">
-              <span className="text-muted-foreground text-xs">{dictionary.overview.metrics.this_month}</span>
+              <span className="text-muted-foreground text-xs">{rangeLabel}</span>
               {renderTrend(currentExpense, previousExpense, true)}
             </div>
           </CardContent>
@@ -205,7 +284,7 @@ export function OverviewCards({ dictionary }: { dictionary: AppDictionary }) {
               <div className="font-medium font-serif text-2xl tracking-tight">{fmt(currentNetIncome)}</div>
             )}
             <div className="mt-1 flex items-center">
-              <span className="text-muted-foreground text-xs">{dictionary.overview.metrics.this_month}</span>
+              <span className="text-muted-foreground text-xs">{rangeLabel}</span>
               {renderTrend(currentNetIncome, previousNetIncome)}
             </div>
           </CardContent>
@@ -233,12 +312,78 @@ export function OverviewCards({ dictionary }: { dictionary: AppDictionary }) {
               <>
                 <div className="truncate font-medium text-lg">{topCategory.name}</div>
                 <div className="mt-1 text-muted-foreground text-xs">
-                  {fmt(topCategory.value)} {dictionary.overview.metrics.this_month}
+                  {fmt(topCategory.value)} {rangeLabel}
                 </div>
               </>
             ) : (
               <div className="mt-2 text-muted-foreground text-sm">{dictionary.overview.metrics.no_expenses}</div>
             )}
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-none shadow-none transition-colors hover:border-primary/50">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="flex items-center justify-between font-medium text-muted-foreground text-xs uppercase tracking-widest">
+              Avg Burn
+              <Flame className="h-4 w-4 text-orange-500" />
+            </CardTitle>
+            <CardDescription className="sr-only">Average monthly burn rate</CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            {loadingBurnRate ? <ValueSkeleton /> : <div className="font-medium font-serif text-2xl tracking-tight">{fmt(averageBurn)}</div>}
+            <div className="mt-1 text-muted-foreground text-xs">{rangeLabel}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-none shadow-none transition-colors hover:border-primary/50">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="flex items-center justify-between font-medium text-muted-foreground text-xs uppercase tracking-widest">
+              Budget Usage
+              <PiggyBank className="h-4 w-4 text-violet-500" />
+            </CardTitle>
+            <CardDescription className="sr-only">Current budget usage</CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            {loadingBudgets ? (
+              <ValueSkeleton />
+            ) : (
+              <div className="font-medium font-serif text-2xl tracking-tight">{Math.round(budgetUsage)}%</div>
+            )}
+            <div className="mt-1 text-muted-foreground text-xs">
+              {loadingBudgets ? <TrendSkeleton /> : `${fmt(totalBudgetSpent)} of ${fmt(totalBudgeted)}`}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-none shadow-none transition-colors hover:border-primary/50">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="flex items-center justify-between font-medium text-muted-foreground text-xs uppercase tracking-widest">
+              Debt Balance
+              <Receipt className="h-4 w-4 text-amber-500" />
+            </CardTitle>
+            <CardDescription className="sr-only">Net open debt balance</CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            {loadingDebts ? <ValueSkeleton /> : <div className="font-medium font-serif text-2xl tracking-tight">{fmt(debtBalance)}</div>}
+            <div className="mt-1 text-muted-foreground text-xs">
+              {loadingDebts ? <TrendSkeleton /> : `${openDebts.length} open balances`}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-none shadow-none transition-colors hover:border-primary/50">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="flex items-center justify-between font-medium text-muted-foreground text-xs uppercase tracking-widest">
+              Tracked Balance
+              <Wallet className="h-4 w-4 text-sky-500" />
+            </CardTitle>
+            <CardDescription className="sr-only">Included account balances</CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            {loadingWallets ? <ValueSkeleton /> : <div className="font-medium font-serif text-2xl tracking-tight">{fmt(trackedBalance)}</div>}
+            <div className="mt-1 text-muted-foreground text-xs">
+              {loadingWallets ? <TrendSkeleton /> : `${walletsData.filter((wallet) => wallet.isIncludedInTotals).length} included accounts`}
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -8,12 +8,11 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  Line,
 } from "recharts";
 
 import {
   ChartLegend,
-  StyledArea,
-  StyledLine,
   StyledTooltip,
 } from "./base-charts";
 import type { BaseChartProps } from "./chart-utils";
@@ -251,14 +250,13 @@ export function RunwayChart({
               />
             ) : (
               <>
-                <StyledArea
+                <Area
                   dataKey="cashRemaining"
-                  usePattern={false}
-                  useGradient
+                  type="monotone" stroke="var(--chart-actual-line)" fill="url(#chartAreaGradient)" strokeWidth={2} isAnimationActive={false}
                 />
-                <StyledArea dataKey="burnRate" usePattern useGradient={false} />
+                <Area dataKey="burnRate" type="monotone" stroke="var(--chart-actual-line)" fill="url(#chartAreaPattern)" strokeWidth={2} isAnimationActive={false} />
                 {showProjection && (
-                  <StyledLine dataKey="projectedCash" strokeDasharray="5 5" />
+                  <Line dataKey="projectedCash" strokeDasharray="5 5" type="monotone" stroke="var(--chart-line-secondary)" strokeWidth={2} dot={false} isAnimationActive={false} />
                 )}
               </>
             )}

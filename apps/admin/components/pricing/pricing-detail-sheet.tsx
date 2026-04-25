@@ -83,7 +83,7 @@ export function PricingDetailSheet() {
                         <span className="text-muted-foreground text-xs">
                           Monthly
                         </span>
-                        <span>
+                        <span className="font-serif">
                           {formatPrice(price.monthly, price.currency)}
                         </span>
                       </div>
@@ -91,7 +91,7 @@ export function PricingDetailSheet() {
                         <span className="text-muted-foreground text-xs">
                           Yearly
                         </span>
-                        <span>
+                        <span className="font-serif">
                           {formatPrice(price.yearly, price.currency)}
                         </span>
                       </div>

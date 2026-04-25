@@ -7,6 +7,7 @@ import type { Dictionary } from "@workspace/dictionaries";
 import { updateWallet } from "@workspace/modules/client";
 import type { Wallet } from "@workspace/types";
 import { CurrencyInput, Input, Label, Separator, Sheet, SheetContent, Switch } from "@workspace/ui";
+import { getCurrencyDisplayUnit } from "@workspace/utils";
 import { format } from "date-fns";
 import { Landmark } from "lucide-react";
 import { toast } from "sonner";
@@ -34,6 +35,10 @@ export function AccountDetailSheet({
 }: AccountDetailSheetProps) {
   const [mounted, setMounted] = useState(false);
   const { settings, formatCurrency } = useAppStore();
+  const currencyUnit = getCurrencyDisplayUnit(
+    settings?.mainCurrencyCode,
+    settings?.mainCurrencySymbol,
+  );
   const [wallet, setWallet] = useState<Wallet | undefined>();
   const [name, setName] = useState("");
   const [balance, setBalance] = useState(0);
@@ -135,7 +140,7 @@ export function AccountDetailSheet({
               {isEditingBalance ? (
                 <div className="flex items-center gap-2">
                   <span className="font-medium font-serif text-3xl text-foreground/90">
-                    {settings?.mainCurrencySymbol}
+                    {currencyUnit}
                   </span>
                   <CurrencyInput
                     value={balance}

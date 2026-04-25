@@ -1,10 +1,10 @@
 "use client";
 
 import type { TooltipProps } from "recharts";
-import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Bar, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 
-import { BaseChart, ChartLegend, StyledBar, StyledTooltip, StyledXAxis, StyledYAxis } from "./base-charts";
+import { BaseChart, ChartLegend, StyledTooltip } from "./base-charts";
 import type { BaseChartProps } from "./chart-utils";
 import { createYAxisTickFormatter, useChartMargin } from "./chart-utils";
 import { formatAmount } from "./format-amount";
@@ -29,6 +29,8 @@ interface ExpensesChartProps extends BaseChartProps {
   showLegend?: boolean;
   currency?: string;
   locale?: string;
+  valueLabel?: string;
+  title?: string;
   enableSelection?: boolean;
   onSelectionChange?: (startDate: string | null, endDate: string | null) => void;
   onSelectionComplete?: (startDate: string, endDate: string, chartType: string) => void;
@@ -41,6 +43,7 @@ const expensesTooltipFormatter = (
   name: string,
   currency = "USD",
   locale?: string,
+  valueLabel = "Expenses",
 ): [string, string] => {
   const numericValue = typeof value === "number" ? value : Number(value);
   const formattedValue =
@@ -50,7 +53,7 @@ const expensesTooltipFormatter = (
       locale: locale ?? undefined,
       maximumFractionDigits: 0,
     }) || `${currency}${value.toLocaleString()}`;
-  const displayName = name === "amount" ? "Expenses" : name;
+  const displayName = name === "amount" ? valueLabel : name;
   return [formattedValue, displayName];
 };
 
@@ -92,6 +95,8 @@ export function ExpensesChart({
   showLegend = true,
   currency = "USD",
   locale,
+  valueLabel = "Expenses",
+  title = "Monthly Expenses",
   enableSelection = false,
   onSelectionChange,
   onSelectionComplete,
@@ -137,25 +142,25 @@ export function ExpensesChart({
   const chartContent = (
     <div className={`w-full ${className}`}>
       {/* Legend */}
-      {showLegend && <ChartLegend title="Monthly Expenses" items={[{ label: "Expenses", type: "solid" }]} />}
+      {showLegend && <ChartLegend title={title} items={[{ label: valueLabel, type: "solid" }]} />}
 
       {/* Bar Chart */}
       <BaseChart data={data} height={height} margin={{ top: 6, right: 6, left: -marginLeft, bottom: 6 }}>
-        <StyledXAxis dataKey="month" />
-        <StyledYAxis tickFormatter={tickFormatter} />
+        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "var(--chart-axis-text)", fontSize: 10 }} />
+        <YAxis tickFormatter={tickFormatter} axisLine={false} tickLine={false} tick={{ fill: "var(--chart-axis-text)", fontSize: 10 }} />
 
         <Tooltip
           content={
             <StyledTooltip
               formatter={(value: number | string, name: string) =>
-                expensesTooltipFormatter(value, name, currency, locale)
+                expensesTooltipFormatter(value, name, currency, locale, valueLabel)
               }
             />
           }
           wrapperStyle={{ zIndex: 9999 }}
         />
 
-        <StyledBar dataKey="amount" usePattern />
+        <Bar dataKey="amount" fill="url(#chartBarPattern)" radius={[2, 2, 0, 0]} isAnimationActive={false} />
       </BaseChart>
     </div>
   );

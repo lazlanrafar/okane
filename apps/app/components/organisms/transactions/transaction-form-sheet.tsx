@@ -27,6 +27,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui";
+import { getCurrencyDisplayUnit } from "@workspace/utils";
 import { ChevronsUpDown, File, FileText, Film, Image, Paperclip, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -94,6 +95,10 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
   const [attachments, setAttachments] = useState<VaultFileRef[]>([]);
   const [vaultPickerOpen, setVaultPickerOpen] = useState(false);
   const { settings, user } = useAppStore();
+  const currencyUnit = getCurrencyDisplayUnit(
+    settings?.mainCurrencyCode,
+    settings?.mainCurrencySymbol,
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -365,7 +370,7 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                       <FormControl>
                         <div className="group relative">
                           <span className="-translate-y-1/2 absolute top-1/2 left-3 text-muted-foreground/50 text-sm transition-colors group-focus-within:text-foreground">
-                            {settings?.mainCurrencySymbol ?? "$"}
+                            {currencyUnit}
                           </span>
                           <CurrencyInput
                             value={field.value}
@@ -373,7 +378,7 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                             currencySymbol={settings?.mainCurrencySymbol}
                             decimalPlaces={settings?.mainCurrencyDecimalPlaces}
                             className={cn(
-                              "h-10 bg-transparent pl-8 font-medium text-sm transition-colors focus:border-foreground",
+                              "h-10 bg-transparent pl-14 font-medium text-sm transition-colors focus:border-foreground",
                               activeTab === "expense"
                                 ? "text-red-500"
                                 : activeTab === "income"
