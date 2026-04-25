@@ -3,6 +3,7 @@
  */
 
 import { parseISO } from "date-fns";
+import type { BaseChartProps } from "@workspace/types";
 
 // Tailwind classes for chart styling
 export const chartClasses = {
@@ -174,13 +175,6 @@ export const useChartMargin = (
   };
 };
 
-// Common chart props interface
-export interface BaseChartProps {
-  data: Record<string, unknown>[];
-  height?: number;
-  className?: string;
-  showAnimation?: boolean;
-}
 
 // Get date from data index for chart selection
 export function getDateFromDataIndex(data: Record<string, unknown>[], index: number, dateKey: string): Date | null {

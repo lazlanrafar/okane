@@ -1031,6 +1031,10 @@
   "contacts": {
     "title": "Contacts",
     "description": "Manage your contacts and track their debt history.",
+    "errors": {
+      "name_required": "Name is required",
+      "invalid_email": "Invalid email address"
+    },
     "add_button": "New Contact",
     "search_placeholder": "Search contacts...",
     "empty": {

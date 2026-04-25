@@ -1019,6 +1019,10 @@
   "contacts": {
     "title": "連絡先",
     "description": "連絡先を管理し、債務履歴を追跡します。",
+    "errors": {
+      "name_required": "名前は必須です",
+      "invalid_email": "無効なメール形式です"
+    },
     "add_button": "新規連絡先",
     "search_placeholder": "連絡先を検索...",
     "empty": {
@@ -1092,11 +1096,7 @@
       "saving": "保存中...",
       "create": "連絡先を作成",
       "creating": "作成中...",
-      "cancel": "キャンセル",
-      "errors": {
-        "name_required": "名前は必須です",
-        "invalid_email": "無効なメールアドレスです"
-      }
+      "cancel": "キャンセル"
     },
     "toasts": {
       "created": "連絡先を作成しました",

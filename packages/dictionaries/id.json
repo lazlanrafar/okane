@@ -1031,6 +1031,10 @@
   "contacts": {
     "title": "Kontak",
     "description": "Kelola kontak Anda dan pantau riwayat hutang mereka.",
+    "errors": {
+      "name_required": "Nama wajib diisi",
+      "invalid_email": "Email tidak valid"
+    },
     "add_button": "Kontak Baru",
     "search_placeholder": "Cari kontak...",
     "empty": {
@@ -1104,11 +1108,7 @@
       "saving": "Menyimpan...",
       "create": "Buat Kontak",
       "creating": "Membuat...",
-      "cancel": "Batal",
-      "errors": {
-        "name_required": "Nama wajib diisi",
-        "invalid_email": "Email tidak valid"
-      }
+      "cancel": "Batal"
     },
     "toasts": {
       "created": "Kontak berhasil dibuat",

@@ -36,9 +36,9 @@ const getContactSchema = (dictionary: Dictionary) =>
   z.object({
     name: z
       .string()
-      .min(1, dictionary.contacts.errors.name_required || "Name is required")
+      .min(1, dictionary.contacts?.errors?.name_required || "Name is required")
       .max(200),
-    email: z.string().email(dictionary.contacts.errors.invalid_email || "Invalid email"),
+    email: z.string().email(dictionary.contacts?.errors?.invalid_email || "Invalid email"),
     phone: z.string().optional(),
     website: z.string().optional(),
     contact: z.string().optional(),
@@ -98,10 +98,10 @@ function BillingEmailsInput({ value, onChange }: { value: string[]; onChange: (e
     <label
       htmlFor="billing-emails-input"
       className="flex min-h-9 w-full cursor-text flex-wrap gap-1.5 border border-input bg-transparent px-3 py-1.5 text-sm"
-      onClick={() => inputRef.current.focus()}
+      onClick={() => inputRef.current?.focus()}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
-          inputRef.current.focus();
+          inputRef.current?.focus();
         }
       }}
     >
@@ -151,19 +151,19 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
   const form = useForm<FormValues>({
     resolver: zodResolver(getContactSchema(dictionary)),
     defaultValues: {
-      name: contact.name ?? "",
-      email: contact.email ?? "",
-      phone: contact.phone ?? "",
-      website: contact.website ?? "",
-      contact: contact.contact ?? "",
-      addressLine1: contact.addressLine1 ?? "",
-      addressLine2: contact.addressLine2 ?? "",
-      city: contact.city ?? "",
-      state: contact.state ?? "",
-      country: contact.country ?? "",
-      zip: contact.zip ?? "",
-      note: contact.note ?? "",
-      vatNumber: contact.vatNumber ?? "",
+      name: contact?.name ?? "",
+      email: contact?.email ?? "",
+      phone: contact?.phone ?? "",
+      website: contact?.website ?? "",
+      contact: contact?.contact ?? "",
+      addressLine1: contact?.addressLine1 ?? "",
+      addressLine2: contact?.addressLine2 ?? "" ,
+      city: contact?.city ?? "",
+      state: contact?.state ?? "",
+      country: contact?.country ?? "",
+      zip: contact?.zip ?? "",
+      note: contact?.note ?? "",
+      vatNumber: contact?.vatNumber ?? "",
     },
   });
 
@@ -232,8 +232,8 @@ export function ContactFormSheet({ open, onClose, contact, dictionary }: Props) 
       };
 
       const result = isEdit
-        ? await updateContact(contact?.id, payload)
-        : await createContact(payload as unknown as Contact);
+        ? await updateContact(contact?.id || "", payload)
+        : await createContact(payload);
 
       if (result.success) {
         toast.success(isEdit ? dictionary.contacts.toasts.updated : dictionary.contacts.toasts.created);

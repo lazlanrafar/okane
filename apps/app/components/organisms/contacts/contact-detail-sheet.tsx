@@ -37,10 +37,10 @@ import { BulkPaySheet } from "../debts/bulk-pay-sheet";
 
 const getContactSchema = (dictionary: Dictionary) =>
   z.object({
-    name: z.string().min(1, dictionary.contacts.errors.name_required || "Name is required"),
+    name: z.string().min(1, dictionary.contacts?.errors?.name_required || "Name is required"),
     email: z
       .string()
-      .email(dictionary.contacts.errors.invalid_email || "Invalid email")
+      .email(dictionary.contacts?.errors?.invalid_email || "Invalid email")
       .optional()
       .or(z.literal("")),
     phone: z.string().optional().or(z.literal("")),
@@ -77,13 +77,13 @@ export function ContactDetailSheet({ contact, open, onClose, onDebtClick, dictio
   };
 
   const { data: debts, isLoading: debtsLoading } = useQuery({
-    queryKey: ["debts", "contact", contact.id],
+    queryKey: ["debts", "contact", contact?.id],
     queryFn: async () => {
-      if (!contact.id) return [];
-      const result = await getDebts({ contactId: contact.id });
+      if (!contact?.id) return [];
+      const result = await getDebts({ contactId: contact.id! });
       return result.success ? result.data : [];
     },
-    enabled: !!contact.id && open,
+    enabled: !!contact?.id && open,
   });
 
   const form = useForm<z.infer<ReturnType<typeof getContactSchema>>>({
@@ -111,14 +111,16 @@ export function ContactDetailSheet({ contact, open, onClose, onDebtClick, dictio
   }, [contact, open, form]);
 
   const updateMutation = useMutation({
-    mutationFn: (values: z.infer<ReturnType<typeof getContactSchema>>) =>
-      updateContact(contact?.id, {
+    mutationFn: (values: z.infer<ReturnType<typeof getContactSchema>>) => {
+      if (!contact?.id) throw new Error("Contact ID is missing");
+      return updateContact(contact.id, {
         name: values.name,
         email: values.email || undefined,
         phone: values.phone || undefined,
         addressLine1: values.addressLine1 || undefined,
         note: values.note || undefined,
-      }),
+      });
+    },
     onSuccess: (res) => {
       if (res.success) {
         toast.success(dictionary.contacts.toasts.updated);
@@ -131,7 +133,10 @@ export function ContactDetailSheet({ contact, open, onClose, onDebtClick, dictio
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => deleteContact(contact?.id),
+    mutationFn: () => {
+      if (!contact?.id) throw new Error("Contact ID is missing");
+      return deleteContact(contact.id);
+    },
     onSuccess: (res) => {
       if (res.success) {
         toast.success(dictionary.contacts.toasts.deleted);
@@ -148,11 +153,11 @@ export function ContactDetailSheet({ contact, open, onClose, onDebtClick, dictio
   const address = [contact.addressLine1, contact.city, contact.state, contact.country].filter(Boolean).join(", ");
 
   const totalReceivable =
-    debts
+    (debts || [])
       .filter((d) => d.type === "receivable")
       .reduce((acc, d) => acc + (Number.parseFloat((d.remainingAmount ?? 0) as string) || 0), 0) || 0;
   const totalPayable =
-    debts
+    (debts || [])
       .filter((d) => d.type === "payable")
       .reduce((acc, d) => acc + (Number.parseFloat((d.remainingAmount ?? 0) as string) || 0), 0) || 0;
 
@@ -309,7 +314,7 @@ export function ContactDetailSheet({ contact, open, onClose, onDebtClick, dictio
               <div className="grid grid-cols-2 gap-6 border-border/50 border-b p-6">
                 <div className="space-y-1">
                   <p className="font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
-                    {dictionary.debts.summary.receivable}
+                    {dictionary.debts.types.receivable}
                   </p>
                   <p className="font-serif text-2xl text-emerald-600 dark:text-emerald-400">
                     {formatCurrency(totalReceivable)}
@@ -317,7 +322,7 @@ export function ContactDetailSheet({ contact, open, onClose, onDebtClick, dictio
                 </div>
                 <div className="space-y-1">
                   <p className="font-medium text-[10px] text-muted-foreground uppercase tracking-widest">
-                    {dictionary.debts.summary.payable}
+                    {dictionary.debts.types.payable}
                   </p>
                   <p className="font-serif text-2xl text-rose-600 dark:text-rose-400">{formatCurrency(totalPayable)}</p>
                 </div>
@@ -400,8 +405,8 @@ export function ContactDetailSheet({ contact, open, onClose, onDebtClick, dictio
                                   )}
                                 >
                                   {isReceivable
-                                    ? dictionary.debts.summary.receivable
-                                    : dictionary.debts.summary.payable}
+                                    ? dictionary.debts.types.receivable
+                                    : dictionary.debts.types.payable}
                                 </span>
                                 <Badge
                                   variant={debt.status === "paid" ? "default" : "outline"}

@@ -4,12 +4,7 @@
 export {
   BaseChart,
   ChartLegend,
-  StyledArea,
-  StyledBar,
-  StyledLine,
   StyledTooltip,
-  StyledXAxis,
-  StyledYAxis,
 } from "./base-charts";
 // Chart Types
 export type { BurnRateChart as BurnRateChartType } from "./burn-rate-chart";
@@ -19,7 +14,6 @@ export { CashFlowChart } from "./cash-flow-chart";
 export { CategoryExpenseDonutChart } from "./category-expense-donut-chart";
 // Chart Utilities
 export {
-  type BaseChartProps,
   chartClasses,
   commonChartConfig,
   formatNumber,
