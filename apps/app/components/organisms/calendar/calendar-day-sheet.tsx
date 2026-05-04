@@ -1,13 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import { INCOME_EXPENSES_COLOR_OPTIONS } from "@workspace/constants";
 import type { Dictionary } from "@workspace/dictionaries";
 import type { Debt, Transaction, TransactionSettings } from "@workspace/types";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@workspace/ui";
 import { formatCurrency as formatCurrencyUtil } from "@workspace/utils";
-import { endOfMonth, format, startOfMonth } from "date-fns";
+import { format } from "date-fns";
 
 interface CalendarDaySheetProps {
   date: Date | null;
@@ -17,6 +15,7 @@ interface CalendarDaySheetProps {
   debts: (Debt & { contactName: string })[];
   dictionary: Dictionary;
   settings: TransactionSettings;
+  onTransactionClick: (transaction: Transaction) => void;
 }
 
 export function CalendarDaySheet({
@@ -27,9 +26,8 @@ export function CalendarDaySheet({
   debts,
   dictionary,
   settings,
+  onTransactionClick,
 }: CalendarDaySheetProps) {
-  const router = useRouter();
-
   const formatCurrency = (amount: number, options?: Parameters<typeof formatCurrencyUtil>[2]) =>
     formatCurrencyUtil(amount, settings, options);
 
@@ -57,13 +55,6 @@ export function CalendarDaySheet({
 
   if (!dictionary) return null;
   const t = dictionary.calendar.sheet;
-
-  const handleTransactionClick = (id: string) => {
-    onOpenChange(false);
-    const start = startOfMonth(date || new Date()).toISOString();
-    const end = endOfMonth(date || new Date()).toISOString();
-    router.push(`/transactions?transactionId=${id}&startDate=${start}&endDate=${end}&page=1`);
-  };
 
   if (!date) return null;
 
@@ -108,7 +99,7 @@ export function CalendarDaySheet({
                       <button
                         type="button"
                         key={tx.id}
-                        onClick={() => handleTransactionClick(tx.id)}
+                        onClick={() => onTransactionClick(tx)}
                         className="group flex w-full cursor-pointer flex-col gap-1 border p-3 text-left transition-colors hover:bg-muted/30"
                       >
                         <div className="flex items-start justify-between">

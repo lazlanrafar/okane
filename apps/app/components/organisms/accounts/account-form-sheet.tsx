@@ -240,7 +240,7 @@ export function AccountFormSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex h-full w-full flex-col p-0 sm:max-w-[450px]">
+      <SheetContent className="flex h-full flex-col p-0">
         <div className="mb-2 px-6 pt-6">
           <h2 className="border-b pb-2 font-semibold text-lg">
             {walletId ? dictionary.accounts.edit_account : dictionary.accounts.add_account}

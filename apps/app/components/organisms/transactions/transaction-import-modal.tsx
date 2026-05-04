@@ -202,7 +202,8 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
         const resolvedCategoryId = categoryValue ? valueMappings.categories[categoryValue] : undefined;
 
         const walletValue = data.walletIdColumn ? row[data.walletIdColumn] : undefined;
-        const resolvedWalletId = walletValue ? valueMappings.wallets[walletValue] : data.walletId;
+        const resolvedWalletId =
+          (walletValue ? valueMappings.wallets[walletValue] : undefined) || data.walletId;
 
         return {
           walletId: resolvedWalletId,
@@ -337,29 +338,34 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
                 </div>
 
                 <div className="space-y-4">
-                  {!watch("walletIdColumn") && (
-                    <div className="space-y-2">
-                      <Label className="ml-1 font-semibold text-foreground/70 text-xs">Destination Account</Label>
-                      <Controller
-                        control={form.control}
-                        name="walletId"
-                        render={({ field }) => (
-                          <Select value={field.value} onValueChange={field.onChange}>
-                            <SelectTrigger className="h-11 border-border/60 bg-background shadow-sm transition-colors hover:border-primary/50">
-                              <SelectValue placeholder="Select an account" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {wallets.map((wallet) => (
-                                <SelectItem key={wallet.id} value={wallet.id}>
-                                  {wallet.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <Label className="ml-1 font-semibold text-foreground/70 text-xs">
+                      {watch("walletIdColumn") ? "Fallback Account" : "Destination Account"}
+                    </Label>
+                    <Controller
+                      control={form.control}
+                      name="walletId"
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger className="h-11 border-border/60 bg-background shadow-sm transition-colors hover:border-primary/50">
+                            <SelectValue placeholder="Select an account" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {wallets.map((wallet) => (
+                              <SelectItem key={wallet.id} value={wallet.id}>
+                                {wallet.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {watch("walletIdColumn") && (
+                      <p className="ml-1 text-muted-foreground text-xs">
+                        Used when the mapped account column is empty or a value was not matched.
+                      </p>
+                    )}
+                  </div>
 
                   <div className="space-y-2">
                     <Label className="ml-1 font-semibold text-foreground/70 text-xs">Default Currency</Label>

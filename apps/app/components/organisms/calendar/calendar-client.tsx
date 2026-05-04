@@ -32,6 +32,7 @@ import { CalendarDays, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-reac
 import { parseAsString, useQueryState } from "nuqs";
 
 import { CalendarDaySheet } from "./calendar-day-sheet";
+import { TransactionDetailSheet } from "../transactions/transaction-detail-sheet";
 
 type CalendarView = "month" | "week";
 
@@ -70,6 +71,8 @@ export function CalendarClient({ dictionary, settings }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>(undefined);
+  const [isTransactionDetailOpen, setIsTransactionDetailOpen] = useState(false);
   const [calendarDate, setCalendarDate] = useQueryState(
     "calendarDate",
     parseAsString.withDefault("").withOptions({ shallow: true }),
@@ -331,6 +334,20 @@ export function CalendarClient({ dictionary, settings }: Props) {
         )}
         dictionary={dictionary}
         settings={settings}
+        onTransactionClick={(transaction) => {
+          setSelectedTransaction(transaction);
+          setIsTransactionDetailOpen(true);
+        }}
+      />
+
+      <TransactionDetailSheet
+        open={isTransactionDetailOpen}
+        onOpenChange={(open) => {
+          setIsTransactionDetailOpen(open);
+          if (!open) setSelectedTransaction(undefined);
+        }}
+        transaction={selectedTransaction}
+        dictionary={dictionary}
       />
     </div>
   );

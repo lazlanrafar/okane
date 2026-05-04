@@ -16,6 +16,7 @@ import {
 } from "@workspace/ui";
 import { Globe, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/providers/confirm-modal-provider";
 
 const CellActions = ({
   row,
@@ -28,14 +29,17 @@ const CellActions = ({
 }) => {
   const contact = row.original;
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        `${dictionary.contacts.details.delete_confirm_title}\n\n${dictionary.contacts.details.delete_confirm_desc}`,
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: dictionary.contacts.details.delete_confirm_title,
+      description: dictionary.contacts.details.delete_confirm_desc,
+      confirmLabel: dictionary.common.delete,
+      cancelLabel: dictionary.common.cancel,
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       const result = await deleteContact(contact.id);
       if (result.success) {

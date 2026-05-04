@@ -19,6 +19,7 @@ import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { SelectAccountGroup } from "@/components/molecules/select-account-group";
+import { useConfirm } from "@/components/providers/confirm-modal-provider";
 
 const CellActions = ({
   row,
@@ -31,9 +32,17 @@ const CellActions = ({
 }) => {
   const wallet = row.original;
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
 
   const handleDelete = async () => {
-    if (!confirm(dictionary.accounts.confirmations.delete)) return;
+    const ok = await confirm({
+      title: dictionary.accounts.confirmations.delete,
+      description: "This action cannot be undone.",
+      confirmLabel: dictionary.common.delete,
+      cancelLabel: dictionary.common.cancel,
+      destructive: true,
+    });
+    if (!ok) return;
 
     try {
       const result = await deleteWallet(wallet.id);
@@ -109,6 +118,12 @@ const GroupCell = ({
         variant="ghost"
         className="h-8 w-full justify-start font-normal"
         placeholder={dictionary.accounts.group_placeholder}
+        popoverProps={{
+          portal: true,
+          align: "start",
+          side: "bottom",
+          sideOffset: 6,
+        }}
       />
     </div>
   );

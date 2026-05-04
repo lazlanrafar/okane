@@ -15,6 +15,7 @@ export interface SelectAccountGroupProps {
   headless?: boolean;
   hideLoading?: boolean;
   variant?: React.ComponentProps<typeof Combobox>["variant"];
+  popoverProps?: React.ComponentProps<typeof Combobox>["popoverProps"];
 }
 
 export function SelectAccountGroup({
@@ -26,6 +27,7 @@ export function SelectAccountGroup({
   variant,
   headless,
   hideLoading,
+  popoverProps,
 }: SelectAccountGroupProps) {
   const queryClient = useQueryClient();
 
@@ -91,6 +93,7 @@ export function SelectAccountGroup({
         onChange(item.id);
       }}
       className={className}
+      popoverProps={popoverProps}
       onCreate={(value) => {
         createMutation.mutate(value);
       }}

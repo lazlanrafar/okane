@@ -21,6 +21,7 @@ import { displayPrice, getGatewayPrice } from "@workspace/utils";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 
+import { useConfirm } from "@/components/providers/confirm-modal-provider";
 import { useAppStore } from "@/stores/app";
 
 export function UpgradeView({
@@ -37,6 +38,7 @@ export function UpgradeView({
     settings?: { mainCurrencyCode?: string };
   };
   const [billingCycle, setBillingCycle] = React.useState<"monthly" | "annual">("monthly");
+  const confirm = useConfirm();
 
   const currency = settings?.mainCurrencyCode?.toLowerCase() || "usd";
   const workspaceId = workspace?.id;
@@ -201,11 +203,17 @@ export function UpgradeView({
                         downgradeMutation.isPending ||
                         (!priceId && !isStarter)
                       }
-                      onClick={() => {
+                      onClick={async () => {
                         if (canDowngrade) {
-                          if (confirm(dict.downgrade_confirm)) {
-                            downgradeMutation.mutate();
-                          }
+                          const ok = await confirm({
+                            title: dict.upgrade,
+                            description: dict.downgrade_confirm,
+                            confirmLabel: "Confirm",
+                            cancelLabel: dictionary.common.cancel,
+                            destructive: true,
+                          });
+                          if (!ok) return;
+                          downgradeMutation.mutate();
                         } else if (!isCurrent && priceId) {
                           checkoutMutation.mutate({ priceId, type: "subscription" });
                         }

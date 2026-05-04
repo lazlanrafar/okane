@@ -5,7 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Dictionary } from "@workspace/dictionaries";
-import { createTransaction, updateTransaction } from "@workspace/modules/transaction/transaction.action";
+import {
+  createTransaction,
+  updateTransaction,
+} from "@workspace/modules/transaction/transaction.action";
 import { uploadVaultFile } from "@workspace/modules/vault/vault.action";
 import type { Transaction } from "@workspace/types";
 import {
@@ -28,7 +31,15 @@ import {
   SheetTitle,
 } from "@workspace/ui";
 import { getCurrencyDisplayUnit } from "@workspace/utils";
-import { ChevronsUpDown, File, FileText, Film, Image, Paperclip, X } from "lucide-react";
+import {
+  ChevronsUpDown,
+  File,
+  FileText,
+  Film,
+  Image,
+  Paperclip,
+  X,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -37,15 +48,27 @@ import { SelectAccount } from "@/components/molecules/select-account";
 import { SelectCategory } from "@/components/molecules/select-category";
 import { SelectUser } from "@/components/molecules/select-user";
 import { VaultPickerModal } from "@/components/molecules/vault-picker-modal";
+import { FormSegmentedTabs } from "@/components/molecules/form-segmented-tabs";
 import { useAppStore } from "@/stores/app";
 
 const getTransactionSchema = (dictionary: Dictionary) =>
   z.object({
-    amount: z.coerce.number().positive(dictionary.transactions.errors.amount_positive || "Amount must be positive"),
+    amount: z.coerce
+      .number()
+      .positive(
+        dictionary.transactions.errors.amount_positive ||
+          "Amount must be positive",
+      ),
     date: z.string().refine((val) => !Number.isNaN(Date.parse(val)), {
       message: dictionary.transactions.errors.invalid_date || "Invalid date",
     }),
-    type: z.enum(["income", "expense", "transfer", "transfer-in", "transfer-out"]),
+    type: z.enum([
+      "income",
+      "expense",
+      "transfer",
+      "transfer-in",
+      "transfer-out",
+    ]),
     walletId: z.string().min(1, dictionary.transactions.errors.wallet_required),
     toWalletId: z.string().optional(),
     categoryId: z.string().optional(),
@@ -85,7 +108,13 @@ interface Props {
   dictionary: Dictionary;
 }
 
-export function TransactionFormSheet({ open, onOpenChange, transaction, onSuccess, dictionary }: Props) {
+export function TransactionFormSheet({
+  open,
+  onOpenChange,
+  transaction,
+  onSuccess,
+  dictionary,
+}: Props) {
   const [mounted, setMounted] = useState(false);
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -181,13 +210,17 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
       if (transaction?.id) {
         const result = await updateTransaction(transaction?.id, payload);
         if (!result.success) {
-          throw new Error(result.error || dictionary.transactions.errors.save_failed);
+          throw new Error(
+            result.error || dictionary.transactions.errors.save_failed,
+          );
         }
         toast.success(dictionary.transactions.toasts.updated);
       } else {
         const result = await createTransaction(payload);
         if (!result.success) {
-          throw new Error(result.error || dictionary.transactions.errors.save_failed);
+          throw new Error(
+            result.error || dictionary.transactions.errors.save_failed,
+          );
         }
         toast.success(dictionary.transactions.toasts.created);
       }
@@ -199,7 +232,11 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
       void queryClient.invalidateQueries({ queryKey: ["transactions"] });
     } catch (error) {
       console.error(error);
-      toast.error(error instanceof Error ? error.message : dictionary.transactions.errors.save_failed);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : dictionary.transactions.errors.save_failed,
+      );
     } finally {
       setIsLoading(false);
     }
@@ -217,12 +254,15 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
   const handleVaultConfirm = (ids: string[]) => {
     const newAttachments = ids.map((id) => {
       const existing = attachments.find((a) => a.id === id);
-      return existing ?? { id, name: id, size: 0, type: "application/octet-stream" };
+      return (
+        existing ?? { id, name: id, size: 0, type: "application/octet-stream" }
+      );
     });
     setAttachments(newAttachments);
   };
 
-  const removeAttachment = (id: string) => setAttachments((prev) => prev.filter((a) => a.id !== id));
+  const removeAttachment = (id: string) =>
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -237,7 +277,9 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
         "text/csv",
       ];
       if (!ALLOWED_TYPES.includes(file.type)) {
-        throw new Error(`Invalid file type for ${file.name}. Only documents and images are allowed.`);
+        throw new Error(
+          `Invalid file type for ${file.name}. Only documents and images are allowed.`,
+        );
       }
       const formData = new FormData();
       formData.append("file", file);
@@ -245,15 +287,25 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
       if (result.success) return result.data;
       throw new Error(result.error);
     },
-    onSuccess: (data: { id: string; name: string; size: number; type: string }) => {
+    onSuccess: (data: {
+      id: string;
+      name: string;
+      size: number;
+      type: string;
+    }) => {
       queryClient.invalidateQueries({ queryKey: ["vault-files"] });
       setAttachments((prev) => {
         if (prev.find((a) => a.id === data.id)) return prev;
-        return [...prev, { id: data.id, name: data.name, size: data.size, type: data.type }];
+        return [
+          ...prev,
+          { id: data.id, name: data.name, size: data.size, type: data.type },
+        ];
       });
     },
     onError: (error: Error) => {
-      toast.error(error.message || dictionary.transactions.errors.upload_failed);
+      toast.error(
+        error.message || dictionary.transactions.errors.upload_failed,
+      );
     },
   });
 
@@ -263,11 +315,16 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
     if (filesArray.length === 0) return;
 
     const toastId = toast.loading(
-      dictionary.transactions.uploading_files.replace("{count}", filesArray.length.toString()),
+      dictionary.transactions.uploading_files.replace(
+        "{count}",
+        filesArray.length.toString(),
+      ),
     );
 
     try {
-      await Promise.all(filesArray.map((file) => uploadMutation.mutateAsync(file)));
+      await Promise.all(
+        filesArray.map((file) => uploadMutation.mutateAsync(file)),
+      );
       toast.success(dictionary.transactions.all_uploads_success, {
         id: toastId,
       });
@@ -285,68 +342,55 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
       <SheetContent className="flex h-full flex-col p-0">
         <SheetHeader className="shrink-0 border-b px-6 py-6">
           <SheetTitle>
-            {transaction ? dictionary.transactions.edit_transaction : dictionary.transactions.new_transaction}
+            {transaction
+              ? dictionary.transactions.edit_transaction
+              : dictionary.transactions.new_transaction}
           </SheetTitle>
         </SheetHeader>
 
         <div className="no-scrollbar flex-1 overflow-y-auto px-6 py-6">
           <Form {...form}>
-            <form id="transaction-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="flex w-full overflow-hidden border border-border bg-muted/30">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  disabled={!!transaction}
-                  className={cn(
-                    "h-full flex-1 rounded-none border-border border-r text-xs last:border-r-0",
-                    activeTab === "expense"
-                      ? "bg-muted font-medium shadow-sm"
-                      : "bg-transparent text-muted-foreground hover:bg-muted/50",
-                  )}
-                  onClick={() => handleTabChange("expense")}
-                >
-                  {dictionary.transactions.types.expense}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  disabled={!!transaction}
-                  className={cn(
-                    "h-full flex-1 rounded-none border-border border-r text-xs last:border-r-0",
-                    activeTab === "income"
-                      ? "bg-muted font-medium shadow-sm"
-                      : "bg-transparent text-muted-foreground hover:bg-muted/50",
-                  )}
-                  onClick={() => handleTabChange("income")}
-                >
-                  {dictionary.transactions.types.income}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  disabled={!!transaction}
-                  className={cn(
-                    "h-full flex-1 rounded-none text-xs",
-                    activeTab === "transfer"
-                      ? "bg-muted font-medium shadow-sm"
-                      : "bg-transparent text-muted-foreground hover:bg-muted/50",
-                  )}
-                  onClick={() => handleTabChange("transfer")}
-                >
-                  {dictionary.transactions.types.transfer}
-                </Button>
-              </div>
-              <p className="mt-[-24px] mb-4 text-[11px] text-muted-foreground">{dictionary.transactions.hints.type}</p>
+            <form
+              id="transaction-form"
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-8"
+            >
+              <FormSegmentedTabs
+                value={activeTab}
+                disabled={!!transaction}
+                onChange={handleTabChange}
+                options={[
+                  {
+                    value: "expense",
+                    label: dictionary.transactions.types.expense,
+                  },
+                  {
+                    value: "income",
+                    label: dictionary.transactions.types.income,
+                  },
+                  {
+                    value: "transfer",
+                    label: dictionary.transactions.types.transfer,
+                  },
+                ]}
+              />
+              <p className="mt-[-24px] mb-4 text-[11px] text-muted-foreground">
+                {dictionary.transactions.hints.type}
+              </p>
 
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-medium text-sm">{dictionary.transactions.description_label}</FormLabel>
+                    <FormLabel className="font-medium text-sm">
+                      {dictionary.transactions.description_label}
+                    </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder={dictionary.transactions.placeholders.description}
+                        placeholder={
+                          dictionary.transactions.placeholders.description
+                        }
                         {...field}
                         value={field.value ?? ""}
                         className="h-10 bg-transparent transition-colors focus:border-foreground"
@@ -366,7 +410,9 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-medium text-sm">{dictionary.transactions.amount_label}</FormLabel>
+                      <FormLabel className="font-medium text-sm">
+                        {dictionary.transactions.amount_label}
+                      </FormLabel>
                       <FormControl>
                         <div className="group relative">
                           <span className="-translate-y-1/2 absolute top-1/2 left-3 text-muted-foreground/50 text-sm transition-colors group-focus-within:text-foreground">
@@ -388,7 +434,9 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                           />
                         </div>
                       </FormControl>
-                      <FormDescription className="text-[11px]">{dictionary.transactions.hints.amount}</FormDescription>
+                      <FormDescription className="text-[11px]">
+                        {dictionary.transactions.hints.amount}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -418,7 +466,9 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   name="walletId"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="font-medium text-sm">{dictionary.transactions.account}</FormLabel>
+                      <FormLabel className="font-medium text-sm">
+                        {dictionary.transactions.account}
+                      </FormLabel>
                       <FormControl>
                         <SelectAccount
                           value={field.value ?? undefined}
@@ -426,7 +476,9 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                           className="h-10 w-full justify-start bg-transparent px-3 text-left font-normal transition-colors hover:bg-muted/10 hover:bg-transparent"
                         />
                       </FormControl>
-                      <FormDescription className="text-[11px]">{dictionary.transactions.hints.account}</FormDescription>
+                      <FormDescription className="text-[11px]">
+                        {dictionary.transactions.hints.account}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -437,7 +489,9 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   name="date"
                   render={({ field }) => (
                     <FormItem className="">
-                      <FormLabel className="font-medium text-sm">{dictionary.transactions.date_label}</FormLabel>
+                      <FormLabel className="font-medium text-sm">
+                        {dictionary.transactions.date_label}
+                      </FormLabel>
                       <FormControl>
                         <InputDate
                           value={field.value}
@@ -445,7 +499,9 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                           className="h-10 bg-transparent transition-colors focus:border-foreground"
                         />
                       </FormControl>
-                      <FormDescription className="text-[11px]">{dictionary.transactions.hints.date}</FormDescription>
+                      <FormDescription className="text-[11px]">
+                        {dictionary.transactions.hints.date}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -459,7 +515,9 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                     name="categoryId"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel className="font-medium text-sm">{dictionary.transactions.category}</FormLabel>
+                        <FormLabel className="font-medium text-sm">
+                          {dictionary.transactions.category}
+                        </FormLabel>
                         <FormControl>
                           <SelectCategory
                             value={field.value ?? undefined}
@@ -480,12 +538,16 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                     name="toWalletId"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel className="font-medium text-sm">{dictionary.transactions.to_account}</FormLabel>
+                        <FormLabel className="font-medium text-sm">
+                          {dictionary.transactions.to_account}
+                        </FormLabel>
                         <FormControl>
                           <SelectAccount
                             value={field.value ?? undefined}
                             onChange={(id) => form.setValue("toWalletId", id)}
-                            placeholder={dictionary.transactions.placeholders.destination}
+                            placeholder={
+                              dictionary.transactions.placeholders.destination
+                            }
                           />
                         </FormControl>
                         <FormDescription className="text-[11px]">
@@ -502,15 +564,21 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   name="assignedUserId"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="font-medium text-sm">{dictionary.transactions.assign}</FormLabel>
+                      <FormLabel className="font-medium text-sm">
+                        {dictionary.transactions.assign}
+                      </FormLabel>
                       <FormControl>
                         <SelectUser
                           value={field.value ?? undefined}
                           onChange={(id) => form.setValue("assignedUserId", id)}
-                          placeholder={dictionary.transactions.placeholders.member}
+                          placeholder={
+                            dictionary.transactions.placeholders.member
+                          }
                         />
                       </FormControl>
-                      <FormDescription className="text-[11px]">{dictionary.transactions.hints.assign}</FormDescription>
+                      <FormDescription className="text-[11px]">
+                        {dictionary.transactions.hints.assign}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -522,18 +590,26 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                 name="description"
                 render={({ field }) => (
                   <FormItem className="space-y-2">
-                    <FormLabel className="font-medium text-sm">{dictionary.transactions.notes_label}</FormLabel>
+                    <FormLabel className="font-medium text-sm">
+                      {dictionary.transactions.notes_label}
+                    </FormLabel>
                     <FormControl>
                       <div className="mb-4 min-h-[120px] border bg-transparent px-3 py-2 text-sm transition-colors focus-within:border-foreground focus-within:ring-0">
                         <Editor
                           initialContent={field.value || ""}
-                          placeholder={dictionary.transactions.placeholders.notes}
-                          onUpdate={(editor) => field.onChange(editor.getHTML())}
+                          placeholder={
+                            dictionary.transactions.placeholders.notes
+                          }
+                          onUpdate={(editor) =>
+                            field.onChange(editor.getHTML())
+                          }
                           onBlur={field.onBlur}
                         />
                       </div>
                     </FormControl>
-                    <FormDescription className="text-[11px]">{dictionary.transactions.hints.notes}</FormDescription>
+                    <FormDescription className="text-[11px]">
+                      {dictionary.transactions.hints.notes}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -578,16 +654,26 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                   className="group relative mt-2 flex aspect-3/1 cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden border-2 border-dashed bg-muted/5 transition-all hover:border-border/60 hover:bg-muted/10 sm:aspect-[4/1]"
                   onDragOver={(e) => {
                     e.preventDefault();
-                    e.currentTarget.classList.add("bg-muted/20", "border-primary/50");
+                    e.currentTarget.classList.add(
+                      "bg-muted/20",
+                      "border-primary/50",
+                    );
                   }}
                   onDragLeave={(e) => {
                     e.preventDefault();
-                    e.currentTarget.classList.remove("bg-muted/20", "border-primary/50");
+                    e.currentTarget.classList.remove(
+                      "bg-muted/20",
+                      "border-primary/50",
+                    );
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
-                    e.currentTarget.classList.remove("bg-muted/20", "border-primary/50");
-                    if (e.dataTransfer.files) handleUploadFiles(e.dataTransfer.files);
+                    e.currentTarget.classList.remove(
+                      "bg-muted/20",
+                      "border-primary/50",
+                    );
+                    if (e.dataTransfer.files)
+                      handleUploadFiles(e.dataTransfer.files);
                   }}
                   onClick={() => setVaultPickerOpen(true)}
                   onKeyDown={(event) => {
@@ -601,15 +687,21 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
                     <Paperclip className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
                   </div>
                   <p className="px-4 text-center text-[11px] text-muted-foreground leading-relaxed sm:px-8">
-                    <span className="font-medium text-foreground">{dictionary.transactions.click_to_browse}</span>{" "}
+                    <span className="font-medium text-foreground">
+                      {dictionary.transactions.click_to_browse}
+                    </span>{" "}
                     {dictionary.transactions.drag_drop}
                     <br />
-                    <span className="text-[10px] opacity-60">{dictionary.transactions.upload_hint}</span>
+                    <span className="text-[10px] opacity-60">
+                      {dictionary.transactions.upload_hint}
+                    </span>
                   </p>
 
                   {uploadMutation.isPending && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
-                      <span className="animate-pulse font-medium text-xs">{dictionary.transactions.saving}</span>
+                      <span className="animate-pulse font-medium text-xs">
+                        {dictionary.transactions.saving}
+                      </span>
                     </div>
                   )}
                 </button>
@@ -626,8 +718,15 @@ export function TransactionFormSheet({ open, onOpenChange, transaction, onSucces
         </div>
 
         <div className="mt-auto shrink-0 border-t bg-background p-6">
-          <Button form="transaction-form" type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? dictionary.transactions.saving : dictionary.transactions.save_transaction}
+          <Button
+            form="transaction-form"
+            type="submit"
+            className="w-full"
+            disabled={isLoading}
+          >
+            {isLoading
+              ? dictionary.transactions.saving
+              : dictionary.transactions.save_transaction}
           </Button>
         </div>
       </SheetContent>

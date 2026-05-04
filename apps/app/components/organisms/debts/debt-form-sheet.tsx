@@ -26,9 +26,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  Tabs,
-  TabsList,
-  TabsTrigger,
 } from "@workspace/ui";
 import { getCurrencyDisplayUnit } from "@workspace/utils";
 import { useForm } from "react-hook-form";
@@ -36,6 +33,7 @@ import { toast } from "sonner";
 import * as z from "zod";
 
 import { SelectContact } from "@/components/molecules/select-contact";
+import { FormSegmentedTabs } from "@/components/molecules/form-segmented-tabs";
 
 const getDebtSchema = (dictionary: Dictionary["debts"], _remaining?: number) =>
   z.object({
@@ -158,26 +156,16 @@ export function DebtFormSheet({ open, onOpenChange, debt, dictionary, settings }
           <Form {...form}>
             <form id="debt-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               {!debt && (
-                <Tabs
-                  defaultValue={activeTab}
-                  onValueChange={(value) => handleTabChange(value as "payable" | "receivable")}
-                  className="w-full"
-                >
-                  <TabsList className="grid h-11 w-full grid-cols-2 rounded-none bg-muted/20 p-1">
-                    <TabsTrigger
-                      value="receivable"
-                      className="rounded-none font-medium text-[10px] uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-none"
-                    >
-                      {dict.form.type_receivable}
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="payable"
-                      className="rounded-none font-medium text-[10px] uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-none"
-                    >
-                      {dict.form.type_payable}
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <FormSegmentedTabs
+                  value={activeTab}
+                  onChange={handleTabChange}
+                  options={[
+                    { value: "receivable", label: dict.form.type_receivable },
+                    { value: "payable", label: dict.form.type_payable },
+                  ]}
+                  className="h-11 bg-muted/20 p-1"
+                  triggerClassName="font-medium text-[10px] uppercase tracking-widest"
+                />
               )}
 
               <FormField
