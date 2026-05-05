@@ -33,6 +33,30 @@ export const transactions = new Elysia({
       },
     },
   )
+  .get(
+    "/export",
+    async ({ auth, query }) => {
+      if (!auth?.workspace_id) {
+        throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      }
+      
+      const csvData = await TransactionsService.export(auth.workspace_id, query);
+      return new Response(csvData, {
+        headers: {
+          "Content-Type": "text/csv",
+          "Content-Disposition": 'attachment; filename="transactions.csv"',
+        },
+      });
+    },
+    {
+      query: TransactionModel.exportQuery,
+      detail: {
+        summary: "Export transactions to CSV",
+        description: "Returns a CSV file containing the workspace's transactions.",
+        tags: ["Transactions"],
+      },
+    },
+  )
   .post(
     "/",
     async ({ auth, body }) => {

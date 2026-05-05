@@ -216,3 +216,23 @@ export const getTransactionDebts = async (
     };
   }
 };
+
+export const exportTransactions = async (params: {
+  startDate?: string;
+  endDate?: string;
+  allData?: string;
+}): Promise<ActionResponse<string>> => {
+  try {
+    const response = await api.get("/transactions/export", {
+      params,
+      responseType: "text",
+    });
+    
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || "Failed to export transactions",
+    };
+  }
+};

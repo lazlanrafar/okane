@@ -94,7 +94,7 @@ export function VaultPickerModal({
   const [isLoading, setIsLoading] = useState(false);
 
   // New State additions
-  const [view, setView] = useState<"list" | "grid">("list");
+  const [view, setView] = useState<"list" | "grid">("grid");
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterSize, setFilterSize] = useState<string>("all");
@@ -225,7 +225,7 @@ export function VaultPickerModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[70vh] flex-col sm:max-w-[900px]">
+      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-[900px]">
         <DialogHeader className="sr-only flex flex-row items-center border-b py-4">
           <DialogTitle>Select file</DialogTitle>
         </DialogHeader>
@@ -236,7 +236,7 @@ export function VaultPickerModal({
               <Search className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search files..."
-                className="h-10 w-full bg-transparent pl-9"
+                className="h-8 w-full bg-transparent pl-9"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -245,7 +245,7 @@ export function VaultPickerModal({
             <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="hidden sm:flex h-10">
+                  <Button variant="outline" className="hidden sm:flex h-8">
                     <ArrowUpDown className="mr-2 h-4 w-4" />
                     Sort
                   </Button>
@@ -285,7 +285,7 @@ export function VaultPickerModal({
               </DropdownMenu>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="h-10 px-3">
+                  <Button variant="outline" className="h-8 px-3">
                     {view === "list" ? (
                       <>
                         <ListIcon className="mr-2 h-4 w-4 text-muted-foreground" />

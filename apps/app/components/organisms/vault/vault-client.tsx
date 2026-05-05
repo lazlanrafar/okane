@@ -76,7 +76,7 @@ export function VaultClient({ dictionary }: Props) {
   const queryClient = useQueryClient();
 
   const t = dictionary.vault;
-  const [view, setView] = useQueryState("view", parseAsString.withDefault("list").withOptions({ shallow: true }));
+  const [view, setView] = useQueryState("view", parseAsString.withDefault("grid").withOptions({ shallow: true }));
   const [search, setSearch] = useQueryState("search", parseAsString.withDefault("").withOptions({ shallow: true }));
 
   const [isDragging, setIsDragging] = React.useState(false);
@@ -109,6 +109,13 @@ export function VaultClient({ dictionary }: Props) {
   const files = React.useMemo(() => {
     return data?.pages?.flatMap((page) => page.files) || [];
   }, [data]);
+
+  // Auto-select the first file when data loads and nothing is selected yet
+  React.useEffect(() => {
+    if (files.length > 0 && !selectedFile) {
+      setSelectedFile(files[0]);
+    }
+  }, [files, selectedFile]);
 
   const _pagination = data?.pages?.[0]?.pagination;
 

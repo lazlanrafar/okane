@@ -70,7 +70,7 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
     resolver: zodResolver(importSchema),
     defaultValues: {
       file: undefined,
-      currency: settings?.mainCurrencyCode || "USD",
+      currency: "",
       walletId: "",
       amount: "",
       date: "",
@@ -115,12 +115,16 @@ export function ImportModal({ open, onOpenChange, wallets, onSuccess }: ImportMo
     }
   }, [wallets, setValue, watch]);
 
-  // Set default currency from settings
+  // Set default currency from settings — runs whenever settings loads,
+  // using getValues() to avoid the stale-closure issue with watch()
   useEffect(() => {
-    if (settings?.mainCurrencyCode && !watch("currency")) {
-      setValue("currency", settings?.mainCurrencyCode);
+    if (settings?.mainCurrencyCode) {
+      const current = form.getValues("currency");
+      if (!current) {
+        setValue("currency", settings.mainCurrencyCode);
+      }
     }
-  }, [settings?.mainCurrencyCode, setValue, watch]);
+  }, [settings?.mainCurrencyCode, form, setValue]);
 
   const onNext = () => {
     if (step === "select") setStep("mapping");

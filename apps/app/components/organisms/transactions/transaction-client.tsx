@@ -17,14 +17,9 @@ import {
 import type { ColumnDef, Row } from "@tanstack/react-table";
 import type { Dictionary } from "@workspace/dictionaries";
 import {
-  type ParsedReceipt,
-  parseReceipt,
-} from "@workspace/modules/ai/ai.action";
-import {
   deleteTransaction,
   getTransactions,
 } from "@workspace/modules/transaction/transaction.action";
-import { uploadVaultFile } from "@workspace/modules/vault/vault.action";
 import type {
   Category,
   Transaction,
@@ -57,10 +52,9 @@ import {
 import {
   ChevronDown,
   ChevronRight,
+  FileDown,
   FileUp,
   Plus,
-  Receipt,
-  Upload,
 } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
@@ -79,7 +73,7 @@ import {
   TransactionGroupingSelector,
 } from "./transaction-grouping-selector";
 import { ImportModal } from "./transaction-import-modal";
-import { TransactionReceiptConfirmationModal } from "./transaction-receipt-confirmation-modal";
+import { ExportModal } from "./transaction-export-modal";
 import { TransactionTableSkeleton } from "./transaction-table-skeleton";
 
 interface TransactionGroup {
@@ -166,21 +160,15 @@ export function TransactionsClient({
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<
     Transaction | undefined
   >();
-  const [isReceiptConfirmOpen, setIsReceiptConfirmOpen] = useState(false);
-  const [parsedReceiptData, setParsedReceiptData] =
-    useState<ParsedReceipt | null>(null);
-  const [uploadedReceiptId, setUploadedReceiptId] = useState<string | null>(
-    null,
-  );
   const [columns, setColumns] = useState<
     ComponentProps<typeof DataTableColumnsVisibility>["columns"]
   >([]);
   const [activeTab, _setActiveTab] = useState<"all" | "review" | "none">("all");
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { formatCurrency, getTransactionColor } = useAppStore();
@@ -615,103 +603,6 @@ export function TransactionsClient({
     setIsFormOpen(true);
   };
 
-  const handleUploadReceipt = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 3 * 1024 * 1024) {
-      toast.error(
-        dictionary.transactions.errors.file_size_limit || "File size too large",
-      );
-      return;
-    }
-
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "application/pdf",
-    ];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error(
-        dictionary.transactions.errors.file_type_limit ||
-          "File type not supported",
-      );
-      return;
-    }
-
-    const toastId = toast.loading(
-      dictionary.transactions.toasts.parsing_receipt || "Parsing receipt...",
-    );
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const uploadResult = await uploadVaultFile(formData);
-
-      if (!uploadResult.success || !uploadResult.data) {
-        throw new Error(
-          uploadResult.error ||
-            dictionary.transactions.errors.upload_failed ||
-            "Upload failed",
-        );
-      }
-
-      const vaultFileId = uploadResult.data.id;
-      setUploadedReceiptId(vaultFileId);
-
-      const reader = new FileReader();
-      const base64Promise = new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          if (typeof reader.result === "string") {
-            const base64 = reader.result.split(",")[1];
-            resolve(base64 || "");
-          } else {
-            reject(new Error("Failed to read file as base64"));
-          }
-        };
-        reader.onerror = reject;
-      });
-      reader.readAsDataURL(file);
-      const base64Data = await base64Promise;
-
-      const parseResult = await parseReceipt({
-        name: file.name,
-        type: file.type,
-        data: base64Data,
-      });
-
-      if (!parseResult.success || !parseResult.data) {
-        throw new Error(
-          parseResult.error ||
-            dictionary.transactions.errors.parse_failed ||
-            "Parsing failed",
-        );
-      }
-
-      setParsedReceiptData(parseResult.data);
-      setIsReceiptConfirmOpen(true);
-      toast.success(
-        dictionary.transactions.toasts.parse_success ||
-          "Receipt parsed successfully",
-        { id: toastId },
-      );
-    } catch (error) {
-      console.error(error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : dictionary.transactions.errors.process_failed;
-      toast.error(message || "Failed to process receipt", { id: toastId });
-    } finally {
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
-  };
-
   return (
     <div className="flex h-full w-full flex-col gap-4">
       <div className="flex shrink-0 items-center justify-between gap-4">
@@ -758,44 +649,31 @@ export function TransactionsClient({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
-                <Plus className="h-4 w-4" />
-                <span className="text-sm">
-                  {dictionary.transactions.add_button}
+                <FileUp className="h-4 w-4" />
+                <span className="hidden sm:inline-block ml-2 text-sm">
+                  {dictionary.transactions.import_backfill}
                 </span>
+                <ChevronDown className="ml-2 h-4 w-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                className="cursor-pointer gap-2"
-                onClick={() => setIsImportOpen(true)}
-              >
-                <FileUp className="h-4 w-4" />
-                <span>{dictionary.transactions.import_backfill}</span>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsImportOpen(true)}>
+                <FileUp className="mr-2 h-4 w-4" />
+                {dictionary.transactions.backup_restore_device}
               </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer gap-2"
-                onClick={handleCreate}
-              >
-                <Receipt className="h-4 w-4" />
-                <span>{dictionary.transactions.create_transaction}</span>
+              <DropdownMenuItem disabled>
+                <FileDown className="mr-2 h-4 w-4" />
+                {dictionary.transactions.export_backup_email}
               </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer gap-2"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Upload className="h-4 w-4" />
-                <span>{dictionary.transactions.upload_receipts}</span>
+              <DropdownMenuItem onClick={() => setIsExportOpen(true)}>
+                <FileDown className="mr-2 h-4 w-4" />
+                {dictionary.transactions.export_data_excel}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            accept="image/*,application/pdf"
-            onChange={handleUploadReceipt}
-          />
+          <Button variant="outline" size="icon" onClick={handleCreate}>
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -1084,16 +962,6 @@ export function TransactionsClient({
         dictionary={dictionary}
       />
 
-      <TransactionReceiptConfirmationModal
-        open={isReceiptConfirmOpen}
-        onOpenChange={setIsReceiptConfirmOpen}
-        data={parsedReceiptData}
-        vaultFileId={uploadedReceiptId}
-        onSuccess={() => {
-          refetch();
-        }}
-      />
-
       <TransactionDetailSheet
         open={isDetailOpen}
         onOpenChange={(open) => {
@@ -1144,6 +1012,11 @@ export function TransactionsClient({
           setIsImportOpen(false);
           refetch();
         }}
+      />
+
+      <ExportModal
+        open={isExportOpen}
+        onOpenChange={setIsExportOpen}
       />
     </div>
   );

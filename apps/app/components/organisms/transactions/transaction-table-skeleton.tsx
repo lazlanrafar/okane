@@ -1,9 +1,13 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { TableSkeleton } from "@workspace/ui";
+import { Skeleton, TableSkeleton } from "@workspace/ui";
 
-export function TransactionTableSkeleton({ hideHeader = false }: { hideHeader?: boolean }) {
+export function TransactionTableSkeleton({
+  hideHeader = false,
+}: {
+  hideHeader?: boolean;
+}) {
   const columns: ColumnDef<Record<string, string>>[] = [
     { id: "select", header: "" },
     { id: "date", header: "Date" },
@@ -17,13 +21,20 @@ export function TransactionTableSkeleton({ hideHeader = false }: { hideHeader?: 
 
   return (
     <div className="flex h-full w-full flex-col space-y-4">
-      {/* Skeleton for Header (Search and Actions) */}
+      {/* Skeleton toolbar — mirrors the actual transaction page header */}
       {!hideHeader && (
-        <div className="flex shrink-0 items-center justify-between gap-4">
-          <div className="flex h-10 max-w-sm flex-1 animate-pulse items-center rounded-md bg-muted/30" />
+        <div className="flex shrink-0 items-center justify-between gap-3">
+          {/* Left: search + filter icon */}
+          <div className="flex flex-1 items-center gap-2">
+            <Skeleton className="h-9 max-w-sm flex-1" />
+          </div>
+          {/* Right: grouping selector + date range + columns + backup + add */}
           <div className="flex items-center gap-2">
-            <div className="h-9 w-24 animate-pulse rounded-md bg-muted/30" />
-            <div className="h-9 w-24 animate-pulse rounded-md bg-muted/30" />
+            <Skeleton className="h-9 w-[110px]" />
+            <Skeleton className="h-9 w-[180px]" />
+            <Skeleton className="h-9 w-9" />
+            <Skeleton className="h-9 w-[100px]" />
+            <Skeleton className="h-9 w-9" />
           </div>
         </div>
       )}

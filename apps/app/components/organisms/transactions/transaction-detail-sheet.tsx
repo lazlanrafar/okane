@@ -62,6 +62,88 @@ function FileIcon({ type }: { type: string }) {
   return <File className="h-4 w-4" />;
 }
 
+function AttachmentCard({
+  file,
+  onPreview,
+  onRemove,
+}: {
+  file: { id: string; name: string; type: string; size: number };
+  onPreview: (file: any) => void;
+  onRemove: (id: string) => void;
+}) {
+  const isImage = file.type.startsWith("image/");
+
+  const { data: urlData } = useQuery({
+    queryKey: ["vault-download-url", file.id],
+    queryFn: () => getVaultDownloadUrl(file.id),
+    enabled: isImage,
+    staleTime: 1000 * 60 * 15, // 15 minutes
+  });
+
+  const url = urlData?.success ? urlData.data.url : null;
+
+  return (
+    <div
+      className="group relative cursor-pointer overflow-hidden border bg-muted/10 transition-colors hover:bg-muted/20"
+      style={{ aspectRatio: "1 / 1" }}
+      onClick={() => onPreview(file)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onPreview(file);
+        }
+      }}
+      role="option"
+      tabIndex={0}
+    >
+      {/* Thumbnail or icon */}
+      {isImage ? (
+        url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={url}
+            alt={file.name}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-muted/20">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          </div>
+        )
+      ) : (
+        <div className="flex h-full w-full flex-col items-center justify-center gap-1 p-2 text-muted-foreground">
+          <FileIcon type={file.type} />
+          <span className="line-clamp-2 text-center text-[9px] leading-tight">
+            {file.name}
+          </span>
+        </div>
+      )}
+
+      {/* Hover overlay with name + size */}
+      <div className="absolute inset-0 flex flex-col items-start justify-end bg-gradient-to-t from-black/70 to-transparent p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+        <p className="line-clamp-1 w-full text-[9px] font-medium text-white leading-tight">
+          {file.name}
+        </p>
+        {file.size > 0 && (
+          <p className="text-[8px] text-white/70">{formatBytes(file.size)}</p>
+        )}
+      </div>
+
+      {/* Remove button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(file.id);
+        }}
+        className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive"
+      >
+        <X className="h-2.5 w-2.5" />
+      </button>
+    </div>
+  );
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -261,41 +343,14 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
                 />
 
                 {transaction?.attachments && transaction?.attachments?.length > 0 && (
-                  <div className="mb-4 grid grid-cols-1 gap-2">
+                  <div className="mb-4 grid grid-cols-3 gap-2">
                     {transaction?.attachments?.map((file) => (
-                      <div
+                      <AttachmentCard
                         key={file.id}
-                        className="group flex cursor-pointer items-center gap-3 border bg-muted/5 px-3 py-2.5 text-sm transition-colors hover:bg-muted/10"
-                        onClick={() => handlePreview(file)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            handlePreview(file);
-                          }
-                        }}
-                        role="option"
-                        tabIndex={0}
-                      >
-                        <FileIcon type={file.type} />
-                        <span className="flex-1 truncate font-medium">{file.name}</span>
-                        <div className="flex items-center gap-2">
-                          {file.size > 0 && (
-                            <span className="shrink-0 font-sans text-muted-foreground text-xs">
-                              {formatBytes(file.size)}
-                            </span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeAttachment(file.id);
-                            }}
-                            className="p-1 opacity-0 transition-all hover:text-destructive group-hover:opacity-100"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      </div>
+                        file={file}
+                        onPreview={handlePreview}
+                        onRemove={removeAttachment}
+                      />
                     ))}
                   </div>
                 )}

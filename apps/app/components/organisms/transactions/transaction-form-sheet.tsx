@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Dictionary } from "@workspace/dictionaries";
 import {
   createTransaction,
   updateTransaction,
 } from "@workspace/modules/transaction/transaction.action";
-import { uploadVaultFile } from "@workspace/modules/vault/vault.action";
+import { getVaultDownloadUrl, uploadVaultFile } from "@workspace/modules/vault/vault.action";
 import type { Transaction } from "@workspace/types";
 import {
   Button,
@@ -98,6 +98,76 @@ function FileIcon({ type }: { type: string }) {
   if (type.startsWith("video/")) return <Film className="h-4 w-4" />;
   if (type === "application/pdf") return <FileText className="h-4 w-4" />;
   return <File className="h-4 w-4" />;
+}
+
+function AttachmentCard({
+  file,
+  onRemove,
+}: {
+  file: { id: string; name: string; type: string; size: number };
+  onRemove: (id: string) => void;
+}) {
+  const isImage = file.type.startsWith("image/");
+
+  const { data: urlData } = useQuery({
+    queryKey: ["vault-download-url", file.id],
+    queryFn: () => getVaultDownloadUrl(file.id),
+    enabled: isImage,
+    staleTime: 1000 * 60 * 15, // 15 minutes
+  });
+
+  const url = urlData?.success ? urlData.data.url : null;
+
+  return (
+    <div
+      className="group relative aspect-square cursor-default overflow-hidden border bg-muted/10 transition-colors hover:bg-muted/20"
+    >
+      {/* Thumbnail or icon */}
+      {isImage ? (
+        url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={url}
+            alt={file.name}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-muted/20">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          </div>
+        )
+      ) : (
+        <div className="flex h-full w-full flex-col items-center justify-center gap-1 p-2 text-muted-foreground">
+          <FileIcon type={file.type} />
+          <span className="line-clamp-2 text-center text-[9px] leading-tight">
+            {file.name}
+          </span>
+        </div>
+      )}
+
+      {/* Hover overlay with name + size */}
+      <div className="absolute inset-0 flex flex-col items-start justify-end bg-gradient-to-t from-black/70 to-transparent p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+        <p className="line-clamp-1 w-full text-[9px] font-medium text-white leading-tight">
+          {file.name}
+        </p>
+        {file.size > 0 && (
+          <p className="text-[8px] text-white/70">{formatBytes(file.size)}</p>
+        )}
+      </div>
+
+      {/* Remove button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(file.id);
+        }}
+        className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive"
+      >
+        <X className="h-2.5 w-2.5" />
+      </button>
+    </div>
+  );
 }
 
 interface Props {
@@ -623,28 +693,13 @@ export function TransactionFormSheet({
                 </div>
 
                 {attachments.length > 0 && (
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="mb-4 grid grid-cols-3 gap-2">
                     {attachments.map((file) => (
-                      <div
+                      <AttachmentCard
                         key={file.id}
-                        className="group flex items-center gap-3 rounded-md border border-muted/20 bg-muted/5 px-3 py-2.5 text-sm transition-colors hover:bg-muted/10"
-                      >
-                        <FileIcon type={file.type} />
-                        <span className="flex-1 truncate">{file.name}</span>
-                        {file.size > 0 && (
-                          <span className="hidden shrink-0 text-muted-foreground text-xs sm:inline-block">
-                            {formatBytes(file.size)}
-                          </span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => removeAttachment(file.id)}
-                          className="shrink-0 p-1 text-muted-foreground transition-colors hover:text-destructive"
-                          aria-label={`Remove ${file.name}`}
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
+                        file={file}
+                        onRemove={removeAttachment}
+                      />
                     ))}
                   </div>
                 )}
