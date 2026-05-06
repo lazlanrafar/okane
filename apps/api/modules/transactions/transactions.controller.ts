@@ -8,6 +8,7 @@ import { encryptionPlugin } from "../../plugins/encryption";
 import { status } from "elysia";
 import { buildError } from "@workspace/utils";
 import { transactionItemsController } from "./items/transaction-items.controller";
+import { assertCanEditWorkspaceData } from "../workspaces/workspace-permissions";
 
 // Factory function to create the transactions module
 export const transactions = new Elysia({
@@ -63,6 +64,7 @@ export const transactions = new Elysia({
       if (!auth?.workspace_id) {
         throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
+      assertCanEditWorkspaceData(auth.workspace_role);
       return TransactionsService.create(auth.workspace_id, auth.user_id, body);
     },
     {
@@ -80,6 +82,7 @@ export const transactions = new Elysia({
       if (!auth?.workspace_id) {
         throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
+      assertCanEditWorkspaceData(auth.workspace_role);
       return TransactionsService.bulkCreate(
         auth.workspace_id,
         auth.user_id,
@@ -101,6 +104,7 @@ export const transactions = new Elysia({
       if (!auth?.workspace_id) {
         throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
+      assertCanEditWorkspaceData(auth.workspace_role);
       return TransactionsService.bulkDelete(
         auth.workspace_id,
         auth.user_id,
@@ -122,6 +126,7 @@ export const transactions = new Elysia({
       if (!auth?.workspace_id) {
         throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
+      assertCanEditWorkspaceData(auth.workspace_role);
 
       return TransactionsService.update(
         auth.workspace_id,
@@ -146,6 +151,7 @@ export const transactions = new Elysia({
       if (!auth?.workspace_id) {
         throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
+      assertCanEditWorkspaceData(auth.workspace_role);
       return TransactionsService.delete(auth.workspace_id, auth.user_id, id);
     },
     {
@@ -163,6 +169,7 @@ export const transactions = new Elysia({
       if (!auth?.workspace_id) {
         throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
+      assertCanEditWorkspaceData(auth.workspace_role);
       const file = body.file as File;
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);

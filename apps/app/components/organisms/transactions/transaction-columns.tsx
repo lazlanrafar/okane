@@ -49,6 +49,7 @@ interface TransactionTableMeta {
   onDelete?: (id: string) => void;
   getTransactionColor: (type: string) => string;
   formatCurrency: (amount: number) => string;
+  canEditWorkspaceData?: boolean;
 }
 
 export const transactionColumns = (
@@ -56,11 +57,15 @@ export const transactionColumns = (
   dictionary: Dictionary,
   _formatCurrency: (amount: number, options?: { currency?: string }) => string,
   _getTransactionColor: (type: string) => string,
+  canEditWorkspaceData = true,
 ): ColumnDef<Transaction>[] => [
   {
     id: "select",
     header: ({ table }) => {
       const meta = table.options.meta as TransactionTableMeta;
+      if (!meta.canEditWorkspaceData) {
+        return null;
+      }
       const isAllSelected = meta.isAllTransactionsSelected
         ? meta.isAllTransactionsSelected()
         : table.getIsAllPageRowsSelected();
@@ -82,14 +87,21 @@ export const transactionColumns = (
         />
       );
     },
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label={dictionary.common.open_menu}
-        className="translate-y-[2px]"
-      />
-    ),
+    cell: ({ row, table }) => {
+      const meta = table.options.meta as TransactionTableMeta;
+      if (!meta.canEditWorkspaceData) {
+        return null;
+      }
+
+      return (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label={dictionary.common.open_menu}
+          className="translate-y-[2px]"
+        />
+      );
+    },
     enableSorting: false,
     enableHiding: false,
     enableResizing: false,
@@ -255,7 +267,13 @@ export const transactionColumns = (
     id: "actions",
     header: dictionary.common.actions,
     cell: ({ row, table }) => (
-      <ActionCell transaction={row.original} table={table} dictionary={dictionary} onEdit={onEdit} />
+      <ActionCell
+        transaction={row.original}
+        table={table}
+        dictionary={dictionary}
+        onEdit={onEdit}
+        canEditWorkspaceData={canEditWorkspaceData}
+      />
     ),
     enableSorting: false,
     enableHiding: false,
@@ -283,6 +301,7 @@ function CategoryCell({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
+  const canEditWorkspaceData = (table.options.meta as TransactionTableMeta | undefined)?.canEditWorkspaceData !== false;
   const handleCategoryChange = async (categoryId: string) => {
     if (categoryId === transaction?.categoryId) return;
 
@@ -311,7 +330,7 @@ function CategoryCell({
             value={transaction?.categoryId ?? undefined}
             type={transaction?.type as "income" | "expense"}
             onChange={handleCategoryChange}
-            disabled={updating}
+            disabled={updating || !canEditWorkspaceData}
             variant="ghost"
             className="h-full w-full justify-start rounded-none border-none px-3 hover:bg-transparent focus-visible:ring-0"
           />
@@ -340,6 +359,7 @@ function AccountCell({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
+  const canEditWorkspaceData = (table.options.meta as TransactionTableMeta | undefined)?.canEditWorkspaceData !== false;
   const handleAccountChange = async (walletId: string) => {
     if (walletId === transaction?.walletId) return;
 
@@ -363,7 +383,7 @@ function AccountCell({
       <SelectAccount
         value={transaction?.walletId}
         onChange={handleAccountChange}
-        disabled={updating}
+        disabled={updating || !canEditWorkspaceData}
         variant="ghost"
         className="h-full w-full justify-start rounded-none border-none px-3 hover:bg-transparent focus-visible:ring-0"
       />
@@ -381,11 +401,13 @@ function ActionCell({
   table,
   dictionary,
   onEdit,
+  canEditWorkspaceData,
 }: {
   transaction: Transaction;
   table: Table<Transaction>;
   dictionary: Dictionary;
   onEdit: (transaction: Transaction) => void;
+  canEditWorkspaceData: boolean;
 }) {
   const queryClient = useQueryClient();
   const meta = table.options.meta as TransactionTableMeta | undefined;
@@ -403,10 +425,12 @@ function ActionCell({
           <ExternalLink className="h-4 w-4" />
           {dictionary.transactions.view_details}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onEdit(transaction)} className="cursor-pointer gap-2">
-          <Edit className="h-4 w-4" />
-          {dictionary.transactions.edit}
-        </DropdownMenuItem>
+        {canEditWorkspaceData ? (
+          <DropdownMenuItem onClick={() => onEdit(transaction)} className="cursor-pointer gap-2">
+            <Edit className="h-4 w-4" />
+            {dictionary.transactions.edit}
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuItem
           onClick={() => {
             const url = `${window.location.origin}${window.location.pathname}?transactionId=${transaction?.id}`;
@@ -419,56 +443,60 @@ function ActionCell({
           {dictionary.transactions.copy_link}
         </DropdownMenuItem>
 
-        <div className="my-1 h-px bg-muted" />
+        {canEditWorkspaceData ? (
+          <>
+            <div className="my-1 h-px bg-muted" />
 
-        <DropdownMenuItem
-          onClick={async () => {
-            const res = await updateTransaction(transaction?.id, {
-              isReady: !transaction.isReady,
-            });
-            if (res.success) {
-              toast.success(
-                transaction.isReady
-                  ? dictionary.transactions.toasts.marked_pending
-                  : dictionary.transactions.toasts.marked_ready,
-              );
-              queryClient.invalidateQueries({ queryKey: ["transactions"] });
-            }
-          }}
-          className="cursor-pointer gap-2"
-        >
-          <Check className="h-4 w-4" />
-          {transaction.isReady ? dictionary.transactions.reset_status : dictionary.transactions.mark_ready}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={async () => {
-            const res = await updateTransaction(transaction?.id, {
-              isExported: !transaction.isExported,
-            });
-            if (res.success) {
-              toast.success(
-                transaction.isExported
-                  ? dictionary.transactions.toasts.unmarked_exported
-                  : dictionary.transactions.toasts.marked_exported,
-              );
-              queryClient.invalidateQueries({ queryKey: ["transactions"] });
-            }
-          }}
-          className="cursor-pointer gap-2"
-        >
-          <FileCheck className="h-4 w-4" />
-          {transaction.isExported ? dictionary.transactions.reset_export : dictionary.transactions.mark_exported}
-        </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={async () => {
+                const res = await updateTransaction(transaction?.id, {
+                  isReady: !transaction.isReady,
+                });
+                if (res.success) {
+                  toast.success(
+                    transaction.isReady
+                      ? dictionary.transactions.toasts.marked_pending
+                      : dictionary.transactions.toasts.marked_ready,
+                  );
+                  queryClient.invalidateQueries({ queryKey: ["transactions"] });
+                }
+              }}
+              className="cursor-pointer gap-2"
+            >
+              <Check className="h-4 w-4" />
+              {transaction.isReady ? dictionary.transactions.reset_status : dictionary.transactions.mark_ready}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={async () => {
+                const res = await updateTransaction(transaction?.id, {
+                  isExported: !transaction.isExported,
+                });
+                if (res.success) {
+                  toast.success(
+                    transaction.isExported
+                      ? dictionary.transactions.toasts.unmarked_exported
+                      : dictionary.transactions.toasts.marked_exported,
+                  );
+                  queryClient.invalidateQueries({ queryKey: ["transactions"] });
+                }
+              }}
+              className="cursor-pointer gap-2"
+            >
+              <FileCheck className="h-4 w-4" />
+              {transaction.isExported ? dictionary.transactions.reset_export : dictionary.transactions.mark_exported}
+            </DropdownMenuItem>
 
-        <div className="my-1 h-px bg-muted" />
+            <div className="my-1 h-px bg-muted" />
 
-        <DropdownMenuItem
-          onClick={() => meta?.onDelete?.(transaction?.id)}
-          className="cursor-pointer gap-2 text-destructive focus:text-destructive"
-        >
-          <Trash className="h-4 w-4" />
-          {dictionary.common.delete}
-        </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => meta?.onDelete?.(transaction?.id)}
+              className="cursor-pointer gap-2 text-destructive focus:text-destructive"
+            >
+              <Trash className="h-4 w-4" />
+              {dictionary.common.delete}
+            </DropdownMenuItem>
+          </>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -476,6 +504,7 @@ function ActionCell({
 
 function UserCell({
   transaction,
+  table,
   dictionary,
 }: {
   transaction: Transaction;
@@ -485,6 +514,8 @@ function UserCell({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
+  const canEditWorkspaceData =
+    (table.options.meta as TransactionTableMeta | undefined)?.canEditWorkspaceData !== false;
 
   const handleUserChange = async (userId: string) => {
     if (userId === transaction?.assignedUserId) return;
@@ -509,7 +540,7 @@ function UserCell({
       <SelectUser
         value={transaction?.assignedUserId ?? undefined}
         onChange={handleUserChange}
-        disabled={updating}
+        disabled={updating || !canEditWorkspaceData}
         variant="ghost"
         className="h-full w-full justify-start rounded-none border-none px-3 hover:bg-transparent focus-visible:ring-0"
       />

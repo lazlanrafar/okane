@@ -5,6 +5,7 @@ import { BucketClient } from "@workspace/bucket";
 import { Env } from "@workspace/constants";
 import * as path from "node:path";
 import { logger } from "@workspace/logger";
+import { normalizeWorkspaceRole } from "../workspaces/workspace-permissions";
 
 /**
  * Users service — business logic layer.
@@ -125,7 +126,10 @@ export abstract class UsersService {
         mobile: user.mobile,
         workspace_id: user.workspace_id,
       },
-      workspaces,
+      workspaces: workspaces.map((workspace) => ({
+        ...workspace,
+        role: normalizeWorkspaceRole(workspace.role),
+      })),
     };
   }
 

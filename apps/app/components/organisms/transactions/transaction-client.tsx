@@ -61,6 +61,7 @@ import { toast } from "sonner";
 
 import { useConfirm } from "@/components/providers/confirm-modal-provider";
 import { useDataTableFilter } from "@/hooks/use-data-table-filter";
+import { canEditWorkspaceData } from "@/lib/workspace-permissions";
 import { useAppStore } from "@/stores/app";
 import { useTransactionsStore } from "@/stores/transactions";
 
@@ -171,9 +172,10 @@ export function TransactionsClient({
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { formatCurrency, getTransactionColor } = useAppStore();
+  const { formatCurrency, getTransactionColor, workspace } = useAppStore();
   const { rowSelection, setRowSelection } = useTransactionsStore();
   const confirm = useConfirm();
+  const canEditData = canEditWorkspaceData(workspace?.current_user_role);
 
   const [transactionId, setTransactionId] = useQueryState(
     "transactionId",
@@ -421,9 +423,10 @@ export function TransactionsClient({
             dictionary,
             formatCurrency,
             getTransactionColor,
+            canEditData,
           ) as ColumnDef<TransactionRow>[])
         : [],
-    [handleEdit, dictionary, formatCurrency, getTransactionColor],
+    [handleEdit, dictionary, formatCurrency, getTransactionColor, canEditData],
   );
 
   const handleRowClick = useCallback(
@@ -646,34 +649,43 @@ export function TransactionsClient({
           />
           <DataTableColumnsVisibility columns={columns} />
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <FileUp className="h-4 w-4" />
-                <span className="hidden sm:inline-block ml-2 text-sm">
-                  {dictionary.transactions.import_backfill}
-                </span>
-                <ChevronDown className="ml-2 h-4 w-4 text-muted-foreground" />
+          {canEditData ? (
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <FileUp className="h-4 w-4" />
+                    <span className="hidden sm:inline-block ml-2 text-sm">
+                      {dictionary.transactions.import_backfill}
+                    </span>
+                    <ChevronDown className="ml-2 h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setIsImportOpen(true)}>
+                    <FileUp className="mr-2 h-4 w-4" />
+                    {dictionary.transactions.backup_restore_device}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled>
+                    <FileDown className="mr-2 h-4 w-4" />
+                    {dictionary.transactions.export_backup_email}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setIsExportOpen(true)}>
+                    <FileDown className="mr-2 h-4 w-4" />
+                    {dictionary.transactions.export_data_excel}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button variant="outline" size="icon" onClick={handleCreate}>
+                <Plus className="h-4 w-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setIsImportOpen(true)}>
-                <FileUp className="mr-2 h-4 w-4" />
-                {dictionary.transactions.backup_restore_device}
-              </DropdownMenuItem>
-              <DropdownMenuItem disabled>
-                <FileDown className="mr-2 h-4 w-4" />
-                {dictionary.transactions.export_backup_email}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setIsExportOpen(true)}>
-                <FileDown className="mr-2 h-4 w-4" />
-                {dictionary.transactions.export_data_excel}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button variant="outline" size="icon" onClick={handleCreate}>
-            <Plus className="h-4 w-4" />
-          </Button>
+            </>
+          ) : (
+            <Button variant="outline" onClick={() => setIsExportOpen(true)}>
+              <FileDown className="h-4 w-4" />
+              <span className="ml-2 text-sm">{dictionary.transactions.export_data_excel}</span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -697,10 +709,14 @@ export function TransactionsClient({
               <DataTableEmptyState
                 title={dictionary.transactions.empty.title}
                 description={dictionary.transactions.empty.description}
-                action={{
-                  label: dictionary.transactions.empty.action,
-                  onClick: handleCreate,
-                }}
+                action={
+                  canEditData
+                    ? {
+                        label: dictionary.transactions.empty.action,
+                        onClick: handleCreate,
+                      }
+                    : undefined
+                }
               />
             }
             infiniteScroll={true}
@@ -749,6 +765,7 @@ export function TransactionsClient({
               },
               formatCurrency,
               getTransactionColor,
+              canEditWorkspaceData: canEditData,
               isAllTransactionsSelected: () => {
                 const transactionIds = getRowTransactionIds(processedRows);
                 if (transactionIds.length === 0) return false;
@@ -948,7 +965,7 @@ export function TransactionsClient({
         )}
       </div>
 
-      <TransactionBulkEditBar />
+      {canEditData ? <TransactionBulkEditBar /> : null}
 
       <TransactionFormSheet
         open={isFormOpen}
@@ -960,6 +977,7 @@ export function TransactionsClient({
         }}
         transaction={isFormOpen ? selectedTransaction : undefined}
         dictionary={dictionary}
+        canEdit={canEditData}
       />
 
       <TransactionDetailSheet
@@ -973,6 +991,7 @@ export function TransactionsClient({
         }}
         transaction={selectedTransaction}
         dictionary={dictionary}
+        canEdit={canEditData}
         onNext={() => {
           const currentIndex = transactions.findIndex(
             (t) => t.id === transactionId,
@@ -1004,15 +1023,17 @@ export function TransactionsClient({
         }}
       />
 
-      <ImportModal
-        open={isImportOpen}
-        onOpenChange={setIsImportOpen}
-        wallets={wallets}
-        onSuccess={() => {
-          setIsImportOpen(false);
-          refetch();
-        }}
-      />
+      {canEditData ? (
+        <ImportModal
+          open={isImportOpen}
+          onOpenChange={setIsImportOpen}
+          wallets={wallets}
+          onSuccess={() => {
+            setIsImportOpen(false);
+            refetch();
+          }}
+        />
+      ) : null}
 
       <ExportModal
         open={isExportOpen}

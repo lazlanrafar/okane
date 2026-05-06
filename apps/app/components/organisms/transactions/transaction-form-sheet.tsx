@@ -176,6 +176,7 @@ interface Props {
   transaction?: Transaction;
   onSuccess?: () => void;
   dictionary: Dictionary;
+  canEdit?: boolean;
 }
 
 export function TransactionFormSheet({
@@ -184,6 +185,7 @@ export function TransactionFormSheet({
   transaction,
   onSuccess,
   dictionary,
+  canEdit = true,
 }: Props) {
   const [mounted, setMounted] = useState(false);
   const queryClient = useQueryClient();
@@ -198,6 +200,10 @@ export function TransactionFormSheet({
     settings?.mainCurrencyCode,
     settings?.mainCurrencySymbol,
   );
+
+  if (!canEdit) {
+    return null;
+  }
 
   useEffect(() => {
     setMounted(true);

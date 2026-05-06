@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { BillingView } from "@/components/organisms/setting/billing/billing-view";
 import { getDictionary } from "@/get-dictionary";
 import type { Locale } from "@/i18n-config";
+import { requireSensitiveWorkspaceAccess } from "@/lib/workspace-permissions.server";
 
 export const metadata: Metadata = {
   title: "Billing | Settings",
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 
 export default async function BillingPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  await requireSensitiveWorkspaceAccess(locale);
   const dictionary = await getDictionary(locale as Locale);
   const pricingResult = await getPricing({ is_addon: "false" });
   const addonsResult = await getPricing({ is_addon: "true" });

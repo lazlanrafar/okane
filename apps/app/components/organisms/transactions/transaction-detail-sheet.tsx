@@ -66,10 +66,12 @@ function AttachmentCard({
   file,
   onPreview,
   onRemove,
+  canRemove = true,
 }: {
   file: { id: string; name: string; type: string; size: number };
   onPreview: (file: any) => void;
   onRemove: (id: string) => void;
+  canRemove?: boolean;
 }) {
   const isImage = file.type.startsWith("image/");
 
@@ -130,16 +132,18 @@ function AttachmentCard({
       </div>
 
       {/* Remove button */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove(file.id);
-        }}
-        className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive"
-      >
-        <X className="h-2.5 w-2.5" />
-      </button>
+      {canRemove ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(file.id);
+          }}
+          className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-destructive"
+        >
+          <X className="h-2.5 w-2.5" />
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -148,12 +152,21 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transaction?: Transaction;
+  canEdit?: boolean;
   onNext?: () => void;
   onPrevious?: () => void;
   dictionary: AppDictionary;
 }
 
-export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext, onPrevious, dictionary }: Props) {
+export function TransactionDetailSheet({
+  open,
+  onOpenChange,
+  transaction,
+  canEdit = true,
+  onNext,
+  onPrevious,
+  dictionary,
+}: Props) {
   const { getTransactionColor, formatCurrency } = useAppStore();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<FilePreview | null>(null);
@@ -220,6 +233,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
   if (!transaction) return null;
 
   const handleUpdate = (data: Partial<Transaction>) => {
+    if (!canEdit) return;
     updateMutation.mutate(data);
   };
 
@@ -282,6 +296,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
                   value={transaction?.categoryId || undefined}
                   type={transaction?.type === "income" || transaction?.type === "transfer-in" ? "income" : "expense"}
                   onChange={(id) => handleUpdate({ categoryId: id })}
+                  disabled={!canEdit}
                   className="w-full font-medium text-sm"
                 />
               </div>
@@ -293,6 +308,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
               <SelectUser
                 value={transaction?.assignedUserId || undefined}
                 onChange={(id: string) => handleUpdate({ assignedUserId: id })}
+                disabled={!canEdit}
                 className="w-full font-medium text-sm"
               />
             </div>
@@ -307,6 +323,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
               <SelectAccount
                 value={transaction?.walletId}
                 onChange={(id) => handleUpdate({ walletId: id })}
+                disabled={!canEdit}
                 className="w-full font-medium text-sm"
               />
             </div>
@@ -319,6 +336,7 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
                 <SelectAccount
                   value={transaction?.toWalletId || undefined}
                   onChange={(id) => handleUpdate({ toWalletId: id })}
+                  disabled={!canEdit}
                   className="w-full font-medium text-sm"
                   placeholder={dictionary.transactions.select_destination}
                 />
@@ -350,22 +368,25 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
                         file={file}
                         onPreview={handlePreview}
                         onRemove={removeAttachment}
+                        canRemove={canEdit}
                       />
                     ))}
                   </div>
                 )}
 
-                <div className="mb-4 flex items-center justify-between gap-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 flex-1 gap-2 border-muted/20 bg-muted/5 font-medium text-[10px] uppercase tracking-widest"
-                    onClick={() => setVaultPickerOpen(true)}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    {dictionary.transactions.add_or_upload}
-                  </Button>
-                </div>
+                {canEdit ? (
+                  <div className="mb-4 flex items-center justify-between gap-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-9 flex-1 gap-2 border-muted/20 bg-muted/5 font-medium text-[10px] uppercase tracking-widest"
+                      onClick={() => setVaultPickerOpen(true)}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      {dictionary.transactions.add_or_upload}
+                    </Button>
+                  </div>
+                ) : null}
               </AccordionContent>
             </AccordionItem>
 
@@ -458,15 +479,17 @@ export function TransactionDetailSheet({ open, onOpenChange, transaction, onNext
                             <span className="font-serif text-sm tabular-nums">
                               {formatCurrency(Number(item.amount))}
                             </span>
-                            <button
-                              type="button"
-                              title={dictionary.transactions.items.delete_item}
-                              onClick={() => deleteItemMutation.mutate(item.id)}
-                              disabled={deleteItemMutation.isPending}
-                              className="p-1 opacity-0 transition-all hover:text-destructive group-hover:opacity-100"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
+                            {canEdit ? (
+                              <button
+                                type="button"
+                                title={dictionary.transactions.items.delete_item}
+                                onClick={() => deleteItemMutation.mutate(item.id)}
+                                disabled={deleteItemMutation.isPending}
+                                className="p-1 opacity-0 transition-all hover:text-destructive group-hover:opacity-100"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            ) : null}
                           </div>
                         </div>
                       ))}

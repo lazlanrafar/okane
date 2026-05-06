@@ -5,6 +5,7 @@ import { authPlugin } from "../../plugins/auth";
 import { encryptionPlugin } from "../../plugins/encryption";
 import { ErrorCode } from "@workspace/types";
 import { buildError } from "@workspace/utils";
+import { assertCanEditWorkspaceData } from "../workspaces/workspace-permissions";
 
 export const budgets = new Elysia({
   prefix: "/budgets",
@@ -35,6 +36,7 @@ export const budgets = new Elysia({
       if (!auth?.workspace_id) {
         throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
+      assertCanEditWorkspaceData(auth.workspace_role);
       return BudgetsService.create(body, auth.workspace_id, auth.user_id);
     },
     {
@@ -52,6 +54,7 @@ export const budgets = new Elysia({
       if (!auth?.workspace_id) {
         throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
+      assertCanEditWorkspaceData(auth.workspace_role);
       return BudgetsService.update(id, body, auth.workspace_id, auth.user_id);
     },
     {
@@ -70,6 +73,7 @@ export const budgets = new Elysia({
       if (!auth?.workspace_id) {
         throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
+      assertCanEditWorkspaceData(auth.workspace_role);
       return BudgetsService.delete(id, auth.workspace_id, auth.user_id);
     },
     {

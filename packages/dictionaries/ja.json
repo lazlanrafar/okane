@@ -389,7 +389,8 @@
           "placeholder": "役割を選択",
           "options": {
             "admin": "管理者",
-            "member": "メンバー",
+            "editor": "編集者",
+            "viewer": "閲覧者",
             "owner": "オーナー"
           }
         },

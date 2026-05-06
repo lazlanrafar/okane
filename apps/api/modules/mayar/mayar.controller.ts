@@ -6,6 +6,7 @@ import { authPlugin } from "../../plugins/auth";
 import { buildError } from "@workspace/utils";
 import { ErrorCode } from "@workspace/types";
 import { WorkspacesRepository } from "../workspaces/workspaces.repository";
+import { assertCanManageSensitiveWorkspace } from "../workspaces/workspace-permissions";
 
 export const mayarController = new Elysia({
   prefix: "/mayar",
@@ -47,6 +48,7 @@ export const mayarController = new Elysia({
           buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"),
         );
       }
+      assertCanManageSensitiveWorkspace(auth.workspace_role);
 
       // Find workspace owner or customer email from workspace context
       const workspace = await MayarRepository.findWorkspaceById(
@@ -69,6 +71,7 @@ export const mayarController = new Elysia({
     async ({ body, auth, status }) => {
       if (!auth)
         return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      assertCanManageSensitiveWorkspace(auth.workspace_role);
 
       const {
         priceId,
@@ -121,6 +124,7 @@ export const mayarController = new Elysia({
     async ({ auth, status }) => {
       if (!auth)
         return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      assertCanManageSensitiveWorkspace(auth.workspace_role);
       
       return MayarService.createCustomerPortal(auth.email);
     },
@@ -131,6 +135,7 @@ export const mayarController = new Elysia({
     async ({ auth, status }) => {
       if (!auth)
         return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      assertCanManageSensitiveWorkspace(auth.workspace_role);
       
       await MayarService.syncWorkspaceInvoices(auth.workspaceId, auth.email || "");
       return { success: true };
@@ -152,6 +157,7 @@ export const mayarController = new Elysia({
     async ({ auth, status }) => {
       if (!auth)
         return status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
+      assertCanManageSensitiveWorkspace(auth.workspace_role);
       return MayarService.cancelSubscription(auth.workspaceId);
     },
     { detail: { summary: "Cancel Subscription", tags: ["Mayar"] } },
@@ -164,6 +170,7 @@ export const mayarController = new Elysia({
           401,
           buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"),
         );
+      assertCanManageSensitiveWorkspace(auth.workspace_role);
       return MayarService.cancelAddon(
         auth.workspaceId,
         body.addonId,

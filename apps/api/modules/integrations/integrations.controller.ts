@@ -15,6 +15,7 @@ import {
   verifyTelegramSecret,
   verifyTwilioSignature,
 } from "./webhook-security";
+import { assertCanManageSensitiveWorkspace } from "../workspaces/workspace-permissions";
 
 export const integrationsController = new Elysia({ prefix: "/integrations" })
   .use(encryptionPlugin)
@@ -138,6 +139,7 @@ export const integrationsController = new Elysia({ prefix: "/integrations" })
       if (!auth?.workspaceId || !auth?.user_id) {
         throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
+      assertCanManageSensitiveWorkspace(auth.workspace_role);
       return await IntegrationsService.connectWhatsApp(
         auth.workspaceId,
         auth.user_id,
@@ -160,6 +162,7 @@ export const integrationsController = new Elysia({ prefix: "/integrations" })
       if (!auth?.workspaceId || !auth?.user_id) {
         throw status(401, buildError(ErrorCode.UNAUTHORIZED, "Unauthorized"));
       }
+      assertCanManageSensitiveWorkspace(auth.workspace_role);
       return await IntegrationsService.connectTelegram(
         auth.workspaceId,
         auth.user_id,

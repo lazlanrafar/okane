@@ -360,7 +360,8 @@
           "placeholder": "Select role",
           "options": {
             "admin": "Admin",
-            "member": "Member",
+            "editor": "Editor",
+            "viewer": "Viewer",
             "owner": "Owner"
           }
         },

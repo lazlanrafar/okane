@@ -1,6 +1,6 @@
 import type { Pricing } from "./pricing";
 
-export type WorkspaceRole = "owner" | "admin" | "member";
+export type WorkspaceRole = "owner" | "admin" | "editor" | "viewer";
 
 export type WorkspaceActiveAddon = {
   id: string;
@@ -34,6 +34,7 @@ export type Workspace = {
   extra_vault_size_mb: number;
   active_addons?: WorkspaceActiveAddon[];
   plan?: Pricing | null;
+  current_user_role?: WorkspaceRole | null;
   created_at: string;
   updated_at: string;
 };

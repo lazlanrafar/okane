@@ -4,6 +4,7 @@ import { db, eq, and, isNull } from "@workspace/database";
 import { users, user_workspaces, workspaces } from "@workspace/database";
 import * as jose from "jose";
 import { Env } from "@workspace/constants";
+import { normalizeWorkspaceRole } from "../modules/workspaces/workspace-permissions";
 
 const JWT_SECRET_KEY = () => new TextEncoder().encode(Env.JWT_SECRET!);
 
@@ -15,6 +16,8 @@ export type AuthContext = {
     user_id: string;
     workspace_id: string;
     workspaceId: string;
+    workspace_role: import("@workspace/types").WorkspaceRole;
+    workspaceRole: import("@workspace/types").WorkspaceRole;
     email: string;
     system_role: import("@workspace/constants").SystemRole;
   } | null;
@@ -85,6 +88,26 @@ async function getActiveMembershipWorkspaceIds(user_id: string) {
   return memberships.map((m) => m.workspace_id);
 }
 
+async function getMembershipRole(user_id: string, workspace_id: string) {
+  if (!workspace_id) {
+    return normalizeWorkspaceRole(null);
+  }
+
+  const [membership] = await db
+    .select({ role: user_workspaces.role })
+    .from(user_workspaces)
+    .where(
+      and(
+        eq(user_workspaces.user_id, user_id),
+        eq(user_workspaces.workspace_id, workspace_id),
+        isNull(user_workspaces.deleted_at),
+      ),
+    )
+    .limit(1);
+
+  return normalizeWorkspaceRole(membership?.role);
+}
+
 function resolveWorkspaceId(
   preferredWorkspaceId: string | null | undefined,
   membershipWorkspaceIds: string[],
@@ -139,11 +162,17 @@ export async function getAuth(token: string) {
       jwt_payload.workspace_id || db_user.workspace_id,
       membershipWorkspaceIds,
     );
+    const workspace_role = await getMembershipRole(
+      jwt_payload.user_id,
+      workspace_id,
+    );
 
     return {
       user_id: jwt_payload.user_id,
       workspace_id,
       workspaceId: workspace_id,
+      workspace_role,
+      workspaceRole: workspace_role,
       email: jwt_payload.email || db_user.email,
       system_role: db_user.system_role || jwt_payload.system_role || "user",
     } as const;
@@ -179,11 +208,14 @@ export async function getAuth(token: string) {
       db_user?.workspace_id,
       membershipWorkspaceIds,
     );
+    const workspace_role = await getMembershipRole(user.id, workspace_id);
 
     return {
       user_id: user.id,
       workspace_id,
       workspaceId: workspace_id,
+      workspace_role,
+      workspaceRole: workspace_role,
       email: db_user?.email || user.email || "",
       system_role: db_user?.system_role || user.app_metadata?.system_role || "user",
     } as const;

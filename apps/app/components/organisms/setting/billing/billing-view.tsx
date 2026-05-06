@@ -11,8 +11,8 @@ import {
   cancelAddonAction,
   cancelSubscription,
   createCheckoutSession,
+  createCustomerPortal,
   getInvoiceUrl,
-  sendMagicLinkAction,
 } from "@workspace/modules/mayar/mayar.action";
 import { getBillingHistory } from "@workspace/modules/orders/orders.action";
 import type { Order, Pricing } from "@workspace/types";
@@ -135,14 +135,12 @@ export function BillingView({
 
   const portalMutation = useMutation({
     mutationFn: async () => {
-      const result = await sendMagicLinkAction();
+      const result = await createCustomerPortal();
       if (!result.success) throw new Error(result.error);
       return result.data;
     },
-    onSuccess: () => {
-      toast.info("Access link sent!", {
-        description: "A secure link has been sent to your email to access the portal",
-      });
+    onSuccess: (data) => {
+      if (data.url) window.open(data.url, "_blank", "noopener,noreferrer");
     },
     onError: (error: Error) => toast.error(error.message),
   });

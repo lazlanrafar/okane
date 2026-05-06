@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { MembersClient } from "@/components/organisms/setting/members/members-client";
 import { getDictionary } from "@/get-dictionary";
 import type { Locale } from "@/i18n-config";
+import { requireSensitiveWorkspaceAccess } from "@/lib/workspace-permissions.server";
 
 export const metadata: Metadata = {
   title: "Members | Settings",
@@ -17,6 +18,7 @@ interface Props {
 
 export default async function MembersPage({ params }: Props) {
   const { locale } = await params;
+  await requireSensitiveWorkspaceAccess(locale);
   const dictionary = await getDictionary(locale as Locale);
 
   const [membersResult, invitationsResult] = await Promise.all([getWorkspaceMembers(), getWorkspaceInvitations()]);

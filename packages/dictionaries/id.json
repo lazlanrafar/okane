@@ -360,7 +360,8 @@
           "placeholder": "Pilih peran",
           "options": {
             "admin": "Admin",
-            "member": "Anggota",
+            "editor": "Editor",
+            "viewer": "Viewer",
             "owner": "Pemilik"
           }
         },

@@ -33,7 +33,7 @@ import * as z from "zod";
 
 const inviteSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
-  role: z.enum(["admin", "member"]),
+  role: z.enum(["admin", "editor", "viewer"]),
 });
 
 type InviteFormValues = z.infer<typeof inviteSchema>;
@@ -49,7 +49,7 @@ export function InviteMemberDialog({ onSuccess, dictionary }: InviteMemberDialog
 
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteSchema),
-    defaultValues: { email: "", role: "member" },
+    defaultValues: { email: "", role: "viewer" },
   });
 
   if (!dictionary) return null;
@@ -121,8 +121,11 @@ export function InviteMemberDialog({ onSuccess, dictionary }: InviteMemberDialog
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="rounded-none">
-                      <SelectItem value="member" className="rounded-none text-xs">
-                        {membersDict.form.role.options.member}
+                      <SelectItem value="viewer" className="rounded-none text-xs">
+                        {membersDict.form.role.options.viewer}
+                      </SelectItem>
+                      <SelectItem value="editor" className="rounded-none text-xs">
+                        {membersDict.form.role.options.editor}
                       </SelectItem>
                       <SelectItem value="admin" className="rounded-none text-xs">
                         {membersDict.form.role.options.admin}

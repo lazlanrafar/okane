@@ -49,6 +49,8 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
 }
 
 import { i18n } from "@/i18n-config";
+import { canManageSensitiveWorkspace } from "@/lib/workspace-permissions";
+import { useAppStore } from "@/stores/app";
 import { useLocalizedRoute } from "@/utils/localized-route";
 
 type SidebarLinkItem = {
@@ -73,6 +75,8 @@ export function SettingSidebar({ className, dictionary, ...props }: SidebarNavPr
   const pathname = usePathname();
   const { sidebar } = dictionary;
   const { getLocalizedUrl } = useLocalizedRoute();
+  const workspaceRole = useAppStore((state) => state.workspace?.current_user_role);
+  const canManageSensitive = canManageSensitiveWorkspace(workspaceRole);
 
   const sidebarNavItems: SidebarItem[] = [
     {
@@ -80,11 +84,15 @@ export function SettingSidebar({ className, dictionary, ...props }: SidebarNavPr
       href: "/settings/profile",
       icon: User,
     },
-    {
-      title: sidebar.members,
-      href: "/settings/members",
-      icon: Users,
-    },
+    ...(canManageSensitive
+      ? [
+          {
+            title: sidebar.members,
+            href: "/settings/members",
+            icon: Users,
+          } satisfies SidebarLinkItem,
+        ]
+      : []),
     // {
     //   title: sidebar.account,
     //   href: "/settings/account",
@@ -168,11 +176,15 @@ export function SettingSidebar({ className, dictionary, ...props }: SidebarNavPr
           href: "/settings/language",
           icon: Languages,
         },
-        {
-          title: sidebar.billing,
-          href: "/settings/billing",
-          icon: CreditCard,
-        },
+        ...(canManageSensitive
+          ? [
+              {
+                title: sidebar.billing,
+                href: "/settings/billing",
+                icon: CreditCard,
+              } satisfies SidebarLinkItem,
+            ]
+          : []),
       ],
     },
   ];

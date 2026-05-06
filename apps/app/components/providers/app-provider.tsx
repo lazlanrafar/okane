@@ -8,6 +8,7 @@ import type { Dictionary } from "@workspace/dictionaries";
 import { getSubCurrencies, getTransactionSettings } from "@workspace/modules/setting/setting.action";
 import { getMe } from "@workspace/modules/user/user.action";
 import { getActiveWorkspace } from "@workspace/modules/workspace/workspace.action";
+import { getActiveWorkspaceRole, normalizeWorkspaceRole } from "@/lib/workspace-permissions";
 
 import { useRealtime } from "../../hooks/use-realtime";
 import { type AppState, useAppStore } from "../../stores/app";
@@ -77,7 +78,17 @@ export function AppProvider({ children, dictionary }: { children: React.ReactNod
 
   useEffect(() => {
     if (userData) setUser(userData.user);
-    if (workspaceData) setWorkspace(workspaceData);
+    if (workspaceData) {
+      const currentUserRole = getActiveWorkspaceRole({
+        workspaceId: userData?.user.workspace_id,
+        workspaces: userData?.workspaces,
+      });
+
+      setWorkspace({
+        ...workspaceData,
+        current_user_role: normalizeWorkspaceRole(currentUserRole),
+      });
+    }
     if (settingsData) setSettings(settingsData);
     if (subCurrenciesData) setSubCurrencies(subCurrenciesData);
 
