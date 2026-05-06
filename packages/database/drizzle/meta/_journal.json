@@ -29,6 +29,13 @@
       "when": 1776851414998,
       "tag": "0003_colossal_pyro",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1778064000000,
+      "tag": "0004_billing_lifecycle",
+      "breakpoints": true
     }
   ]
 }

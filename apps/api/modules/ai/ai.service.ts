@@ -17,6 +17,16 @@ import { AuditLogsService } from "../audit-logs/audit-logs.service";
 import type { ChatMessage, ChatResponse } from "./ai.dto";
 const log = createLogger("ai-service");
 
+function addMonthlyReset(base: Date) {
+  const next = new Date(base);
+  const day = next.getDate();
+  next.setDate(1);
+  next.setMonth(next.getMonth() + 1);
+  const lastDay = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+  next.setDate(Math.min(day, lastDay));
+  return next;
+}
+
 export abstract class AiService {
   /**
    * Chat with AI using the user's financial context and save to DB.
@@ -90,6 +100,18 @@ export abstract class AiService {
       );
     }
 
+    if (
+      usageData.plan_status === "free" &&
+      usageData.ai_tokens_reset_at
+    ) {
+      const nextResetAt = addMonthlyReset(new Date(usageData.ai_tokens_reset_at));
+      if (new Date() >= nextResetAt) {
+        await AiRepository.resetAiTokens(workspaceId, new Date());
+        usageData.used = 0;
+        usageData.ai_tokens_reset_at = new Date();
+      }
+    }
+
     const maxTokens = (usageData.maxTokens && usageData.maxTokens > 0) ? usageData.maxTokens : 50;
     const currentTokens = Number(usageData.used || 0);
 
@@ -159,10 +181,16 @@ export abstract class AiService {
       workspaceId,
       "assistant" as const,
       response.reply,
-      response.artifact ? { artifact: response.artifact } : undefined
+      response.artifact || response.provider
+        ? {
+            ...(response.artifact ? { artifact: response.artifact } : {}),
+            ...(response.provider ? { provider: response.provider } : {}),
+          }
+        : undefined,
     );
     
-    const tokensSpent = (response.usage?.input_tokens ?? 250) + (response.usage?.output_tokens ?? 250);
+    const tokensSpent =
+      (response.usage?.input_tokens ?? 0) + (response.usage?.output_tokens ?? 0);
     await AiRepository.incrementAiTokens(workspaceId, currentTokens, tokensSpent);
 
     return {

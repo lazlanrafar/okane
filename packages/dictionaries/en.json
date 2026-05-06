@@ -878,11 +878,19 @@
       "latest_transactions": "Latest transactions",
       "monthly_summary": "Monthly summary",
       "top_expenses": "Top expenses",
+      "avg_burn": "Avg burn",
+      "budget_usage": "Budget usage",
+      "debt_balance": "Debt balance",
+      "tracked_balance": "Tracked balance",
       "wallet_balances_msg": "What are my current wallet balances?",
       "spending_analysis_msg": "Show my spending analysis over the last 30 days.",
       "latest_transactions_msg": "Show my recent transactions.",
       "monthly_summary_msg": "Give a summary of my income vs expenses over the last 3 months.",
-      "top_expenses_msg": "Which category do I spend the most in?"
+      "top_expenses_msg": "Which category do I spend the most in?",
+      "avg_burn_msg": "What is my average burn rate for the selected period?",
+      "budget_usage_msg": "How is my budget usage looking for the selected period?",
+      "debt_balance_msg": "Show my outstanding debts and receivables, including who owes whom and the remaining balances.",
+      "tracked_balance_msg": "What is the total balance across my included accounts right now?"
     }
   },
   "transactions": {
@@ -1588,7 +1596,7 @@
         "largest_share_expense": "Largest share of monthly expense",
         "expense_by_category": "Expense by category",
         "largest_transactions": "Largest transactions",
-        "vendor": "Vendor",
+        "vendor": "Description",
         "no_transactions_found": "No transactions found",
         "summary_recommendations": "Summary & Recommendations"
       },

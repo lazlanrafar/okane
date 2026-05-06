@@ -58,7 +58,16 @@ export function UpgradeClient({ dictionary, settings, workspace }: UpgradeClient
 
   const checkoutMutation = useMutation({
     mutationFn: async (priceId?: string | null) => {
-      const result = await createCheckoutSession(priceId, workspace?.id, "/settings/billing", "subscription");
+      const result = await createCheckoutSession(
+        priceId,
+        workspace?.id,
+        "/settings/billing",
+        "subscription",
+        undefined,
+        undefined,
+        undefined,
+        billingCycle,
+      );
       if (!result.success) throw new Error(result.error);
       return result.data;
     },

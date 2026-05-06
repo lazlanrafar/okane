@@ -132,6 +132,26 @@ export function OverviewCards({
       label: dictionary.overview.chips.top_expenses,
       message: dictionary.overview.chips.top_expenses_msg,
     },
+    {
+      icon: <Flame className="h-3.5 w-3.5" />,
+      label: dictionary.overview.chips.avg_burn,
+      message: dictionary.overview.chips.avg_burn_msg,
+    },
+    {
+      icon: <PiggyBank className="h-3.5 w-3.5" />,
+      label: dictionary.overview.chips.budget_usage,
+      message: dictionary.overview.chips.budget_usage_msg,
+    },
+    {
+      icon: <Receipt className="h-3.5 w-3.5" />,
+      label: dictionary.overview.chips.debt_balance,
+      message: dictionary.overview.chips.debt_balance_msg,
+    },
+    {
+      icon: <Wallet className="h-3.5 w-3.5" />,
+      label: dictionary.overview.chips.tracked_balance,
+      message: dictionary.overview.chips.tracked_balance_msg,
+    },
   ];
 
   const isLoading = loadingIncome || loadingExpense;
@@ -321,7 +341,10 @@ export function OverviewCards({
           </CardContent>
         </Card>
 
-        <Card className="rounded-none shadow-none transition-colors hover:border-primary/50">
+        <Card
+          className="cursor-pointer rounded-none shadow-none transition-colors hover:border-primary/50"
+          onClick={() => handleCardClick(dictionary.overview.chips.avg_burn_msg)}
+        >
           <CardHeader className="p-4 pb-2">
             <CardTitle className="flex items-center justify-between font-medium text-muted-foreground text-xs uppercase tracking-widest">
               Avg Burn
@@ -335,7 +358,10 @@ export function OverviewCards({
           </CardContent>
         </Card>
 
-        <Card className="rounded-none shadow-none transition-colors hover:border-primary/50">
+        <Card
+          className="cursor-pointer rounded-none shadow-none transition-colors hover:border-primary/50"
+          onClick={() => handleCardClick(dictionary.overview.chips.budget_usage_msg)}
+        >
           <CardHeader className="p-4 pb-2">
             <CardTitle className="flex items-center justify-between font-medium text-muted-foreground text-xs uppercase tracking-widest">
               Budget Usage
@@ -355,7 +381,10 @@ export function OverviewCards({
           </CardContent>
         </Card>
 
-        <Card className="rounded-none shadow-none transition-colors hover:border-primary/50">
+        <Card
+          className="cursor-pointer rounded-none shadow-none transition-colors hover:border-primary/50"
+          onClick={() => handleCardClick(dictionary.overview.chips.debt_balance_msg)}
+        >
           <CardHeader className="p-4 pb-2">
             <CardTitle className="flex items-center justify-between font-medium text-muted-foreground text-xs uppercase tracking-widest">
               Debt Balance
@@ -371,7 +400,10 @@ export function OverviewCards({
           </CardContent>
         </Card>
 
-        <Card className="rounded-none shadow-none transition-colors hover:border-primary/50">
+        <Card
+          className="cursor-pointer rounded-none shadow-none transition-colors hover:border-primary/50"
+          onClick={() => handleCardClick(dictionary.overview.chips.tracked_balance_msg)}
+        >
           <CardHeader className="p-4 pb-2">
             <CardTitle className="flex items-center justify-between font-medium text-muted-foreground text-xs uppercase tracking-widest">
               Tracked Balance

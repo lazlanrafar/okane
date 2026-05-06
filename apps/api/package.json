@@ -6,6 +6,8 @@
     "dev": "bun run --watch index.ts",
     "build": "bun build index.ts --outdir dist --target bun",
     "start": "bun run dist/index.js",
+    "billing:worker": "bun run scripts/billing-worker.ts",
+    "storage:worker": "bun run scripts/storage-worker.ts",
     "lint": "biome lint",
     "test": "bun test",
     "typecheck": "tsc --noEmit"

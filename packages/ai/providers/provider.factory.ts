@@ -18,19 +18,19 @@ export abstract class ProviderFactory {
     tools?: any[],
     onToolCall?: (name: string, args: any) => Promise<any>
   ): Promise<ChatResponse> {
-    // 1. Gemini
-    if (options.geminiKey) {
-      try {
-        return await GeminiProvider.chat(messages, systemPrompt, options.geminiKey, tools, onToolCall);
-      } catch (e: any) {
-        log.error(`Gemini failed: ${e.message}. Falling back to OpenAI...`);
-      }
-    }
-
-    // 2. OpenAI
+    // 1. OpenAI
     if (options.openaiKey) {
       try {
         return await OpenAIProvider.chat(messages, systemPrompt, options.openaiKey, tools, onToolCall);
+      } catch (e: any) {
+        log.error(`OpenAI failed: ${e.message}. Falling back to Gemini...`);
+      }
+    }
+
+    // 2. Gemini
+    if (options.geminiKey) {
+      try {
+        return await GeminiProvider.chat(messages, systemPrompt, options.geminiKey, tools, onToolCall);
       } catch (e: any) {
         log.error(`OpenAI failed: ${e.message}. Falling back to Claude...`);
       }
@@ -45,11 +45,11 @@ export abstract class ProviderFactory {
   }
 
   static async generateTitle(message: string, options: ProviderOptions): Promise<string> {
-      if (options.geminiKey) {
-          try { return await GeminiProvider.generateTitle(message, options.geminiKey); } catch(e) {}
-      }
       if (options.openaiKey) {
           try { return await OpenAIProvider.generateTitle(message, options.openaiKey); } catch(e) {}
+      }
+      if (options.geminiKey) {
+          try { return await GeminiProvider.generateTitle(message, options.geminiKey); } catch(e) {}
       }
       if (options.anthropicKey) {
           try { return await ClaudeProvider.generateTitle(message, options.anthropicKey); } catch(e) {}

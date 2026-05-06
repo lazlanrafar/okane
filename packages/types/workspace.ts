@@ -19,11 +19,16 @@ export type Workspace = {
   country?: string | null;
   plan_id?: string | null;
   plan_status: string;
+  plan_billing_interval?: "monthly" | "annual" | null;
   mayar_customer_email?: string | null;
   mayar_transaction_id?: string | null;
+  plan_started_at?: string | null;
   plan_current_period_end?: string | null;
+  plan_overdue_started_at?: string | null;
+  plan_last_reminder_at?: string | null;
   storage_violation_at?: string | null;
   ai_tokens_used: number;
+  ai_tokens_reset_at: string;
   vault_size_used_bytes: number;
   extra_ai_tokens: number;
   extra_vault_size_mb: number;

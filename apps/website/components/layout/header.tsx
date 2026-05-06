@@ -36,7 +36,6 @@ const RESOURCES_MENU = [
   { title: "AI Integrations", description: "Connect AI tools to your business data.", href: "/integrations" },
   { title: "Developer & API", description: "Programmatic access to Oewang.", href: "/docs" },
   { title: "Chat", description: "Run your business from any chat app.", href: "/chat" },
-  { title: "Computer", description: "Autonomous agents for your business.", href: "/computer" },
 ];
 
 export function Header({

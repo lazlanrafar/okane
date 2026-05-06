@@ -176,11 +176,11 @@ export function SpendingCanvas({ dataOverride }: { dataOverride?: Record<string,
                 <Table>
                   <TableHeader>
                     <TableRow className="border-b-0">
-                      <TableHead className="font-normal text-[#707070] text-[12px] dark:text-[#666666]">
+                      <TableHead className="w-[84px] whitespace-nowrap font-normal text-[#707070] text-[12px] dark:text-[#666666]">
                         {t("chat.canvas.common.date", "Date")}
                       </TableHead>
                       <TableHead className="font-normal text-[#707070] text-[12px] dark:text-[#666666]">
-                        {t("chat.canvas.spending.vendor", "Vendor")}
+                        {t("chat.canvas.spending.vendor", "Description")}
                       </TableHead>
                       <TableHead className="font-normal text-[#707070] text-[12px] dark:text-[#666666]">
                         {t("chat.canvas.common.category", "Category")}
@@ -188,7 +188,7 @@ export function SpendingCanvas({ dataOverride }: { dataOverride?: Record<string,
                       <TableHead className="text-right font-normal text-[#707070] text-[12px] dark:text-[#666666]">
                         {t("chat.canvas.common.amount", "Amount")}
                       </TableHead>
-                      <TableHead className="text-right font-normal text-[#707070] text-[12px] dark:text-[#666666]">
+                      <TableHead className="border-r text-right font-normal text-[#707070] text-[12px] dark:text-[#666666]">
                         {t("chat.canvas.common.share", "Share")}
                       </TableHead>
                     </TableRow>
@@ -212,13 +212,25 @@ export function SpendingCanvas({ dataOverride }: { dataOverride?: Record<string,
                             index === transactions.slice(0, 10).length - 1 && "border-b-0",
                           )}
                         >
-                          <TableCell className="text-[12px] text-black dark:text-white">{date}</TableCell>
-                          <TableCell className="text-[12px] text-black dark:text-white">{vendor}</TableCell>
-                          <TableCell className="text-[12px] text-black dark:text-white">{category}</TableCell>
+                          <TableCell className="w-[84px] whitespace-nowrap text-[12px] text-black dark:text-white">
+                            {date}
+                          </TableCell>
+                          <TableCell
+                            className="max-w-[220px] truncate text-[12px] text-black dark:text-white"
+                            title={vendor}
+                          >
+                            {vendor}
+                          </TableCell>
+                          <TableCell
+                            className="max-w-[140px] truncate text-[12px] text-black dark:text-white"
+                            title={category}
+                          >
+                            {category}
+                          </TableCell>
                           <TableCell className="text-right font-sans text-[12px] text-black dark:text-white">
                             {formatAmount({ amount, currency, locale, maximumFractionDigits: 0 })}
                           </TableCell>
-                          <TableCell className="text-right text-[#707070] text-[12px] dark:text-[#666666]">
+                          <TableCell className="border-r text-right text-[#707070] text-[12px] dark:text-[#666666]">
                             {share.toFixed(1)}%
                           </TableCell>
                         </TableRow>

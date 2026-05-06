@@ -878,11 +878,19 @@
       "latest_transactions": "Transaksi terbaru",
       "monthly_summary": "Ringkasan bulanan",
       "top_expenses": "Pengeluaran teratas",
+      "avg_burn": "Rata-rata burn",
+      "budget_usage": "Pemakaian budget",
+      "debt_balance": "Saldo utang",
+      "tracked_balance": "Saldo terlacak",
       "wallet_balances_msg": "Berapa saldo dompet saya saat ini?",
       "spending_analysis_msg": "Berikan analisis pengeluaran saya selama 30 hari terakhir.",
       "latest_transactions_msg": "Tunjukkan transaksi terbaru saya.",
       "monthly_summary_msg": "Berikan ringkasan pemasukan vs pengeluaran saya selama 3 bulan terakhir.",
-      "top_expenses_msg": "Kategori apa yang paling banyak saya habiskan?"
+      "top_expenses_msg": "Kategori apa yang paling banyak saya habiskan?",
+      "avg_burn_msg": "Berapa rata-rata burn rate saya untuk periode yang dipilih?",
+      "budget_usage_msg": "Bagaimana pemakaian budget saya untuk periode yang dipilih?",
+      "debt_balance_msg": "Tunjukkan utang dan piutang saya yang masih terbuka, termasuk siapa berutang ke siapa dan sisa saldonya.",
+      "tracked_balance_msg": "Berapa total saldo akun yang termasuk dalam perhitungan saya saat ini?"
     }
   },
   "transactions": {
@@ -1607,7 +1615,7 @@
         "largest_share_expense": "Porsi terbesar dari pengeluaran bulanan",
         "expense_by_category": "Pengeluaran per kategori",
         "largest_transactions": "Transaksi terbesar",
-        "vendor": "Vendor",
+        "vendor": "Deskripsi",
         "no_transactions_found": "Tidak ada transaksi",
         "summary_recommendations": "Ringkasan & Rekomendasi"
       },

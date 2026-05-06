@@ -156,6 +156,11 @@ export function WorkspaceForm({ plans }: WorkspaceFormProps) {
       createResult.data.id,
       `/${locale}/overview`,
       "subscription",
+      undefined,
+      undefined,
+      undefined,
+      billing,
+      locale,
     );
 
     if (!checkoutResult.success || !checkoutResult.data.url) {

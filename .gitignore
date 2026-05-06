@@ -57,3 +57,5 @@ apps/native/**/*.freezed.dart
 
 # FVM Version Cache
 .fvm/
+# Scripts
+scripts/test-*-token.ts

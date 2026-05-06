@@ -866,11 +866,19 @@
       "latest_transactions": "最新の取引",
       "monthly_summary": "毎月の概要",
       "top_expenses": "主な支出",
+      "avg_burn": "平均バーン",
+      "budget_usage": "予算使用率",
+      "debt_balance": "負債残高",
+      "tracked_balance": "集計対象残高",
       "wallet_balances_msg": "現在のウォレット残高はいくらですか？",
       "spending_analysis_msg": "過去30日間の支出分析を表示して。",
       "latest_transactions_msg": "最近の取引を表示して。",
       "monthly_summary_msg": "過去3ヶ月間の収入対支出の概要を教えて。",
-      "top_expenses_msg": "どのカテゴリで一番お金を使っていますか？"
+      "top_expenses_msg": "どのカテゴリで一番お金を使っていますか？",
+      "avg_burn_msg": "選択した期間の平均バーンレートを教えて。",
+      "budget_usage_msg": "選択した期間の予算使用状況を教えて。",
+      "debt_balance_msg": "未返済の負債と債権を、誰が誰にいくら残っているかも含めて表示して。",
+      "tracked_balance_msg": "集計対象の口座の現在合計残高はいくらですか？"
     }
   },
   "transactions": {
